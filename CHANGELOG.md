@@ -2,6 +2,14 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
+## 1.0.0
+
+- Nova v1 promotes the dogfooded beta.5 runtime without behavior changes. It
+  preserves the accepted workspace, session, Yazi, Helix, popup, and channel
+  contracts while graduating the package identity to `Yazelix Nova (1.0.0)`.
+- Release channel badges use the stable form `NOVA 1.0 STABLE`, `NOVA 1.0 MAIN`,
+  or `NOVA 1.0 EDGE`.
+
 ## 1.0.0-beta.5
 
 - The Codex quota widget refreshes official limits once per minute without
