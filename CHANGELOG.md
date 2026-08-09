@@ -2,6 +2,11 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
+## Unreleased
+
+- Canonical source and first-party component repositories live in the
+  `Yazelix` organization; existing commands and package names remain stable.
+
 ## 1.0.0
 
 - Nova v1 promotes the dogfooded beta.5 runtime without behavior changes. It
@@ -9,8 +14,6 @@ User-visible runtime changes for Yazelix Nova live here.
   contracts while graduating the package identity to `Yazelix Nova (1.0.0)`.
 - Release channel badges use the stable form `NOVA 1.0 STABLE`, `NOVA 1.0 MAIN`,
   or `NOVA 1.0 EDGE`.
-- Canonical source and first-party component repositories live in the
-  `Yazelix` organization; existing commands and package names remain stable.
 
 ## 1.0.0-beta.5
 
