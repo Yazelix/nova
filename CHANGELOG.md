@@ -2,13 +2,10 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
-## Unreleased
+## 1.0.0
 
 - Canonical source and first-party component repositories live in the
   `Yazelix` organization; existing commands and package names remain stable.
-
-## 1.0.0
-
 - Nova v1 promotes the dogfooded beta.5 runtime without behavior changes. It
   preserves the accepted workspace, session, Yazi, Helix, popup, and channel
   contracts while graduating the package identity to `Yazelix Nova (1.0.0)`.
