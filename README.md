@@ -5,11 +5,11 @@
 </div>
 
 Yazelix Nova is a Nix-packaged terminal workspace built around
-[Mars](https://github.com/luccahuguet/mars) (a Rio-derived fork), a thin
-[Yazelix-owned Zellij fork](https://github.com/luccahuguet/yazelix-zellij),
+[Mars](https://github.com/Yazelix/mars) (a Rio-derived fork), a thin
+[Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
 Yazi, Nushell (with packaged Bash, Zsh, and Fish alternatives), a lazygit popup (but you can configure other git clients!), and
 an optional coding agent popup. It uses the
-[Yazelix Helix fork](https://github.com/luccahuguet/yazelix-helix) by default
+[Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
 opens the desktop workspace through Mars, while `yzx enter` will open Yazelix in any capable terminal emulator (Mars
 provides tighter Yazelix integration, though) or over SSH. Great defaults out of the box!
@@ -306,18 +306,18 @@ Yazelix assembles focused first-party forks, plugins, libraries, and commands:
 
 | Component | Yazelix role |
 | --- | --- |
-| [Mars](https://github.com/luccahuguet/mars) | GUI terminal used by `yzx launch`, with Kitty graphics, cursor shaders, and Yazelix session integration |
-| [Yazelix Zellij](https://github.com/luccahuguet/yazelix-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
-| [Yazelix Helix](https://github.com/luccahuguet/yazelix-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
-| [Yazelix Zellij Pane Orchestrator](https://github.com/luccahuguet/yazelix-zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
-| [Yazelix Zellij Popup](https://github.com/luccahuguet/yazelix-zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
-| [Yazelix Zellij Bar](https://github.com/luccahuguet/yazelix-zellij-bar) | Zellij plugin package for the compact top bar, tabs, modes, session details, and status widgets |
-| [Ratconfig](https://github.com/luccahuguet/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
-| [Yazelix Screen](https://github.com/luccahuguet/yazelix-screen) | Terminal welcome animations and the separately packaged GPL aquarium exposed through `yzx screen` |
-| [Yazelix Cursors](https://github.com/luccahuguet/yazelix-cursors) | Shared cursor presets and validation for Ratconfig, plus palettes and shader assets for Mars |
-| [Yazi Bistro](https://github.com/luccahuguet/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
-| [auto-layout.yazi](https://github.com/luccahuguet/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
-| [zjstatus](https://github.com/luccahuguet/zjstatus) | Fork that gives the bar activity-aware tab markers without changing native Zellij tab names |
+| [Mars](https://github.com/Yazelix/mars) | GUI terminal used by `yzx launch`, with Kitty graphics, cursor shaders, and Yazelix session integration |
+| [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
+| [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
+| [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
+| [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
+| [Zellij Status Kit](https://github.com/Yazelix/zellij-status-kit) | Package for the compact top bar, tabs, modes, session details, and status widgets |
+| [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
+| [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations and the separately packaged GPL aquarium exposed through `yzx screen` |
+| [Yazelix Cursors](https://github.com/Yazelix/cursors) | Shared cursor presets and validation for Ratconfig, plus palettes and shader assets for Mars |
+| [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
+| [auto-layout.yazi](https://github.com/Yazelix/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
+| [zjstatus](https://github.com/Yazelix/zjstatus) | Fork that gives the bar activity-aware tab markers without changing native Zellij tab names |
 
 ## Configuration
 
@@ -432,6 +432,6 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,079 lines** of tracked text project files. The
+Yazelix owns **27,081 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.

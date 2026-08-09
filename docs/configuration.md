@@ -230,7 +230,7 @@ native values apply on the next managed Yazi launch or sidebar reopen
 
 ### Yazi flavors
 
-[Yazi Bistro](https://github.com/luccahuguet/yazi-bistro) supplies 22 complete,
+[Yazi Bistro](https://github.com/Yazelix/yazi-bistro) supplies 22 complete,
 pinned flavors with provenance and license metadata: 17 dark and 5 light.
 Press `8` in Ratconfig to choose from the corresponding packaged pool.
 User-installed flavors without a Bistro classification appear in both pools.

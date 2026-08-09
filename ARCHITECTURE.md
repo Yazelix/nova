@@ -85,7 +85,7 @@ One owner per concern. Paths are the durable map.
 | `crates/yzx-yazi-config/` | Managed Yazi config-home materialization, native TOML layering, and runtime-only flavor projection |
 | `crates/yzx-tutor/` | Tutor CLI and lessons |
 | `runtime/yzx-helix.sh` (`yzx-hx`) | Effective Helix config + Steel wiring |
-| `yazelix-screen` (child) | Screen styles; packaged as `yzx screen` |
+| Anima (`yazelix-screen` child package) | Screen styles; packaged as `yzx screen` |
 | `checks/` | Build-time contract guards |
 
 ### Config UI
@@ -201,7 +201,7 @@ custom popup entry.
 | yazelix-zellij-pane-orchestrator | Focus, sidebar walk, workspace state, and popup request routing |
 | yazelix-zellij-bar | Top bar render + widgets |
 | ratconfig | Config UI toolkit |
-| yazelix-screen | Welcome / screen animations |
+| Anima | Welcome / screen animations |
 | yazi-bistro | Complete pinned Yazi flavors, provenance, licenses, dark/light classification, and the packaged light default |
 
 This repo packages them and applies product policy only.

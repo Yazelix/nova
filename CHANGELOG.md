@@ -9,6 +9,8 @@ User-visible runtime changes for Yazelix Nova live here.
   contracts while graduating the package identity to `Yazelix Nova (1.0.0)`.
 - Release channel badges use the stable form `NOVA 1.0 STABLE`, `NOVA 1.0 MAIN`,
   or `NOVA 1.0 EDGE`.
+- Canonical source and first-party component repositories live in the
+  `Yazelix` organization; existing commands and package names remain stable.
 
 ## 1.0.0-beta.5
 
@@ -194,7 +196,7 @@ User-visible runtime changes for Yazelix Nova live here.
   Native refresh still reruns the registered Git fetchers without producing
   repeated failed-task notifications.
 - Managed Yazi packages all 22 complete dark and light flavors from
-  [Yazi Bistro](https://github.com/luccahuguet/yazi-bistro). Ratconfig
+  [Yazi Bistro](https://github.com/Yazelix/yazi-bistro). Ratconfig
   classifies the 17 dark and 5 light packaged choices into separate pools,
   while user-installed unclassified flavors remain available in both. New
   managed Yazi processes follow root `appearance.mode`: light mode inherits

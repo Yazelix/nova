@@ -15,40 +15,40 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mars = {
-      url = "github:luccahuguet/mars";
+      url = "github:Yazelix/mars";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixCursors = {
-      url = "github:luccahuguet/yazelix-cursors";
+      url = "github:Yazelix/cursors";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:luccahuguet/yazelix-zellij/bbccdea6eda81f314151160f9b3f8882a26478ec";
+      url = "github:Yazelix/nova-zellij/bbccdea6eda81f314151160f9b3f8882a26478ec";
       flake = false;
     };
     yazelixHelix = {
-      url = "github:luccahuguet/yazelix-helix/7e6cd307d00783c16ad4cff99ed71936d34f6572";
+      url = "github:Yazelix/nova-helix/7e6cd307d00783c16ad4cff99ed71936d34f6572";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellijPopup = {
-      url = "github:luccahuguet/yazelix-zellij-popup";
+      url = "github:Yazelix/zellij-popup";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellijBar = {
-      url = "github:luccahuguet/yazelix-zellij-bar";
+      url = "github:Yazelix/zellij-status-kit";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zjstatus.follows = "zjstatus";
     };
     yazelixZellijPaneOrchestrator = {
-      url = "github:luccahuguet/yazelix-zellij-pane-orchestrator";
+      url = "github:Yazelix/zellij-pane-orchestrator";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixScreen = {
-      url = "github:luccahuguet/yazelix-screen";
+      url = "github:Yazelix/anima";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     autoLayoutYazi = {
-      url = "github:luccahuguet/auto-layout.yazi";
+      url = "github:Yazelix/auto-layout.yazi";
       flake = false;
     };
     starshipYazi = {
@@ -56,7 +56,7 @@
       flake = false;
     };
     yaziBistro = {
-      url = "github:luccahuguet/yazi-bistro";
+      url = "github:Yazelix/yazi-bistro";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yaziSchemas = {
@@ -64,7 +64,7 @@
       flake = false;
     };
     zjstatus = {
-      url = "github:luccahuguet/zjstatus/yazelix-tab-activity-pipe";
+      url = "github:Yazelix/zjstatus/yazelix-tab-activity-pipe";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
