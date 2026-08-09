@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   publish_x86_64_linux:
-    if: github.repository == 'luccahuguet/yazelix'
+    if: github.repository_id == '746026727'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -85,7 +85,7 @@ jobs:
             .#checks.x86_64-linux.home_manager
 
   publish_aarch64_darwin:
-    if: github.repository == 'luccahuguet/yazelix'
+    if: github.repository_id == '746026727'
     runs-on: macos-15
     timeout-minutes: 90
     env:

@@ -6,13 +6,13 @@ and measured closure sizes
 
 ## Release channels
 
-Use `github:luccahuguet/yazelix/stable` for normal installs. Maintainers promote
+Use `github:Yazelix/nova/stable` for normal installs. Maintainers promote
 an exact checked and dogfooded `main` revision at most once per week, with
 earlier promotions reserved for urgent fixes. A Nix lock file keeps that
 revision until its owner requests an update.
 
-Use `github:luccahuguet/yazelix/main#yazelix-main` for the development channel
-and `github:luccahuguet/yazelix/edge#yazelix-edge` for experimental dogfooding.
+Use `github:Yazelix/nova/main#yazelix-main` for the development channel
+and `github:Yazelix/nova/edge#yazelix-edge` for experimental dogfooding.
 Immutable `nova-v*` tags identify exact releases.
 
 The source reference and package output are both explicit because an immutable
@@ -22,9 +22,9 @@ the three outputs install `Yazelix Nova (Stable)`, `Yazelix Nova (Main)`, and
 the channel you want, or run all three in order to expose every launcher:
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable
-nix profile add --refresh github:luccahuguet/yazelix/main#yazelix-main --priority 6
-nix profile add --refresh github:luccahuguet/yazelix/edge#yazelix-edge --priority 7
+nix profile add --refresh github:Yazelix/nova/stable
+nix profile add --refresh github:Yazelix/nova/main#yazelix-main --priority 6
+nix profile add --refresh github:Yazelix/nova/edge#yazelix-edge --priority 7
 ```
 
 The priorities resolve only shared profile paths. Each desktop entry keeps an
@@ -65,26 +65,26 @@ their channel-qualified desktop and runtime identities
 Install the external-editor variant with:
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable#yazelix-no-helix
+nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-helix
 ```
 
 Install the Mars-free variant with:
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable#yazelix-no-mars
+nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-mars
 ```
 
 Install the host-Yazi variant after providing `yazi` and `ya` on the launch
 PATH:
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable#yazelix-no-yazi
+nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-yazi
 ```
 
 The modifiers compose mechanically:
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable#yazelix-no-mars-no-helix-no-yazi
+nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-mars-no-helix-no-yazi
 ```
 
 ## Capability matrix
@@ -192,7 +192,7 @@ Declare the stable input in the consumer flake:
 
 ```nix
 inputs.yazelix = {
-  url = "github:luccahuguet/yazelix/stable";
+  url = "github:Yazelix/nova/stable";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```

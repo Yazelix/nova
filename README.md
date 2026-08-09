@@ -89,20 +89,20 @@ unverified.
 ### Try without installing
 
 ```sh
-nix run github:luccahuguet/yazelix/stable -- launch
-nix run github:luccahuguet/yazelix/stable#yazelix-no-mars -- enter
+nix run github:Yazelix/nova/stable -- launch
+nix run github:Yazelix/nova/stable#yazelix-no-mars -- enter
 ```
 
 If the one-off launch fails, inspect the owned runtime setup with:
 
 ```sh
-nix run github:luccahuguet/yazelix/stable -- doctor
+nix run github:Yazelix/nova/stable -- doctor
 ```
 
 ### Install in a Nix profile
 
 ```sh
-nix profile add --refresh github:luccahuguet/yazelix/stable
+nix profile add --refresh github:Yazelix/nova/stable
 yzx launch
 ```
 
@@ -119,7 +119,7 @@ or Home Manager-owned files. Run the bridge once when you need to preserve
 mutable Classic settings:
 
 ```sh
-nix run github:luccahuguet/yazelix/v17.12#yazelix -- launch
+nix run github:Yazelix/nova/v17.12#yazelix -- launch
 ```
 
 If your Classic settings match packaged defaults, start with Nova's packaged
