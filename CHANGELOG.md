@@ -12,6 +12,9 @@ User-visible runtime changes for Yazelix Nova live here.
   completion owner. Users can import history once; repeating the command
   duplicates records. Atuin retains ownership of accounts, sync, AI, daemons,
   the pty proxy, and native config.
+- Popup configuration changes refresh in active Zellij sessions. Failed popup
+  commands remain toggle-managed instead of allowing duplicate panes; exited
+  keep-alive panes close when toggled while live keep-alive panes still hide.
 
 ## 1.0.0
 

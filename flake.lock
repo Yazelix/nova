@@ -657,11 +657,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785628822,
-        "narHash": "sha256-Mw1p6spwPsFp0gkSWUsboglNgyXOF7BncCjwJCv6Cro=",
+        "lastModified": 1786379484,
+        "narHash": "sha256-BVJqnDr5IKM4tsowvjTZijOFecnVMJESzRzsrLfs5Oo=",
         "owner": "Yazelix",
         "repo": "zellij-popup",
-        "rev": "f4c7c875be7a426a8756f5885b032d64326d34cd",
+        "rev": "ecd07bd7b3e47a4048e4adf9a64f4a0c06ca1c43",
         "type": "github"
       },
       "original": {
