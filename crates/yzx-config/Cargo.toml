@@ -9,4 +9,4 @@ ratatui = { version = "0.30.0", default-features = false, features = ["crossterm
 ratconfig = { git = "https://github.com/Yazelix/ratconfig", rev = "e6ec2ebfe84b2358186410680cbcaf0564eb59a2" }
 serde_json = "1.0"
 toml = "1.1"
-yazelix_cursors = { path = "../../../yazelix-cursors" }
+yazelix_cursors = { path = "../../../cursors" }

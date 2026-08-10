@@ -648,6 +648,10 @@ mod tests {
                 "welcome.enabled must be true or false",
             ),
             (
+                "[shell]\natuin = \"yes\"\n",
+                "shell.atuin must be true or false",
+            ),
+            (
                 "[popups.build]\ncommand = \"btm\"\nkeybinding = \"Alt B\"\ncolor = \"blue\"\n",
                 "popups.build.color is not supported; use command, args, title, keybinding, or keep_alive",
             ),
@@ -660,6 +664,7 @@ mod tests {
         for raw in [
             "",
             "[welcome]\nenabled = false\n",
+            "[shell]\natuin = false\n",
             "[popups.build]\ncommand = \"btm\"\nkeybinding = \"Alt B\"\n\n[popups.logs]\ncommand = \"lnav\"\nargs = [\"app.log\"]\nkeybinding = \"Alt Shift P\"\nkeep_alive = true\n",
         ] {
             validate_root_config(&parse_toml_value(raw).unwrap()).unwrap();
@@ -732,6 +737,7 @@ mod tests {
             (APPEARANCE_MODE_PATH, json!("light"), Some("light")),
             (OPEN_LOG_LEVEL_PATH, json!("debug"), None),
             (SHELL_PROGRAM_PATH, json!("fish"), None),
+            (SHELL_ATUIN_PATH, json!(false), Some("false")),
             (EDITOR_COMMAND_PATH, json!("nvim"), Some("nvim")),
             (AGENT_COMMAND_PATH, json!("codex"), Some("codex")),
             (
@@ -744,6 +750,18 @@ mod tests {
         ] {
             assert_write_round_trip(&path, field_path, value, read_back);
         }
+        unset_config_field(&path, SHELL_ATUIN_PATH).unwrap();
+        assert_eq!(
+            read_config_field(&path, config_field(SHELL_ATUIN_PATH).unwrap()).unwrap(),
+            "true"
+        );
+        assert_eq!(
+            get_toml_path(
+                &read_toml_file_value(&path, "config.toml").unwrap(),
+                SHELL_ATUIN_PATH
+            ),
+            None
+        );
 
         for (field_path, value) in [
             (KEYBINDINGS_CONFIG_PATH, "Alt Shift C"),
@@ -1074,6 +1092,7 @@ mod tests {
         );
         assert!(!model.tabs.contains(&"shell".to_string()));
         assert_config_field(&model, SHELL_PROGRAM_PATH, "string", "new panes");
+        assert_config_field(&model, SHELL_ATUIN_PATH, "boolean", "new shells");
         let editor = model_field(&model, EDITOR_COMMAND_PATH);
         assert_config_field(&model, EDITOR_COMMAND_PATH, "string", "new opens");
         assert!(matches!(
@@ -1182,6 +1201,7 @@ mod tests {
             [
                 APPEARANCE_MODE_PATH,
                 SHELL_PROGRAM_PATH,
+                SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
                 AGENT_COMMAND_PATH,
                 WELCOME_ENABLED_PATH,

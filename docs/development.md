@@ -63,11 +63,11 @@ Use local sibling repositories while hacking runtime inputs:
 
 ```sh
 nix run --override-input mars ../mars
-nix run --override-input yazelixZellij ../yazelix-zellij
-nix run --override-input yazelixHelix ../yazelix-helix
-nix run --override-input yazelixZellijPopup ../yazelix-zellij-popup
-nix run --override-input yazelixZellijBar ../yazelix-zellij-bar
-nix run --override-input yazelixZellijPaneOrchestrator ../yazelix-zellij-pane-orchestrator
+nix run --override-input yazelixZellij ../nova-zellij
+nix run --override-input yazelixHelix ../nova-helix
+nix run --override-input yazelixZellijPopup ../zellij-popup
+nix run --override-input yazelixZellijBar ../zellij-status-kit
+nix run --override-input yazelixZellijPaneOrchestrator ../zellij-pane-orchestrator
 nix run --override-input yaziBistro ../yazi-bistro
 ```
 
@@ -109,15 +109,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 3589 |
+| Markdown | 3662 |
 | JSON | 117 |
-| Nix | 1693 |
+| Nix | 1703 |
 | Shell | 87 |
 | YAML | 456 |
-| TOML | 468 |
+| TOML | 470 |
 | KDL | 252 |
 | Nu | 11 |
 | Lua | 245 |
-| Rust | 19872 |
+| Rust | 20020 |
 | Text | 71 |
-| Total | 27081 |
+| Total | 27314 |

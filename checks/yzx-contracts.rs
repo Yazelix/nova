@@ -74,12 +74,12 @@ fn main() {
         &yzx_shell,
         &user_config,
         &runtime,
-        "print $env.STARSHIP_SHELL; print $env.STARSHIP_CONFIG; print (do $env.PROMPT_COMMAND_RIGHT); print ((^starship print-config) | str contains 'format = \"$all\"'); print $env.YZX_USER_ENV_TEST; print $env.YZX_USER_CONFIG_TEST; ^carapace --version | ignore; ^zoxide --version | ignore; print ok",
+        "print $env.STARSHIP_SHELL; print $env.STARSHIP_CONFIG; print (do $env.PROMPT_COMMAND_RIGHT); print ((^starship print-config) | str contains 'format = \"$all\"'); print $env.YZX_USER_ENV_TEST; print $env.YZX_USER_CONFIG_TEST; print ('ATUIN_SESSION' in $env); print ($env.config.keybindings | where name == 'atuin' | length); print ($env.config.keybindings | where name == 'atuin' | get keycode.0); print ($env.config.hooks.pre_execution | length); print ($env.config.hooks.pre_prompt | length); print (do $env.config.completions.external.completer [git che] | where display == 'checkout' | length); ^zoxide --version | ignore; ^atuin --version",
     );
     assert_eq!(
         stdout,
         format!(
-            "nu\n{}\n::<>\ntrue\nenv-ok\nconfig-ok\nok",
+            "nu\n{}\n::<>\ntrue\nenv-ok\nconfig-ok\ntrue\n1\nchar_r\n1\n1\n1\natuin 18.16.1 (NO_GIT)",
             runtime.join("yazelix/starship.toml").display()
         )
     );
@@ -139,9 +139,78 @@ fn main() {
             "source \"/nix/store/",
             "$env.YZX_MISE_TEST = \"mise-ok\"",
             &user_config_source,
+            "managed Atuin init failed",
         ],
         "managed Nu mise layering",
     );
+
+    let atuin = PathBuf::from(run_nu(
+        &yzx_shell,
+        &empty_config,
+        &temp.path.join("atuin-path-run"),
+        "which atuin | first | get path | print",
+    ));
+    assert!(
+        atuin.starts_with("/nix/store") && atuin.ends_with("bin/atuin"),
+        "managed Nu resolved non-packaged Atuin: {}",
+        atuin.display()
+    );
+    let user_atuin_init = user_nu.join("atuin.nu");
+    fs::write(
+        &user_atuin_init,
+        successful_stdout(
+            Command::new(&atuin)
+                .args(["init", "nu", "--disable-up-arrow"])
+                .env("HOME", &temp.path)
+                .env("XDG_CONFIG_HOME", &temp.path),
+            "packaged atuin init nu",
+        ),
+    )
+    .unwrap();
+    fs::write(
+        user_nu.join("config.nu"),
+        format!(
+            "source \"{}\"\n$env.YZX_USER_CONFIG_TEST = \"config-ok\"\n",
+            user_atuin_init.display()
+        ),
+    )
+    .unwrap();
+    let user_atuin_stdout = run_nu(
+        &yzx_shell,
+        &user_config,
+        &temp.path.join("user-atuin-run"),
+        "print $env.YZX_USER_CONFIG_TEST; print ($env.config.keybindings | where name == 'atuin' | length); print ($env.config.hooks.pre_execution | length); print ($env.config.hooks.pre_prompt | length)",
+    );
+    assert_eq!(user_atuin_stdout, "config-ok\n1\n1\n1");
+
+    let native_config = temp.path.join("native-config");
+    write_config_home(
+        &native_config,
+        "[shell]\nprogram = \"nu\"\natuin = false\n",
+    );
+    let native_stdout = run_nu(
+        &yzx_shell,
+        &native_config,
+        &temp.path.join("native-run"),
+        "print ('ATUIN_SESSION' in $env); print ($env.config.keybindings | where name == 'atuin' | length); print ($env.config.hooks.pre_execution? | default [] | length); print ($env.config.hooks.pre_prompt? | default [] | length); print ($nu | get history-enabled? | default true)",
+    );
+    assert_eq!(native_stdout, "false\n0\n0\n0\ntrue");
+
+    let nobind_config = temp.path.join("nobind-config");
+    let nobind_nu = nobind_config.join("nu");
+    fs::create_dir_all(&nobind_nu).unwrap();
+    fs::write(
+        nobind_nu.join("config.nu"),
+        "$env.ATUIN_NOBIND = \"1\"\n",
+    )
+    .unwrap();
+    let nobind_stdout = run_nu(
+        &yzx_shell,
+        &nobind_config,
+        &temp.path.join("nobind-run"),
+        "print ('ATUIN_SESSION' in $env); print ($env.config.keybindings | where name == 'atuin' | length); print ($env.config.hooks.pre_execution | length); print ($env.config.hooks.pre_prompt | length)",
+    );
+    assert_eq!(nobind_stdout, "true\n0\n1\n1");
     fs::write(out, "ok\n").unwrap();
 }
 
@@ -1099,6 +1168,7 @@ fn expect_config_ui(yzx: &Path) {
         &packaged_config, "packaged config.toml";
         "log_level = \"info\"",
         "program = \"nu\"",
+        "atuin = true",
         "command = \"yzx-hx\"",
         "command = \"auto\"",
         "args = []",
@@ -1123,6 +1193,7 @@ fn expect_config_ui(yzx: &Path) {
     for (path, expected) in [
         ("open.log_level", "info"),
         ("shell.program", "nu"),
+        ("shell.atuin", "true"),
         ("editor.command", "yzx-hx"),
         ("agent.command", "auto"),
         ("agent.args", "[]"),
@@ -1418,6 +1489,8 @@ fn run_nu_with_path(
             .arg("--commands")
             .arg(commands)
             .env("XDG_DATA_HOME", runtime)
+            .env("XDG_CONFIG_HOME", runtime)
+            .env("HOME", runtime)
             .env("YAZELIX_CONFIG_HOME", config_home)
             .env("YAZELIX_STATE_DIR", "")
             .env("STARSHIP_CONFIG", "ambient-starship.toml")

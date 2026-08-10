@@ -116,19 +116,19 @@ does not provide SSH connectivity or remote file synchronization
 
 ## Installed size
 
-The eight package closures measured on `x86_64-linux` with the 2026-07-26 lock
-are:
+The eight package closures measured on `x86_64-linux` on 2026-08-09 with the
+current lock are:
 
 | Package | Closure | Store paths |
 | --- | ---: | ---: |
-| `yazelix` | 2.28 GiB | 643 |
-| `yazelix-no-helix` | 2.01 GiB | 345 |
-| `yazelix-no-yazi` | 1.91 GiB | 524 |
-| `yazelix-no-helix-no-yazi` | 1.63 GiB | 226 |
-| `yazelix-no-mars` | 1.38 GiB | 615 |
-| `yazelix-no-mars-no-helix` | 1.10 GiB | 317 |
-| `yazelix-no-mars-no-yazi` | 0.98 GiB | 484 |
-| `yazelix-no-mars-no-helix-no-yazi` | 0.70 GiB | 186 |
+| `yazelix` | 2.34 GiB | 649 |
+| `yazelix-no-helix` | 2.06 GiB | 347 |
+| `yazelix-no-yazi` | 1.97 GiB | 530 |
+| `yazelix-no-helix-no-yazi` | 1.69 GiB | 228 |
+| `yazelix-no-mars` | 1.44 GiB | 621 |
+| `yazelix-no-mars-no-helix` | 1.16 GiB | 319 |
+| `yazelix-no-mars-no-yazi` | 1.04 GiB | 490 |
+| `yazelix-no-mars-no-helix-no-yazi` | 0.76 GiB | 188 |
 
 Removing managed Yazi saves 384.8 MiB when Mars is present and 406.4 MiB when
 Mars is absent because some Yazi dependencies are already shared with Mars.
@@ -147,20 +147,27 @@ Nova total
 | Mars | 1.13 GiB | Mars, Rio, graphics libraries, Python runtime, and packaged fonts/emoji |
 | Yazi + preview tools | 503.2 MiB | Yazi plus Chafa, FFmpeg, ImageMagick, Poppler, resvg, 7-Zip, `fd`, `rg`, `jq`, `fzf`, and `zoxide` |
 | Git | 373.8 MiB | Packaged Git CLI and its runtime dependencies |
-| Yazelix Helix | 327.6 MiB | Managed Helix, runtime queries, and packaged tree-sitter grammars |
+| Nova Helix | 327.6 MiB | Managed Helix, runtime queries, and packaged tree-sitter grammars |
 | Ratconfig / `yzx-config` | 108.9 MiB | Compiled configuration UI, validation, persistence, and runtime libraries |
 | Carapace | 105.9 MiB | Shell completion engine |
 | Nushell | 104.1 MiB | Managed shell executable and runtime libraries |
-| Yazelix Zellij | 101.9 MiB | Managed Zellij fork and runtime libraries |
+| Nova Zellij | 101.9 MiB | Managed Zellij fork and runtime libraries |
+| Atuin | 100.7 MiB | Local shell-history database, capture hooks, and interactive search |
 | tokenusage | 75.5 MiB | Codex/Claude usage widget helper |
 | zoxide | 60.8 MiB | Directory-jump tool and runtime libraries |
 | LazyGit | 59.4 MiB | Terminal Git client and runtime libraries |
 | Starship | 58.9 MiB | Managed prompt executable and runtime libraries |
 | fzf | 49.5 MiB | Fuzzy finder used by menus and Yazi |
-| Yazelix Zellij bar | 43.1 MiB | Top-bar WebAssembly plugin closure |
-| Yazelix Screen | 47.9 MiB | Welcome-screen renderer and separately packaged aquarium closure |
+| Anima | 47.9 MiB | Welcome-screen renderer and separately packaged aquarium closure |
+| Zellij Status Kit | 43.1 MiB | Top-bar WebAssembly plugin closure |
 | Zellij pane orchestrator | 2.1 MiB | Pane-orchestration WebAssembly plugin |
 | Zellij popup | 1.9 MiB | Popup WebAssembly plugin |
+
+Atuin's complete seven-path closure is 100.7 MiB, but most of it overlaps the
+existing package graph. Against the preceding edge revision, adding unmodified
+nixpkgs Atuin plus its generated init increased the full package by 54.7 MiB
+(2.33%) and two store paths. Nova does not maintain a feature-pruned Atuin
+derivation; the small possible saving does not justify another package owner.
 
 Nova's own top-level store output is only 48.9 KiB of NAR data. It is primarily
 a thin command and desktop-entry join that points at the modules above. The

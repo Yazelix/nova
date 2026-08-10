@@ -13,6 +13,21 @@ const NU: &str = "@nu@";
 const PACKAGED_NU: &str = "@packagedNu@";
 const PATH_PREFIX: &str = "@pathPrefix@";
 const YZX_CONFIG: &str = "@yzxConfig@";
+const ATUIN_INIT: &str = r#"if not (
+    (scope commands | any {|command| $command.name == "_atuin_search_cmd" }) or
+    ($env.config.keybindings? | default [] | any {|binding| ($binding.name? | default "") == "atuin" })
+) {
+    try {
+        if "ATUIN_NOBIND" in $env {
+            source "@atuinNoBindInit@"
+        } else {
+            source "@atuinInit@"
+        }
+    } catch {|error|
+        print --stderr $"yzx-nu: managed Atuin init failed: ($error.msg)"
+    }
+}
+"#;
 
 fn main() -> ExitCode {
     match run() {
@@ -44,21 +59,26 @@ fn run() -> io::Result<()> {
         )));
     }
 
-    let env_config = runtime_nu.join("env.nu");
-    let config = runtime_nu.join("config.nu");
     let mise_init = host_mise_init();
-    for (path, file, command, after_packaged) in [
-        (&env_config, "env.nu", "source-env", None),
-        (&config, "config.nu", "source", mise_init.as_deref()),
-    ] {
-        write_layered_config(
-            path,
-            command,
-            &packaged_nu.join(file),
-            &user_nu.join(file),
-            after_packaged,
-        )?;
-    }
+    let atuin_init = atuin_enabled()?.then_some(ATUIN_INIT);
+    let env_config = runtime_nu.join("env.nu");
+    write_layered_config(
+        &env_config,
+        "source-env",
+        &packaged_nu.join("env.nu"),
+        &user_nu.join("env.nu"),
+        None,
+        None,
+    )?;
+    let config = runtime_nu.join("config.nu");
+    write_layered_config(
+        &config,
+        "source",
+        &packaged_nu.join("config.nu"),
+        &user_nu.join("config.nu"),
+        mise_init.as_deref(),
+        atuin_init,
+    )?;
 
     let error = Command::new(NU)
         .arg("--env-config")
@@ -96,6 +116,7 @@ fn write_layered_config(
     packaged: &Path,
     user: &Path,
     after_packaged: Option<&str>,
+    after_user: Option<&str>,
 ) -> io::Result<()> {
     let mut contents = format!("{command} {}\n", nu_quote(packaged));
     if let Some(snippet) = after_packaged {
@@ -107,7 +128,31 @@ fn write_layered_config(
     if user.is_file() {
         contents.push_str(&format!("{command} {}\n", nu_quote(user)));
     }
+    if let Some(snippet) = after_user {
+        contents.push_str(snippet);
+    }
     atomic_write(path, contents)
+}
+
+fn atuin_enabled() -> io::Result<bool> {
+    let output = Command::new(YZX_CONFIG)
+        .args(["--get", "shell.atuin"])
+        .output()?;
+    if !output.status.success() {
+        return Err(io::Error::other(format!(
+            "shell.atuin lookup exited with {}: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    match String::from_utf8_lossy(&output.stdout).trim() {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        value => Err(io::Error::new(
+            ErrorKind::InvalidData,
+            format!("shell.atuin lookup returned {value:?}"),
+        )),
+    }
 }
 
 fn host_mise_init() -> Option<String> {

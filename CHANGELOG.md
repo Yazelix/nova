@@ -2,6 +2,17 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
+## Unreleased
+
+- Managed Nushell uses packaged Atuin 18.16.1 for local history capture and
+  contextual `Ctrl+r` search by default while leaving Up-arrow with native
+  Nushell history. The Ratconfig Recommended boolean `shell.atuin` disables the
+  integration for new shells without deleting data. User-sourced Atuin remains
+  the sole hook owner, Nova honors `ATUIN_NOBIND`, and Carapace continues to own
+  completion. Users can import existing history once; repeating the command
+  duplicates records. Atuin retains ownership of accounts, sync, AI, daemons,
+  the pty proxy, and native config.
+
 ## 1.0.0
 
 - Canonical source and first-party component repositories live in the

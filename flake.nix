@@ -123,6 +123,14 @@
       yzxCarapaceInit = pkgs.runCommand "yzx-carapace-init" {} ''
         ${pkgs.carapace}/bin/carapace _carapace nushell > "$out"
       '';
+      yzxAtuinInit = pkgs.runCommand "yzx-atuin-init" {} ''
+        mkdir "$out"
+        export HOME="$TMPDIR"
+        export XDG_CONFIG_HOME="$TMPDIR/config"
+        unset ATUIN_NOBIND
+        ${pkgs.atuin}/bin/atuin init nu --disable-up-arrow > "$out/init.nu"
+        ATUIN_NOBIND=1 ${pkgs.atuin}/bin/atuin init nu --disable-up-arrow > "$out/init-nobind.nu"
+      '';
       yzxZoxideInit = pkgs.runCommand "yzx-zoxide-init" {} ''
         ${pkgs.zoxide}/bin/zoxide init nushell > "$out"
       '';
@@ -136,9 +144,11 @@
         install -D -m 644 ${./defaults/nu/env.nu} "$out/env.nu"
       '';
       yzxNuRs = pkgs.replaceVars ./runtime/yzx-nu.rs {
+        atuinInit = "${yzxAtuinInit}/init.nu";
+        atuinNoBindInit = "${yzxAtuinInit}/init-nobind.nu";
         nu = "${pkgs.nushell}/bin/nu";
         packagedNu = "${yzxNuConfig}";
-        pathPrefix = pkgs.lib.makeBinPath [pkgs.nushell pkgs.starship pkgs.carapace pkgs.zoxide];
+        pathPrefix = pkgs.lib.makeBinPath [pkgs.nushell pkgs.starship pkgs.carapace pkgs.atuin pkgs.zoxide];
         yzxConfig = "${yzxConfig}/bin/yzx-config";
       };
       yzxNuShell = rustBin "yzx-nu" yzxNuRs;
@@ -159,7 +169,7 @@
         cp ${./defaults/helix/config.toml} "$out/helix.toml"
         cp ${mars}/docs/yazelix/config_inventory.v1.json "$out/mars-config-inventory.v1.json"
         substituteInPlace "$out/Cargo.toml" \
-          --replace-fail '../../../yazelix-cursors' './yazelix-cursors'
+          --replace-fail '../../../cursors' './yazelix-cursors'
         substituteInPlace "$out/src/catalog.rs" \
           --replace-fail '../../../defaults/config.toml' '../config.toml' \
           --replace-fail '../../../defaults/mars/config.toml' '../mars.toml' \

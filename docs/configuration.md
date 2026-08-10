@@ -54,6 +54,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `appearance.mode` | `dark` | Overview | Shared dark/light appearance and Ratconfig palette |
 | `open.log_level` | `info` | All | Diagnostics for managed Yazi open requests: `off`, `error`, `info`, `debug` |
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
+| `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed Nushell processes |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
 | `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, the Boids/Mandelbrot/Game of Life styles, or `random` |
@@ -73,6 +74,35 @@ The no-Helix package reports those managed names as unavailable. Other terminal
 editors such as `nvim`, or an absolute host Helix path, skip the managed bridge.
 Config native-file actions and terminal Git clients run through `yzx-editor`,
 which resolves the current `editor.command` for each edit
+
+### Atuin history
+
+`shell.atuin = true` initializes the packaged Atuin in each new managed
+Nushell. Atuin stores captured commands on the local machine and owns `Ctrl+r`;
+`--disable-up-arrow` keeps native Nushell Up-arrow history. Atuin owns accounts,
+sync, AI, its daemon and pty proxy, and `~/.config/atuin/config.toml`. Nova
+packages local capture and search. Review Atuin's privacy filters before
+capturing commands from sensitive directories
+
+Set `shell.atuin = false` to disable Nova's managed initialization without
+changing either history store. A user-sourced Atuin integration runs regardless
+of this setting. If you source Atuin in `~/.config/yazelix/nu/config.nu`,
+Nova leaves your hooks in place instead of adding its managed hooks. Nova does
+not parse or rewrite the file. Set `ATUIN_NOBIND` there before Nova's
+initialization to retain Atuin capture without its `Ctrl+r` binding
+
+To copy existing native history into Atuin, run exactly one matching import:
+
+```sh
+# Nushell's default plaintext history
+atuin import nu
+
+# Only if you configured Nushell to use SQLite history
+atuin import nu-hist-db
+```
+
+A second import duplicates imported records. Import leaves native history
+intact, but the plaintext format cannot provide metadata absent from that file
 
 ## Popups
 
@@ -142,12 +172,12 @@ ids that do not exist are not invented; open `config.toml` to add them
 | `zellij/config.kdl` | Zellij sidecar | Sparse safe scalar overrides where absent assignments inherit packaged defaults. The Zellij tab keeps themes, pane frames, mouse mode, copy-on-select, and rounded corners in Overview; All adds scrollback size, clipboard target, styled underlines, and startup tips. Search covers the typed fields and the exact native-file action. Safe untyped leaves remain unchanged without a UI row or informational diagnostic per leaf. Advanced diagnostics report only ignored, invalid, structurally unsafe, or integration-owned state; guarded diagnostics name the Yazelix owner. Ratconfig does not claim a complete Zellij schema. A legacy static `theme` assignment remains preserved but omitted from managed runtime. Inside a session, saves and resets also patch the active runtime config. Structural comments or continuations, extra managed-block metadata, other structured native nodes, and integration-owned nodes block unsafe writes |
 | `zellij/plugins.kdl` | Zellij plugin sidecar | Extra plugin declarations only. Packaged plugin ids cannot be redeclared |
 | `starship.toml` | Starship | Sparse native prompt overrides. Ratconfig consumes the generated schema and default output from packaged Starship 1.26.0. Overview recommends `format`, `right_format`, `add_newline`, and `character.format`; All exposes 832 finite owner fields. Schema-backed strings and booleans are editable. Numeric, structured, union, and dynamic values remain read-only with this exact file action |
-| `helix/config.toml` | Helix | Sparse user TOML merged over packaged Yazelix Helix defaults. Ratconfig renders all packaged and explicit leaves as read-only native rows, recommends eight common or integration-owned values, and opens this exact file for edits. It does not claim a complete Helix schema |
+| `helix/config.toml` | Helix | Sparse user TOML merged over packaged Nova Helix defaults. Ratconfig renders all packaged and explicit leaves as read-only native rows, recommends eight common or integration-owned values, and opens this exact file for edits. It does not claim a complete Helix schema |
 | `helix/languages.toml` | Helix | Dynamic language config. Ratconfig renders entries actually present in the file as read-only rows with this exact file action; it does not invent a finite language registry |
 | `helix/helix.scm` | Helix Steel | Loaded with `helix/init.scm` when the pair exists |
 | `helix/init.scm` | Helix Steel | Loaded with `helix/helix.scm` when the pair exists |
 | `nu/env.nu` | Nushell | Executable source loaded after packaged Yazelix `env.nu` |
-| `nu/config.nu` | Nushell | Executable source loaded after packaged Yazelix `config.nu` and any successful host `mise activate nu` output |
+| `nu/config.nu` | Nushell | Executable source loaded after packaged Yazelix `config.nu` and any successful host `mise activate nu` output, before the optional managed Atuin default |
 | `yazi/yazi.toml` | Yazi | Native tables merge recursively, while user scalars and arrays replace packaged values. Ratconfig joins the official schema paired with packaged Yazi 26.5.6 to its native preset and the sparse user file. Overview recommends eight manager and preview controls; All exposes 95 finite or preset-observed base rows |
 | `yazi/init.lua` | Yazi | Appended after packaged Yazi init |
 | `yazi/keymap.toml` | Yazi | Appended after packaged Yazi keymap |
@@ -156,7 +186,8 @@ ids that do not exist are not invented; open `config.toml` to add them
 | `yazi/package.toml` | Yazi | Opaque package metadata that Yazelix does not process with `ya pkg` |
 
 The Nu files remain executable Advanced actions, not finite Ratconfig schemas.
-`shell.program` stays in main, and Starship stays under its own owner.
+`shell.program` and `shell.atuin` stay in main, and Starship stays under its own
+owner.
 
 The packaged Helix fork identifies its version but publishes no stable
 machine-readable catalog of configuration paths, defaults, constraints, or

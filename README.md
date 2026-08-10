@@ -1,4 +1,4 @@
-# Yazelix Nova Beta
+# Yazelix Nova
 
 <div align="center">
   <img src="assets/logo.png" alt="Yazelix logo" width="200"/>
@@ -7,7 +7,7 @@
 Yazelix Nova is a Nix-packaged terminal workspace built around
 [Mars](https://github.com/Yazelix/mars) (a Rio-derived fork), a thin
 [Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
-Yazi, Nushell (with packaged Bash, Zsh, and Fish alternatives), a lazygit popup (but you can configure other git clients!), and
+Yazi, Nushell with Atuin history (plus packaged Bash, Zsh, and Fish alternatives), a lazygit popup (but you can configure other git clients!), and
 an optional coding agent popup. It uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
@@ -27,8 +27,8 @@ call her Yaz.
 
 ## Nova vs Classic
 
-*TLDR: Nova gives each component one job and delivers the full workspace in one
-quarter of Classic's code.*
+*TLDR: Nova v1.0.0 gives each component one job and delivers the full workspace
+in one quarter of Classic's code. This comparison stays fixed to that release.*
 
 Classic was bloated and built on the wrong ownership model. Its main repository
 acted as the product runtime, component control plane, configuration repair
@@ -40,7 +40,7 @@ gives [first-party Yazelix components](#first-party-components) firm package
 boundaries. Each component owns its implementation and contract. Nova pins and
 composes their package outputs.
 
-| Measure | Nova | Classic |
+| Measure | Nova v1.0.0 | Classic |
 | --- | --- | --- |
 | Code and configuration (Rust, Nix, shell, TOML, etc.) | **23,272 LOC** | **91,545 LOC** |
 | Rust | **19,872 LOC** | **80,957 LOC** |
@@ -49,13 +49,13 @@ composes their package outputs.
 | Product experience | More features, stronger defaults, tighter integration, and polished UX | Fewer features and a less cohesive workspace |
 | Status | Recommended | Frozen migration and rollback path |
 
-Nova owns **68,273 fewer lines**, a **75% reduction**. Classic's Rust code
+Nova v1.0.0 owns **68,273 fewer lines**, a **75% reduction**. Classic's Rust code
 alone is 3.5 times larger than Nova's entire code and configuration surface.
 
-Nova delivers more features in 25% of the code. It has a clearer configuration
-model, tighter editor and Yazi integration, stronger diagnostics, and a
-coherent popup-oriented interface. The smaller architecture makes Yazelix
-easier to improve and better to use.
+Nova v1.0.0 delivers more features in 25% of the code. It has a clearer
+configuration model, tighter editor and Yazi integration, stronger
+diagnostics, and a coherent popup-oriented interface. The smaller architecture
+makes Yazelix easier to improve and better to use.
 
 Classic proved the idea. Nova is the better product and the architecture
 Yazelix should have had from the start.
@@ -354,7 +354,7 @@ Numeric, structured, dynamic, and otherwise incompletely validated values open
 their native file instead.
 
 Helix does not publish a machine-readable configuration catalog. Its tab
-therefore exposes every packaged Yazelix Helix default and every value observed
+therefore exposes every packaged Nova Helix default and every value observed
 in the sparse user `config.toml` or dynamic `languages.toml`, without claiming
 that those rows are the complete Helix schema. Overview recommends eight common
 or integration-owned values; All and search cover the remaining packaged or
@@ -393,8 +393,11 @@ stay as they are.
 
 Set `shell.program` in Ratconfig or `config.toml` to choose packaged Nushell
 (default), Bash, Zsh, or Fish for new panes and sessions.
-Yazelix initializes Starship, Carapace completions, and zoxide for managed
-Nushell. Bash, Zsh, and Fish use their normal interactive startup files.
+Yazelix initializes Starship, Carapace completions, zoxide, and Atuin for
+managed Nushell. Atuin owns contextual `Ctrl+r` history search while native
+Nushell keeps Up-arrow history. Set `shell.atuin = false` to disable Nova's
+managed Atuin integration without deleting either history store. Bash, Zsh,
+and Fish use their normal interactive startup files.
 
 See [Configuration](docs/configuration.md) for settings, popups, native files,
 Yazi plugins, cursor ownership, and editor behavior.
@@ -432,6 +435,6 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,081 lines** of tracked text project files. The
+Yazelix owns **27,314 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.

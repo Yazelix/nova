@@ -1,18 +1,16 @@
 # Architecture
 
-Yazelix Nova is a small Nix/Lix flake with one development front door:
-**`yzx`**. The temporary command and `yazelix` paths let it coexist with
-public Yazelix v17 until the canonical swap.
+Yazelix Nova is a small Nix/Lix flake with one front door: **`yzx`**.
 
-This repo owns the glue that makes Mars, the Yazelix Zellij fork, Yazi, and
+This repo owns the glue that makes Mars, Nova Zellij, Yazi, and
 Helix feel like one runtime. It is not a general terminal distro, a broad Home
 Manager config system, or a main-Yazelix compatibility layer.
 
 ## Runtime chain
 
 ```text
-yzx launch  →  Mars  →  yzx-welcome  →  Yazelix Zellij  →  Yazi sidebar + work panes
-yzx enter   →  yzx-welcome  →  Yazelix Zellij  →  same layout
+yzx launch  →  Mars  →  yzx-welcome  →  Nova Zellij  →  Yazi sidebar + work panes
+yzx enter   →  yzx-welcome  →  Nova Zellij  →  same layout
 yzx run     →  prepared Yazelix environment  →  exact child argv/status
 yzx yazi-config materialize  →  private materializer  →  effective Yazi config path
 ```
@@ -85,7 +83,6 @@ One owner per concern. Paths are the durable map.
 | `crates/yzx-yazi-config/` | Managed Yazi config-home materialization, native TOML layering, and runtime-only flavor projection |
 | `crates/yzx-tutor/` | Tutor CLI and lessons |
 | `runtime/yzx-helix.sh` (`yzx-hx`) | Effective Helix config + Steel wiring |
-| Anima (`yazelix-screen` child package) | Screen styles; packaged as `yzx screen` |
 | `checks/` | Build-time contract guards |
 
 ### Config UI
@@ -134,7 +131,7 @@ before runtime or Ratconfig use, and delegates only `popups.<id>` to its dynamic
 field validator.
 
 `ROOT_CONFIG_RECOMMENDED_PATHS` contains `appearance.mode`, `shell.program`,
-`editor.command`, `agent.command`, the two ordinary welcome controls, the
+`shell.atuin`, `editor.command`, `agent.command`, the two ordinary welcome controls, the
 managed action keys, and `bar.widgets`. Diagnostics (`open.log_level`), argument
 and duration fine tuning, and popup geometry are All-only until they require
 attention.
@@ -147,6 +144,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `appearance.mode` | string enum | `dark` | Ratconfig palette; projected to Mars and the current managed Zellij session, whose bar follows the native mode event; selects the matching Yazi flavor for each new process | live where addressable, otherwise next launch |
 | `open.log_level` | string enum | `info` | `YZX_OPEN_LOG` diagnostics for managed opens | new opens |
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
+| `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed Nushell | new shells |
 | `editor.command` | executable string | `yzx-hx` | Yazi opens, config text edits, and Git clients | new opens |
 | `agent.command` | executable string or `auto` | `auto` | Managed agent popup command | next launch |
 | `agent.args` | string array | `[]` | Arguments for a custom agent command | next launch |
@@ -190,19 +188,22 @@ custom popup entry.
 | `defaults/yazi/` | Sidebar/popup role initialization, opens via `yzx-open`, plugins, `Alt z` workspace retarget, role-local `Alt r` return / popup hide |
 | `defaults/helix/config.toml` | Packaged defaults; `Alt r` reveal, `Ctrl r` reload (overridable) |
 
-### Child packages (not owned here)
+### First-party children (not owned here)
 
 | Child | Domain |
 | --- | --- |
 | Mars | Terminal |
-| yazelix-cursors | Cursor TOML schema, validation, definitions, and resolution |
-| yazelix-zellij / helix | Multiplexer / editor forks |
-| yazelix-zellij-popup (`yzpp`) | Popup lifecycle |
-| yazelix-zellij-pane-orchestrator | Focus, sidebar walk, workspace state, and popup request routing |
-| yazelix-zellij-bar | Top bar render + widgets |
-| ratconfig | Config UI toolkit |
+| Yazelix Cursors | Cursor TOML schema, validation, definitions, and resolution |
+| Nova Zellij | Multiplexer fork |
+| Nova Helix | Editor fork |
+| Zellij Popup (`yzpp`) | Popup lifecycle |
+| Zellij Pane Orchestrator | Focus, sidebar walk, workspace state, and popup request routing |
+| Zellij Status Kit | Top bar render + widgets |
+| zjstatus | Status rendering and activity-aware tab markers |
+| Ratconfig | Config UI toolkit |
 | Anima | Welcome / screen animations |
-| yazi-bistro | Complete pinned Yazi flavors, provenance, licenses, dark/light classification, and the packaged light default |
+| Yazi Bistro | Complete pinned Yazi flavors, provenance, licenses, dark/light classification, and the packaged light default |
+| auto-layout.yazi | Adaptive Yazi column layout |
 
 This repo packages them and applies product policy only.
 
@@ -229,6 +230,16 @@ meaning, and reproduction commands.
 
 `yzx-shell` reads `shell.program` via `yzx-config`, then runs packaged `nu`
 (through `yzx-nu`) or plain `bash` / `zsh` / `fish`.
+
+For managed Nushell, `yzx-nu` reads `shell.atuin` and appends the locked,
+build-generated Atuin init after packaged config, successful host Mise output,
+and user `nu/config.nu`. It recognizes an existing Atuin search command or
+binding and skips the managed source, so user initialization remains the sole
+hook owner. The normal generated init disables Up-arrow and keeps `Ctrl+r`; a
+second build-generated form honors runtime `ATUIN_NOBIND`. Managed init errors
+reach stderr, and `yzx-nu` continues shell startup. Atuin owns its history
+database and native config. Carapace owns external completion. Nova owns package
+selection, startup composition, and the default-on policy.
 
 ---
 
@@ -424,7 +435,7 @@ Detail lives in Owners, checks, and the notes below.
 | C6 | Managed Yazi layering, public noninteractive materialization, `yzx-open`, and zoxide | `defaults/yazi/`, `runtime/yzx-yazi.rs`, `runtime/yzx/`, `crates/yzx-yazi-config/`, `crates/yzx-open/` | host-Yazi contracts + materialization + open tests | Yazi UI |
 | C7 | Helix bridge window/tab isolation (`session` + `tab_id`) | `yzx-open`, flake | `yzx-open` tests | Multi-window |
 | C10 | Top bar tray, home-marker tabs, home-scoped new tabs, usage `tu` + cache | layout, config, runtime, tokenusage | layout + contracts | Visual bar |
-| C12 | Welcome defaults and random pool | screen child, runtime, root config | screen tests + contracts | Animation |
+| C12 | Welcome defaults and random pool | Anima, runtime, root config | screen tests + contracts | Animation |
 
 ### Popups (`C9*`)
 

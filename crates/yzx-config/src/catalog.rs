@@ -5,6 +5,7 @@ pub(crate) const DEFAULT_CONFIG_TOML: &str = include_str!("../../../defaults/con
 pub(crate) const APPEARANCE_MODE_PATH: &str = "appearance.mode";
 pub(crate) const OPEN_LOG_LEVEL_PATH: &str = "open.log_level";
 pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
+pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
 pub(crate) const EDITOR_COMMAND_PATH: &str = "editor.command";
 pub(crate) const AGENT_COMMAND_PATH: &str = "agent.command";
 pub(crate) const AGENT_ARGS_PATH: &str = "agent.args";
@@ -52,6 +53,7 @@ pub(crate) const BAR_WIDGET_VALUES: &[&str] = &[
 pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     APPEARANCE_MODE_PATH,
     SHELL_PROGRAM_PATH,
+    SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
     AGENT_COMMAND_PATH,
     WELCOME_ENABLED_PATH,
@@ -252,9 +254,17 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         apply_detail: "Saved shell selection applies to newly launched panes and sessions.",
     },
     ConfigFieldSpec {
+        field: FieldSpec::boolean(
+            SHELL_ATUIN_PATH,
+            "Use Atuin history search in managed Nushell processes.",
+        ),
+        apply_summary: "new shells",
+        apply_detail: "Saved Atuin selection applies to newly launched managed Nushell processes.",
+    },
+    ConfigFieldSpec {
         field: FieldSpec::string_choice(
             EDITOR_COMMAND_PATH,
-            "Editor command used by managed file opens. Use hx or yzx-hx for managed Yazelix Helix when included, or another installed executable such as nvim.",
+            "Editor command used by managed file opens. Use hx or yzx-hx for Nova Helix when included, or another installed executable such as nvim.",
             &[],
             "one non-empty executable command without arguments",
         ),

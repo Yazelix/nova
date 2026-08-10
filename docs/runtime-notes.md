@@ -239,6 +239,16 @@ If host `mise` is available on the inherited `PATH`, managed Nu inserts
 `mise activate nu` output after packaged `config.nu` and before user
 `nu/config.nu`. Missing or failing `mise` is skipped.
 
+`shell.atuin = true` then sources Nova's build-generated Atuin integration.
+If user `nu/config.nu` initializes Atuin, `yzx-nu` skips its source. Nova uses the
+locked packaged binary, binds contextual history search to `Ctrl+r`, and leaves
+Up-arrow with native Nushell history. `ATUIN_NOBIND` suppresses the managed
+binding while retaining lifecycle hooks. `yzx-nu` prints a managed init failure
+and continues Nushell startup. `shell.atuin = false` omits Nova's hooks and
+binding without changing either history store. See
+[Configuration](configuration.md#atuin-history) for explicit one-time imports
+and the native-config ownership boundary.
+
 Managed Nu always sets `STARSHIP_CONFIG` to a runtime-effective file. That file
 starts with Nova's sparse `[character].format = ":: "` marker and recursively
 merges optional native overrides from `~/.config/yazelix/starship.toml`.
