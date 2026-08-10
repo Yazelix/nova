@@ -224,7 +224,7 @@ omits sidebar registration and `sidebar-status` for that role. Popup navigation
 and ordinary opens retain their existing local and canonical-workspace
 semantics.
 
-## Nushell And Starship
+## Shell History, Nushell, And Starship
 
 When `shell.program = "nu"`, Yazelix does not read normal Nushell config. It
 generates runtime Nu files that source packaged Yazelix config first and then
@@ -239,13 +239,16 @@ If host `mise` is available on the inherited `PATH`, managed Nu inserts
 `mise activate nu` output after packaged `config.nu` and before user
 `nu/config.nu`. Missing or failing `mise` is skipped.
 
-`shell.atuin = true` then sources Nova's build-generated Atuin integration.
-If user `nu/config.nu` initializes Atuin, `yzx-nu` skips its source. Nova uses the
-locked packaged binary, binds contextual history search to `Ctrl+r`, and leaves
-Up-arrow with native Nushell history. `ATUIN_NOBIND` suppresses the managed
-binding while retaining lifecycle hooks. `yzx-nu` prints a managed init failure
-and continues Nushell startup. `shell.atuin = false` omits Nova's hooks and
-binding without changing either history store. See
+`shell.atuin = true` sources Nova's build-generated Atuin integration after the
+selected shell's user startup layer. `yzx-nu` composes Nushell after user
+`nu/config.nu`; `yzx-shell` uses `~/.bashrc`, the effective Zsh `.zshenv` and
+`.zshrc`, or Fish's `config.fish`. An existing shell-specific Atuin search
+function skips the managed source. Nova uses the locked packaged binary, binds
+contextual history search to `Ctrl+r`, leaves Up-arrow with native history, and
+disables Atuin AI bindings. `ATUIN_NOBIND` suppresses managed bindings while
+retaining lifecycle hooks. A managed init failure reaches stderr without
+preventing shell startup. `shell.atuin = false` omits Nova's hooks and bindings
+without changing either history store. See
 [Configuration](configuration.md#atuin-history) for explicit one-time imports
 and the native-config ownership boundary.
 

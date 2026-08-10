@@ -7,7 +7,7 @@
 Yazelix Nova is a Nix-packaged terminal workspace built around
 [Mars](https://github.com/Yazelix/mars) (a Rio-derived fork), a thin
 [Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
-Yazi, Nushell with Atuin history (plus packaged Bash, Zsh, and Fish alternatives), a lazygit popup (but you can configure other git clients!), and
+Yazi, Nushell, Bash, Zsh, and Fish with Atuin history, a lazygit popup (but you can configure other git clients!), and
 an optional coding agent popup. It uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
@@ -393,11 +393,11 @@ stay as they are.
 
 Set `shell.program` in Ratconfig or `config.toml` to choose packaged Nushell
 (default), Bash, Zsh, or Fish for new panes and sessions.
-Yazelix initializes Starship, Carapace completions, zoxide, and Atuin for
-managed Nushell. Atuin owns contextual `Ctrl+r` history search while native
-Nushell keeps Up-arrow history. Set `shell.atuin = false` to disable Nova's
-managed Atuin integration without deleting either history store. Bash, Zsh,
-and Fish use their normal interactive startup files.
+Yazelix initializes Atuin local history and contextual `Ctrl+r` search for every
+packaged shell while leaving Up-arrow with native history. Managed Nushell also
+initializes Starship, Carapace completions, and zoxide. Set
+`shell.atuin = false` to disable Nova's managed Atuin integration without
+deleting either history store.
 
 See [Configuration](docs/configuration.md) for settings, popups, native files,
 Yazi plugins, cursor ownership, and editor behavior.
@@ -435,6 +435,6 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,314 lines** of tracked text project files. The
+Yazelix owns **27,490 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.

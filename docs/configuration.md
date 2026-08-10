@@ -54,7 +54,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `appearance.mode` | `dark` | Overview | Shared dark/light appearance and Ratconfig palette |
 | `open.log_level` | `info` | All | Diagnostics for managed Yazi open requests: `off`, `error`, `info`, `debug` |
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
-| `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed Nushell processes |
+| `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
 | `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, the Boids/Mandelbrot/Game of Life styles, or `random` |
@@ -77,19 +77,21 @@ which resolves the current `editor.command` for each edit
 
 ### Atuin history
 
-`shell.atuin = true` initializes the packaged Atuin in each new managed
-Nushell. Atuin stores captured commands on the local machine and owns `Ctrl+r`;
-`--disable-up-arrow` keeps native Nushell Up-arrow history. Atuin owns accounts,
-sync, AI, its daemon and pty proxy, and `~/.config/atuin/config.toml`. Nova
-packages local capture and search. Review Atuin's privacy filters before
-capturing commands from sensitive directories
+`shell.atuin = true` initializes packaged Atuin after the normal user startup
+layer of the selected Nushell, Bash, Zsh, or Fish process. Atuin stores captured
+commands on the local machine and owns `Ctrl+r`; Up-arrow remains native shell
+history, and Atuin AI bindings stay disabled. Atuin owns accounts, sync, AI,
+its daemon and pty proxy, and `~/.config/atuin/config.toml`. Nova packages local
+capture and search. Review Atuin's privacy filters before capturing commands
+from sensitive directories
 
 Set `shell.atuin = false` to disable Nova's managed initialization without
 changing either history store. A user-sourced Atuin integration runs regardless
-of this setting. If you source Atuin in `~/.config/yazelix/nu/config.nu`,
-Nova leaves your hooks in place instead of adding its managed hooks. Nova does
-not parse or rewrite the file. Set `ATUIN_NOBIND` there before Nova's
-initialization to retain Atuin capture without its `Ctrl+r` binding
+of this setting and remains the sole hook owner. Nova loads managed Atuin after
+`~/.config/yazelix/nu/config.nu`, `~/.bashrc`, the effective Zsh `.zshenv` and
+`.zshrc`, or Fish's `config.fish`; it does not parse or rewrite those files.
+Set `ATUIN_NOBIND` in the matching file to retain Atuin capture without Nova's
+managed bindings
 
 To copy existing native history into Atuin, run exactly one matching import:
 
@@ -99,10 +101,15 @@ atuin import nu
 
 # Only if you configured Nushell to use SQLite history
 atuin import nu-hist-db
+
+# Bash, Zsh, or Fish native history
+atuin import bash
+atuin import zsh
+atuin import fish
 ```
 
 A second import duplicates imported records. Import leaves native history
-intact, but the plaintext format cannot provide metadata absent from that file
+intact, but native formats cannot provide metadata absent from their files
 
 ## Popups
 

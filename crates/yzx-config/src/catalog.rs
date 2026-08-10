@@ -256,10 +256,10 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
     ConfigFieldSpec {
         field: FieldSpec::boolean(
             SHELL_ATUIN_PATH,
-            "Use Atuin history search in managed Nushell processes.",
+            "Use Atuin history search in managed shells.",
         ),
         apply_summary: "new shells",
-        apply_detail: "Saved Atuin selection applies to newly launched managed Nushell processes.",
+        apply_detail: "Saved Atuin selection applies to newly launched managed shells.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

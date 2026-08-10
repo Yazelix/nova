@@ -144,7 +144,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `appearance.mode` | string enum | `dark` | Ratconfig palette; projected to Mars and the current managed Zellij session, whose bar follows the native mode event; selects the matching Yazi flavor for each new process | live where addressable, otherwise next launch |
 | `open.log_level` | string enum | `info` | `YZX_OPEN_LOG` diagnostics for managed opens | new opens |
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
-| `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed Nushell | new shells |
+| `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
 | `editor.command` | executable string | `yzx-hx` | Yazi opens, config text edits, and Git clients | new opens |
 | `agent.command` | executable string or `auto` | `auto` | Managed agent popup command | next launch |
 | `agent.args` | string array | `[]` | Arguments for a custom agent command | next launch |
@@ -231,15 +231,17 @@ meaning, and reproduction commands.
 `yzx-shell` reads `shell.program` via `yzx-config`, then runs packaged `nu`
 (through `yzx-nu`) or plain `bash` / `zsh` / `fish`.
 
-For managed Nushell, `yzx-nu` reads `shell.atuin` and appends the locked,
-build-generated Atuin init after packaged config, successful host Mise output,
-and user `nu/config.nu`. It recognizes an existing Atuin search command or
-binding and skips the managed source, so user initialization remains the sole
-hook owner. The normal generated init disables Up-arrow and keeps `Ctrl+r`; a
-second build-generated form honors runtime `ATUIN_NOBIND`. Managed init errors
-reach stderr, and `yzx-nu` continues shell startup. Atuin owns its history
-database and native config. Carapace owns external completion. Nova owns package
-selection, startup composition, and the default-on policy.
+Nix generates locked Atuin init files for Nushell, Bash, Zsh, and Fish.
+`yzx-nu` appends the Nushell form after packaged config, successful host Mise
+output, and user `nu/config.nu`. `yzx-shell` composes the other forms after
+their native user startup files through Bash's explicit rc file, a temporary
+Zsh `ZDOTDIR` layer, or Fish's post-config command. A shell-specific Atuin
+search function makes user initialization the sole hook owner. The generated
+forms disable Up-arrow and AI bindings, keep `Ctrl+r`, and honor
+`ATUIN_NOBIND`. Managed init errors reach stderr without preventing shell
+startup. Atuin owns its history database and native config. Carapace owns
+Nushell external completion. Nova owns package selection, startup composition,
+and the default-on policy.
 
 ---
 

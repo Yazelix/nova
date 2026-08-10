@@ -127,9 +127,11 @@
         mkdir "$out"
         export HOME="$TMPDIR"
         export XDG_CONFIG_HOME="$TMPDIR/config"
-        unset ATUIN_NOBIND
-        ${pkgs.atuin}/bin/atuin init nu --disable-up-arrow > "$out/init.nu"
-        ATUIN_NOBIND=1 ${pkgs.atuin}/bin/atuin init nu --disable-up-arrow > "$out/init-nobind.nu"
+        for shell in nu bash zsh fish; do
+          unset ATUIN_NOBIND
+          ${pkgs.atuin}/bin/atuin init "$shell" --disable-up-arrow --disable-ai > "$out/$shell"
+          ATUIN_NOBIND=1 ${pkgs.atuin}/bin/atuin init "$shell" --disable-up-arrow --disable-ai > "$out/$shell-nobind"
+        done
       '';
       yzxZoxideInit = pkgs.runCommand "yzx-zoxide-init" {} ''
         ${pkgs.zoxide}/bin/zoxide init nushell > "$out"
@@ -144,14 +146,73 @@
         install -D -m 644 ${./defaults/nu/env.nu} "$out/env.nu"
       '';
       yzxNuRs = pkgs.replaceVars ./runtime/yzx-nu.rs {
-        atuinInit = "${yzxAtuinInit}/init.nu";
-        atuinNoBindInit = "${yzxAtuinInit}/init-nobind.nu";
+        atuinInit = "${yzxAtuinInit}/nu";
+        atuinNoBindInit = "${yzxAtuinInit}/nu-nobind";
         nu = "${pkgs.nushell}/bin/nu";
         packagedNu = "${yzxNuConfig}";
         pathPrefix = pkgs.lib.makeBinPath [pkgs.nushell pkgs.starship pkgs.carapace pkgs.atuin pkgs.zoxide];
         yzxConfig = "${yzxConfig}/bin/yzx-config";
       };
       yzxNuShell = rustBin "yzx-nu" yzxNuRs;
+      yzxBashAtuinRc = pkgs.writeText "yzx-bashrc" ''
+        if [ -r "$HOME/.bashrc" ]; then
+          . "$HOME/.bashrc"
+        fi
+        if ! declare -F __atuin_history >/dev/null; then
+          if [ -n "''${ATUIN_NOBIND+x}" ]; then
+            yzx_atuin_source=${yzxAtuinInit}/bash-nobind
+          else
+            yzx_atuin_source=${yzxAtuinInit}/bash
+          fi
+          . "$yzx_atuin_source" || printf '%s\n' "yzx-shell: managed Atuin init failed" >&2
+          unset yzx_atuin_source
+        fi
+      '';
+      yzxFishAtuinInit = pkgs.writeText "yzx-fish-atuin.fish" ''
+        if not functions -q _atuin_search
+          set -l yzx_atuin_source
+          if set -q ATUIN_NOBIND
+            set yzx_atuin_source ${yzxAtuinInit}/fish-nobind
+          else
+            set yzx_atuin_source ${yzxAtuinInit}/fish
+          end
+          source "$yzx_atuin_source"; or echo "yzx-shell: managed Atuin init failed" >&2
+        end
+      '';
+      yzxZshEnv = pkgs.writeText "yzx-zshenv" ''
+        ZDOTDIR="$YZX_USER_ZDOTDIR"
+        if [[ -r "$ZDOTDIR/.zshenv" ]]; then
+          source "$ZDOTDIR/.zshenv"
+          YZX_USER_ZDOTDIR="''${ZDOTDIR:-$YZX_USER_ZDOTDIR}"
+        fi
+        ZDOTDIR="$YZX_MANAGED_ZDOTDIR"
+      '';
+      yzxZshRc = pkgs.writeText "yzx-zshrc" ''
+        ZDOTDIR="$YZX_USER_ZDOTDIR"
+        if [[ -r "$ZDOTDIR/.zshrc" ]]; then
+          source "$ZDOTDIR/.zshrc"
+        fi
+        if (( ! $+functions[_atuin_search] )); then
+          if [[ -v ATUIN_NOBIND ]]; then
+            yzx_atuin_source=${yzxAtuinInit}/zsh-nobind
+          else
+            yzx_atuin_source=${yzxAtuinInit}/zsh
+          fi
+          source "$yzx_atuin_source" || print -u2 -- "yzx-shell: managed Atuin init failed"
+          unset yzx_atuin_source
+        fi
+        unset YZX_USER_ZDOTDIR YZX_MANAGED_ZDOTDIR
+      '';
+      yzxZshAtuinConfig = pkgs.linkFarm "yzx-zsh-atuin" [
+        {
+          name = ".zshenv";
+          path = yzxZshEnv;
+        }
+        {
+          name = ".zshrc";
+          path = yzxZshRc;
+        }
+      ];
       yzxAgent = rustBin "yzx-agent" ./runtime/yzx-agent.rs;
       yzxStarshipDefaults = pkgs.runCommand "yzx-starship-defaults.toml" {} ''
         export HOME="$TMPDIR"
@@ -192,11 +253,15 @@
         YAZELIX_STARSHIP_CONFIG_SCHEMA = "${pkgs.starship.src}/docs/public/config-schema.json";
       };
       yzxShellSrc = pkgs.replaceVars ./runtime/yzx-shell.sh {
+        atuinPath = pkgs.lib.makeBinPath [pkgs.atuin pkgs.bash pkgs.coreutils pkgs.gawk pkgs.ncurses];
         yzxConfig = "${yzxConfig}/bin/yzx-config";
         yzxNu = "${yzxNuShell}/bin/yzx-nu";
         bash = "${pkgs.bashInteractive}/bin/bash";
+        bashAtuinRc = yzxBashAtuinRc;
         zsh = "${pkgs.zsh}/bin/zsh";
+        zshAtuinConfig = yzxZshAtuinConfig;
         fish = "${pkgs.fish}/bin/fish";
+        fishAtuinInit = yzxFishAtuinInit;
       };
       yzxShell = pkgs.runCommand "yzx-shell" {} ''
         install -D -m 755 ${yzxShellSrc} "$out/bin/yzx-shell"

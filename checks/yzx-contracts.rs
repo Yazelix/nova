@@ -9,8 +9,8 @@ use std::{
 mod support;
 
 use support::{
-    RuntimeCase, TempDir, binary_text, embedded_store_path, excerpt, expect_contains, expect_order,
-    successful_output, successful_stdout, write_config_home, write_executable,
+    binary_text, embedded_store_path, excerpt, expect_contains, expect_order, successful_output,
+    successful_stdout, write_config_home, write_executable, RuntimeCase, TempDir,
 };
 
 macro_rules! expect_contains_all {
@@ -184,10 +184,7 @@ fn main() {
     assert_eq!(user_atuin_stdout, "config-ok\n1\n1\n1");
 
     let native_config = temp.path.join("native-config");
-    write_config_home(
-        &native_config,
-        "[shell]\nprogram = \"nu\"\natuin = false\n",
-    );
+    write_config_home(&native_config, "[shell]\nprogram = \"nu\"\natuin = false\n");
     let native_stdout = run_nu(
         &yzx_shell,
         &native_config,
@@ -199,11 +196,7 @@ fn main() {
     let nobind_config = temp.path.join("nobind-config");
     let nobind_nu = nobind_config.join("nu");
     fs::create_dir_all(&nobind_nu).unwrap();
-    fs::write(
-        nobind_nu.join("config.nu"),
-        "$env.ATUIN_NOBIND = \"1\"\n",
-    )
-    .unwrap();
+    fs::write(nobind_nu.join("config.nu"), "$env.ATUIN_NOBIND = \"1\"\n").unwrap();
     let nobind_stdout = run_nu(
         &yzx_shell,
         &nobind_config,
@@ -256,9 +249,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         .collect::<Vec<_>>();
     assert_eq!(
         menu_ids,
-        [
-            "config", "doctor", "status", "screen", "launch", "help", "tutor"
-        ],
+        ["config", "doctor", "status", "screen", "launch", "help", "tutor"],
         "yzx menu command allowlist changed\n{menu}"
     );
     expect_menu_descriptions_match_help(&help, &menu);
@@ -1502,19 +1493,103 @@ fn run_nu_with_path(
 fn expect_shell_selection(shell: &Path) {
     for program in ["bash", "zsh", "fish"] {
         let temp = TempDir::new();
-        write_config_home(
-            &temp.path,
-            format!("[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"{program}\"\n"),
+        let config_home = temp.path.join("config");
+        let home = temp.path.join("home");
+        let (startup, startup_text, probe, user, user_init, user_probe) = match program {
+            "bash" => (
+                home.join(".bashrc"),
+                "export YZX_USER_RC=bash\n",
+                "session=no; [ -n \"${ATUIN_SESSION:-}\" ] && session=yes; search=no; declare -F __atuin_history >/dev/null && search=yes; binding=no; [[ \"$(bind -S)\" == *'\\C-r outputs'* ]] && binding=yes; printf '%s\\n' \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$(command -v atuin)\"",
+                "bash",
+                "__atuin_history() { printf '%s\\n' user-atuin; }\n",
+                "__atuin_history",
+            ),
+            "zsh" => (
+                home.join(".zshrc"),
+                "export YZX_USER_RC=$YZX_USER_RC-zsh\n",
+                "session=no; [[ -n ${ATUIN_SESSION:-} ]] && session=yes; search=no; (( $+functions[_atuin_search] )) && search=yes; binding=no; [[ \"$(bindkey '^R')\" == *atuin-search* ]] && binding=yes; print -r -- \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$commands[atuin]\"",
+                "zshenv-zsh",
+                "_atuin_search() { print -r -- user-atuin; }\n",
+                "_atuin_search",
+            ),
+            "fish" => (
+                home.join(".config/fish/config.fish"),
+                "set -gx YZX_USER_RC fish\nset -g fish_greeting\n",
+                "set session no; set -q ATUIN_SESSION; and set session yes; set search no; functions -q _atuin_search; and set search yes; set binding no; bind ctrl-r 2>/dev/null | string match -q '*_atuin_search*'; and set binding yes; echo user=$YZX_USER_RC session=$session search=$search binding=$binding atuin=(command -v atuin)",
+                "fish",
+                "function _atuin_search\n  echo user-atuin\nend\n",
+                "_atuin_search",
+            ),
+            _ => unreachable!(),
+        };
+        fs::create_dir_all(startup.parent().unwrap()).unwrap();
+        if program == "zsh" {
+            fs::write(home.join(".zshenv"), "export YZX_USER_RC=zshenv\n").unwrap();
+        }
+        fs::write(&startup, startup_text).unwrap();
+
+        for (atuin, no_bind, session, search, binding) in [
+            (true, false, "yes", "yes", "yes"),
+            (true, true, "yes", "yes", "no"),
+            (false, false, "no", "no", "no"),
+        ] {
+            write_shell_selection(&config_home, program, atuin);
+            let output = run_selected_shell(shell, program, &config_home, &home, probe, no_bind);
+            assert_shell_state(&output, user, session, search, binding);
+        }
+
+        write_shell_selection(&config_home, program, true);
+        fs::write(&startup, user_init).unwrap();
+        let user_owned = run_selected_shell(shell, program, &config_home, &home, user_probe, false);
+        assert_eq!(
+            user_owned, "user-atuin",
+            "managed {program} replaced user Atuin"
         );
-        let output = successful_output(
-            Command::new(shell)
-                .arg("-c")
-                .arg("echo shell-ok")
-                .env("YAZELIX_CONFIG_HOME", &temp.path),
-            &format!("yzx-shell dispatch to {program}"),
-        );
-        assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "shell-ok");
     }
+}
+
+fn write_shell_selection(config_home: &Path, program: &str, atuin: bool) {
+    write_config_home(
+        config_home,
+        format!("[shell]\nprogram = \"{program}\"\natuin = {atuin}\n"),
+    );
+}
+
+fn assert_shell_state(output: &str, user: &str, session: &str, search: &str, binding: &str) {
+    for expected in [
+        format!("user={user}"),
+        format!("session={session}"),
+        format!("search={search}"),
+        format!("binding={binding}"),
+        "atuin=/nix/store/".to_string(),
+        "/bin/atuin".to_string(),
+    ] {
+        expect_contains(output, &expected, "managed shell Atuin state");
+    }
+}
+
+fn run_selected_shell(
+    shell: &Path,
+    program: &str,
+    config_home: &Path,
+    home: &Path,
+    commands: &str,
+    no_bind: bool,
+) -> String {
+    let mut command = Command::new(shell);
+    command
+        .args(["-c", commands])
+        .env("HOME", home)
+        .env("XDG_CONFIG_HOME", home.join(".config"))
+        .env("YAZELIX_CONFIG_HOME", config_home)
+        .env("PATH", "");
+    if program == "zsh" {
+        command.env_remove("ZDOTDIR");
+    }
+    if no_bind {
+        command.env("ATUIN_NOBIND", "1");
+    }
+    successful_stdout_trimmed(&mut command, &format!("yzx-shell dispatch to {program}"))
 }
 
 fn expect_mars_config_override(yzx: &Path) {
