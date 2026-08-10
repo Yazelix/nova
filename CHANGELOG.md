@@ -2,7 +2,7 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
-## Unreleased
+## 1.1.0
 
 - Packaged Nushell, Bash, Zsh, and Fish use Atuin 18.16.1 for local history and
   contextual `Ctrl+r` search by default while Up-arrow stays native. Zsh follows

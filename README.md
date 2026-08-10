@@ -78,8 +78,8 @@ Linux launchers show their selected channel as `Yazelix Nova (Stable)`,
 `Yazelix Nova (Main)`, or `Yazelix Nova (Edge)`. Stable uses the default
 `yazelix` package; Main and Edge use the explicit `yazelix-main` and
 `yazelix-edge` outputs so the immutable package owns its launcher label. The
-same package identity remains visible inside sessions as `NOVA 1.0 STABLE`,
-`NOVA 1.0 MAIN`, or `NOVA 1.0 EDGE`.
+same package identity remains visible inside sessions as `NOVA 1.1 STABLE`,
+`NOVA 1.1 MAIN`, or `NOVA 1.1 EDGE`.
 
 Linux is the dogfooded platform. CI builds all packages and a Home Manager
 activation on `aarch64-darwin`. Sustained interactive macOS beta use has found
