@@ -159,10 +159,9 @@
           . "$HOME/.bashrc"
         fi
         if ! declare -F __atuin_history >/dev/null; then
+          yzx_atuin_source=${yzxAtuinInit}/bash
           if [ -n "''${ATUIN_NOBIND+x}" ]; then
-            yzx_atuin_source=${yzxAtuinInit}/bash-nobind
-          else
-            yzx_atuin_source=${yzxAtuinInit}/bash
+            yzx_atuin_source="$yzx_atuin_source-nobind"
           fi
           . "$yzx_atuin_source" || printf '%s\n' "yzx-shell: managed Atuin init failed" >&2
           unset yzx_atuin_source
@@ -170,11 +169,9 @@
       '';
       yzxFishAtuinInit = pkgs.writeText "yzx-fish-atuin.fish" ''
         if not functions -q _atuin_search
-          set -l yzx_atuin_source
+          set -l yzx_atuin_source ${yzxAtuinInit}/fish
           if set -q ATUIN_NOBIND
-            set yzx_atuin_source ${yzxAtuinInit}/fish-nobind
-          else
-            set yzx_atuin_source ${yzxAtuinInit}/fish
+            set yzx_atuin_source "$yzx_atuin_source-nobind"
           end
           source "$yzx_atuin_source"; or echo "yzx-shell: managed Atuin init failed" >&2
         end
@@ -183,7 +180,7 @@
         ZDOTDIR="$YZX_USER_ZDOTDIR"
         if [[ -r "$ZDOTDIR/.zshenv" ]]; then
           source "$ZDOTDIR/.zshenv"
-          YZX_USER_ZDOTDIR="''${ZDOTDIR:-$YZX_USER_ZDOTDIR}"
+          YZX_USER_ZDOTDIR="''${ZDOTDIR:-$HOME}"
         fi
         ZDOTDIR="$YZX_MANAGED_ZDOTDIR"
       '';
@@ -193,10 +190,9 @@
           source "$ZDOTDIR/.zshrc"
         fi
         if (( ! $+functions[_atuin_search] )); then
+          yzx_atuin_source=${yzxAtuinInit}/zsh
           if [[ -v ATUIN_NOBIND ]]; then
-            yzx_atuin_source=${yzxAtuinInit}/zsh-nobind
-          else
-            yzx_atuin_source=${yzxAtuinInit}/zsh
+            yzx_atuin_source="$yzx_atuin_source-nobind"
           fi
           source "$yzx_atuin_source" || print -u2 -- "yzx-shell: managed Atuin init failed"
           unset yzx_atuin_source
@@ -253,7 +249,7 @@
         YAZELIX_STARSHIP_CONFIG_SCHEMA = "${pkgs.starship.src}/docs/public/config-schema.json";
       };
       yzxShellSrc = pkgs.replaceVars ./runtime/yzx-shell.sh {
-        atuinPath = pkgs.lib.makeBinPath [pkgs.atuin pkgs.bash pkgs.coreutils pkgs.gawk pkgs.ncurses];
+        atuinPath = pkgs.lib.makeBinPath [pkgs.atuin pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnused pkgs.ncurses];
         yzxConfig = "${yzxConfig}/bin/yzx-config";
         yzxNu = "${yzxNuShell}/bin/yzx-nu";
         bash = "${pkgs.bashInteractive}/bin/bash";

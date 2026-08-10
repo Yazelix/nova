@@ -1499,7 +1499,7 @@ fn expect_shell_selection(shell: &Path) {
             "bash" => (
                 home.join(".bashrc"),
                 "export YZX_USER_RC=bash\n",
-                "session=no; [ -n \"${ATUIN_SESSION:-}\" ] && session=yes; search=no; declare -F __atuin_history >/dev/null && search=yes; binding=no; [[ \"$(bind -S)\" == *'\\C-r outputs'* ]] && binding=yes; printf '%s\\n' \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$(command -v atuin)\"",
+                "session=no; [ -n \"${ATUIN_SESSION:-}\" ] && session=yes; search=no; declare -F __atuin_history >/dev/null && search=yes; binding=no; [[ \"$(bind -S)\" == *'\\C-r outputs'* ]] && binding=yes; printf '%s\\n' \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$(command -v atuin)\" \"sed=$(command -v sed)\"",
                 "bash",
                 "__atuin_history() { printf '%s\\n' user-atuin; }\n",
                 "__atuin_history",
@@ -1507,15 +1507,15 @@ fn expect_shell_selection(shell: &Path) {
             "zsh" => (
                 home.join(".zshrc"),
                 "export YZX_USER_RC=$YZX_USER_RC-zsh\n",
-                "session=no; [[ -n ${ATUIN_SESSION:-} ]] && session=yes; search=no; (( $+functions[_atuin_search] )) && search=yes; binding=no; [[ \"$(bindkey '^R')\" == *atuin-search* ]] && binding=yes; print -r -- \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$commands[atuin]\"",
-                "zshenv-zsh",
+                "session=no; [[ -n ${ATUIN_SESSION:-} ]] && session=yes; search=no; (( $+functions[_atuin_search] )) && search=yes; binding=no; [[ \"$(bindkey '^R')\" == *atuin-search* ]] && binding=yes; print -r -- \"user=$YZX_USER_RC\" \"session=$session\" \"search=$search\" \"binding=$binding\" \"atuin=$commands[atuin]\" \"sed=$commands[sed]\"",
+                "env-zsh",
                 "_atuin_search() { print -r -- user-atuin; }\n",
                 "_atuin_search",
             ),
             "fish" => (
                 home.join(".config/fish/config.fish"),
                 "set -gx YZX_USER_RC fish\nset -g fish_greeting\n",
-                "set session no; set -q ATUIN_SESSION; and set session yes; set search no; functions -q _atuin_search; and set search yes; set binding no; bind ctrl-r 2>/dev/null | string match -q '*_atuin_search*'; and set binding yes; echo user=$YZX_USER_RC session=$session search=$search binding=$binding atuin=(command -v atuin)",
+                "set session no; set -q ATUIN_SESSION; and set session yes; set search no; functions -q _atuin_search; and set search yes; set binding no; bind ctrl-r 2>/dev/null | string match -q '*_atuin_search*'; and set binding yes; echo user=$YZX_USER_RC session=$session search=$search binding=$binding atuin=(command -v atuin) sed=(command -v sed)",
                 "fish",
                 "function _atuin_search\n  echo user-atuin\nend\n",
                 "_atuin_search",
@@ -1524,7 +1524,8 @@ fn expect_shell_selection(shell: &Path) {
         };
         fs::create_dir_all(startup.parent().unwrap()).unwrap();
         if program == "zsh" {
-            fs::write(home.join(".zshenv"), "export YZX_USER_RC=zshenv\n").unwrap();
+            let zdot = home.parent().unwrap();
+            fs::write(zdot.join(".zshenv"), "YZX_USER_RC=env\nunset ZDOTDIR\n").unwrap();
         }
         fs::write(&startup, startup_text).unwrap();
 
@@ -1563,6 +1564,8 @@ fn assert_shell_state(output: &str, user: &str, session: &str, search: &str, bin
         format!("binding={binding}"),
         "atuin=/nix/store/".to_string(),
         "/bin/atuin".to_string(),
+        "sed=/nix/store/".to_string(),
+        "/bin/sed".to_string(),
     ] {
         expect_contains(output, &expected, "managed shell Atuin state");
     }
@@ -1584,7 +1587,7 @@ fn run_selected_shell(
         .env("YAZELIX_CONFIG_HOME", config_home)
         .env("PATH", "");
     if program == "zsh" {
-        command.env_remove("ZDOTDIR");
+        command.env("ZDOTDIR", home.parent().unwrap());
     }
     if no_bind {
         command.env("ATUIN_NOBIND", "1");

@@ -1,12 +1,12 @@
 #!/bin/sh
-PATH="@atuinPath@${PATH:+:$PATH}"
-export PATH
-
 shell_program="$(@yzxConfig@ --get shell.program)"
 
 if [ "$shell_program" = nu ]; then
   exec @yzxNu@ "$@"
 fi
+
+PATH="@atuinPath@${PATH:+:$PATH}"
+export PATH
 
 atuin_enabled="$(@yzxConfig@ --get shell.atuin)"
 
