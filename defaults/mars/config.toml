@@ -17,7 +17,7 @@ preset = "dark"
 width = 960
 height = 620
 decorations = "disabled"
-opacity = 0.78
+opacity = 0.88
 opacity-cells = false
 
 [panel]

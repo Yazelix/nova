@@ -437,6 +437,6 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,494 lines** of tracked text project files. The
+Yazelix owns **27,496 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.

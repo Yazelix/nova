@@ -15,6 +15,8 @@ User-visible runtime changes for Yazelix Nova live here.
 - Popup configuration changes refresh in active Zellij sessions. Failed popup
   commands remain toggle-managed instead of allowing duplicate panes; exited
   keep-alive panes close when toggled while live keep-alive panes still hide.
+- Mars defaults to 0.88 window opacity, retaining translucency while reducing
+  wallpaper competition. Explicit user opacity continues to apply live.
 
 ## 1.0.0
 
