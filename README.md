@@ -411,7 +411,7 @@ See [Development](docs/development.md) for CI and local checks,
 ## Meet Yazelisk
 
 <div align="center">
-  <img src="assets/yazelisk.png" alt="Yazelisk, the Yazelix basilisk mascot" width="280"/>
+  <img src="assets/yazelisk.png" alt="Yazelisk, the Yazelix basilisk mascot" width="560"/>
 </div>
 
 Yazelisk is Yazelix's basilisk mascot: beautiful and deadly efficient. Friends
