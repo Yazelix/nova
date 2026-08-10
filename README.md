@@ -14,13 +14,6 @@ an optional coding agent popup. It uses the
 opens the desktop workspace through Mars, while `yzx enter` will open Yazelix in any capable terminal emulator (Mars
 provides tighter Yazelix integration, though) or over SSH. Great defaults out of the box!
 
-## Meet Yazelisk
-
-![Yazelisk, the Yazelix basilisk mascot](assets/yazelisk.png)
-
-Yazelisk is Yazelix's basilisk mascot: beautiful and deadly efficient. Friends
-call her Yaz.
-
 ## Preview
 
 ![Yazelix Nova workspace](assets/screenshots/nova_workspace.png)
@@ -415,6 +408,15 @@ See [Development](docs/development.md) for CI and local checks,
 [Architecture](ARCHITECTURE.md) for ownership boundaries, and
 [Runtime Notes](docs/runtime-notes.md) for launch and integration contracts.
 
+## Meet Yazelisk
+
+<div align="center">
+  <img src="assets/yazelisk.png" alt="Yazelisk, the Yazelix basilisk mascot" width="280"/>
+</div>
+
+Yazelisk is Yazelix's basilisk mascot: beautiful and deadly efficient. Friends
+call her Yaz.
+
 ## Acknowledgments
 
 Special thanks to [soderluk](https://github.com/soderluk) for grinding with me
@@ -435,6 +437,6 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,489 lines** of tracked text project files. The
+Yazelix owns **27,491 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
