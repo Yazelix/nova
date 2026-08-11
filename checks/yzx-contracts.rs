@@ -545,7 +545,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         &permissions, "runtime plugin permissions";
         "\"third-party.wasm\" {\n    WebAccess\n}",
         "share/yazelix_zellij_popup/yzpp.wasm\" {",
-        "share/yazelix_zellij_bar/zjstatus.wasm\" {",
+        "share/nova_bar/zjstatus.wasm\" {",
         "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm\" {",
         "WriteToStdin",
         "ReadSessionEnvironmentVariables",

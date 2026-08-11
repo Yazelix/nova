@@ -34,8 +34,8 @@
       url = "github:Yazelix/zellij-popup";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    yazelixZellijBar = {
-      url = "github:Yazelix/zellij-status-kit";
+    novaBar = {
+      url = "github:Yazelix/nova-bar";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zjstatus.follows = "zjstatus";
     };
@@ -78,7 +78,7 @@
     yazelixZellij,
     yazelixHelix,
     yazelixZellijPopup,
-    yazelixZellijBar,
+    novaBar,
     yazelixZellijPaneOrchestrator,
     yazelixScreen,
     autoLayoutYazi,
@@ -272,7 +272,7 @@
       };
       yzxMenu = rustBin "yzx-menu" yzxMenuSrc;
       yazelixZellijPopupPackage = yazelixZellijPopup.packages.${system}.yzpp;
-      yazelixZellijBarPackage = yazelixZellijBar.packages.${system}.yazelix_zellij_bar;
+      novaBarPackage = novaBar.packages.${system}.nova_bar;
       yazelixZellijPaneOrchestratorPackage =
         yazelixZellijPaneOrchestrator.packages.${system}.yazelix_zellij_pane_orchestrator;
       tokenusage = import ./packaging/tokenusage.nix {inherit pkgs;};
@@ -497,7 +497,7 @@
         name = "yzx-bar-render";
         runtimeInputs = [pkgs.jq];
         text = ''
-          ${yazelixZellijBarPackage}/${yazelixZellijBarPackage.widgetPath} render-yazelix-runtime --json "$1" \
+          ${novaBarPackage}/${novaBarPackage.widgetPath} render-nova-runtime --json "$1" \
             | jq -er '.plugin_block'
         '';
       };
@@ -556,7 +556,7 @@
         barRenderRequest = import ./packaging/bar-render-request.nix {
           inherit (pkgs) coreutils nushell;
           inherit runtimeIdentity;
-          zellijBar = yazelixZellijBarPackage;
+          novaBar = novaBarPackage;
         };
         yzxBarRenderRequestTemplate =
           pkgs.writeText "yzx-bar-render-request-template.json" (builtins.toJSON (barRenderRequest {
@@ -744,7 +744,7 @@
           yzxBarRenderRequest = "${yzxBarRenderRequestTemplate}";
           yzxBarRender = "${yzxBarRender}/bin/yzx-bar-render";
           yazelixZellijPopupWasm = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
-          yazelixZellijBarWasm = "${yazelixZellijBarPackage}/share/yazelix_zellij_bar/zjstatus.wasm";
+          novaBarWasm = "${novaBarPackage}/share/nova_bar/zjstatus.wasm";
           yazelixZellijPaneOrchestratorWasm = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
           defaultBarWidgetsJson = builtins.toJSON defaultBarWidgets;
           inherit defaultShellProgram;
@@ -891,7 +891,7 @@
       noMarsNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoMarsNoYazi];};
       noMarsNoHelixNoYaziClosure =
         pkgs.closureInfo {rootPaths = [yzxNoMarsNoHelixNoYazi];};
-      zellijBarPackage = yazelixZellijBar.packages.${system}.default;
+      novaBarPackage = novaBar.packages.${system}.default;
       yzxYaziMaterializer = yzxYaziMaterializerFor pkgs;
       checksSrc = pkgs.lib.cleanSource ./checks;
       yzxContractsCheck = rustBinFor pkgs "yzx-contracts-check" "${checksSrc}/yzx-contracts.rs";
@@ -1050,7 +1050,7 @@
     in {
       inherit yzx;
       zjstatus_activity_pipe = pkgs.runCommand "yzx-zjstatus-activity-pipe-check" {nativeBuildInputs = [pkgs.ripgrep];} ''
-        rg -a -q 'tab_activity_pipe_name' ${zellijBarPackage}/${zellijBarPackage.wasmPath}
+        rg -a -q 'tab_activity_pipe_name' ${novaBarPackage}/${novaBarPackage.wasmPath}
         touch "$out"
       '';
       home_manager = pkgs.runCommand "yzx-home-manager-check" {} ''
@@ -1296,7 +1296,7 @@
 
           ${pkgs.jq}/bin/jq -e --arg channel "$channel" --arg version '${novaVersion}' \
             '.channel == $channel and .version == $version' "$identity" >/dev/null
-          badge="$(${zellijBarPackage}/${zellijBarPackage.widgetPath} version --runtime-dir "$package/share/yazelix")"
+          badge="$(${novaBarPackage}/${novaBarPackage.widgetPath} version --runtime-dir "$package/share/yazelix")"
           test "''${badge#NOVA }" != "$badge"
           test "''${badge##* }" = "''${channel^^}"
 

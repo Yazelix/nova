@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
+- The standalone top-bar component is Nova Bar at `Yazelix/nova-bar`. Nova
+  consumes its `nova_bar` package and `nova_bar_widget` command while the
+  packaged renderer remains `zjstatus.wasm` from the narrow Yazelix fork.
+  Current releases do not ship aliases for the retired artifact names.
 - Packaged Nushell, Bash, Zsh, and Fish use Atuin 18.16.1 for local history and
   contextual `Ctrl+r` search by default while Up-arrow stays native. Zsh follows
   `.zshenv` changes to `ZDOTDIR`. `shell.atuin` disables managed init without

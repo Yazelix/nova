@@ -2,13 +2,13 @@
   coreutils,
   nushell,
   runtimeIdentity,
-  zellijBar,
+  novaBar,
 }: {
   appearanceMode,
   widgetTray,
   shellLabel,
 }: {
-  zjstatus_plugin_url = "file:${zellijBar}/${zellijBar.wasmPath}";
+  zjstatus_plugin_url = "file:${novaBar}/${novaBar.wasmPath}";
   widget_tray = widgetTray;
   widget_frame = "none";
   widget_separator = "dot";
@@ -20,7 +20,7 @@
   tab_label_mode = "full";
   nu_bin = "${nushell}/bin/nu";
   yzx_control_bin = "${coreutils}/bin/false";
-  yazelix_zellij_bar_widget_bin = "${zellijBar}/${zellijBar.widgetPath}";
+  nova_bar_widget_bin = "${novaBar}/${novaBar.widgetPath}";
   runtime_dir = "${runtimeIdentity}";
   claude_usage_display = "both";
   claude_usage_periods = ["5h" "week"];

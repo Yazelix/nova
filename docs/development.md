@@ -66,7 +66,7 @@ nix run --override-input mars ../mars
 nix run --override-input yazelixZellij ../nova-zellij
 nix run --override-input yazelixHelix ../nova-helix
 nix run --override-input yazelixZellijPopup ../zellij-popup
-nix run --override-input yazelixZellijBar ../zellij-status-kit
+nix run --override-input novaBar ../nova-bar
 nix run --override-input yazelixZellijPaneOrchestrator ../zellij-pane-orchestrator
 nix run --override-input yaziBistro ../yazi-bistro
 ```
@@ -109,7 +109,7 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 3681 |
+| Markdown | 3685 |
 | JSON | 117 |
 | Nix | 1764 |
 | Shell | 111 |
@@ -120,4 +120,4 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | Lua | 245 |
 | Rust | 20098 |
 | Text | 71 |
-| Total | 27496 |
+| Total | 27500 |

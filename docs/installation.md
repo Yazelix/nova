@@ -159,7 +159,7 @@ Nova total
 | Starship | 58.9 MiB | Managed prompt executable and runtime libraries |
 | fzf | 49.5 MiB | Fuzzy finder used by menus and Yazi |
 | Anima | 47.9 MiB | Welcome-screen renderer and separately packaged aquarium closure |
-| Zellij Status Kit | 43.1 MiB | Top-bar WebAssembly plugin closure |
+| Nova Bar | 43.1 MiB | Top-bar package and WebAssembly renderer closure |
 | Zellij pane orchestrator | 2.1 MiB | Pane-orchestration WebAssembly plugin |
 | Zellij popup | 1.9 MiB | Popup WebAssembly plugin |
 

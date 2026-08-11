@@ -148,9 +148,7 @@ fn layout_order_is_valid(layout: &str) -> bool {
 }
 
 fn bar_layout_is_valid(layout: &str) -> bool {
-    let bars = layout
-        .matches("share/yazelix_zellij_bar/zjstatus.wasm")
-        .count();
+    let bars = layout.matches("share/nova_bar/zjstatus.wasm").count();
     let native_status_bars = layout.matches(r#"plugin location="status-bar""#).count();
     let tab_only_bars = layout.matches(r#"format_left   "{tabs}""#).count();
     let version_widget = r#"{command_version} " // {datetime}"#;

@@ -11,7 +11,7 @@ use std::{
 
 use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
-    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, MARS, YAZELIX_ZELLIJ_BAR_WASM,
+    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, MARS, NOVA_BAR_WASM,
     YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
     YZX_EDITOR, YZX_HELIX, YZX_MARS_CONFIG, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::{create_dir_all_checked, run_checked, trim_output},
@@ -106,7 +106,7 @@ fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
             ),
         ),
         (
-            YAZELIX_ZELLIJ_BAR_WASM,
+            NOVA_BAR_WASM,
             "ReadApplicationState ChangeApplicationState RunCommands",
         ),
         (

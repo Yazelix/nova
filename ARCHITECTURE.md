@@ -198,8 +198,8 @@ custom popup entry.
 | Nova Helix | Editor fork |
 | Zellij Popup (`yzpp`) | Popup lifecycle |
 | Zellij Pane Orchestrator | Focus, sidebar walk, workspace state, and popup request routing |
-| Zellij Status Kit | Top bar render + widgets |
-| zjstatus | Status rendering and activity-aware tab markers |
+| Nova Bar | Top bar rendering, widgets, palettes, and integrated KDL |
+| zjstatus | WebAssembly renderer used by Nova Bar; narrow activity-marker fork |
 | Ratconfig | Config UI toolkit |
 | Anima | Welcome / screen animations |
 | Yazi Bistro | Complete pinned Yazi flavors, provenance, licenses, dark/light classification, and the packaged light default |

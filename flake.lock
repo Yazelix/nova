@@ -51,7 +51,7 @@
     "fenix": {
       "inputs": {
         "nixpkgs": [
-          "yazelixScreen",
+          "novaBar",
           "nixpkgs"
         ],
         "rust-analyzer-src": "rust-analyzer-src"
@@ -73,7 +73,7 @@
     "fenix_2": {
       "inputs": {
         "nixpkgs": [
-          "yazelixZellijBar",
+          "yazelixScreen",
           "nixpkgs"
         ],
         "rust-analyzer-src": "rust-analyzer-src_2"
@@ -295,18 +295,42 @@
         "type": "github"
       }
     },
+    "novaBar": {
+      "inputs": {
+        "fenix": "fenix",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "zjstatus": [
+          "zjstatus"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786471687,
+        "narHash": "sha256-LodcU0ySaFSXtA+e/dikuvcsK5uAqn4ZrmPX+jhoU10=",
+        "owner": "Yazelix",
+        "repo": "nova-bar",
+        "rev": "8de21d5df53f7970e1dd1338e8e3ea4906e1f1e8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Yazelix",
+        "repo": "nova-bar",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "autoLayoutYazi": "autoLayoutYazi",
         "home-manager": "home-manager",
         "mars": "mars",
         "nixpkgs": "nixpkgs",
+        "novaBar": "novaBar",
         "starshipYazi": "starshipYazi",
         "yazelixCursors": "yazelixCursors",
         "yazelixHelix": "yazelixHelix",
         "yazelixScreen": "yazelixScreen",
         "yazelixZellij": "yazelixZellij",
-        "yazelixZellijBar": "yazelixZellijBar",
         "yazelixZellijPaneOrchestrator": "yazelixZellijPaneOrchestrator",
         "yazelixZellijPopup": "yazelixZellijPopup",
         "yaziBistro": "yaziBistro",
@@ -566,7 +590,7 @@
     "yazelixScreen": {
       "inputs": {
         "asciiquarium": "asciiquarium",
-        "fenix": "fenix",
+        "fenix": "fenix_2",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -599,30 +623,6 @@
         "owner": "Yazelix",
         "repo": "nova-zellij",
         "rev": "bbccdea6eda81f314151160f9b3f8882a26478ec",
-        "type": "github"
-      }
-    },
-    "yazelixZellijBar": {
-      "inputs": {
-        "fenix": "fenix_2",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "zjstatus": [
-          "zjstatus"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786217488,
-        "narHash": "sha256-fAqRlG1N2HjL0b6drIpMxio6eLUobA3+s530MMA5xHk=",
-        "owner": "Yazelix",
-        "repo": "zellij-status-kit",
-        "rev": "0945a08aed9b8d068783318725299fe3c6792fc9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Yazelix",
-        "repo": "zellij-status-kit",
         "type": "github"
       }
     },
