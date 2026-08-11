@@ -215,7 +215,7 @@
         STARSHIP_CONFIG=/dev/null ${pkgs.starship}/bin/starship print-config --default > "$out"
       '';
       yzxConfigSrc =
-        assert mars.rev == "2b63717135a72ef330d8c2da8ca4cde59c22d739";
+        assert mars.rev == "21109e3ebc24b63da11bae644dfb9bab28ce0e18";
           pkgs.runCommand "yzx-config-src" {} ''
         mkdir -p "$out"
         cp -R ${pkgs.lib.cleanSource ./crates/yzx-config}/. "$out/"
@@ -240,7 +240,7 @@
         src = yzxConfigSrc;
         cargoLock = {
           lockFile = ./crates/yzx-config/Cargo.lock;
-          outputHashes."ratconfig-6.0.0" = "sha256-I9+pRyfLVq4QYcATNjNr1ix+dIk8WlYawt5HI13gaZo=";
+          outputHashes."ratconfig-6.0.0" = "sha256-z8vsrmVhac5mCfKouc6yvK0xpUjWFmhi6z7SixrmT7I=";
         };
         YAZELIX_NIX_STORE_ROOT = builtins.storeDir;
         YAZELIX_PACKAGED_YAZI = yzxYaziConfig;
