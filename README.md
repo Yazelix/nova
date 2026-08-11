@@ -436,7 +436,7 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,500 lines** of tracked text project files. The
+Yazelix owns **27,498 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-The four-line increase records Nova Bar's public artifact names; runtime behavior is unchanged.
+The two-line increase records Nova Bar's public artifact names; runtime behavior is unchanged.
