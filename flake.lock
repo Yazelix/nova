@@ -596,11 +596,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786291144,
-        "narHash": "sha256-qnzjn9KiUgRFOWqd8pjvFPddtbgJXJtwxkS/pNOrIp8=",
+        "lastModified": 1786570049,
+        "narHash": "sha256-ScfSjib7Fs6eCqsnc0C6Hni7Gv8FbEzX6Rai5wBJ0O4=",
         "owner": "Yazelix",
         "repo": "anima",
-        "rev": "d22d091d427af0be307056c65e475802b602d386",
+        "rev": "58396ac3c6649f035e04c6b22b19c2accc818a02",
         "type": "github"
       },
       "original": {

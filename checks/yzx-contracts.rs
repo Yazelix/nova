@@ -281,6 +281,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "boids_schools",
         "game_of_life_gliders",
         "mandelbrot",
+        "matrix",
         "random",
         "--cell-style",
         "--duration-seconds",
@@ -1292,8 +1293,8 @@ fn expect_startup_diagnostics(yzx: &Path) {
         ),
         (
             "bad-welcome-style-config",
-            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"matrix\"\n",
-            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, mandelbrot, game_of_life_gliders, game_of_life_oscillators, game_of_life_bloom, random",
+            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"snow\"\n",
+            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, mandelbrot, matrix, game_of_life_gliders, game_of_life_oscillators, game_of_life_bloom, random",
             "invalid welcome style",
         ),
         (

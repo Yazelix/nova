@@ -57,7 +57,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
-| `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, the Boids/Mandelbrot/Game of Life styles, or `random` |
+| `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, Matrix, the Boids/Mandelbrot/Game of Life styles, or `random` |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
 | `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the managed Yazi sidebar |
 | `keybindings.sidebar_focus` | `Ctrl y` | Overview | Toggle focus between the editor and managed Yazi sidebar |

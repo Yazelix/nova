@@ -4,6 +4,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
+- Anima adds Matrix rain to `yzx anima` and `random`, hardens its existing
+  renderers, and emits complete native frames through synchronized updates.
 - `yzx anima [style]` replaces `yzx screen [style]` as the direct Anima command.
 - The standalone top-bar component is Nova Bar at `Yazelix/nova-bar`. Nova
   consumes its `nova_bar` package and `nova_bar_widget` command while the

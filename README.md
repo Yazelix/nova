@@ -306,7 +306,7 @@ Yazelix assembles focused first-party forks, plugins, libraries, and commands:
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with tabs, modes, session details, status widgets, and activity markers, built on the narrow Yazelix `zjstatus` fork |
 | [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
-| [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations and the separately packaged GPL aquarium exposed through `yzx anima` |
+| [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations including Matrix rain, plus the separately packaged GPL aquarium exposed through `yzx anima` |
 | [Yazelix Cursors](https://github.com/Yazelix/cursors) | Shared cursor presets and validation for Ratconfig, plus palettes and shader assets for Mars |
 | [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
 | [auto-layout.yazi](https://github.com/Yazelix/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
@@ -436,7 +436,7 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,501 lines** of tracked text project files. The
+Yazelix owns **27,505 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-The three-line increase records the command rename changelog and its command/palette contract.
+The seven-line increase records the command rename and Anima's Matrix and synchronized-frame contracts.

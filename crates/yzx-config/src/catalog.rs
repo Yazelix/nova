@@ -22,6 +22,7 @@ pub(crate) const WELCOME_STYLE_VALUES: &[&str] = &[
     "boids_predator",
     "boids_schools",
     "mandelbrot",
+    "matrix",
     "game_of_life_gliders",
     "game_of_life_oscillators",
     "game_of_life_bloom",
