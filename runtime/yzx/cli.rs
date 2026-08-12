@@ -40,7 +40,7 @@ pub(crate) fn run() -> Result<(), AppError> {
             exec_menu()
         }
         "tutor" => exec_tutor(args),
-        "screen" => exec_screen(args),
+        "anima" => exec_anima(args),
         "doctor" => {
             expect_no_args("doctor", &args)?;
             print_doctor()
@@ -185,13 +185,13 @@ fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
     exec(command, "yzx reveal")
 }
 
-fn exec_screen(args: Vec<OsString>) -> Result<(), AppError> {
+fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
     let mut command = Command::new(YZX_SCREEN);
     command
         .args(args)
-        .env("YAZELIX_SCREEN_COMMAND_NAME", "yzx screen")
+        .env("YAZELIX_SCREEN_COMMAND_NAME", "yzx anima")
         .env("PATH", runtime_path());
-    exec(command, "yzx screen")
+    exec(command, "yzx anima")
 }
 
 fn exec_managed(through_mars: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
@@ -355,7 +355,7 @@ Usage:
   yzx menu
   yzx tutor [lesson]
   yzx reveal <target>
-  yzx screen [style]
+  yzx anima [style]
   yzx run <program> [args...]
   yzx status [--json]
 
@@ -370,7 +370,7 @@ Commands:
   tutor   Show the guided Yazelix Nova tutor
   reveal  Reveal a file or directory in the persistent Yazi popup
   run     Run a command in the managed Yazelix environment
-  screen  Show a Yazelix terminal screen
+  anima   Show a Yazelix terminal animation
   status  Show Yazelix runtime status
   help    Show this help
 

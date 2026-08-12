@@ -48,7 +48,7 @@ into eight explicit package and app outputs.
 | `yazi-config materialize` | Explicit-path Yazi config materialization for automation |
 | `menu` | Curated command palette |
 | `tutor` | Guided lessons / native tutor hints |
-| `screen` | Terminal screens / welcome styles |
+| `anima` | Terminal animations / welcome styles |
 | `reveal` | Path in the active tab's persistent Yazi popup |
 | `status` / `status --json` | Human and schema-versioned runtime status |
 | `doctor` | Owned setup checks |

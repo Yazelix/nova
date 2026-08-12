@@ -59,7 +59,7 @@ pub(crate) fn print_doctor() -> Result<(), AppError> {
     doctor_ok("layout", runtime.layout());
     doctor_ok("config helper", YZX_CONFIG);
     doctor_ok("tutor helper", YZX_TUTOR);
-    doctor_ok("screen helper", YZX_SCREEN);
+    doctor_ok("anima helper", YZX_SCREEN);
     doctor_ok("welcome helper", YZX_WELCOME);
     doctor_ok("zellij helper", YZX_ZELLIJ_CONFIG);
     doctor_ok("reveal helper", YZX_REVEAL);
@@ -127,7 +127,7 @@ fn check_doctor_inputs() -> Result<(), AppError> {
         ("config UI", Path::new(YZX_CONFIG_UI)),
         ("menu helper", Path::new(YZX_MENU)),
         ("tutor helper", Path::new(YZX_TUTOR)),
-        ("screen helper", Path::new(YZX_SCREEN)),
+        ("anima helper", Path::new(YZX_SCREEN)),
         ("welcome helper", Path::new(YZX_WELCOME)),
         ("config helper", Path::new(YZX_CONFIG)),
         ("zellij config helper", Path::new(YZX_ZELLIJ_CONFIG)),

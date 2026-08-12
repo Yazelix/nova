@@ -9,8 +9,8 @@ use std::{
 mod support;
 
 use support::{
-    binary_text, embedded_store_path, excerpt, expect_contains, expect_order, successful_output,
-    successful_stdout, write_config_home, write_executable, RuntimeCase, TempDir,
+    RuntimeCase, TempDir, binary_text, embedded_store_path, excerpt, expect_contains, expect_order,
+    successful_output, successful_stdout, write_config_home, write_executable,
 };
 
 macro_rules! expect_contains_all {
@@ -233,7 +233,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "yzx menu",
         "yzx tutor [lesson]",
         "yzx reveal <target>",
-        "yzx screen [style]",
+        "yzx anima [style]",
         "yzx run <program> [args...]",
         "yzx status [--json]",
         "https://github.com/sponsors/luccahuguet",
@@ -249,7 +249,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         .collect::<Vec<_>>();
     assert_eq!(
         menu_ids,
-        ["config", "doctor", "status", "screen", "launch", "help", "tutor"],
+        [
+            "config", "doctor", "status", "anima", "launch", "help", "tutor"
+        ],
         "yzx menu command allowlist changed\n{menu}"
     );
     expect_menu_descriptions_match_help(&help, &menu);
@@ -269,10 +271,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     let reveal_help = run_help(&yzx_bin, &["reveal", "--help"]);
     expect_contains(&reveal_help, "yzx reveal <target>", "yzx reveal help");
-    let screen_help = run_help(&yzx_bin, &["screen", "--help"]);
+    let anima_help = run_help(&yzx_bin, &["anima", "--help"]);
     expect_contains_all! {
-        &screen_help, "yzx screen help";
-        "yzx screen [STYLE]",
+        &anima_help, "yzx anima help";
+        "yzx anima [STYLE]",
         "static",
         "logo",
         "asciiquarium",
@@ -863,7 +865,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "ok keybindings.sidebar: Alt Shift H",
         "ok keybindings.sidebar_focus: Ctrl y",
         "ok tutor helper: /nix/store/",
-        "ok screen helper: /nix/store/",
+        "ok anima helper: /nix/store/",
         "ok welcome helper: /nix/store/",
         "ok yazi opener: /nix/store/",
         "ok reveal helper: /nix/store/",
@@ -978,9 +980,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "removed yzx sponsor command",
         ),
         (
-            &["wat"][..],
-            "yzx: unknown command: wat",
-            "unknown yzx command error",
+            &["screen"][..],
+            "yzx: unknown command: screen",
+            "renamed yzx screen command",
         ),
     ] {
         expect_command_error(&yzx_bin, args, expected, context);

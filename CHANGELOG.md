@@ -4,6 +4,7 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
+- `yzx anima [style]` replaces `yzx screen [style]` as the direct Anima command.
 - The standalone top-bar component is Nova Bar at `Yazelix/nova-bar`. Nova
   consumes its `nova_bar` package and `nova_bar_widget` command while the
   packaged renderer remains `zjstatus.wasm` from the narrow Yazelix fork.
