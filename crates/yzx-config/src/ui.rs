@@ -16,8 +16,7 @@ use ratconfig::{ConfigUiApp, ConfigUiFieldId, ConfigUiIntent, ConfigUiKey, draw_
 use crate::{
     common::*,
     file_actions::{
-        AppearanceProjection, ZellijAppearanceProjection, edit_text_externally, open_file_action,
-        write_config_ui,
+        ZellijAppearanceProjection, edit_text_externally, open_file_action, write_config_ui,
     },
     model::build_model,
     paths::{ConfigPaths, ensure_config_sources},
@@ -90,7 +89,7 @@ fn apply_field_write(
     value: Option<&serde_json::Value>,
 ) -> Result<()> {
     let reset = value.is_none();
-    match write_config_ui(paths, &field.source_id, &field.path, value, true) {
+    match write_config_ui(paths, &field.source_id, &field.path, value) {
         Ok(projection) => reload_after_successful_write(
             app,
             build_model(paths)?,
@@ -103,15 +102,21 @@ fn apply_field_write(
     }
 }
 
-fn write_notice(field_path: &str, projection: Option<AppearanceProjection>, reset: bool) -> String {
+fn write_notice(
+    field_path: &str,
+    projection: Option<ZellijAppearanceProjection>,
+    reset: bool,
+) -> String {
     let action = if reset { "Now inheriting" } else { "Saved" };
     let Some(projection) = projection else {
         return format!("{action} {field_path}.");
     };
-    let update = match projection.zellij {
-        ZellijAppearanceProjection::Live => "Zellij and the bar switched",
+    let update = match projection {
+        ZellijAppearanceProjection::Live => {
+            "Rio will apply it on the next yzx launch; Zellij and the bar switched"
+        }
         ZellijAppearanceProjection::NextLaunch => {
-            "Zellij and the bar will apply it on the next managed launch"
+            "Rio will apply it on the next yzx launch; Zellij and the bar will apply it on the next managed launch"
         }
     };
     format!("{action} {field_path}; {update}.")

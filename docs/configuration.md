@@ -174,7 +174,7 @@ ids that do not exist are not invented; open `config.toml` to add them
 
 | File | Owner | Notes |
 | --- | --- | --- |
-| `rio/config.toml` | Rio | Complete native configuration seeded once from the package. Ratconfig exposes one exact-file action and does not mirror Rio's schema |
+| `rio/config.toml` | Rio | Complete native configuration and referenced adaptive themes seeded once from the package. Ratconfig exposes one exact-file action and does not mirror Rio's schema |
 | `zellij/config.kdl` | Zellij sidecar | Sparse safe scalar overrides where absent assignments inherit packaged defaults. The Zellij tab keeps themes, pane frames, mouse mode, copy-on-select, and rounded corners in Overview; All adds scrollback size, clipboard target, styled underlines, and startup tips. Search covers the typed fields and the exact native-file action. Safe untyped leaves remain unchanged without a UI row or informational diagnostic per leaf. Advanced diagnostics report only ignored, invalid, structurally unsafe, or integration-owned state; guarded diagnostics name the Yazelix owner. Ratconfig does not claim a complete Zellij schema. A legacy static `theme` assignment remains preserved but omitted from managed runtime. Inside a session, saves and resets also patch the active runtime config. Structural comments or continuations, extra managed-block metadata, other structured native nodes, and integration-owned nodes block unsafe writes |
 | `zellij/plugins.kdl` | Zellij plugin sidecar | Extra plugin declarations only. Packaged plugin ids cannot be redeclared |
 | `starship.toml` | Starship | Sparse native prompt overrides. Ratconfig consumes the generated schema and default output from packaged Starship 1.26.0. Overview recommends `format`, `right_format`, `add_newline`, and `character.format`; All exposes 832 finite owner fields. Schema-backed strings and booleans are editable. Numeric, structured, union, and dynamic values remain read-only with this exact file action |
@@ -370,9 +370,11 @@ overrides under runtime state without setting top-level `format`, so Starship
 retains its native `$all` layout. Zellij layers its sparse file over packaged
 configuration directly. Untouched defaults follow upgrades
 
-Rio owns the full schema and validation for `rio/config.toml`. The packaged
-file is copied only when that path does not already exist, after which upgrades
-leave it alone. Ratconfig's Rio tab contains only the exact-file action. Legacy
+Rio owns the full schema and validation for `rio/config.toml`. When that path
+does not already exist, Yazelix copies the packaged config and any missing
+`nova-dark`/`nova-light` themes; an existing theme file is never replaced.
+Upgrades leave those user-owned files alone. Ratconfig's Rio tab contains only
+the exact-file action. Legacy
 `mars/config.toml` and `cursors.toml` files remain byte-for-byte untouched and
 are ignored by Nova
 
@@ -399,7 +401,10 @@ the top bar palette. Outside a managed session, Zellij and the bar apply the
 saved mode on the next Yazelix launch; Zellij resolves the corresponding
 dark/light theme-pair member. A Zellij projection failure does not roll back the
 saved root value. Rio settings remain native Rio settings and follow Rio's
-reload behavior. Zellij
+reload behavior. Each new `yzx launch` passes the saved root mode to Rio; the
+packaged config selects its matching native adaptive theme. Existing Rio
+windows keep their launch mode. A custom complete Rio file supersedes this
+integration unless it supplies its own adaptive pair. Zellij
 sidecar saves and resets update the active managed session when `yzx config`
 runs inside it. Pane frames, rounded corners, copy-on-select, and clipboard
 target apply via the watcher; mouse mode, scrollback size, styled underlines,

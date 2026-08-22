@@ -7,17 +7,23 @@ User-visible runtime changes for Yazelix Nova live here.
 - Nova launches the exact pinned `Yazelix/nova-rio` revision instead of Mars
   and removes Yazelix Cursors plus the four `no-mars` package variants. Rio's
   complete native `rio/config.toml` is seeded once with Nova's window, font,
-  opacity, cyan cursor, and cursor-trail defaults; Ratconfig opens that file
-  without mirroring Rio's schema. Existing `mars/config.toml` and
+  opacity, cyan cursor, cursor-trail, and dark/light adaptive-theme defaults;
+  theme files already present during the first seed are preserved;
+  `yzx launch` selects the root appearance mode through Rio's launch-time
+  override. Ratconfig opens the native file without mirroring Rio's schema and
+  reports Rio's next-launch appearance boundary.
+  Existing `mars/config.toml` and
   `cursors.toml` files are preserved but ignored. The separate `Yazelix/mars`
   repository, its refs, and existing consumers are unchanged.
 - Home Manager declarations for `programs.yazelix.config.mars` or
   `programs.yazelix.config.cursors` must be removed or replaced with the
   complete native `programs.yazelix.config.rio` file option.
-- Nova Rio keeps only four isolated changes over its recorded upstream
+- Nova Rio keeps four behavioral changes over its recorded upstream
   baseline: direct Kitty placement cleanup on full-screen erase, balanced grid
-  remainder placement, quit-modal spacing and border polish, and fork-boundary
-  documentation.
+  remainder placement, quit-modal spacing and border polish, and a generic
+  launch-time dark/light override. Its README records the fork boundary and
+  removal conditions; a follow-up simplifies those same paths without adding
+  behavior.
 - Anima adds Matrix rain to `yzx anima` and `random`, hardens its existing
   renderers, and emits complete native frames through synchronized updates.
 - `yzx anima [style]` replaces `yzx screen [style]` as the direct Anima command.

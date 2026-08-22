@@ -199,10 +199,8 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
     let runtime = Runtime::prepare_with_yazi()?;
     let mut command = Command::new(program);
     if graphical {
-        command
-            .args(["--app-id", "yzx", "-e"])
-            .arg(YZX_WELCOME)
-            .arg(ZELLIJ);
+        apply_rio_launch_theme_mode(&mut command, &runtime.appearance_mode);
+        command.arg(YZX_WELCOME).arg(ZELLIJ);
     } else {
         command.arg(ZELLIJ);
     }
@@ -231,6 +229,10 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
     exec(command, program)
 }
 
+fn apply_rio_launch_theme_mode(command: &mut Command, mode: &str) {
+    command.args(["--app-id", "yzx", "--theme-mode", mode, "-e"]);
+}
+
 fn apply_zellij_launch_theme_mode(command: &mut Command, mode: &str) {
     command.arg("--theme-mode").arg(mode);
 }
@@ -240,7 +242,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn zellij_launch_theme_mode_is_explicit() {
+    fn managed_launch_theme_modes_are_explicit() {
         let mut zellij = Command::new(ZELLIJ);
         apply_zellij_launch_theme_mode(&mut zellij, "light");
         assert_eq!(
@@ -249,6 +251,15 @@ mod tests {
                 .map(|arg| arg.to_string_lossy().into_owned())
                 .collect::<Vec<_>>(),
             ["--theme-mode", "light"]
+        );
+
+        let mut rio = Command::new(RIO);
+        apply_rio_launch_theme_mode(&mut rio, "light");
+        assert_eq!(
+            rio.get_args()
+                .map(|arg| arg.to_string_lossy().into_owned())
+                .collect::<Vec<_>>(),
+            ["--app-id", "yzx", "--theme-mode", "light", "-e"]
         );
     }
 

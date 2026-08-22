@@ -254,18 +254,12 @@ pub(crate) enum ZellijAppearanceProjection {
     NextLaunch,
 }
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct AppearanceProjection {
-    pub(crate) zellij: ZellijAppearanceProjection,
-}
-
 pub(crate) fn write_config_ui(
     paths: &ConfigPaths,
     source_id: &str,
     field_path: &str,
     value: Option<&JsonValue>,
-    apply_zellij_live: bool,
-) -> Result<Option<AppearanceProjection>> {
+) -> Result<Option<ZellijAppearanceProjection>> {
     match value {
         Some(value) => write_source_field(paths, source_id, field_path, value),
         None => write_source_default(paths, source_id, field_path),
@@ -274,13 +268,8 @@ pub(crate) fn write_config_ui(
         return Ok(None);
     }
     let mode = read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH)?)?;
-    let zellij_result = if apply_zellij_live {
-        apply_zellij_appearance(&mode)
-    } else {
-        Ok(ZellijAppearanceProjection::NextLaunch)
-    };
-    match zellij_result {
-        Ok(zellij) => Ok(Some(AppearanceProjection { zellij })),
+    match apply_zellij_appearance(&mode) {
+        Ok(zellij) => Ok(Some(zellij)),
         Err(source) => Err(error(format!(
             "Updated {APPEARANCE_MODE_PATH}, but could not update Zellij and the bar: {source}. The saved mode remains authoritative; the next managed launch will retry."
         ))),

@@ -235,6 +235,29 @@ mod tests {
         (temp, paths)
     }
 
+    #[test]
+    fn rio_defaults_seed_config_and_themes_once() {
+        let temp = TempHome::new();
+        let paths = temp_paths(&temp);
+        let dark = paths.rio.parent().unwrap().join("themes/nova-dark.toml");
+        let light = paths.rio.parent().unwrap().join("themes/nova-light.toml");
+        fs::create_dir_all(dark.parent().unwrap()).unwrap();
+        fs::write(&dark, "# custom dark\n").unwrap();
+
+        initialize_rio_config(&paths.rio).unwrap();
+        assert_file_text(&paths.rio, DEFAULT_RIO_CONFIG_TOML);
+        assert_file_text(&dark, "# custom dark\n");
+        assert_file_text(&light, DEFAULT_RIO_LIGHT_THEME_TOML);
+
+        for path in [&paths.rio, &dark, &light] {
+            fs::write(path, "# custom\n").unwrap();
+        }
+        initialize_rio_config(&paths.rio).unwrap();
+        for path in [&paths.rio, &dark, &light] {
+            assert_file_text(path, "# custom\n");
+        }
+    }
+
     fn has_diagnostic(diagnostics: &[ConfigUiDiagnostic], text: &str) -> bool {
         diagnostics
             .iter()

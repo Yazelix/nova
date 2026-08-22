@@ -191,6 +191,11 @@ programs.yazelix.config = {
 };
 ```
 
+`rio.source` replaces Nova's complete native Rio config. If that file uses
+`adaptive-theme`, install its referenced theme files under
+`~/.config/yazelix/rio/themes/` through Home Manager as well, for example with
+`xdg.configFile."yazelix/rio/themes/<name>.toml".source`.
+
 `settings` renders only the declared values to
 `~/.config/yazelix/config.toml`, while undeclared values inherit packaged Nova
 defaults. Native files are `text` or `source` passthroughs. Store-backed files

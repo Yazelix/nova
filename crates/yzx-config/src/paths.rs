@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::common::*;
+use crate::{catalog::*, common::*};
 
 pub(crate) struct ConfigPaths {
     pub(crate) store_root: PathBuf,
@@ -83,7 +83,20 @@ pub(crate) fn ensure_config_sources_at(paths: ConfigPaths) -> Result<ConfigPaths
 }
 pub(crate) fn initialize_rio_config(path: &Path) -> Result<()> {
     if !path_entry_exists(path)? {
-        atomic_write(path, crate::catalog::DEFAULT_RIO_CONFIG_TOML)?;
+        let themes = path
+            .parent()
+            .expect("Rio config has a parent")
+            .join("themes");
+        for (name, contents) in [
+            ("nova-dark.toml", DEFAULT_RIO_DARK_THEME_TOML),
+            ("nova-light.toml", DEFAULT_RIO_LIGHT_THEME_TOML),
+        ] {
+            let theme = themes.join(name);
+            if !path_entry_exists(&theme)? {
+                atomic_write(&theme, contents)?;
+            }
+        }
+        atomic_write(path, DEFAULT_RIO_CONFIG_TOML)?;
     }
     Ok(())
 }

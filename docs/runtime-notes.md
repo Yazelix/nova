@@ -29,8 +29,11 @@ editor environment and returns the edited text to the row. `Enter` saves.
 ## Managed Appearance
 
 Root `appearance.mode` is the managed dark/light authority. Ratconfig uses it
-for its own palette. Rio is independently configured by its native file and is
-not part of this projection.
+for its own palette. `yzx launch` passes it to Rio as a launch-time override;
+the packaged native Rio config maps it to `nova-dark` or `nova-light`. An open
+Rio window keeps its launch mode, so a saved change reaches Rio on the next
+launch. A custom complete Rio config remains authoritative and must supply its
+own adaptive pair to participate.
 
 Yazelix passes only the root dark/light mode to each new managed Zellij
 session. Zellij resolves the matching `theme_dark` or `theme_light` member. A

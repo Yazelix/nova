@@ -79,6 +79,10 @@ pub(crate) const ZELLIJ_RECOMMENDED_PATHS: &[&str] = &[
 pub(crate) const STARSHIP_RECOMMENDED_PATHS: &[&str] =
     &["format", "right_format", "add_newline", "character.format"];
 pub(crate) const DEFAULT_RIO_CONFIG_TOML: &str = include_str!("../../../defaults/rio/config.toml");
+pub(crate) const DEFAULT_RIO_DARK_THEME_TOML: &str =
+    include_str!("../../../defaults/rio/themes/nova-dark.toml");
+pub(crate) const DEFAULT_RIO_LIGHT_THEME_TOML: &str =
+    include_str!("../../../defaults/rio/themes/nova-light.toml");
 pub(crate) const DEFAULT_STARSHIP_CONFIG_TOML: &str = "\
 [character]
 format = \":: \"

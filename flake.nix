@@ -15,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rio = {
-      url = "github:Yazelix/nova-rio/1024059fa31a3e49680d785ec697967be9e27b51";
+      url = "github:Yazelix/nova-rio/36f3e40b1a4c53929d646995b2cf28660b72af6e";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
@@ -122,6 +122,8 @@
       };
       yzxRioConfig = pkgs.runCommand "yzx-rio-config" {} ''
         install -D -m 644 ${yzxRioToml} "$out/config.toml"
+        install -D -m 644 ${./defaults/rio/themes/nova-dark.toml} "$out/themes/nova-dark.toml"
+        install -D -m 644 ${./defaults/rio/themes/nova-light.toml} "$out/themes/nova-light.toml"
       '';
       yzxCarapaceInit = pkgs.runCommand "yzx-carapace-init" {} ''
         ${pkgs.carapace}/bin/carapace _carapace nushell > "$out"
@@ -223,10 +225,14 @@
         chmod -R u+w "$out"
         cp ${./defaults/config.toml} "$out/config.toml"
         cp ${yzxRioToml} "$out/rio.toml"
+        cp ${./defaults/rio/themes/nova-dark.toml} "$out/rio-dark.toml"
+        cp ${./defaults/rio/themes/nova-light.toml} "$out/rio-light.toml"
         cp ${./defaults/helix/config.toml} "$out/helix.toml"
         substituteInPlace "$out/src/catalog.rs" \
           --replace-fail '../../../defaults/config.toml' '../config.toml' \
           --replace-fail '../../../defaults/rio/config.toml' '../rio.toml' \
+          --replace-fail '../../../defaults/rio/themes/nova-dark.toml' '../rio-dark.toml' \
+          --replace-fail '../../../defaults/rio/themes/nova-light.toml' '../rio-light.toml' \
           --replace-fail '../../../defaults/helix/config.toml' '../helix.toml'
       '';
       yzxConfig = pkgs.rustPlatform.buildRustPackage {
@@ -792,7 +798,7 @@
               install -D -m 644 ${configKdl} "$out/share/yazelix/config.kdl"
               install -D -m 644 ${runtimeIdentity}/runtime_identity.json "$out/share/yazelix/runtime_identity.json"
               install -D -m 644 ${./defaults/config.toml} "$out/share/yazelix/config.toml"
-              install -D -m 644 ${yzxRioConfig}/config.toml "$out/share/yazelix/rio/config.toml"
+              cp -R ${yzxRioConfig}/. "$out/share/yazelix/rio/"
               install -D -m 644 ${layout}/layout.kdl "$out/share/yazelix/layout.kdl"
               install -D -m 644 ${layout}/layout.swap.kdl "$out/share/yazelix/layout.swap.kdl"
               ln -s ${yzxYaziConfig} "$out/share/yazelix/yazi"
@@ -1262,11 +1268,17 @@
       '';
       rio_contracts = pkgs.runCommand "yzx-rio-contracts" {} ''
         grep -Fx ${rioPackage} ${yzxClosure}/store-paths
-        ! grep -E '/[^/]*-(mars|yazelix-cursors)-' ${yzxClosure}/store-paths
+        ! grep -E '/[0-9a-z]{32}-(mars|yazelix[-_]cursors)(-|$)' ${yzxClosure}/store-paths
+        ${rioPackage}/bin/rio --help | grep -F -- '--theme-mode <THEME_MODE>'
         test -x ${yzx}/bin/yzx
         test -f ${yzx}/share/yazelix/rio/config.toml
         grep -Fqx 'cursor = "#00e6ff"' ${yzx}/share/yazelix/rio/config.toml
         grep -Fqx 'trail-cursor = true' ${yzx}/share/yazelix/rio/config.toml
+        grep -Fqx 'adaptive-theme = { dark = "nova-dark", light = "nova-light" }' ${yzx}/share/yazelix/rio/config.toml
+        test -f ${yzx}/share/yazelix/rio/themes/nova-dark.toml
+        test -f ${yzx}/share/yazelix/rio/themes/nova-light.toml
+        grep -Fqx 'background = "#111416"' ${yzx}/share/yazelix/rio/themes/nova-dark.toml
+        grep -Fqx 'background = "#f5f3ef"' ${yzx}/share/yazelix/rio/themes/nova-light.toml
         test "$(${pkgs.jq}/bin/jq -r .rio_revision ${yzx}/share/yazelix/runtime_identity.json)" = ${rio.rev}
         touch "$out"
       '';

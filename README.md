@@ -295,7 +295,7 @@ Yazelix assembles focused first-party forks, plugins, libraries, and commands:
 
 | Component | Yazelix role |
 | --- | --- |
-| [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes Nova still needs |
+| [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes and launch-time theme override Nova still needs |
 | [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
 | [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
@@ -322,7 +322,9 @@ fields or less than one quarter of their inventory simply show All.
 Rio owns its complete native configuration at
 `~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once and Ratconfig
 opens it as an exact native-file action; neither layer mirrors Rio's schema.
-The packaged starting point uses a cyan cursor and Rio's native cursor trail.
+The packaged starting point uses a cyan cursor, Rio's native cursor trail, and
+native `nova-dark`/`nova-light` adaptive themes. Files created by that seed
+become user-owned; existing theme files remain untouched.
 Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Yazi tab consumes the native presets and official schemas paired with the
@@ -344,7 +346,11 @@ effective `keys.normal.A-r` row explains Yazelix's reserved reveal binding,
 while the two Steel files remain native actions.
 
 `appearance.mode` selects `dark` or `light` for managed Yazelix components and
-also controls Ratconfig's palette. Rio remains independently native-configured.
+also controls Ratconfig's palette. `yzx launch` passes that mode to Rio, which
+selects the matching native adaptive theme. An open Rio window keeps its launch
+mode; launch a new window after changing the setting. A custom complete Rio
+config remains authoritative and must provide its own adaptive theme pair to
+participate.
 
 Zellij stores one dark theme and one light theme over its pinned packaged
 inventory. Ratconfig inherits `ansi` and `gruvbox-light`, lets either field
@@ -419,8 +425,8 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **25,589 lines** of tracked text project files. The
+Yazelix owns **25,740 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-The 1,916-line reduction reflects the deletion of Mars/Cursors integration and
+The 1,765-line reduction reflects the deletion of Mars/Cursors integration and
 the four duplicate terminal-free package variants.

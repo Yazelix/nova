@@ -1599,6 +1599,8 @@ fn run_selected_shell(
 
 fn expect_rio_config(yzx: &Path) {
     let packaged_config = yzx.join("share/yazelix/rio/config.toml");
+    let packaged_dark = yzx.join("share/yazelix/rio/themes/nova-dark.toml");
+    let packaged_light = yzx.join("share/yazelix/rio/themes/nova-light.toml");
     let yzx_bin = yzx.join("bin/yzx");
     assert!(
         packaged_config.is_file(),
@@ -1612,6 +1614,7 @@ fn expect_rio_config(yzx: &Path) {
         "YAZELIX_CONFIG_HOME",
         "RIO_CONFIG_HOME",
         "--app-id",
+        "--theme-mode",
         "/bin/rio",
     }
 
@@ -1625,9 +1628,19 @@ fn expect_rio_config(yzx: &Path) {
 
     let status = case.run_yzx(&yzx_bin, "status", "Rio config initialization");
     let rio_config = case.config_home.join("rio/config.toml");
+    let rio_dark = case.config_home.join("rio/themes/nova-dark.toml");
+    let rio_light = case.config_home.join("rio/themes/nova-light.toml");
     assert_eq!(
         fs::read_to_string(&rio_config).unwrap(),
         fs::read_to_string(&packaged_config).unwrap()
+    );
+    assert_eq!(
+        fs::read_to_string(&rio_dark).unwrap(),
+        fs::read_to_string(&packaged_dark).unwrap()
+    );
+    assert_eq!(
+        fs::read_to_string(&rio_light).unwrap(),
+        fs::read_to_string(&packaged_light).unwrap()
     );
     expect_contains_all! {
         &status, "Rio config status";
@@ -1639,8 +1652,18 @@ fn expect_rio_config(yzx: &Path) {
         fs::read_to_string(&rio_config).unwrap()
     );
     fs::write(&rio_config, &custom).unwrap();
+    fs::write(&rio_dark, "# custom dark theme\n").unwrap();
+    fs::write(&rio_light, "# custom light theme\n").unwrap();
     case.run_yzx(&yzx_bin, "status", "Rio config preservation");
     assert_eq!(fs::read_to_string(rio_config).unwrap(), custom);
+    assert_eq!(
+        fs::read_to_string(rio_dark).unwrap(),
+        "# custom dark theme\n"
+    );
+    assert_eq!(
+        fs::read_to_string(rio_light).unwrap(),
+        "# custom light theme\n"
+    );
     assert_eq!(
         fs::read_to_string(legacy_mars).unwrap(),
         "# preserved Mars config\n"

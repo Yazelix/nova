@@ -2,6 +2,7 @@ confirm-before-quit = true
 scrollback-history-limit = 0
 enable-scroll-bar = false
 line-height = 1.12
+adaptive-theme = { dark = "nova-dark", light = "nova-light" }
 
 [bell]
 audio = true
