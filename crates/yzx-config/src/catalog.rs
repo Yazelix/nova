@@ -205,8 +205,8 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
             &["dark", "light"],
             "dark or light",
         ),
-        apply_summary: "live",
-        apply_detail: "Saved values update writable regular-file component config and apply on the next launch when a component config is externally managed or read-only.",
+        apply_summary: "live/next session",
+        apply_detail: "Inside a managed session, writable Rio config lets the integrated appearance switch live. Outside one, or with Home Manager-owned or read-only Rio config, the saved mode applies coherently in the next session.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

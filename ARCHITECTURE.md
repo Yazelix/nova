@@ -74,7 +74,7 @@ One owner per concern. Paths are the durable map.
 | `runtime/yzx/` | CLI, public Yazi materializer grammar/delegation, startup env, host-Yazi pair resolution, launch/enter handoff |
 | `runtime/yzx-menu.rs` | Menu palette |
 | `runtime/yzx-agent.rs` | Initial agent title, custom-command exec, and provider bootstrap (`codex resume` → `grok` → `opencode` → `pi` → `claude --resume`) |
-| `runtime/yzx-yazi.rs` | Managed Yazi process/env launch, current root appearance lookup, editor resolve, non-sidebar workspace-popup role |
+| `runtime/yzx-yazi.rs` | Managed Yazi process/env launch, active session appearance lookup, editor resolve, non-sidebar workspace-popup role |
 | `runtime/yzx-nu.rs` | Managed Nu layering; runtime-effective Starship config request |
 | `runtime/yzx-zellij-config.rs` | Packaged + guarded Zellij scalar sidecar merge |
 | `runtime/yzx/zellij.rs` | Plugin sidecar inject; launch materialize/patches |
@@ -92,8 +92,8 @@ One owner per concern. Paths are the durable map.
   and Helix recommendation allowlists. Ratconfig owns Overview/All filtering,
   meaningful reduction thresholds, attention-state visibility, toggling, and
   All-scope search
-- Exposes Rio as one exact native-file action. Rio alone owns its schema,
-  validation, and reload behavior
+- Exposes Rio as one exact native-file action. Rio owns its schema, validation,
+  and reload behavior; Nova reserves only top-level `force-theme`
 - Joins the packaged Helix baseline with observed native `config.toml` and
   `languages.toml` values as read-only generic rows. Helix publishes no stable
   machine-readable config catalog, so Yazelix does not mirror one or infer edit
@@ -103,7 +103,7 @@ One owner per concern. Paths are the durable map.
   reloads by field identity rather than stale row position
 - Seeds the complete native Rio TOML and any absent referenced adaptive themes
   at first use; root, Zellij, and Starship stay sparse
-- Routes edits and true unset operations to the right file; Rio,
+- Routes edits and true unset operations to the right file; Rio's user surface,
   Helix/Advanced open-file rows, and Keys remain read-only
 - Resolves known config targets against the packaged Nix store root so
   Home Manager-owned sources stay read-only with exact module-option guidance
@@ -135,7 +135,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 
 | Root path | Type | Default | Effect | Applies |
 | --- | --- | --- | --- | --- |
-| `appearance.mode` | string enum | `dark` | Ratconfig palette and current managed Zellij session, whose bar follows the native mode event; selects Rio's native adaptive theme at launch and the matching Yazi flavor for each new process | live where addressable, otherwise next launch |
+| `appearance.mode` | string enum | `dark` | Integrated Ratconfig, Rio, Zellij/bar, and new-Yazi appearance; writable Rio config uses native reload, while read-only Rio config freezes the current session and applies the saved mode everywhere on the next session | live as one unit or next session as one unit |
 | `open.log_level` | string enum | `info` | `YZX_OPEN_LOG` diagnostics for managed opens | new opens |
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
 | `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
@@ -175,7 +175,7 @@ custom popup entry.
 
 | Path | Owns |
 | --- | --- |
-| `defaults/rio/` | Complete seed-once Rio window, font, cursor, effects, and adaptive-theme configuration |
+| `defaults/rio/` | Complete seed-once Rio window, font, cursor, effects, and adaptive-theme configuration; Nova reserves only top-level `force-theme` for integrated appearance |
 | `defaults/zellij/config.kdl` | Zellij keys, plugin loads, popup wiring, Kitty protocol; leaves application-local `Alt r` routing to Helix and Yazi |
 | `defaults/zellij/layout*.kdl` | Sidebar + stacked panes, open/closed swap |
 | `defaults/nu/` | Packaged Nu: carapace, zoxide, and Starship invocation |
@@ -267,7 +267,7 @@ Runtime state defaults to `$XDG_DATA_HOME/yazelix` or `YAZELIX_STATE_DIR`.
 | Surface | Layering |
 | --- | --- |
 | Root TOML | Packaged semantic defaults → sparse explicit user overrides |
-| Rio | Packaged complete config and themes → one-time copy to user-owned native files; `RIO_CONFIG_HOME` selects them; root mode selects the native pair member at launch |
+| Rio | Packaged complete config and themes → one-time copy to native files; `RIO_CONFIG_HOME` selects them; every field is user-owned except Nova's top-level `force-theme` projection |
 | Nu | Packaged → optional host `mise activate nu` → optional user Nu |
 | Starship | Packaged generated schema + `print-config --default` → Ratconfig discovery and bounded scalar editing → sparse user overrides over Nova's `character.format` marker → runtime-effective TOML |
 | Helix | Packaged Yazelix default → read-only Ratconfig baseline/observed rows → recursive sparse user override → reserved `keys.normal.A-r` restoration; dynamic languages and Steel stay native-file surfaces |
@@ -310,9 +310,9 @@ Inside a managed session, `yzx config` Zellij scalar saves and resets also patch
 `$YAZELIX_STATE_DIR/zellij/config.kdl` (watched active file) without wiping
 launch patches. Pane frames, rounded corners, copy-on-select, and clipboard
 target reconfigure the active session; mouse mode, scrollback size, styled
-underlines, and startup tips need a new session. Root appearance uses the fork's
-native dark/light action for the addressed session. The fork sends the resulting
-mode event to the bar, which chooses its internal palette.
+underlines, and startup tips need a new session. Live-capable root appearance
+uses the fork's native dark/light action for the addressed session. The fork
+sends the resulting mode event to the bar, which chooses its internal palette.
 
 ### Helix
 
@@ -411,7 +411,7 @@ Detail lives in Owners, checks, and the notes below.
 
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
-| C2 | Complete Rio config is seeded once, selected through `RIO_CONFIG_HOME`, and remains Rio-owned | `defaults/rio/config.toml`, runtime, `yzx-config` | `yzx-contracts`, config tests | Visual |
+| C2 | Complete Rio config is seeded once and selected through `RIO_CONFIG_HOME`; Nova owns only top-level `force-theme`, using native reload when writable and coherent next-session fallback when read-only | `defaults/rio/config.toml`, runtime, `yzx-config` | launcher/config unit tests, `yzx-contracts` | Visual dogfood |
 | C3 | Layout sidebar template for swaps | `defaults/zellij/layout*.kdl` | `zellij-layout` | — |
 | C4 | Packaged keys + guarded Zellij sidecar | `defaults/zellij/config.kdl`, `yzx-zellij-config` | `yzx-contracts` | Full keys |
 | C5 | Managed Nu layering | `yzx-nu`, `defaults/nu/` | `yzx-contracts` | — |
@@ -454,18 +454,18 @@ variables; terminal-specific graphics and clipboard behavior remain host-owned.
 Diagnostics stop before Rio/Zellij handoff.
 
 **C2:** The first config or runtime preparation copies the complete packaged
-Rio config and its adaptive themes only when `rio/config.toml` is absent. Later
-edits are user-owned, Ratconfig exposes only the exact file, and `yzx launch`
-selects its directory through `RIO_CONFIG_HOME` and passes the root mode to
-Rio. An open Rio window keeps that launch mode. Yazelix also passes the root
-mode to Zellij, which selects the matching theme-pair member; after a save,
-Yazelix calls the native action for the current managed session. Zellij sends
-the mode event to
-the bar's internal palette pair. Each new managed Yazi reads the same root mode;
-its materializer projects the selected native flavor into generated
-`theme.toml`, leaving user and Home Manager sources unchanged. The packaged
-light fallback and flavor classification remain owned by Yazi Bistro. A custom
-complete Rio file must provide an adaptive theme pair to participate.
+Rio config and its adaptive themes only when `rio/config.toml` is absent.
+Ratconfig exposes only the exact file; later edits are user-owned except for
+Nova's top-level `force-theme` projection. With a writable file, `yzx launch`
+omits Rio's theme override and a Ratconfig save updates Rio through its native
+watcher, Zellij through its native action, and the bar through Zellij's mode
+event. Each new managed Yazi reads the active session mode and projects the
+selected flavor into generated `theme.toml`, leaving user and Home Manager
+sources unchanged. With a read-only Rio file, the session captures one mode,
+Rio receives it at launch, and every managed component waits for the next
+session before changing. The packaged light fallback and flavor classification
+remain owned by Yazi Bistro. A custom complete Rio file must provide an
+adaptive theme pair to participate.
 
 **C9:** Protocol/packaging (a), shared role wiring (b), user custom (c),
 agent hide + bootstrap (d), Git close-on-toggle + editor env (e). Agent

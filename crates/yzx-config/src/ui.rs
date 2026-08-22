@@ -11,15 +11,16 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
-use ratconfig::{ConfigUiApp, ConfigUiFieldId, ConfigUiIntent, ConfigUiKey, draw_config_ui};
+use ratconfig::{
+    ConfigUiApp, ConfigUiFieldId, ConfigUiIntent, ConfigUiKey, ConfigUiModel, ConfigUiTheme,
+    draw_config_ui,
+};
 
 use crate::{
     common::*,
-    file_actions::{
-        ZellijAppearanceProjection, edit_text_externally, open_file_action, write_config_ui,
-    },
+    file_actions::{edit_text_externally, open_file_action, write_config_ui},
     model::build_model,
-    paths::{ConfigPaths, ensure_config_sources},
+    paths::{ConfigPaths, RioAppearanceProjection, ensure_config_sources},
 };
 
 const RESET_TERMINAL_BACKGROUND: &str = "\x1b]111\x07";
@@ -89,13 +90,20 @@ fn apply_field_write(
     value: Option<&serde_json::Value>,
 ) -> Result<()> {
     let reset = value.is_none();
+    let active_theme = app.active_theme();
     match write_config_ui(paths, &field.source_id, &field.path, value) {
-        Ok(projection) => reload_after_successful_write(
-            app,
-            build_model(paths)?,
-            &field,
-            write_notice(&field.path, projection, reset),
-        ),
+        Ok(projection) => {
+            let mut model = build_model(paths)?;
+            if projection == Some(RioAppearanceProjection::NextLaunch) {
+                keep_active_theme(&mut model, active_theme);
+            }
+            reload_after_successful_write(
+                app,
+                model,
+                &field,
+                write_notice(&field.path, projection, reset),
+            )
+        }
         Err(write_error) => {
             reload_after_failed_write(app, build_model(paths)?, write_error.to_string())
         }
@@ -104,7 +112,7 @@ fn apply_field_write(
 
 fn write_notice(
     field_path: &str,
-    projection: Option<ZellijAppearanceProjection>,
+    projection: Option<RioAppearanceProjection>,
     reset: bool,
 ) -> String {
     let action = if reset { "Now inheriting" } else { "Saved" };
@@ -112,14 +120,22 @@ fn write_notice(
         return format!("{action} {field_path}.");
     };
     let update = match projection {
-        ZellijAppearanceProjection::Live => {
-            "Rio will apply it on the next yzx launch; Zellij and the bar switched"
+        RioAppearanceProjection::Live => {
+            "Rio, Ratconfig, Zellij, the bar, and new Yazi opens switched"
         }
-        ZellijAppearanceProjection::NextLaunch => {
-            "Rio will apply it on the next yzx launch; Zellij and the bar will apply it on the next managed launch"
+        RioAppearanceProjection::NextLaunch => {
+            "all managed components will apply it together in the next session"
         }
     };
     format!("{action} {field_path}; {update}.")
+}
+
+fn keep_active_theme(model: &mut ConfigUiModel, theme: ConfigUiTheme) {
+    if let Some(switcher) = &mut model.theme_switcher {
+        for mapping in &mut switcher.mappings {
+            mapping.theme = theme;
+        }
+    }
 }
 
 pub(crate) fn reload_after_failed_write(

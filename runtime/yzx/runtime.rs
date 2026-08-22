@@ -151,16 +151,22 @@ fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
 
 impl Runtime {
     pub(crate) fn prepare() -> Result<Self, AppError> {
-        Self::prepare_with(None)
+        Self::prepare_with(None, false)
     }
 
     pub(crate) fn prepare_with_yazi() -> Result<Self, AppError> {
         let yazi = YaziRuntime::resolve()?;
         yazi.warn();
-        Self::prepare_with(Some(yazi))
+        Self::prepare_with(Some(yazi), false)
     }
 
-    fn prepare_with(yazi: Option<YaziRuntime>) -> Result<Self, AppError> {
+    pub(crate) fn prepare_new_session_with_yazi() -> Result<Self, AppError> {
+        let yazi = YaziRuntime::resolve()?;
+        yazi.warn();
+        Self::prepare_with(Some(yazi), true)
+    }
+
+    fn prepare_with(yazi: Option<YaziRuntime>, new_session: bool) -> Result<Self, AppError> {
         let state_dir = state_dir();
         create_dir_all_checked(&state_dir, &state_dir)?;
         let home_dir = home_dir()?;
@@ -184,8 +190,9 @@ impl Runtime {
         let welcome_style = config_value(&config_home, &config_toml, "welcome.style")?;
         let welcome_duration_seconds =
             config_value(&config_home, &config_toml, "welcome.duration_seconds")?;
-        let appearance_mode =
+        let configured_appearance =
             trim_output(config_value(&config_home, &config_toml, "appearance.mode")?);
+        let appearance_mode = current_appearance_mode(configured_appearance, new_session);
         let bar_widgets = trim_output(config_value(&config_home, &config_toml, "bar.widgets")?);
         let popup_side_margin = trim_output(config_value(
             &config_home,
@@ -346,6 +353,30 @@ fn effective_editor_command(command: &str) -> String {
     }
 }
 
+fn select_appearance_mode(
+    configured: String,
+    session_mode: Option<&OsStr>,
+    live: bool,
+    new_session: bool,
+) -> String {
+    if !new_session && !live {
+        if let Some(mode @ ("dark" | "light")) = session_mode.and_then(OsStr::to_str) {
+            return mode.to_string();
+        }
+    }
+    configured
+}
+
+pub(crate) fn current_appearance_mode(configured: String, new_session: bool) -> String {
+    let session_mode = nonempty_env("YZX_APPEARANCE_MODE");
+    select_appearance_mode(
+        configured,
+        session_mode.as_deref(),
+        nonempty_env("YZX_APPEARANCE_LIVE").as_deref() == Some(OsStr::new("1")),
+        new_session,
+    )
+}
+
 fn bridge_session_id() -> OsString {
     nonempty_env("YAZELIX_HELIX_BRIDGE_SESSION_ID").unwrap_or_else(|| {
         OsString::from(format!(
@@ -376,5 +407,21 @@ mod tests {
         assert!(uses_helix_bridge("yzx-hx"));
         assert!(!uses_helix_bridge("hx"));
         assert!(!uses_helix_bridge("nvim"));
+    }
+
+    #[test]
+    fn read_only_sessions_keep_their_captured_appearance() {
+        assert_eq!(
+            select_appearance_mode("light".into(), Some(OsStr::new("dark")), false, false),
+            "dark"
+        );
+        assert_eq!(
+            select_appearance_mode("light".into(), Some(OsStr::new("dark")), true, false),
+            "light"
+        );
+        assert_eq!(
+            select_appearance_mode("light".into(), Some(OsStr::new("dark")), false, true),
+            "light"
+        );
     }
 }

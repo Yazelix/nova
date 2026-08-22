@@ -1,6 +1,6 @@
 use std::{
     env,
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     fs, io,
     path::{Path, PathBuf},
     process::{self, Command},
@@ -14,8 +14,11 @@ use crate::{
     catalog::*,
     common::*,
     native_config::{unset_starship_config_field, write_starship_config_field},
-    paths::ConfigPaths,
-    root_config::{config_field, read_config_field, unset_config_field, write_config_field},
+    paths::{ConfigPaths, RioAppearanceProjection, project_rio_appearance},
+    root_config::{
+        config_field, default_config_value, read_config_field, unset_config_field,
+        write_config_field,
+    },
     yazi_config::{unset_yazi_field, write_yazi_field},
     zellij_sidecar::{unset_zellij_config_field, write_zellij_config_field},
 };
@@ -248,50 +251,101 @@ pub(crate) fn write_source_default(
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub(crate) enum ZellijAppearanceProjection {
-    Live,
-    NextLaunch,
-}
-
 pub(crate) fn write_config_ui(
     paths: &ConfigPaths,
     source_id: &str,
     field_path: &str,
     value: Option<&JsonValue>,
-) -> Result<Option<ZellijAppearanceProjection>> {
+) -> Result<Option<RioAppearanceProjection>> {
+    if source_id == SOURCE_CONFIG && field_path == APPEARANCE_MODE_PATH {
+        return write_appearance_config(paths, value).map(Some);
+    }
     match value {
         Some(value) => write_source_field(paths, source_id, field_path, value),
         None => write_source_default(paths, source_id, field_path),
     }?;
-    if source_id != SOURCE_CONFIG || field_path != APPEARANCE_MODE_PATH {
-        return Ok(None);
-    }
-    let mode = read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH)?)?;
-    match apply_zellij_appearance(&mode) {
-        Ok(zellij) => Ok(Some(zellij)),
-        Err(source) => Err(error(format!(
-            "Updated {APPEARANCE_MODE_PATH}, but could not update Zellij and the bar: {source}. The saved mode remains authoritative; the next managed launch will retry."
-        ))),
-    }
+    Ok(None)
 }
 
-fn apply_zellij_appearance(mode: &str) -> Result<ZellijAppearanceProjection> {
-    let session = managed_zellij_session();
-    let managed_state = nonempty_env("YAZELIX_STATE_DIR");
-    let (Some(session), Some(_)) = (session, managed_state) else {
-        return Ok(ZellijAppearanceProjection::NextLaunch);
+fn write_appearance_config(
+    paths: &ConfigPaths,
+    value: Option<&JsonValue>,
+) -> Result<RioAppearanceProjection> {
+    let Some((command, session)) = live_appearance_context() else {
+        match value {
+            Some(value) => write_source_field(paths, SOURCE_CONFIG, APPEARANCE_MODE_PATH, value),
+            None => write_source_default(paths, SOURCE_CONFIG, APPEARANCE_MODE_PATH),
+        }?;
+        return Ok(RioAppearanceProjection::NextLaunch);
     };
-    let command = nonempty_env("YZX_ZELLIJ")
-        .ok_or_else(|| error("YZX_ZELLIJ is unavailable in the managed session"))?;
-    apply_zellij_appearance_to(mode, &command, &session)
+    let mode = match value.cloned() {
+        Some(value) => value,
+        None => default_config_value(APPEARANCE_MODE_PATH)?,
+    };
+    let mode = config_field(APPEARANCE_MODE_PATH)?
+        .field
+        .json_choice(&mode)?;
+    let old_mode = read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH)?)?;
+    let root_existed = path_entry_exists(&paths.root)?;
+    let root_before = read_optional_text(&paths.root)?;
+    paths.reject_mutation(&paths.root, SOURCE_CONFIG)?;
+
+    if project_rio_appearance(paths, mode)? == RioAppearanceProjection::NextLaunch {
+        return Err(error(
+            "Rio config became read-only; no appearance setting changed. Start a new session to use the coherent next-session fallback",
+        ));
+    }
+    if let Err(source) = match value {
+        Some(value) => write_source_field(paths, SOURCE_CONFIG, APPEARANCE_MODE_PATH, value),
+        None => write_source_default(paths, SOURCE_CONFIG, APPEARANCE_MODE_PATH),
+    } {
+        restore_rio_appearance(paths, &old_mode)?;
+        return Err(source);
+    }
+    if let Err(source) = apply_zellij_appearance_to(mode, &command, &session) {
+        rollback_appearance(paths, root_existed, &root_before, &old_mode)?;
+        return Err(source);
+    }
+    Ok(RioAppearanceProjection::Live)
+}
+
+fn live_appearance_context() -> Option<(OsString, OsString)> {
+    if nonempty_env("YZX_APPEARANCE_LIVE").as_deref() != Some(OsStr::new("1"))
+        || nonempty_env("YAZELIX_STATE_DIR").is_none()
+    {
+        return None;
+    }
+    Some((nonempty_env("YZX_ZELLIJ")?, managed_zellij_session()?))
+}
+
+fn rollback_appearance(
+    paths: &ConfigPaths,
+    root_existed: bool,
+    root_before: &str,
+    old_mode: &str,
+) -> Result<()> {
+    if root_existed {
+        atomic_write(&paths.root, root_before)?;
+    } else if path_entry_exists(&paths.root)? {
+        fs::remove_file(&paths.root)?;
+    }
+    restore_rio_appearance(paths, old_mode)
+}
+
+fn restore_rio_appearance(paths: &ConfigPaths, mode: &str) -> Result<()> {
+    if project_rio_appearance(paths, mode)? != RioAppearanceProjection::Live {
+        return Err(error(
+            "could not restore Rio appearance after the update failed",
+        ));
+    }
+    Ok(())
 }
 
 pub(crate) fn apply_zellij_appearance_to(
     mode: &str,
     command: &OsStr,
     session: &OsStr,
-) -> Result<ZellijAppearanceProjection> {
+) -> Result<()> {
     let action = match mode {
         "dark" => "set-dark-theme",
         "light" => "set-light-theme",
@@ -304,7 +358,7 @@ pub(crate) fn apply_zellij_appearance_to(
         .output()
         .map_err(|source| error(format!("failed to run `{action}`: {source}")))?;
     if output.status.success() {
-        Ok(ZellijAppearanceProjection::Live)
+        Ok(())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         Err(error(format!(

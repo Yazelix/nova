@@ -36,7 +36,7 @@ fn run() -> io::Result<()> {
         )
     })?;
     let state_dir = state_dir();
-    let appearance_mode = yzx_config_value("appearance.mode")?;
+    let appearance_mode = current_appearance_mode(yzx_config_value("appearance.mode")?);
     let yazi_config = yazi_config_home(&state_dir, &appearance_mode)?;
     let yzx_open_log = yzx_config_value("open.log_level")?;
     let editor = effective_editor_command(yzx_config_value("editor.command")?);
@@ -116,6 +116,24 @@ fn yzx_config_value(path: &str) -> io::Result<String> {
     Err(io::Error::other(trim_output(
         &[output.stdout, output.stderr].concat(),
     )))
+}
+
+fn current_appearance_mode(configured: String) -> String {
+    let session_mode = nonempty_env("YZX_APPEARANCE_MODE");
+    select_appearance_mode(
+        configured,
+        session_mode.as_deref(),
+        nonempty_env("YZX_APPEARANCE_LIVE").as_deref() == Some(OsStr::new("1")),
+    )
+}
+
+fn select_appearance_mode(configured: String, session_mode: Option<&OsStr>, live: bool) -> String {
+    if !live {
+        if let Some(mode @ ("dark" | "light")) = session_mode.and_then(OsStr::to_str) {
+            return mode.to_string();
+        }
+    }
+    configured
 }
 
 fn effective_editor_command(command: String) -> String {
@@ -208,6 +226,18 @@ mod tests {
         assert_eq!(
             ordinary,
             [OsString::from("/workspace"), OsString::from("--debug")]
+        );
+    }
+
+    #[test]
+    fn read_only_session_yazi_keeps_its_captured_appearance() {
+        assert_eq!(
+            select_appearance_mode("light".into(), Some(OsStr::new("dark")), false),
+            "dark"
+        );
+        assert_eq!(
+            select_appearance_mode("light".into(), Some(OsStr::new("dark")), true),
+            "light"
         );
     }
 }

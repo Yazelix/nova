@@ -367,6 +367,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "YZX_WELCOME_ENABLED",
         "YZX_WELCOME_STYLE",
         "YZX_WELCOME_DURATION_SECONDS",
+        "YZX_APPEARANCE_MODE",
+        "YZX_APPEARANCE_LIVE",
         "YZX_MENU_YZX",
         "YZX_YA",
         "YZX_ZELLIJ",
@@ -407,6 +409,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "/bin/rio",
         "tokenusage",
         "--theme-mode",
+        "--project-rio-appearance",
         "--new-session-with-layout",
     }
     let env_supervisor = embedded_store_path(&yzx_launcher, "/bin/yzx-env-supervisor");
@@ -1242,6 +1245,35 @@ fn expect_config_ui(yzx: &Path) {
         !temp.path.join("config.toml").exists(),
         "default config reads created config.toml"
     );
+
+    let projection = successful_stdout(
+        Command::new(&helper)
+            .args(["--project-rio-appearance", "light"])
+            .env("YAZELIX_CONFIG_HOME", &temp.path),
+        "writable Rio appearance projection",
+    );
+    assert_eq!(projection.trim(), "live");
+    let rio_config = temp.path.join("rio/config.toml");
+    expect_contains(
+        &fs::read_to_string(&rio_config).unwrap(),
+        "force-theme = \"light\"",
+        "writable Rio appearance projection",
+    );
+    let mut permissions = fs::metadata(&rio_config).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&rio_config, permissions).unwrap();
+    let projection = successful_stdout(
+        Command::new(&helper)
+            .args(["--project-rio-appearance", "dark"])
+            .env("YAZELIX_CONFIG_HOME", &temp.path),
+        "read-only Rio appearance projection",
+    );
+    assert_eq!(projection.trim(), "next-launch");
+    expect_contains(
+        &fs::read_to_string(rio_config).unwrap(),
+        "force-theme = \"light\"",
+        "read-only Rio appearance projection",
+    );
 }
 
 fn expect_startup_diagnostics(yzx: &Path) {
@@ -1827,6 +1859,8 @@ fn expect_yazi_managed_keys(yzx: &Path) {
         "--yzx-workspace-popup",
         "YZX_YAZI_ROLE",
         "YZX_YAZI_BIN",
+        "YZX_APPEARANCE_MODE",
+        "YZX_APPEARANCE_LIVE",
         "workspace-popup",
         "YAZI_CONFIG_HOME",
         "/bin/yzx-yazi-config",

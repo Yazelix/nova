@@ -55,10 +55,16 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             zellij_themes.push(custom.to_string());
         }
     }
-    let light = ratconfig::get_json_path(&config_active, APPEARANCE_MODE_PATH)
+    let configured_light = ratconfig::get_json_path(&config_active, APPEARANCE_MODE_PATH)
         .or_else(|| ratconfig::get_json_path(&config_default, APPEARANCE_MODE_PATH))
         .and_then(JsonValue::as_str)
         == Some("light");
+    let session_mode = nonempty_env("YZX_APPEARANCE_MODE");
+    let (light, fixed_theme) = resolved_appearance(
+        configured_light,
+        session_mode.as_deref().and_then(|mode| mode.to_str()),
+        nonempty_env("YZX_APPEARANCE_LIVE").as_deref() == Some(std::ffi::OsStr::new("1")),
+    );
     let yazi = build_yazi_fields(paths, light)?;
     let (helix, helix_diagnostics) = build_helix_fields(paths)?;
     diagnostics.extend(helix_diagnostics);
@@ -230,15 +236,30 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             mappings: vec![
                 ConfigUiThemeMapping {
                     value: JsonValue::String("dark".to_string()),
-                    theme: ConfigUiTheme::Dark,
+                    theme: fixed_theme.unwrap_or(ConfigUiTheme::Dark),
                 },
                 ConfigUiThemeMapping {
                     value: JsonValue::String("light".to_string()),
-                    theme: ConfigUiTheme::Light,
+                    theme: fixed_theme.unwrap_or(ConfigUiTheme::Light),
                 },
             ],
         }),
     })
+}
+
+pub(crate) fn resolved_appearance(
+    configured_light: bool,
+    session_mode: Option<&str>,
+    live: bool,
+) -> (bool, Option<ConfigUiTheme>) {
+    if !live {
+        match session_mode {
+            Some("dark") => return (false, Some(ConfigUiTheme::Dark)),
+            Some("light") => return (true, Some(ConfigUiTheme::Light)),
+            _ => {}
+        }
+    }
+    (configured_light, None)
 }
 
 fn load_root_config(path: &Path) -> Result<(JsonValue, bool, Vec<ConfigUiDiagnostic>)> {

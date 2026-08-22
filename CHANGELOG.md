@@ -9,9 +9,11 @@ User-visible runtime changes for Yazelix Nova live here.
   complete native `rio/config.toml` is seeded once with Nova's window, font,
   opacity, cyan cursor, cursor-trail, and dark/light adaptive-theme defaults;
   theme files already present during the first seed are preserved;
-  `yzx launch` selects the root appearance mode through Rio's launch-time
-  override. Ratconfig opens the native file without mirroring Rio's schema and
-  reports Rio's next-launch appearance boundary.
+  Nova reserves only Rio's top-level `force-theme` field for root appearance.
+  Writable configs use Rio's native watcher for coordinated live Ratconfig,
+  Rio, Zellij/bar, and new-Yazi switching. Read-only configs retain Rio's
+  launch-time override and freeze every managed component until the next
+  session. Ratconfig opens the native file without mirroring Rio's schema.
   Existing `mars/config.toml` and
   `cursors.toml` files are preserved but ignored. The separate `Yazelix/mars`
   repository, its refs, and existing consumers are unchanged.

@@ -3,7 +3,16 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use ratconfig::toml_adapter::set_toml_value_text;
+use serde_json::json;
+
 use crate::{catalog::*, common::*};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum RioAppearanceProjection {
+    Live,
+    NextLaunch,
+}
 
 pub(crate) struct ConfigPaths {
     pub(crate) store_root: PathBuf,
@@ -99,6 +108,27 @@ pub(crate) fn initialize_rio_config(path: &Path) -> Result<()> {
         atomic_write(path, DEFAULT_RIO_CONFIG_TOML)?;
     }
     Ok(())
+}
+
+pub(crate) fn project_rio_appearance(
+    paths: &ConfigPaths,
+    mode: &str,
+) -> Result<RioAppearanceProjection> {
+    if !matches!(mode, "dark" | "light") {
+        return Err(error(format!("unsupported appearance mode: {mode}")));
+    }
+    initialize_rio_config(&paths.rio)?;
+    if paths.reject_mutation(&paths.rio, SOURCE_RIO).is_err() {
+        return Ok(RioAppearanceProjection::NextLaunch);
+    }
+    let raw = fs::read_to_string(&paths.rio)?;
+    let projected = set_toml_value_text(&raw, "force-theme", &json!(mode))
+        .map_err(|source| boxed_debug("could not project appearance into rio/config.toml", source))?
+        .text;
+    if projected != raw {
+        atomic_write(&paths.rio, &projected)?;
+    }
+    Ok(RioAppearanceProjection::Live)
 }
 pub(crate) fn config_paths() -> Result<ConfigPaths> {
     let home = config_home()?;

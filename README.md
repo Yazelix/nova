@@ -322,9 +322,13 @@ fields or less than one quarter of their inventory simply show All.
 Rio owns its complete native configuration at
 `~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once and Ratconfig
 opens it as an exact native-file action; neither layer mirrors Rio's schema.
+The one reserved field is top-level `force-theme`, which Nova projects from
+root `appearance.mode` when the file is writable. Every other Rio setting stays
+native and user-owned.
 The packaged starting point uses a cyan cursor, Rio's native cursor trail, and
 native `nova-dark`/`nova-light` adaptive themes. Files created by that seed
-become user-owned; existing theme files remain untouched.
+become user-owned apart from `force-theme`; existing theme files remain
+untouched.
 Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Yazi tab consumes the native presets and official schemas paired with the
@@ -346,24 +350,30 @@ effective `keys.normal.A-r` row explains Yazelix's reserved reveal binding,
 while the two Steel files remain native actions.
 
 `appearance.mode` selects `dark` or `light` for managed Yazelix components and
-also controls Ratconfig's palette. `yzx launch` passes that mode to Rio, which
-selects the matching native adaptive theme. An open Rio window keeps its launch
-mode; launch a new window after changing the setting. A custom complete Rio
-config remains authoritative and must provide its own adaptive theme pair to
-participate.
+also controls Ratconfig's palette. With a writable Rio config, Nova projects
+the mode to `force-theme` and launches Rio without a theme override. Saving the
+field from Ratconfig inside that managed session updates Rio through its native
+config watcher while Ratconfig, Zellij, the bar, and new Yazi opens switch to
+the same side. A custom complete Rio config must provide its own adaptive theme
+pair to participate.
+
+When the Rio config is read-only, including a store-backed Home Manager file,
+Nova passes the mode to Rio at launch and captures it for the session. Saving a
+different root mode does not switch any managed component in that session; the
+next session applies the saved mode everywhere together.
 
 Zellij stores one dark theme and one light theme over its pinned packaged
 inventory. Ratconfig inherits `ansi` and `gruvbox-light`, lets either field
 retain a custom native name, and saves only explicit overrides. Legacy static
 `theme` assignments remain in the user sidecar for recovery but are ignored by
 the managed runtime. Yazelix passes root appearance at launch and Zellij
-resolves the matching pair member. Saving root appearance inside a managed
-session calls Zellij's native action for that session. Zellij sends the same
-mode to the top bar, which switches between its internal dark and light
+resolves the matching pair member. In a live-capable managed session, saving
+root appearance calls Zellij's native action for that session. Zellij sends the
+same mode to the top bar, which switches between its internal dark and light
 palettes. Bars loaded by new tabs immediately inherit the session's current
 mode, including after a live switch.
 
-Each new managed Yazi reads the same root mode. Ratconfig offers separate
+Each new managed Yazi reads the active session mode. Ratconfig offers separate
 packaged dark and light flavor pools from Yazi Bistro; user-installed
 unclassified flavors appear in both. `default` is the first dark choice and
 uses Yazi's native preset by leaving `flavor.dark` unset. Light mode inherits
@@ -425,8 +435,9 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **25,740 lines** of tracked text project files. The
+Yazelix owns **26,112 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-The 1,765-line reduction reflects the deletion of Mars/Cursors integration and
-the four duplicate terminal-free package variants.
+This remains 1,393 lines below the pre-Rio fork surface. The current increase
+records the coherent live/read-only appearance contract, its rollback and
+session behavior, and the checks that protect it.

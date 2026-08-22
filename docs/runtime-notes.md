@@ -29,11 +29,12 @@ editor environment and returns the edited text to the row. `Enter` saves.
 ## Managed Appearance
 
 Root `appearance.mode` is the managed dark/light authority. Ratconfig uses it
-for its own palette. `yzx launch` passes it to Rio as a launch-time override;
-the packaged native Rio config maps it to `nova-dark` or `nova-light`. An open
-Rio window keeps its launch mode, so a saved change reaches Rio on the next
-launch. A custom complete Rio config remains authoritative and must supply its
-own adaptive pair to participate.
+for its own palette. When `rio/config.toml` is writable, Nova owns only its
+top-level `force-theme` field and projects the root mode there. Rio starts
+without a theme override and its native config watcher applies later Ratconfig
+saves. A custom complete Rio config must supply its own adaptive pair to
+participate; every field other than `force-theme` remains native and
+user-owned.
 
 Yazelix passes only the root dark/light mode to each new managed Zellij
 session. Zellij resolves the matching `theme_dark` or `theme_light` member. A
@@ -42,11 +43,15 @@ root mode remains authoritative. A root appearance save from inside that
 session calls `set-dark-theme` or `set-light-theme` against that exact session.
 Zellij's host-theme event switches the top bar between its child-owned dark and
 light palettes. A bar loaded by a later tab receives the session's current mode
-even when no new host-theme transition occurs. Ratconfig keeps the saved root
-value when a component projection fails and reports that the next launch
-will retry it.
+even when no new host-theme transition occurs. The coordinated save rolls back
+if a live component projection fails.
 
-Each managed Yazi launch reads the current root mode before materializing its
+When Rio's config is read-only or cannot be projected, Nova starts Rio with the
+explicit mode and captures that mode for the session. Ratconfig, Zellij, the
+bar, and new Yazi opens stay on that side even if the root setting changes. The
+saved mode applies everywhere together in the next session.
+
+Each managed Yazi launch reads the active session mode before materializing its
 config. Yazelix selects the matching native `flavor.dark` or `flavor.light`,
 using Yazi Bistro's Bluloco Light default when the light side is absent. An
 absent dark side uses Yazi's native preset; Ratconfig exposes that state as the
@@ -338,8 +343,8 @@ YAZI_CONFIG_HOME="$effective_config" yazi --debug
 the isolated state root. Callers must pass both flags; the command does not use
 `YAZELIX_CONFIG_HOME` or `YAZELIX_STATE_DIR` as defaults. The selected Yazelix
 package supplies the packaged config, including for `no-yazi` variants and
-Home Manager installations. Root `appearance.mode` and the packaged Yazi
-Bistro light default are supplied internally; the public command takes no
+Home Manager installations. The active session appearance and the packaged
+Yazi Bistro light default are supplied internally; the public command takes no
 appearance flags. The Home Manager module adds no materializer option.
 
 Successful calls print one absolute effective config directory and a newline

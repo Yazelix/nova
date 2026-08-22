@@ -5,9 +5,9 @@ use crate::{
     YZX_SHELL, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_YAZI_CONFIG, YZX_YAZI_MATERIALIZER, ZELLIJ,
     command::{exec, run_checked, trim_output},
     doctor::print_doctor,
-    error::AppError,
+    error::{AppError, startup},
     paths::{enter_terminal_label, nonempty_env, runtime_path},
-    runtime::Runtime,
+    runtime::{Runtime, current_appearance_mode},
     status::{print_status, print_status_json},
     yazi::YaziRuntime,
 };
@@ -96,10 +96,13 @@ fn exec_yazi_config(args: Vec<OsString>) -> Result<(), AppError> {
             let Some((user_config_dir, state_dir)) = materialize_paths(args) else {
                 return Err(AppError::Usage(YAZI_CONFIG_MATERIALIZE_HELP.to_string()));
             };
-            let appearance_mode = trim_output(run_checked(
-                Path::new(YZX_CONFIG),
-                Command::new(YZX_CONFIG).arg("--get").arg("appearance.mode"),
-            )?);
+            let appearance_mode = current_appearance_mode(
+                trim_output(run_checked(
+                    Path::new(YZX_CONFIG),
+                    Command::new(YZX_CONFIG).arg("--get").arg("appearance.mode"),
+                )?),
+                false,
+            );
             let mut command = Command::new(YZX_YAZI_MATERIALIZER);
             command
                 .arg(YZX_YAZI_CONFIG)
@@ -196,10 +199,11 @@ fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
 
 fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
     let program = if graphical { RIO } else { YZX_WELCOME };
-    let runtime = Runtime::prepare_with_yazi()?;
+    let runtime = Runtime::prepare_new_session_with_yazi()?;
+    let live_appearance = project_rio_appearance(&runtime)?;
     let mut command = Command::new(program);
     if graphical {
-        apply_rio_launch_theme_mode(&mut command, &runtime.appearance_mode);
+        apply_rio_launch_appearance(&mut command, &runtime.appearance_mode, live_appearance);
         command.arg(YZX_WELCOME).arg(ZELLIJ);
     } else {
         command.arg(ZELLIJ);
@@ -212,6 +216,12 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
         .arg(&runtime.layout)
         .args(zellij_args);
     runtime.apply(&mut command);
+    command
+        .env("YZX_APPEARANCE_MODE", &runtime.appearance_mode)
+        .env(
+            "YZX_APPEARANCE_LIVE",
+            if live_appearance { "1" } else { "0" },
+        );
     if graphical {
         command.env(
             "RIO_CONFIG_HOME",
@@ -229,8 +239,31 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
     exec(command, program)
 }
 
-fn apply_rio_launch_theme_mode(command: &mut Command, mode: &str) {
-    command.args(["--app-id", "yzx", "--theme-mode", mode, "-e"]);
+fn project_rio_appearance(runtime: &Runtime) -> Result<bool, AppError> {
+    let result = trim_output(run_checked(
+        &runtime.rio_config,
+        Command::new(YZX_CONFIG)
+            .arg("--project-rio-appearance")
+            .arg(&runtime.appearance_mode)
+            .env("YAZELIX_CONFIG_HOME", &runtime.config_home),
+    )?);
+    match result.as_str() {
+        "live" => Ok(true),
+        "next-launch" => Ok(false),
+        _ => Err(startup(
+            format!("yzx-config returned an unknown Rio appearance capability: {result}"),
+            runtime.rio_config.display(),
+            1,
+        )),
+    }
+}
+
+fn apply_rio_launch_appearance(command: &mut Command, mode: &str, live: bool) {
+    command.args(["--app-id", "yzx"]);
+    if !live {
+        command.args(["--theme-mode", mode]);
+    }
+    command.arg("-e");
 }
 
 fn apply_zellij_launch_theme_mode(command: &mut Command, mode: &str) {
@@ -254,12 +287,22 @@ mod tests {
         );
 
         let mut rio = Command::new(RIO);
-        apply_rio_launch_theme_mode(&mut rio, "light");
+        apply_rio_launch_appearance(&mut rio, "light", false);
         assert_eq!(
             rio.get_args()
                 .map(|arg| arg.to_string_lossy().into_owned())
                 .collect::<Vec<_>>(),
             ["--app-id", "yzx", "--theme-mode", "light", "-e"]
+        );
+
+        let mut live_rio = Command::new(RIO);
+        apply_rio_launch_appearance(&mut live_rio, "light", true);
+        assert_eq!(
+            live_rio
+                .get_args()
+                .map(|arg| arg.to_string_lossy().into_owned())
+                .collect::<Vec<_>>(),
+            ["--app-id", "yzx", "-e"]
         );
     }
 

@@ -50,6 +50,32 @@ fn run() -> Result<()> {
             initialize_rio_config(&config_paths()?.rio)?;
             Ok(())
         }
+        Some("--project-rio-appearance") => {
+            let mode = args
+                .next()
+                .ok_or_else(|| error("--project-rio-appearance requires dark or light"))?;
+            if args.next().is_some() || !matches!(mode.as_str(), "dark" | "light") {
+                return Err(error(
+                    "--project-rio-appearance accepts exactly dark or light",
+                ));
+            }
+            let paths = ensure_config_sources()?;
+            let projection = match project_rio_appearance(&paths, &mode) {
+                Ok(projection) => projection,
+                Err(source) => {
+                    eprintln!("Rio appearance will use the next-launch fallback: {source}");
+                    RioAppearanceProjection::NextLaunch
+                }
+            };
+            println!(
+                "{}",
+                match projection {
+                    RioAppearanceProjection::Live => "live",
+                    RioAppearanceProjection::NextLaunch => "next-launch",
+                }
+            );
+            Ok(())
+        }
         Some("--write-effective-helix-config") => {
             let packaged = args
                 .next()
@@ -256,6 +282,46 @@ mod tests {
         for path in [&paths.rio, &dark, &light] {
             assert_file_text(path, "# custom\n");
         }
+    }
+
+    #[test]
+    fn rio_appearance_projection_owns_only_force_theme() {
+        let (_temp, paths) = temp_sources();
+        let original = concat!(
+            "# user-owned Rio config\n",
+            "adaptive-theme = { dark = \"nova-dark\", light = \"nova-light\" }\n\n",
+            "[window]\n",
+            "opacity = 0.77\n",
+        );
+        fs::write(&paths.rio, original).unwrap();
+
+        assert_eq!(
+            project_rio_appearance(&paths, "light").unwrap(),
+            RioAppearanceProjection::Live
+        );
+        let projected = fs::read_to_string(&paths.rio).unwrap();
+        assert!(projected.starts_with("# user-owned Rio config\n"));
+        assert!(projected.contains("force-theme = \"light\"\n"));
+        assert!(projected.contains("[window]\nopacity = 0.77\n"));
+
+        assert_eq!(
+            project_rio_appearance(&paths, "light").unwrap(),
+            RioAppearanceProjection::Live
+        );
+        assert_eq!(fs::read_to_string(&paths.rio).unwrap(), projected);
+    }
+
+    #[test]
+    fn read_only_rio_appearance_waits_for_launch() {
+        let (_temp, paths) = temp_sources();
+        let original = fs::read_to_string(&paths.rio).unwrap();
+        set_read_only(&paths.rio);
+
+        assert_eq!(
+            project_rio_appearance(&paths, "light").unwrap(),
+            RioAppearanceProjection::NextLaunch
+        );
+        assert_eq!(fs::read_to_string(&paths.rio).unwrap(), original);
     }
 
     fn has_diagnostic(diagnostics: &[ConfigUiDiagnostic], text: &str) -> bool {
@@ -1110,7 +1176,7 @@ mod tests {
         assert_eq!(appearance.tab, TAB_CONFIG);
         assert_eq!(appearance.type_label.as_deref(), Some("string"));
         assert_eq!(choice_values(appearance), [&json!("dark"), &json!("light")]);
-        assert_eq!(appearance.apply_status.summary, "live");
+        assert_eq!(appearance.apply_status.summary, "live/next session");
         assert_eq!(appearance.apply_status.label, "runtime");
         let theme_switcher = model.theme_switcher.as_ref().expect("theme switcher");
         assert_eq!(theme_switcher.field.source_id, SOURCE_CONFIG);
@@ -1502,6 +1568,20 @@ mod tests {
         );
     }
 
+    #[test]
+    fn read_only_session_appearance_stays_fixed_until_launch() {
+        assert_eq!(
+            resolved_appearance(true, Some("dark"), false),
+            (false, Some(ConfigUiTheme::Dark))
+        );
+        assert_eq!(
+            resolved_appearance(false, Some("light"), false),
+            (true, Some(ConfigUiTheme::Light))
+        );
+        assert_eq!(resolved_appearance(true, Some("dark"), true), (true, None));
+        assert_eq!(resolved_appearance(false, None, false), (false, None));
+    }
+
     #[cfg(unix)]
     #[test]
     fn zellij_appearance_targets_only_the_named_session_and_reports_failures() {
@@ -1519,18 +1599,12 @@ mod tests {
         write_command("#!/bin/sh\nprintf '%s\\n' \"$*\" > \"${0%/*}/zellij-action\"\n");
         let session = std::ffi::OsStr::new("managed-session");
 
-        assert_eq!(
-            apply_zellij_appearance_to("dark", command.as_os_str(), session).unwrap(),
-            ZellijAppearanceProjection::Live
-        );
+        apply_zellij_appearance_to("dark", command.as_os_str(), session).unwrap();
         assert_eq!(
             fs::read_to_string(&record).unwrap(),
             "--session managed-session action set-dark-theme\n"
         );
-        assert_eq!(
-            apply_zellij_appearance_to("light", command.as_os_str(), session).unwrap(),
-            ZellijAppearanceProjection::Live
-        );
+        apply_zellij_appearance_to("light", command.as_os_str(), session).unwrap();
         assert_eq!(
             fs::read_to_string(&record).unwrap(),
             "--session managed-session action set-light-theme\n"

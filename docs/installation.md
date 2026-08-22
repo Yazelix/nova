@@ -195,6 +195,9 @@ programs.yazelix.config = {
 `adaptive-theme`, install its referenced theme files under
 `~/.config/yazelix/rio/themes/` through Home Manager as well, for example with
 `xdg.configFile."yazelix/rio/themes/<name>.toml".source`.
+Because the store-backed file is read-only, Nova cannot project its reserved
+`force-theme` field. Rio receives the root appearance at launch instead, and
+all managed components keep that captured mode until the next session.
 
 `settings` renders only the declared values to
 `~/.config/yazelix/config.toml`, while undeclared values inherit packaged Nova

@@ -174,7 +174,7 @@ ids that do not exist are not invented; open `config.toml` to add them
 
 | File | Owner | Notes |
 | --- | --- | --- |
-| `rio/config.toml` | Rio | Complete native configuration and referenced adaptive themes seeded once from the package. Ratconfig exposes one exact-file action and does not mirror Rio's schema |
+| `rio/config.toml` | Rio + Nova appearance projection | Complete native configuration and referenced adaptive themes seeded once from the package. Ratconfig exposes one exact-file action and does not mirror Rio's schema. Nova reserves only top-level `force-theme` when the file is writable |
 | `zellij/config.kdl` | Zellij sidecar | Sparse safe scalar overrides where absent assignments inherit packaged defaults. The Zellij tab keeps themes, pane frames, mouse mode, copy-on-select, and rounded corners in Overview; All adds scrollback size, clipboard target, styled underlines, and startup tips. Search covers the typed fields and the exact native-file action. Safe untyped leaves remain unchanged without a UI row or informational diagnostic per leaf. Advanced diagnostics report only ignored, invalid, structurally unsafe, or integration-owned state; guarded diagnostics name the Yazelix owner. Ratconfig does not claim a complete Zellij schema. A legacy static `theme` assignment remains preserved but omitted from managed runtime. Inside a session, saves and resets also patch the active runtime config. Structural comments or continuations, extra managed-block metadata, other structured native nodes, and integration-owned nodes block unsafe writes |
 | `zellij/plugins.kdl` | Zellij plugin sidecar | Extra plugin declarations only. Packaged plugin ids cannot be redeclared |
 | `starship.toml` | Starship | Sparse native prompt overrides. Ratconfig consumes the generated schema and default output from packaged Starship 1.26.0. Overview recommends `format`, `right_format`, `add_newline`, and `character.format`; All exposes 832 finite owner fields. Schema-backed strings and booleans are editable. Numeric, structured, union, and dynamic values remain read-only with this exact file action |
@@ -188,7 +188,7 @@ ids that do not exist are not invented; open `config.toml` to add them
 | `yazi/init.lua` | Yazi | Appended after packaged Yazi init |
 | `yazi/keymap.toml` | Yazi | Appended after packaged Yazi keymap |
 | `yazi/starship.toml` | Yazi Starship | Complete replacement for Nova's packaged compact Starship header config |
-| `yazi/theme.toml` | Yazi | Native theme config. Ratconfig joins the paired official schema to Yazi's dark or light preset, exposes all 109 fields, provides separate installed flavor pools, and preserves explicit choices. Yazelix projects the side selected by root `appearance.mode` only into generated runtime config |
+| `yazi/theme.toml` | Yazi | Native theme config. Ratconfig joins the paired official schema to Yazi's dark or light preset, exposes all 109 fields, provides separate installed flavor pools, and preserves explicit choices. Yazelix projects the active session side only into generated runtime config |
 | `yazi/package.toml` | Yazi | Opaque package metadata that Yazelix does not process with `ya pkg` |
 
 The Nu files remain executable Advanced actions, not finite Ratconfig schemas.
@@ -250,7 +250,7 @@ keeps Nova's packaged header even when the managed shell uses `starship`.
 
 Ratconfig's Yazi tab reads the sparse user `yazi.toml` against Nova's packaged
 layer and reads native `theme.toml` against the dark or light Yazi preset
-selected by root `appearance.mode`. The version-paired official schemas add
+selected by the active session appearance. The version-paired official schemas add
 known settings absent from both documents, so All exposes 204 base settings and
 search spans the complete finite catalog. Overview recommends manager layout,
 sorting, line mode, visibility, preview wrapping, and the two flavor choices;
@@ -273,7 +273,7 @@ Press `8` in Ratconfig to choose from the corresponding packaged pool.
 User-installed flavors without a Bistro classification appear in both pools.
 Ratconfig writes only the selected native `theme.toml` key.
 
-Root `appearance.mode` selects which side a new managed Yazi uses. An explicit
+The active session appearance selects which side a new managed Yazi uses. An explicit
 `flavor.dark` or `flavor.light` wins for that mode. Ratconfig lists `default`
 first in the dark pool; selecting it removes `flavor.dark` and uses Yazi's
 native preset. Resetting the light field inherits Bluloco Light. At launch,
@@ -390,25 +390,27 @@ valid and join the shared picker pool alongside the packaged set. The old
 static `theme` field is no longer a managed setting. Yazelix preserves an
 existing assignment in the user sidecar, reports that it is ignored, and leaves
 it out of materialized runtime configuration. Root `appearance.mode` selects a
-member of the pair when Yazelix starts Zellij. A save from inside a managed
-session calls Zellij's native action for that session, and the top bar follows
-the resulting mode event with its internal dark or light palette.
+member of the pair when Yazelix starts Zellij. A live-capable save from inside
+a managed session calls Zellij's native action for that session, and the top
+bar follows the resulting mode event with its internal dark or light palette.
 
-Saving root `appearance.mode` switches the config UI immediately and calls the
-matching native Zellij action when
-Ratconfig can identify the current managed session. That action also switches
-the top bar palette. Outside a managed session, Zellij and the bar apply the
-saved mode on the next Yazelix launch; Zellij resolves the corresponding
-dark/light theme-pair member. A Zellij projection failure does not roll back the
-saved root value. Rio settings remain native Rio settings and follow Rio's
-reload behavior. Each new `yzx launch` passes the saved root mode to Rio; the
-packaged config selects its matching native adaptive theme. Existing Rio
-windows keep their launch mode. A custom complete Rio file supersedes this
-integration unless it supplies its own adaptive pair. Zellij
-sidecar saves and resets update the active managed session when `yzx config`
-runs inside it. Pane frames, rounded corners, copy-on-select, and clipboard
-target apply via the watcher; mouse mode, scrollback size, styled underlines,
-and startup tips need a new session.
+When the current managed session has a writable Rio config, saving root
+`appearance.mode` switches the config UI and calls the matching native Zellij
+action. Nova also updates only Rio's top-level `force-theme`; Rio's native
+config watcher reloads that setting, the top bar follows Zellij's mode event,
+Ratconfig repaints, and new Yazi opens use the selected side. A failure rolls
+the coordinated save back instead of leaving a mixed appearance. Every other
+Rio setting remains native and user-owned. A custom complete Rio file must
+supply its own adaptive pair.
+
+With a read-only Rio config, including a store-backed Home Manager source, Nova
+keeps the session's captured appearance across Ratconfig, Rio, Zellij, the bar,
+and new Yazi opens. The saved root mode applies to all of them together in the
+next session; Rio receives the launch-time override because `force-theme`
+cannot be projected. Zellij sidecar saves and resets still update the active
+managed session when `yzx config` runs inside it. Pane frames, rounded corners,
+copy-on-select, and clipboard target apply via the Zellij watcher; mouse mode,
+scrollback size, styled underlines, and startup tips need a new session.
 
 ## Editor and file opens
 
