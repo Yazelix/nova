@@ -7,11 +7,11 @@ line-height = 1.12
 audio = true
 visual = true
 
+[colors]
+cursor = "#00e6ff"
+
 [effects]
 trail-cursor = true
-
-[mars.appearance]
-preset = "dark"
 
 [window]
 width = 960

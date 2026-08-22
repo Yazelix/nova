@@ -11,11 +11,11 @@ use std::{
 
 use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
-    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, MARS, NOVA_BAR_WASM,
+    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM,
     YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    YZX_EDITOR, YZX_HELIX, YZX_MARS_CONFIG, YZX_ZELLIJ_CONFIG, ZELLIJ,
+    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::{create_dir_all_checked, run_checked, trim_output},
-    error::{AppError, path_error, startup},
+    error::{AppError, path_error},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
     yazi::YaziRuntime,
     zellij::{active_layout, active_zellij_config},
@@ -34,7 +34,7 @@ pub(crate) struct Runtime {
     pub(crate) welcome_enabled: String,
     pub(crate) welcome_style: String,
     pub(crate) welcome_duration_seconds: String,
-    mars_config_source: &'static str,
+    pub(crate) rio_config: PathBuf,
     pub(crate) zellij_sidecar: PathBuf,
     pub(crate) zellij_config: PathBuf,
     pub(crate) appearance_mode: String,
@@ -166,11 +166,11 @@ impl Runtime {
         let home_dir = home_dir()?;
         let config_home = config_home()?;
         let config_toml = config_home.join("config.toml");
-        let cursor_config = config_home.join("cursors.toml");
+        let rio_config = config_home.join("rio/config.toml");
         run_checked(
-            &cursor_config,
+            &rio_config,
             Command::new(YZX_CONFIG)
-                .arg("--init-cursors")
+                .arg("--init-rio")
                 .env("YAZELIX_CONFIG_HOME", &config_home),
         )?;
         let yzx_open_log = config_value(&config_home, &config_toml, "open.log_level")?;
@@ -209,11 +209,6 @@ impl Runtime {
             config_value(&config_home, &config_toml, AGENT_POPUP_KDL_CONFIG_PATH)?;
         let (layout_source, layout) =
             active_layout(&state_dir, &appearance_mode, &bar_widgets, &shell_program)?;
-        let mars_config_source = if config_home.join("mars/config.toml").is_file() {
-            "user"
-        } else {
-            "packaged"
-        };
         let zellij_sidecar = config_home.join("zellij/config.kdl");
         let zellij_plugins_sidecar = config_home.join("zellij/plugins.kdl");
         let zellij_config = PathBuf::from(trim_output(run_checked(
@@ -259,7 +254,7 @@ impl Runtime {
             welcome_enabled: trim_output(welcome_enabled),
             welcome_style: trim_output(welcome_style),
             welcome_duration_seconds: trim_output(welcome_duration_seconds),
-            mars_config_source,
+            rio_config,
             zellij_sidecar,
             zellij_config,
             appearance_mode,
@@ -305,26 +300,9 @@ impl Runtime {
                 .env("YZX_YAZI_BIN", &yazi.yazi)
                 .env("YZX_YA", &yazi.ya);
         }
-        if !MARS.is_empty() {
-            command
-                .env("MARS_CONFIG_HOME", self.config_home.join("mars"))
-                .env("MARS_BASE_CONFIG_HOME", YZX_MARS_CONFIG);
-        }
         if let Some(bridge_session_id) = &self.bridge_session_id {
             command.env("YAZELIX_HELIX_BRIDGE_SESSION_ID", bridge_session_id);
         }
-    }
-
-    pub(crate) fn project_mars_appearance(&self) -> Result<Option<String>, AppError> {
-        let mars_config = self.config_home.join("mars/config.toml");
-        let output = run_checked(
-            &mars_config,
-            Command::new(YZX_CONFIG)
-                .arg("--project-mars-appearance")
-                .env("YAZELIX_CONFIG_HOME", &self.config_home),
-        )?;
-        parse_mars_appearance_projection(&output)
-            .map_err(|reason| startup(reason, mars_config.display(), 1))
     }
 
     pub(crate) fn yazi(&self) -> &YaziRuntime {
@@ -333,16 +311,8 @@ impl Runtime {
             .expect("Yazi runtime was not prepared for this command")
     }
 
-    pub(crate) fn mars_config(&self) -> String {
-        if MARS.is_empty() && self.mars_config_source == "packaged" {
-            return "not included".to_string();
-        }
-        let path = if self.mars_config_source == "user" {
-            self.config_home.join("mars/config.toml")
-        } else {
-            Path::new(YZX_MARS_CONFIG).join("config.toml")
-        };
-        source_path(self.mars_config_source, path.display())
+    pub(crate) fn rio_config(&self) -> String {
+        source_path("user", self.rio_config.display())
     }
 
     pub(crate) fn zellij_config(&self) -> String {
@@ -376,18 +346,6 @@ fn effective_editor_command(command: &str) -> String {
     }
 }
 
-fn parse_mars_appearance_projection(output: &str) -> Result<Option<String>, String> {
-    match output.trim() {
-        "config" => Ok(None),
-        "environment dark" => Ok(Some("dark".to_string())),
-        "environment light" => Ok(Some("light".to_string())),
-        _ => Err(format!(
-            "yzx-config returned an invalid Mars appearance projection: {}",
-            output.trim()
-        )),
-    }
-}
-
 fn bridge_session_id() -> OsString {
     nonempty_env("YAZELIX_HELIX_BRIDGE_SESSION_ID").unwrap_or_else(|| {
         OsString::from(format!(
@@ -418,17 +376,5 @@ mod tests {
         assert!(uses_helix_bridge("yzx-hx"));
         assert!(!uses_helix_bridge("hx"));
         assert!(!uses_helix_bridge("nvim"));
-    }
-
-    #[test]
-    fn mars_appearance_projection_is_strict() {
-        assert_eq!(parse_mars_appearance_projection("config\n"), Ok(None));
-        assert_eq!(
-            parse_mars_appearance_projection("environment light\n"),
-            Ok(Some("light".to_string()))
-        );
-        assert!(parse_mars_appearance_projection("environment auto").is_err());
-        assert!(parse_mars_appearance_projection("environment  light").is_err());
-        assert!(parse_mars_appearance_projection("config extra").is_err());
     }
 }

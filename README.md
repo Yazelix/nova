@@ -5,14 +5,14 @@
 </div>
 
 Yazelix Nova is a Nix-packaged terminal workspace built around
-[Mars](https://github.com/Yazelix/mars) (a Rio-derived fork), a thin
+[Nova Rio](https://github.com/Yazelix/nova-rio), a minimal
 [Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
 Yazi, Nushell, Bash, Zsh, and Fish with Atuin history, a lazygit popup (but you can configure other git clients!), and
 an optional coding agent popup. It uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
-opens the desktop workspace through Mars, while `yzx enter` will open Yazelix in any capable terminal emulator (Mars
-provides tighter Yazelix integration, though) or over SSH. Great defaults out of the box!
+opens the desktop workspace through Rio, while `yzx enter` opens Yazelix in any
+capable terminal emulator or over SSH. Great defaults out of the box!
 
 ## Preview
 
@@ -58,7 +58,7 @@ Yazelix should have had from the start.
 *TLDR: Install Stable for the dogfooded release, Main for frequent updates, or
 Edge for experimental changes.*
 
-Yazelix requires Nix with flakes enabled. `launch` opens the packaged Mars window
+Yazelix requires Nix with flakes enabled. `launch` opens the packaged Rio window
 in a graphical session, while `enter` starts the same workspace in the current
 terminal or over SSH.
 
@@ -76,14 +76,14 @@ same package identity remains visible inside sessions as `NOVA 1.1 STABLE`,
 
 Linux is the dogfooded platform. CI builds all packages and a Home Manager
 activation on `aarch64-darwin`. Sustained interactive macOS beta use has found
-no known regression; the earlier per-command checklist and Mars GUI remain
+no known regression; the earlier per-command checklist and Rio GUI remain
 unverified.
 
 ### Try without installing
 
 ```sh
 nix run github:Yazelix/nova/stable -- launch
-nix run github:Yazelix/nova/stable#yazelix-no-mars -- enter
+nix run github:Yazelix/nova/stable -- enter
 ```
 
 If the one-off launch fails, inspect the owned runtime setup with:
@@ -143,7 +143,7 @@ yzx tutor begin
 ```
 
 `yzx help` lists every command. `yzx doctor` checks the owned runtime setup
-without opening Mars or Zellij. Inside Yazelix, press `Alt Shift M` to open the
+without opening Rio or Zellij. Inside Yazelix, press `Alt Shift M` to open the
 command palette, which includes both help and tutor entries.
 
 ### Ratconfig
@@ -218,13 +218,13 @@ Ratconfig's Keys tab is the complete packaged reference, and
 | --- | --- |
 | `yzx`, `yzx help` | Print command help |
 | `yzx --version` | Print the exact package-owned Yazelix version |
-| `yzx launch [zellij-args...]` | Open Mars first, then start managed Zellij |
+| `yzx launch [zellij-args...]` | Open Rio first, then start managed Zellij |
 | `yzx enter [zellij-args...]` | Start managed Zellij in the current terminal |
 | `yzx run <program> [args...]` | Run exact argv inside the prepared Yazelix environment |
 | `yzx config` | Open the Ratconfig-backed config UI |
 | `yzx yazi-config materialize --user-config-dir <path> --state-dir <path>` | Materialize and print the effective Yazi config directory for automation |
 | `yzx menu` | Open the command palette |
-| `yzx doctor` | Check owned runtime setup without launching Mars or Zellij |
+| `yzx doctor` | Check owned runtime setup without launching Rio or Zellij |
 | `yzx status` | Print config/runtime paths and selected settings |
 | `yzx status --json` | Print the versioned machine-readable status record |
 | `yzx env` | Open the managed shell without launching the UI |
@@ -270,7 +270,7 @@ outside the Nova v1 continuity contract.
 
 ## Packages and platforms
 
-Package names follow `yazelix[-no-mars][-no-helix][-no-yazi]`. Each suffix
+Package names follow `yazelix[-no-helix][-no-yazi]`. Each suffix
 removes that managed package while retaining the integration around it.
 `no-helix` uses the configured host editor; `no-yazi` requires matching host
 `yazi` and `ya` commands.
@@ -279,19 +279,15 @@ removes that managed package while retaining the integration around it.
 Linux launcher and in-session identities. They reuse the same dependency graph
 as `yazelix` and do not multiply the capability-variant matrix.
 
-| Package | Mars | Managed Helix | Managed Yazi |
+| Package | Rio | Managed Helix | Managed Yazi |
 | --- | --- | --- | --- |
 | `yazelix` | Yes | Yes | Yes |
 | `yazelix-no-helix` | Yes | No | Yes |
 | `yazelix-no-yazi` | Yes | Yes | No |
 | `yazelix-no-helix-no-yazi` | Yes | No | No |
-| `yazelix-no-mars` | No | Yes | Yes |
-| `yazelix-no-mars-no-helix` | No | No | Yes |
-| `yazelix-no-mars-no-yazi` | No | Yes | No |
-| `yazelix-no-mars-no-helix-no-yazi` | No | No | No |
 
 See [Installation and packages](docs/installation.md) for package variants,
-platform support, SSH use, measured sizes, Home Manager, and updates.
+platform support, SSH use, Home Manager, and updates.
 
 ## First-party components
 
@@ -299,7 +295,7 @@ Yazelix assembles focused first-party forks, plugins, libraries, and commands:
 
 | Component | Yazelix role |
 | --- | --- |
-| [Mars](https://github.com/Yazelix/mars) | GUI terminal used by `yzx launch`, with Kitty graphics, cursor shaders, and Yazelix session integration |
+| [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes Nova still needs |
 | [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
 | [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
@@ -307,7 +303,6 @@ Yazelix assembles focused first-party forks, plugins, libraries, and commands:
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with tabs, modes, session details, status widgets, and activity markers, built on the narrow Yazelix `zjstatus` fork |
 | [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
 | [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations including Matrix rain, plus the separately packaged GPL aquarium exposed through `yzx anima` |
-| [Yazelix Cursors](https://github.com/Yazelix/cursors) | Shared cursor presets and validation for Ratconfig, plus palettes and shader assets for Mars |
 | [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
 | [auto-layout.yazi](https://github.com/Yazelix/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
 
@@ -324,18 +319,11 @@ inventories where the owner publishes one, and the strongest honest curated or
 observed inventory otherwise. Tabs whose Overview would hide fewer than three
 fields or less than one quarter of their inventory simply show All.
 
-The Cursors inventory comes from the pinned Yazelix Cursors package. It exposes
-every finite setting and its owner-defined choices, while custom definition
-tables remain searchable and read-only with an exact `cursors.toml` action.
-
-The Mars tab consumes the complete public inventory from the pinned Mars
-revision. Overview recommends 15 common window, font, input, and bell settings;
-All exposes the other specialist and platform settings, and search spans that
-complete inventory. Scalar and finite-choice controls with a safe sparse write
-path are editable; platform-restricted choices appear only on their matching
-platform. Structured settings remain read-only and do not invent a second Mars
-schema or native-file action. `mars.appearance.preset` is omitted because root
-`appearance.mode` is the product appearance control.
+Rio owns its complete native configuration at
+`~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once and Ratconfig
+opens it as an exact native-file action; neither layer mirrors Rio's schema.
+The packaged starting point uses a cyan cursor and Rio's native cursor trail.
+Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Yazi tab consumes the native presets and official schemas paired with the
 packaged Yazi version. Overview recommends ten common manager, preview, and
@@ -356,12 +344,7 @@ effective `keys.normal.A-r` row explains Yazelix's reserved reveal binding,
 while the two Steel files remain native actions.
 
 `appearance.mode` selects `dark` or `light` for managed Yazelix components and
-also controls Ratconfig's palette. In packages with Mars, Yazelix projects that
-value to only `mars.appearance.preset` when its native config is a writable
-regular file; the rest of `mars/config.toml` remains native Mars configuration.
-Read-only or symlinked config is left untouched and receives the mode on the
-next launch. A manual edit may temporarily diverge Mars until the next global
-appearance save or `yzx launch`.
+also controls Ratconfig's palette. Rio remains independently native-configured.
 
 Zellij stores one dark theme and one light theme over its pinned packaged
 inventory. Ratconfig inherits `ansi` and `gruvbox-light`, lets either field
@@ -392,7 +375,7 @@ initializes Starship, Carapace completions, and zoxide. Set
 deleting either history store.
 
 See [Configuration](docs/configuration.md) for settings, popups, native files,
-Yazi plugins, cursor ownership, and editor behavior.
+Yazi plugins, Rio ownership, and editor behavior.
 
 ## Development
 
@@ -400,7 +383,7 @@ From a local checkout, use:
 
 ```sh
 nix run .#yazelix -- launch
-nix run .#yazelix-no-mars -- enter
+nix run .#yazelix -- enter
 ```
 
 See [Development](docs/development.md) for CI and local checks,
@@ -436,7 +419,8 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **27,505 lines** of tracked text project files. The
+Yazelix owns **25,589 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-The seven-line increase records the command rename and Anima's Matrix and synchronized-frame contracts.
+The 1,916-line reduction reflects the deletion of Mars/Cursors integration and
+the four duplicate terminal-free package variants.

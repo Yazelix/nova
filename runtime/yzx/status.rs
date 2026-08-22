@@ -18,7 +18,7 @@ pub(crate) fn print_status() -> Result<(), AppError> {
     println!("welcome enabled: {}", runtime.welcome_enabled);
     println!("welcome style: {}", runtime.welcome_style);
     println!("welcome duration: {}s", runtime.welcome_duration_seconds);
-    println!("mars config: {}", runtime.mars_config());
+    println!("rio config: {}", runtime.rio_config());
     println!("zellij config: {}", runtime.zellij_config());
     println!("zellij sidecar: {}", runtime.zellij_sidecar.display());
     println!("bar widgets: {}", runtime.bar_widgets);

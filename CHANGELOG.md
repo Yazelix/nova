@@ -4,6 +4,20 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
+- Nova launches the exact pinned `Yazelix/nova-rio` revision instead of Mars
+  and removes Yazelix Cursors plus the four `no-mars` package variants. Rio's
+  complete native `rio/config.toml` is seeded once with Nova's window, font,
+  opacity, cyan cursor, and cursor-trail defaults; Ratconfig opens that file
+  without mirroring Rio's schema. Existing `mars/config.toml` and
+  `cursors.toml` files are preserved but ignored. The separate `Yazelix/mars`
+  repository, its refs, and existing consumers are unchanged.
+- Home Manager declarations for `programs.yazelix.config.mars` or
+  `programs.yazelix.config.cursors` must be removed or replaced with the
+  complete native `programs.yazelix.config.rio` file option.
+- Nova Rio keeps only four isolated changes over its recorded upstream
+  baseline: direct Kitty placement cleanup on full-screen erase, balanced grid
+  remainder placement, quit-modal spacing and border polish, and fork-boundary
+  documentation.
 - Anima adds Matrix rain to `yzx anima` and `random`, hardens its existing
   renderers, and emits complete native frames through synchronized updates.
 - `yzx anima [style]` replaces `yzx screen [style]` as the direct Anima command.
@@ -22,8 +36,6 @@ User-visible runtime changes for Yazelix Nova live here.
 - Popup configuration changes refresh in active Zellij sessions. Failed popup
   commands remain toggle-managed instead of allowing duplicate panes; exited
   keep-alive panes close when toggled while live keep-alive panes still hide.
-- Mars defaults to 0.88 window opacity, retaining translucency while reducing
-  wallpaper competition. Explicit user opacity continues to apply live.
 
 ## 1.0.0
 

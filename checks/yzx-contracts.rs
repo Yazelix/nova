@@ -43,8 +43,7 @@ fn main() {
     expect_narrow_path_launches(yzx, &yzx_shell);
     expect_config_ui(yzx);
     expect_startup_diagnostics(yzx);
-    expect_mars_config_override(yzx);
-    expect_cursor_config(yzx);
+    expect_rio_config(yzx);
     expect_zellij_config_sidecar(yzx);
     expect_yazi_managed_keys(yzx);
 
@@ -405,7 +404,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "yazelix_pane_orchestrator.wasm",
         "/bin/ya",
         "/bin/zellij",
-        "/bin/mars",
+        "/bin/rio",
         "tokenusage",
         "--theme-mode",
         "--new-session-with-layout",
@@ -1598,78 +1597,58 @@ fn run_selected_shell(
     successful_stdout_trimmed(&mut command, &format!("yzx-shell dispatch to {program}"))
 }
 
-fn expect_mars_config_override(yzx: &Path) {
-    let packaged_config = yzx.join("share/yazelix/mars/config.toml");
+fn expect_rio_config(yzx: &Path) {
+    let packaged_config = yzx.join("share/yazelix/rio/config.toml");
     let yzx_bin = yzx.join("bin/yzx");
     assert!(
         packaged_config.is_file(),
-        "packaged Mars config is not a file: {}",
+        "packaged Rio config is not a file: {}",
         packaged_config.display()
     );
 
     let launcher = binary_text(&yzx_bin);
     expect_contains_all! {
-        &launcher, "runtime Mars config override fragment";
+        &launcher, "runtime Rio config fragment";
         "YAZELIX_CONFIG_HOME",
-        "MARS_BASE_CONFIG_HOME",
-        "MARS_CONFIG_HOME",
-        "yzx-mars-config",
+        "RIO_CONFIG_HOME",
+        "--app-id",
+        "/bin/rio",
     }
 
     let temp = TempDir::new();
-    let mars_case = RuntimeCase::new(&temp.path, "mars");
-    let status = mars_case.run_yzx(&yzx_bin, "status", "packaged Mars config status");
-    expect_contains_all! {
-        &status, "packaged Mars config status";
-        "mars config: packaged",
-        "yzx-mars-config/config.toml",
-    }
+    let case = RuntimeCase::new(&temp.path, "rio");
+    let legacy_mars = case.config_home.join("mars/config.toml");
+    let legacy_cursors = case.config_home.join("cursors.toml");
+    fs::create_dir_all(legacy_mars.parent().unwrap()).unwrap();
+    fs::write(&legacy_mars, "# preserved Mars config\n").unwrap();
+    fs::write(&legacy_cursors, "# preserved cursor config\n").unwrap();
 
-    let mars_config = mars_case.config_home.join("mars/config.toml");
-    fs::create_dir_all(mars_config.parent().unwrap()).unwrap();
-    mars_case.write_config("[appearance]\nmode = \"light\"\n");
-    fs::write(
-        &mars_config,
-        "# user Mars config\n\n[window]\nopacity = 0.5\n",
-    )
-    .unwrap();
-    let projection = successful_stdout(
-        Command::new(yzx.join("libexec/yazelix/yzx-config"))
-            .arg("--project-mars-appearance")
-            .env("YAZELIX_CONFIG_HOME", &mars_case.config_home),
-        "Mars appearance projection",
+    let status = case.run_yzx(&yzx_bin, "status", "Rio config initialization");
+    let rio_config = case.config_home.join("rio/config.toml");
+    assert_eq!(
+        fs::read_to_string(&rio_config).unwrap(),
+        fs::read_to_string(&packaged_config).unwrap()
     );
-    assert_eq!(projection.trim(), "config");
-    let projected = fs::read_to_string(&mars_config).unwrap();
     expect_contains_all! {
-        &projected, "projected Mars appearance";
-        "# user Mars config",
-        "opacity = 0.5",
-        "[mars.appearance]",
-        "preset = \"light\"",
+        &status, "Rio config status";
+        "rio config: user",
+        rio_config.display().to_string(),
     }
-
-    let status = mars_case.run_yzx(&yzx_bin, "status", "Mars config override status");
-    expect_contains_all! {
-        &status, "Mars config override status";
-        "mars config: user",
-        mars_config.display().to_string(),
-    }
-}
-
-fn expect_cursor_config(yzx: &Path) {
-    let template = fs::read_to_string(yzx.join("share/yazelix/cursors.toml")).unwrap();
-    let yzx_bin = yzx.join("bin/yzx");
-    let temp = TempDir::new();
-    let case = RuntimeCase::new(&temp.path, "cursors");
-    case.run_yzx(&yzx_bin, "status", "cursor config initialization");
-    let cursor_config = case.config_home.join("cursors.toml");
-    assert_eq!(fs::read_to_string(&cursor_config).unwrap(), template);
-
-    let custom = format!("{template}\n# preserved user cursor config\n");
-    fs::write(&cursor_config, &custom).unwrap();
-    case.run_yzx(&yzx_bin, "status", "cursor config preservation");
-    assert_eq!(fs::read_to_string(cursor_config).unwrap(), custom);
+    let custom = format!(
+        "{}\n# preserved user Rio config\n",
+        fs::read_to_string(&rio_config).unwrap()
+    );
+    fs::write(&rio_config, &custom).unwrap();
+    case.run_yzx(&yzx_bin, "status", "Rio config preservation");
+    assert_eq!(fs::read_to_string(rio_config).unwrap(), custom);
+    assert_eq!(
+        fs::read_to_string(legacy_mars).unwrap(),
+        "# preserved Mars config\n"
+    );
+    assert_eq!(
+        fs::read_to_string(legacy_cursors).unwrap(),
+        "# preserved cursor config\n"
+    );
 }
 
 fn expect_zellij_config_sidecar(yzx: &Path) {

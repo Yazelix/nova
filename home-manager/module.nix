@@ -29,13 +29,9 @@
       inherit description;
     };
   nativeFiles = {
-    "yazelix/cursors.toml" = {
-      option = cfg.config.cursors;
-      name = "programs.yazelix.config.cursors";
-    };
-    "yazelix/mars/config.toml" = {
-      option = cfg.config.mars;
-      name = "programs.yazelix.config.mars";
+    "yazelix/rio/config.toml" = {
+      option = cfg.config.rio;
+      name = "programs.yazelix.config.rio";
     };
     "yazelix/zellij/config.kdl" = {
       option = cfg.config.zellij;
@@ -126,8 +122,7 @@ in {
         '';
       };
 
-      cursors = nativeFileOption "Managed Yazelix cursor configuration.";
-      mars = nativeFileOption "Managed sparse Mars overrides.";
+      rio = nativeFileOption "Complete native Rio configuration.";
       zellij = nativeFileOption "Managed Zellij config.kdl sidecar.";
       starship = nativeFileOption "Managed sparse Starship overrides.";
 

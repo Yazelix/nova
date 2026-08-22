@@ -2,7 +2,7 @@ use std::{env, fmt::Display, fs, path::Path};
 
 use crate::{
     AGENT_AUTO_COMMAND, HELIX_REVEAL_COMMAND, LAYOUT, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
-    MANAGED_HELIX, MARS, NOVA_BAR_WASM, PACKAGE_VARIANT, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
+    MANAGED_HELIX, NOVA_BAR_WASM, PACKAGE_VARIANT, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
     YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YAZI_TESTED_VERSION, YZX_BAR_RENDER,
     YZX_BAR_RENDER_REQUEST, YZX_CONFIG, YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU,
     YZX_REVEAL, YZX_SCREEN, YZX_SIDEBAR_REFRESH, YZX_TUTOR, YZX_WELCOME, YZX_YAZI,
@@ -46,7 +46,7 @@ pub(crate) fn print_doctor() -> Result<(), AppError> {
         "welcome.duration_seconds",
         &runtime.welcome_duration_seconds,
     );
-    doctor_ok("mars config", runtime.mars_config());
+    doctor_ok("rio config", runtime.rio_config());
     doctor_ok("zellij config", runtime.zellij_config());
     doctor_ok("zellij sidecar", runtime.zellij_sidecar.display());
     doctor_ok("bar.widgets", &runtime.bar_widgets);
@@ -74,14 +74,7 @@ pub(crate) fn print_doctor() -> Result<(), AppError> {
         println!("warn yazi compatibility: {warning}");
     }
     doctor_ok("zellij", ZELLIJ);
-    doctor_ok(
-        "mars",
-        if MARS.is_empty() {
-            "not included"
-        } else {
-            MARS
-        },
-    );
+    doctor_ok("rio", RIO);
     doctor_ok("yazi opener", YZX_YAZI);
     doctor_ok(
         "pane orchestrator plugin",
@@ -151,9 +144,7 @@ fn check_doctor_inputs() -> Result<(), AppError> {
     ] {
         require_file(label, path)?;
     }
-    if !MARS.is_empty() {
-        require_file("Mars", Path::new(MARS))?;
-    }
+    require_file("Rio", Path::new(RIO))?;
 
     Ok(())
 }

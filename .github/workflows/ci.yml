@@ -43,9 +43,7 @@ jobs:
         run: |
           for package in \
             yazelix-no-helix \
-            yazelix-no-helix-no-yazi \
-            yazelix-no-mars-no-helix \
-            yazelix-no-mars-no-helix-no-yazi; do
+            yazelix-no-helix-no-yazi; do
             nix eval --raw --no-write-lock-file \
               --override-input yazelixHelix path:./checks/unavailable-helix \
               ".#packages.aarch64-darwin.$package.drvPath"
@@ -59,5 +57,5 @@ jobs:
             .#checks.x86_64-linux.desktop_channels \
             .#checks.x86_64-linux.yzx_yazi_materialization \
             .#checks.x86_64-linux.yzx_launcher_unit \
-            .#checks.x86_64-linux.no_mars_contracts \
+            .#checks.x86_64-linux.rio_contracts \
             .#checks.x86_64-linux.zellij_sidecar_guard_parity

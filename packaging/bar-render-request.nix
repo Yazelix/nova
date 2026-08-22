@@ -14,7 +14,7 @@
   widget_separator = "dot";
   editor_label = "hx";
   shell_label = shellLabel;
-  terminal_label = "mars";
+  terminal_label = "rio";
   custom_text = "";
   appearance_mode = appearanceMode;
   tab_label_mode = "full";

@@ -225,29 +225,6 @@
         "type": "github"
       }
     },
-    "mars": {
-      "inputs": {
-        "flake-parts": "flake-parts",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay",
-        "systems": "systems"
-      },
-      "locked": {
-        "lastModified": 1786291144,
-        "narHash": "sha256-F6wT7v1mpq6t4ADAh2aPfbTGuFZxhQ73w8BgIb8lt+E=",
-        "owner": "Yazelix",
-        "repo": "mars",
-        "rev": "21109e3ebc24b63da11bae644dfb9bab28ce0e18",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Yazelix",
-        "repo": "mars",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1781577229,
@@ -319,15 +296,38 @@
         "type": "github"
       }
     },
+    "rio": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay",
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1787405281,
+        "narHash": "sha256-ovmSKnOvJawlxzWP28tlsWRkw93o910CH1KRuLMolrY=",
+        "owner": "Yazelix",
+        "repo": "nova-rio",
+        "rev": "1024059fa31a3e49680d785ec697967be9e27b51",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Yazelix",
+        "repo": "nova-rio",
+        "rev": "1024059fa31a3e49680d785ec697967be9e27b51",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "autoLayoutYazi": "autoLayoutYazi",
         "home-manager": "home-manager",
-        "mars": "mars",
         "nixpkgs": "nixpkgs",
         "novaBar": "novaBar",
+        "rio": "rio",
         "starshipYazi": "starshipYazi",
-        "yazelixCursors": "yazelixCursors",
         "yazelixHelix": "yazelixHelix",
         "yazelixScreen": "yazelixScreen",
         "yazelixZellij": "yazelixZellij",
@@ -409,7 +409,7 @@
     "rust-overlay": {
       "inputs": {
         "nixpkgs": [
-          "mars",
+          "rio",
           "nixpkgs"
         ]
       },
@@ -542,26 +542,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "yazelixCursors": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786333250,
-        "narHash": "sha256-xhH9nDXt3x2ej78ZphS89B2plR9aJ5/WyZElDj8Li9I=",
-        "owner": "Yazelix",
-        "repo": "cursors",
-        "rev": "e0f8bc9492dbfaaf498cef47d543010f4abb2b8f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Yazelix",
-        "repo": "cursors",
         "type": "github"
       }
     },

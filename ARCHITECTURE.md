@@ -2,37 +2,36 @@
 
 Yazelix Nova is a small Nix/Lix flake with one front door: **`yzx`**.
 
-This repo owns the glue that makes Mars, Nova Zellij, Yazi, and
+This repo owns the glue that makes Rio, Nova Zellij, Yazi, and
 Helix feel like one runtime. It is not a general terminal distro, a broad Home
 Manager config system, or a main-Yazelix compatibility layer.
 
 ## Runtime chain
 
 ```text
-yzx launch  →  Mars  →  yzx-welcome  →  Nova Zellij  →  Yazi sidebar + work panes
+yzx launch  →  Rio  →  yzx-welcome  →  Nova Zellij  →  Yazi sidebar + work panes
 yzx enter   →  yzx-welcome  →  Nova Zellij  →  same layout
 yzx run     →  prepared Yazelix environment  →  exact child argv/status
 yzx yazi-config materialize  →  private materializer  →  effective Yazi config path
 ```
 
-Bare `yzx` prints help. `launch` is the only Mars route.
+Bare `yzx` prints help. `launch` is the only Rio route.
 `enter` is the headless/SSH route and requires an interactive host terminal, not
-a display server. `yazelix-no-helix` retains the Mars route and delegates
-editing to an installed host command. `yazelix-no-mars` compiles the Mars route
-out while retaining the same command, config schema, and managed workspace.
+a display server. `yazelix-no-helix` retains the Rio route and delegates
+editing to an installed host command.
 `no-yazi` variants keep the managed Yazi launcher and integration while
-resolving a matching host `yazi`/`ya` pair. The three omission suffixes compose
-into eight explicit package and app outputs.
+resolving a matching host `yazi`/`ya` pair. The two omission suffixes compose
+into four explicit package and app outputs.
 
 ## Platforms
 
 | Surface | Support |
 | --- | --- |
-| Eight Mars/managed-Helix/managed-Yazi package and app combinations | `x86_64` / `aarch64` × Linux / Darwin |
+| Four Rio/managed-Helix/managed-Yazi package and app combinations | `x86_64` / `aarch64` × Linux / Darwin |
 | Headless / SSH floor | `enter` in a capable interactive host terminal; managed TUI only |
-| macOS build evidence | Real `aarch64-darwin` runner builds all eight packages and the Home Manager closure; no desktop entry |
+| macOS build evidence | Real `aarch64-darwin` runner builds all four packages and the Home Manager closure; no desktop entry |
 | macOS interactive floor | `help`, `status`, `doctor`, `enter`, managed workspace, and host-editor delegation remain unverified |
-| macOS full-package `launch` | Mars is packaged; GUI behavior remains unverified |
+| macOS full-package `launch` | Rio is packaged; GUI behavior remains unverified |
 | Out of repo | App bundles, Homebrew, Ghostty packaging, broad terminal matrices |
 
 ## Commands
@@ -41,7 +40,7 @@ into eight explicit package and app outputs.
 | --- | --- |
 | `yzx` / `help` | Concise help; no implicit launch |
 | `--version` | Package-owned exact Nova version |
-| `launch` | Mars then managed session; unavailable in both Mars-free packages |
+| `launch` | Rio then managed session |
 | `enter` | Managed session in current terminal |
 | `run` | Structured command in the prepared runtime environment |
 | `config` | Ratconfig UI |
@@ -65,7 +64,7 @@ One owner per concern. Paths are the durable map.
 
 | Path | Owns |
 | --- | --- |
-| `flake.nix` | Eight fixed Mars/managed-Helix/managed-Yazi compositions, inputs, helpers, desktop entry, HM export |
+| `flake.nix` | Four fixed Rio/managed-Helix/managed-Yazi compositions, inputs, helpers, desktop entry, HM export |
 | `home-manager/module.nix` | `programs.yazelix.enable` / package; optional config files; no default generation |
 
 ### Front door and helpers
@@ -89,15 +88,12 @@ One owner per concern. Paths are the durable map.
 
 `crates/yzx-config/` is the Ratconfig host.
 
-- Supplies one stable source/path identity per field and reviewed root, Mars,
-  cursor, Zellij, and Helix recommendation allowlists. Ratconfig owns Overview/All filtering,
+- Supplies one stable source/path identity per field and reviewed root, Zellij,
+  and Helix recommendation allowlists. Ratconfig owns Overview/All filtering,
   meaningful reduction thresholds, attention-state visibility, toggling, and
   All-scope search
-- Consumes the versioned catalog from the exact pinned Mars source at build
-  time. Mars owns field completeness and semantic metadata; Yazelix owns the
-  single appearance exclusion, recommendation set, conservative apply labels,
-  and the bounded mapping from owner shapes to sparse inline controls. The
-  compiled consumer does not retain Mars in no-Mars runtime closures
+- Exposes Rio as one exact native-file action. Rio alone owns its schema,
+  validation, and reload behavior
 - Joins the packaged Helix baseline with observed native `config.toml` and
   `languages.toml` values as read-only generic rows. Helix publishes no stable
   machine-readable config catalog, so Yazelix does not mirror one or infer edit
@@ -105,12 +101,10 @@ One owner per concern. Paths are the durable map.
 - Resolves sparse override intent separately from baseline and effective values,
   declares editor capabilities independently of display types, and completes
   reloads by field identity rather than stale row position
-- Seeds only the child-owned cursor TOML; root, Mars, Zellij, and Starship stay
+- Seeds only the complete native Rio TOML; root, Zellij, and Starship stay
   sparse
-- Routes edits and true unset operations to the right file; absent cursor
-  settings resolve through the child owner from the file's definitions and
-  packaged setting defaults, while cursor definitions, Helix/Advanced open-file
-  rows, and Keys remain read-only
+- Routes edits and true unset operations to the right file; Rio,
+  Helix/Advanced open-file rows, and Keys remain read-only
 - Resolves known config targets against the packaged Nix store root so
   Home Manager-owned sources stay read-only with exact module-option guidance
 - Keeps localized invalid values as field intent. Wholly unsafe root documents
@@ -141,7 +135,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 
 | Root path | Type | Default | Effect | Applies |
 | --- | --- | --- | --- | --- |
-| `appearance.mode` | string enum | `dark` | Ratconfig palette; projected to Mars and the current managed Zellij session, whose bar follows the native mode event; selects the matching Yazi flavor for each new process | live where addressable, otherwise next launch |
+| `appearance.mode` | string enum | `dark` | Ratconfig palette and current managed Zellij session, whose bar follows the native mode event; selects the matching Yazi flavor for each new process | live where addressable, otherwise next launch |
 | `open.log_level` | string enum | `info` | `YZX_OPEN_LOG` diagnostics for managed opens | new opens |
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
 | `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
@@ -181,7 +175,7 @@ custom popup entry.
 
 | Path | Owns |
 | --- | --- |
-| `defaults/mars/config.toml` | Default Mars window/font/appearance; writable regular-file sessions receive root `appearance.mode` through `mars.appearance.preset` |
+| `defaults/rio/config.toml` | Complete seed-once Rio window, font, cursor, and effects configuration |
 | `defaults/zellij/config.kdl` | Zellij keys, plugin loads, popup wiring, Kitty protocol; leaves application-local `Alt r` routing to Helix and Yazi |
 | `defaults/zellij/layout*.kdl` | Sidebar + stacked panes, open/closed swap |
 | `defaults/nu/` | Packaged Nu: carapace, zoxide, and Starship invocation |
@@ -192,8 +186,7 @@ custom popup entry.
 
 | Child | Domain |
 | --- | --- |
-| Mars | Terminal |
-| Yazelix Cursors | Cursor TOML schema, validation, definitions, and resolution |
+| Nova Rio | Terminal and native configuration schema |
 | Nova Zellij | Multiplexer fork |
 | Nova Helix | Editor fork |
 | Zellij Popup (`yzpp`) | Popup lifecycle |
@@ -210,21 +203,11 @@ This repo packages them and applies product policy only.
 ### Installed closure topology
 
 `flake.nix` owns the package graph. The full package includes the terminal,
-workspace, managed editor, and managed Yazi. Variant outputs remove Mars,
-managed Helix, and/or the bundled Yazi executable without changing the
+workspace, managed editor, and managed Yazi. Variant outputs remove managed
+Helix and/or the bundled Yazi executable without changing the
 remaining integration contracts. Nova's top-level outputs are thin command,
 desktop-entry, and asset joins whose references pull in their selected runtime
 graph.
-
-The [installation size table](docs/installation.md#installed-size) owns the
-reproducible measurements for all eight variants and their principal package
-closures.
-
-Closure size describes distribution cost, not source ownership or local code
-volume. Child packages and packaged tools carry most binary data; Nova keeps
-their composition and policy in the small top-level join. The README [installed-size
-ledger](docs/installation.md#installed-size) owns the complete per-module list, measurement
-meaning, and reproduction commands.
 
 ### Shell dispatch
 
@@ -269,8 +252,7 @@ Packaged first, unless a surface opts into native replacement.
 ```text
 ~/.config/yazelix/
   config.toml              # optional sparse semantic overrides
-  cursors.toml             # shared cursor selection/effects; seeded once
-  mars/config.toml         # optional sparse Mars overrides
+  rio/config.toml          # complete native Rio config; seeded once
   zellij/config.kdl        # guarded scalar sidecar
   zellij/plugins.kdl       # extra plugins only
   starship.toml            # optional sparse prompt overrides
@@ -285,8 +267,7 @@ Runtime state defaults to `$XDG_DATA_HOME/yazelix` or `YAZELIX_STATE_DIR`.
 | Surface | Layering |
 | --- | --- |
 | Root TOML | Packaged semantic defaults → sparse explicit user overrides |
-| Cursors | Pinned child-owned field catalog and parser → seeded user file with sparse finite-setting intent; an absent enabled pool uses that file's definitions, other absent settings use packaged defaults, Ratconfig preserves custom definitions, and schema/definition discovery stays read-only with the exact file action |
-| Mars | Packaged base → recursive sparse user override; cursor selection arrives separately through `YAZELIX_CURSOR_CONFIG` |
+| Rio | Packaged complete config → one-time copy to the user-owned native file; `RIO_CONFIG_HOME` selects it |
 | Nu | Packaged → optional host `mise activate nu` → optional user Nu |
 | Starship | Packaged generated schema + `print-config --default` → Ratconfig discovery and bounded scalar editing → sparse user overrides over Nova's `character.format` marker → runtime-effective TOML |
 | Helix | Packaged Yazelix default → read-only Ratconfig baseline/observed rows → recursive sparse user override → reserved `keys.normal.A-r` restoration; dynamic languages and Steel stay native-file surfaces |
@@ -386,11 +367,11 @@ Owned by `runtime/yzx/` (Nix substitutes paths; Rust owns wiring and `exec`).
 2. Effective `YZX_EDITOR` / `YAZELIX_EDITOR`; standard editor variables route through `yzx-editor`
 3. Config home: `YAZELIX_CONFIG_HOME` → `XDG_CONFIG_HOME/yazelix` → `~/.config/yazelix`
 4. Root settings → env and launch args (`YZX_OPEN_LOG`, welcome, Zellij theme mode, popup chords/custom KDL, bar tray)
-5. Mars packaged base + sparse user config homes
+5. Rio native config home
 6. Zellij materialize (sidecar + patches) + status-bar cache path + isolated exact bundled-plugin permission seeds
 
 Pre-`exec` failures → Yazelix diagnostics.  
-After `exec` → Mars / Zellij / child tool.
+After `exec` → Rio / Zellij / child tool.
 
 `status` and `doctor` reuse this boundary without launching UI. `doctor` warns
 if managed Helix TOML overrides reserved `Alt r`.
@@ -424,13 +405,13 @@ Detail lives in Owners, checks, and the notes below.
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
 | C1 | Front-door CLI, headless `enter`, and pre-exec diagnostics | `runtime/yzx/`, menu/tutor/config/open, screen, flake | launcher unit, `yzx-contracts`, manual PTY, helix/key parity, `nix build .#yazelix` | GUI launch |
-| C8 | Desktop entry starts `yzx`; Mars app id matches `yzx.desktop` | `flake.nix`, `runtime/yzx/` | `yzx-contracts`, `nix build .#yazelix` | Desktop launch |
+| C8 | Desktop entry starts `yzx`; Rio app id matches `yzx.desktop` | `flake.nix`, `runtime/yzx/` | `yzx-contracts`, `nix build .#yazelix` | Desktop launch |
 
 ### Terminal, layout, shell, editor bridge
 
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
-| C2 | Root appearance authority projected to the Mars sparse config, with read-only launch fallback | `defaults/config.toml`, `defaults/mars/config.toml`, runtime, `yzx-config` | `yzx-contracts`, config tests | Visual |
+| C2 | Complete Rio config is seeded once, selected through `RIO_CONFIG_HOME`, and remains Rio-owned | `defaults/rio/config.toml`, runtime, `yzx-config` | `yzx-contracts`, config tests | Visual |
 | C3 | Layout sidebar template for swaps | `defaults/zellij/layout*.kdl` | `zellij-layout` | — |
 | C4 | Packaged keys + guarded Zellij sidecar | `defaults/zellij/config.kdl`, `yzx-zellij-config` | `yzx-contracts` | Full keys |
 | C5 | Managed Nu layering | `yzx-nu`, `defaults/nu/` | `yzx-contracts` | — |
@@ -454,7 +435,7 @@ Detail lives in Owners, checks, and the notes below.
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
 | C11a | Root semantic schema + sparse persistence | `yzx-config`, `defaults/config.toml` | config tests + contracts | UI |
-| C11b | Popups; owner-complete Mars/Cursors/Starship/Yazi inventories; curated Zellij with exact-file fallback and session patching; Nushell selection plus Advanced file actions | Owner catalogs + Ratconfig + `yzx-config` | config tests + contracts | Session live scalars |
+| C11b | Popups; Rio exact-file action; owner-complete Starship/Yazi inventories; curated Zellij with exact-file fallback and session patching; Nushell selection plus Advanced file actions | Owner catalogs + Ratconfig + `yzx-config` | config tests + contracts | Session live scalars |
 | C11c | Helix observed native rows + exact files + `yzx-hx` merge / `Alt r` / Steel | `yzx-config`, Helix, `yzx-hx` | `helix-contracts` + config tests | Owner catalog unavailable |
 | C11d | Keys read-only + Advanced open-file | `yzx-config` | Keys/Advanced tests, key parity | UI |
 
@@ -462,23 +443,20 @@ Detail lives in Owners, checks, and the notes below.
 
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
-| C13 | Eight fixed Mars/managed-Helix/managed-Yazi package combinations + narrow Home Manager enable/package/optional files | `home-manager/`, flake, `yzx-config` | no-Mars/no-Helix/host-Yazi contracts + `checks.home_manager` | Full HM switch |
+| C13 | Four fixed Rio/managed-Helix/managed-Yazi package combinations + narrow Home Manager enable/package/optional files | `home-manager/`, flake, `yzx-config` | Rio/no-Helix/host-Yazi contracts + `checks.home_manager` | Full HM switch |
 
 ### Notes
 
 **C1:** Bare `yzx` → help; `launch` is explicit. Menu is a curated allowlist,
 `run` reuses the prepared environment, and reveal is tab-local. `enter` reaches
-the managed Zellij/Yazi workspace and selected editor without Mars or display
+the managed Zellij/Yazi workspace and selected editor without starting Rio or using display
 variables; terminal-specific graphics and clipboard behavior remain host-owned.
-Diagnostics stop before Mars/Zellij handoff.
+Diagnostics stop before Rio/Zellij handoff.
 
-**C2:** Saving root `appearance.mode` switches the Ratconfig palette and
-projects only `mars.appearance.preset` into writable regular-file Mars config.
-Mars reloads that file live, and `yzx launch` reconciles manual divergence.
-Symlinked or read-only Mars config is not changed and receives the root value
-through `MARS_APPEARANCE` for that launch. Mars also reloads opacity, font size,
-line height, scrollbar, and bell behavior in open windows; width and height
-apply to newly created windows. Yazelix passes the root mode at launch and
+**C2:** The first config or runtime preparation copies the complete packaged
+Rio config only when `rio/config.toml` is absent. Later edits are user-owned,
+Ratconfig exposes only the exact file, and `yzx launch` selects its directory
+through `RIO_CONFIG_HOME`. Yazelix passes the root mode at launch and
 Zellij selects the matching theme-pair member; after a save, Yazelix calls the
 native action for the current managed session. Zellij sends the mode event to
 the bar's internal palette pair. Each new managed Yazi reads the same root mode;
@@ -498,9 +476,9 @@ Helix merge/Steel/`Alt r` (c), Keys/Advanced (d).
 ## Tradeoffs
 
 **Pros:** small public surface; concrete semantic config; one Nix-composed
-runtime; Mars isolated; Rust where process/files matter; layout checks in build.
+runtime; Rio isolated; Rust where process/files matter; layout checks in build.
 
-**Cons:** `flake.nix` is heavy; Mars packaging weight; fork deps; Yazi
+**Cons:** `flake.nix` is heavy; fork deps; Yazi
 integration surface; user layering is intentionally incomplete.
 
 **Current bet:** one owner per contract beats minimal file count. Nix is the

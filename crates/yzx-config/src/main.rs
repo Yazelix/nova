@@ -5,7 +5,6 @@ mod common;
 mod custom_popups;
 mod file_actions;
 mod helix_config;
-mod mars_inventory;
 mod model;
 mod native_config;
 mod paths;
@@ -23,7 +22,6 @@ use native_config::write_effective_starship_config;
 use paths::*;
 use root_config::*;
 use ui::*;
-use yazelix_cursors::initialize_cursor_config;
 
 fn main() {
     if let Err(error) = run() {
@@ -45,23 +43,11 @@ fn run() -> Result<()> {
             }
             print_config_field(&path)
         }
-        Some("--init-cursors") => {
+        Some("--init-rio") => {
             if args.next().is_some() {
-                return Err(error("--init-cursors does not accept arguments"));
+                return Err(error("--init-rio does not accept arguments"));
             }
-            initialize_cursor_config(&config_paths()?.cursors)?;
-            Ok(())
-        }
-        Some("--project-mars-appearance") => {
-            if args.next().is_some() {
-                return Err(error("--project-mars-appearance does not accept arguments"));
-            }
-            match file_actions::project_mars_appearance(&config_paths()?)? {
-                file_actions::MarsAppearanceProjection::Config => println!("config"),
-                file_actions::MarsAppearanceProjection::Environment(mode) => {
-                    println!("environment {mode}")
-                }
-            }
+            initialize_rio_config(&config_paths()?.rio)?;
             Ok(())
         }
         Some("--write-effective-helix-config") => {
@@ -138,7 +124,6 @@ mod tests {
     };
 
     use crate::file_actions::*;
-    use crate::mars_inventory::*;
     use crate::model::*;
     use crate::starship_inventory::*;
     use crate::zellij_sidecar::*;
@@ -152,9 +137,6 @@ mod tests {
         file_action_status_label, file_action_status_style,
     };
     use serde_json::{Value as JsonValue, json};
-    use yazelix_cursors::{
-        DEFAULT_CURSOR_CONFIG_TEMPLATE, cursor_config_field_specs, load_cursor_config,
-    };
 
     const YAZI_THEME_BASELINE: &str =
         "# Managed native Yazi theme config.\n[flavor]\ndark = \"\"\nlight = \"\"\n";
@@ -227,8 +209,7 @@ mod tests {
         ConfigPaths {
             store_root: temp.path.join("store"),
             root: temp.path.join("config.toml"),
-            cursors: temp.path.join("cursors.toml"),
-            mars: temp.path.join("mars/config.toml"),
+            rio: temp.path.join("rio/config.toml"),
             zellij: temp.path.join("zellij/config.kdl"),
             helix_dir: temp.path.join("helix"),
             helix_config: temp.path.join("helix/config.toml"),
@@ -1080,8 +1061,7 @@ mod tests {
             [
                 " main",
                 " popups",
-                " mars",
-                "󰇀 cursors",
+                " rio",
                 " zellij",
                 " starship",
                 " helix",
@@ -1123,22 +1103,9 @@ mod tests {
 
         assert!(
             model
-                .fields
+                .sources
                 .iter()
-                .all(|field| field.path != MARS_APPEARANCE_PRESET_PATH),
-            "root appearance.mode is the sole Ratconfig appearance control"
-        );
-        for visible in [
-            "force-theme",
-            "colors.background",
-            "colors.foreground",
-            "colors.dim-foreground",
-        ] {
-            assert_eq!(model_field(&model, visible).source_id, SOURCE_MARS);
-        }
-        assert_eq!(
-            model_field(&model, CURSOR_TRAIL_PATH).source_id,
-            SOURCE_CURSORS
+                .any(|source| { source.id == SOURCE_RIO && source.path == paths.rio })
         );
 
         for &(path, _) in MANAGED_KEYBINDINGS {
@@ -1224,8 +1191,7 @@ mod tests {
                     !matches!(
                         field.source_id.as_str(),
                         SOURCE_CONFIG
-                            | SOURCE_MARS
-                            | SOURCE_CURSORS
+                            | SOURCE_RIO
                             | SOURCE_ZELLIJ
                             | SOURCE_STARSHIP
                             | SOURCE_HELIX_CONFIG
@@ -1382,208 +1348,6 @@ mod tests {
     }
 
     #[test]
-    fn cursor_config_is_child_owned_preserved_and_structurally_editable() {
-        let (_temp, paths) = temp_sources();
-        let custom = r##"schema_version = 1
-enabled_cursors = ["custom_test"]
-[settings]
-trail = "custom_test"
-trail_effect = "tail"
-mode_effect = "none"
-glow = "none"
-duration = 1.0
-# user cursor must survive structured edits
-[[cursor]]
-name = "custom_test"
-family = "mono"
-color = "#123456"
-"##;
-        fs::write(&paths.cursors, custom).unwrap();
-
-        let model = build_model(&paths).unwrap();
-        let enabled = model_field(&model, CURSOR_ENABLED_PATH);
-        let trail = model_field(&model, CURSOR_TRAIL_PATH);
-        let trail_effect = model_field(&model, "settings.trail_effect");
-        let mode = model_field(&model, "settings.mode_effect");
-        let glow = model_field(&model, "settings.glow");
-        let duration = model_field(&model, "settings.duration");
-        let schema = model_field(&model, "schema_version");
-        let definitions = model_field(&model, "cursor");
-        let cursor_fields = model
-            .fields
-            .iter()
-            .filter(|field| field.source_id == SOURCE_CURSORS)
-            .collect::<Vec<_>>();
-        let cursor_paths = cursor_fields
-            .iter()
-            .map(|field| field.path.as_str())
-            .collect::<Vec<_>>();
-        assert_eq!(
-            cursor_paths,
-            cursor_config_field_specs()
-                .iter()
-                .map(|spec| spec.path)
-                .collect::<Vec<_>>()
-        );
-        assert_eq!(choice_values(enabled), [&json!("custom_test")]);
-        assert!(
-            cursor_fields
-                .iter()
-                .all(|field| matches!(field.snapshot.intent, ConfigUiOverride::Explicit(_))),
-            "complete cursor fields are explicit"
-        );
-        assert!(enabled.can_unset);
-        assert!(trail.can_unset);
-        assert!(trail_effect.can_unset);
-        assert!(mode.can_unset);
-        assert!(glow.can_unset);
-        assert!(duration.can_unset);
-        assert!(!schema.can_unset);
-        assert!(!definitions.can_unset);
-        assert_eq!(baseline_value(enabled), Some(&json!(["custom_test"])));
-        assert_eq!(baseline_value(trail), Some(&json!("random")));
-        assert_eq!(baseline_value(trail_effect), Some(&json!("random")));
-        assert_eq!(baseline_value(mode), Some(&json!("random")));
-        assert_eq!(baseline_value(glow), Some(&json!("medium")));
-        assert_eq!(baseline_value(duration), Some(&json!(1.0)));
-        assert_eq!(
-            trail.snapshot.baseline.as_ref().unwrap().origin.as_deref(),
-            Some("Packaged cursor defaults")
-        );
-        assert_eq!(baseline_value(schema), None);
-        assert_eq!(baseline_value(definitions), None);
-        assert!(choice_values(trail).contains(&&json!("random")));
-        assert_eq!(trail.apply_status.summary, "next launch");
-        assert_eq!(mode.apply_status.summary, "stored");
-        assert_eq!(schema.apply_status.summary, "—");
-        assert_eq!(read_only(schema).1, Some(ACTION_CURSORS_CONFIG));
-        assert_eq!(
-            read_only(definitions),
-            (
-                "Edit cursor definition tables in the complete cursors.toml.",
-                Some(ACTION_CURSORS_CONFIG)
-            )
-        );
-        assert!(
-            effective_value(definitions)
-                .unwrap()
-                .to_string()
-                .contains("custom_test")
-        );
-        let recommended = model
-            .recommended_fields
-            .as_ref()
-            .unwrap()
-            .iter()
-            .filter(|field| field.source_id == SOURCE_CURSORS)
-            .map(|field| field.path.as_str())
-            .collect::<Vec<_>>();
-        assert_eq!(recommended, CURSOR_RECOMMENDED_PATHS);
-        assert!(!recommended.contains(&duration.path.as_str()));
-        let duration_index = field_index(&model, SOURCE_CURSORS, &duration.path);
-        let definitions_index = field_index(&model, SOURCE_CURSORS, &definitions.path);
-        let mut app = app_on_tab(&model, TAB_CURSORS);
-        assert_eq!(app.selected_tab(), 3);
-        while app.selected_field().map(|field| field.path.as_str()) != Some(CURSOR_TRAIL_PATH) {
-            app.move_down();
-        }
-        assert_eq!(
-            app.handle_key(ConfigUiKey::Char('u')),
-            ratconfig::ConfigUiIntent::UnsetField { field: trail.id() }
-        );
-        assert!(
-            app.visible_rows()
-                .contains(&UiRowRef::Field(duration_index))
-        );
-        assert!(
-            app.visible_rows()
-                .contains(&UiRowRef::Field(definitions_index))
-        );
-        search_for(&mut app, "custom_test");
-        assert!(
-            app.visible_rows()
-                .contains(&UiRowRef::Field(definitions_index))
-        );
-        write_source_field(&paths, SOURCE_CURSORS, CURSOR_TRAIL_PATH, &json!("none")).unwrap();
-        let changed = fs::read_to_string(&paths.cursors).unwrap();
-        assert!(changed.contains("# user cursor must survive structured edits"));
-        assert_eq!(
-            load_cursor_config(&paths.cursors).unwrap().settings.trail,
-            "none"
-        );
-
-        write_source_field(
-            &paths,
-            SOURCE_CURSORS,
-            CURSOR_TRAIL_PATH,
-            &json!("missing_cursor"),
-        )
-        .unwrap_err();
-        assert_eq!(fs::read_to_string(&paths.cursors).unwrap(), changed);
-
-        write_source_default(&paths, SOURCE_CURSORS, CURSOR_TRAIL_PATH).unwrap();
-        let reset = fs::read_to_string(&paths.cursors).unwrap();
-        assert!(reset.contains("# user cursor must survive structured edits"));
-        assert!(
-            !reset
-                .lines()
-                .any(|line| line.trim_start().starts_with("trail ="))
-        );
-        assert_eq!(
-            load_cursor_config(&paths.cursors).unwrap().settings.trail,
-            "random"
-        );
-        write_source_default(&paths, SOURCE_CURSORS, CURSOR_ENABLED_PATH).unwrap();
-        let reset = fs::read_to_string(&paths.cursors).unwrap();
-        assert!(
-            !reset
-                .lines()
-                .any(|line| line.trim_start().starts_with("enabled_cursors ="))
-        );
-        let inherited = build_model(&paths).unwrap();
-        let inherited_enabled = model_field(&inherited, CURSOR_ENABLED_PATH);
-        let inherited_trail = model_field(&inherited, CURSOR_TRAIL_PATH);
-        assert_inherited(inherited_enabled, &json!(["custom_test"]));
-        assert!(!inherited_enabled.can_unset);
-        assert_inherited(inherited_trail, &json!("random"));
-        assert!(!inherited_trail.can_unset);
-    }
-
-    #[test]
-    fn cursor_inline_settings_remain_inspectable_without_false_edit_controls() {
-        let (_temp, paths) = temp_sources();
-        let custom = r##"schema_version = 1
-enabled_cursors = ["custom_test"]
-settings = { trail = "random", trail_effect = "random", mode_effect = "random", glow = "medium", duration = 1.0 }
-
-[[cursor]]
-name = "custom_test"
-family = "mono"
-color = "#123456"
-"##;
-        fs::write(&paths.cursors, custom).unwrap();
-
-        let model = build_model(&paths).unwrap();
-
-        let enabled = model_field(&model, CURSOR_ENABLED_PATH);
-        assert_eq!(baseline_value(enabled), Some(&json!(["custom_test"])));
-        assert!(matches!(
-            enabled.capability,
-            ConfigUiCapability::MultiChoice { .. }
-        ));
-        assert!(enabled.can_unset);
-        let trail = model_field(&model, CURSOR_TRAIL_PATH);
-        assert_eq!(
-            read_only(trail),
-            (
-                "Edit this setting in the complete cursors.toml because its current TOML layout cannot be patched safely.",
-                Some(ACTION_CURSORS_CONFIG)
-            )
-        );
-        assert!(!trail.can_unset);
-    }
-
-    #[test]
     fn config_model_exposes_popup_settings_tab() {
         let (_temp, paths) = temp_sources();
 
@@ -1715,95 +1479,6 @@ color = "#123456"
         );
     }
 
-    #[test]
-    fn manual_mars_appearance_does_not_become_a_second_ui_authority() {
-        let (_temp, paths) = temp_sources();
-        write_toml_value(&paths.mars, MARS_APPEARANCE_PRESET_PATH, &json!("light"));
-
-        let model = build_model(&paths).unwrap();
-        assert_eq!(
-            ConfigUiApp::try_new(model.clone()).unwrap().active_theme(),
-            ConfigUiTheme::Dark
-        );
-        assert!(
-            model
-                .fields
-                .iter()
-                .all(|field| field.path != MARS_APPEARANCE_PRESET_PATH)
-        );
-    }
-
-    #[test]
-    fn global_appearance_projects_only_the_managed_mars_field() {
-        let (_temp, paths) = temp_sources();
-        atomic_write(&paths.mars, "[window]\nopacity = 0.5\n").unwrap();
-
-        assert_eq!(
-            write_config_ui(
-                &paths,
-                SOURCE_CONFIG,
-                APPEARANCE_MODE_PATH,
-                Some(&json!("light")),
-                true,
-                false,
-            )
-            .unwrap(),
-            Some(AppearanceProjection {
-                mars: Some(MarsAppearanceProjection::Config),
-                zellij: ZellijAppearanceProjection::NextLaunch,
-            })
-        );
-        assert_toml_value(&paths.root, APPEARANCE_MODE_PATH, &json!("light"));
-        assert_toml_value(&paths.mars, MARS_APPEARANCE_PRESET_PATH, &json!("light"));
-        assert_toml_value(&paths.mars, "window.opacity", &json!(0.5));
-
-        assert_eq!(
-            write_config_ui(
-                &paths,
-                SOURCE_CONFIG,
-                APPEARANCE_MODE_PATH,
-                None,
-                true,
-                false,
-            )
-            .unwrap(),
-            Some(AppearanceProjection {
-                mars: Some(MarsAppearanceProjection::Config),
-                zellij: ZellijAppearanceProjection::NextLaunch,
-            })
-        );
-        assert!(!paths.root.exists());
-        assert_eq!(
-            read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH).unwrap(),).unwrap(),
-            "dark"
-        );
-        assert_toml_value(&paths.mars, MARS_APPEARANCE_PRESET_PATH, &json!("dark"));
-        assert_toml_value(&paths.mars, "window.opacity", &json!(0.5));
-    }
-
-    #[test]
-    fn no_mars_global_appearance_save_does_not_create_mars_config() {
-        let (_temp, paths) = temp_sources();
-
-        assert_eq!(
-            write_config_ui(
-                &paths,
-                SOURCE_CONFIG,
-                APPEARANCE_MODE_PATH,
-                Some(&json!("light")),
-                false,
-                false,
-            )
-            .unwrap(),
-            Some(AppearanceProjection {
-                mars: None,
-                zellij: ZellijAppearanceProjection::NextLaunch,
-            })
-        );
-        assert_toml_value(&paths.root, APPEARANCE_MODE_PATH, &json!("light"));
-        assert!(!paths.mars.exists());
-    }
-
     #[cfg(unix)]
     #[test]
     fn zellij_appearance_targets_only_the_named_session_and_reports_failures() {
@@ -1844,291 +1519,6 @@ color = "#123456"
             .to_string();
         assert!(error.contains("set-light-theme"), "{error}");
         assert!(error.contains("rejected"), "{error}");
-    }
-
-    #[test]
-    fn read_only_mars_config_uses_launch_environment_projection() {
-        let (_temp, paths) = temp_sources();
-        write_toml_value(&paths.root, APPEARANCE_MODE_PATH, &json!("light"));
-        atomic_write(
-            &paths.mars,
-            "[mars.appearance]\npreset = \"dark\"\n\n[window]\nwidth = 960\n",
-        )
-        .unwrap();
-        let original = fs::read_to_string(&paths.mars).unwrap();
-        set_read_only(&paths.mars);
-
-        assert_eq!(
-            project_mars_appearance(&paths).unwrap(),
-            MarsAppearanceProjection::Environment("light".to_string())
-        );
-        assert_eq!(fs::read_to_string(&paths.mars).unwrap(), original);
-    }
-
-    #[test]
-    fn failed_mars_projection_keeps_persisted_root_intent() {
-        let (_temp, paths) = temp_sources();
-        atomic_write(&paths.mars, "[mars.appearance\npreset = \"dark\"\n").unwrap();
-        let original = fs::read_to_string(&paths.mars).unwrap();
-
-        let error = write_config_ui(
-            &paths,
-            SOURCE_CONFIG,
-            APPEARANCE_MODE_PATH,
-            Some(&json!("light")),
-            true,
-            false,
-        )
-        .unwrap_err()
-        .to_string();
-
-        assert!(error.contains("Updated appearance.mode"), "{error}");
-        assert_toml_value(&paths.root, APPEARANCE_MODE_PATH, &json!("light"));
-        assert_eq!(fs::read_to_string(&paths.mars).unwrap(), original);
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn appearance_projection_treats_symlinked_mars_config_as_external() {
-        use std::os::unix::fs::symlink;
-
-        let (temp, paths) = temp_sources();
-        let target = temp.path.join("dotfiles/mars.toml");
-        fs::create_dir_all(target.parent().unwrap()).unwrap();
-        fs::write(&target, "[window]\nwidth = 960\n").unwrap();
-        fs::create_dir_all(paths.mars.parent().unwrap()).unwrap();
-        symlink(&target, &paths.mars).unwrap();
-        write_toml_value(&paths.root, APPEARANCE_MODE_PATH, &json!("light"));
-
-        assert_eq!(
-            project_mars_appearance(&paths).unwrap(),
-            MarsAppearanceProjection::Environment("light".to_string())
-        );
-        assert_eq!(
-            fs::read_to_string(&target).unwrap(),
-            "[window]\nwidth = 960\n"
-        );
-        assert!(
-            fs::symlink_metadata(&paths.mars)
-                .unwrap()
-                .file_type()
-                .is_symlink()
-        );
-    }
-
-    #[test]
-    fn mars_fields_have_complete_apply_timing() {
-        let (_temp, paths) = temp_sources();
-        let model = build_model(&paths).unwrap();
-        let expected = [
-            ("window.width", "new windows"),
-            ("window.height", "new windows"),
-            ("window.opacity", "live"),
-            ("fonts.size", "live"),
-            ("line-height", "live"),
-            ("enable-scroll-bar", "live"),
-            ("bell.audio", "live"),
-            ("bell.visual", "live"),
-        ];
-
-        for &(path, summary) in &expected {
-            assert_eq!(model_field(&model, path).apply_status.summary, summary);
-        }
-        assert!(
-            model
-                .fields
-                .iter()
-                .filter(|field| field.source_id == SOURCE_MARS)
-                .all(|field| expected.iter().any(|(path, _)| path == &field.path)
-                    || field.apply_status.summary == "next launch")
-        );
-    }
-
-    #[test]
-    fn pinned_mars_inventory_drives_all_rows_metadata_and_overview() {
-        let (_temp, paths) = temp_sources();
-        let inventory = MarsInventory::parse().unwrap();
-        let model = build_model(&paths).unwrap();
-        let catalog_paths = inventory
-            .fields()
-            .map(|field| field.path())
-            .collect::<Vec<_>>();
-        let model_paths = model
-            .fields
-            .iter()
-            .filter(|field| field.source_id == SOURCE_MARS)
-            .map(|field| field.path.as_str())
-            .collect::<Vec<_>>();
-        assert_eq!(catalog_paths.len(), 150);
-        assert_eq!(model_paths, catalog_paths);
-        assert!(!model_paths.contains(&MARS_APPEARANCE_PRESET_PATH));
-        assert!(
-            model
-                .file_actions
-                .iter()
-                .all(|action| action.source_id != SOURCE_MARS)
-        );
-
-        let recommended = model
-            .recommended_fields
-            .as_ref()
-            .unwrap()
-            .iter()
-            .filter(|field| field.source_id == SOURCE_MARS)
-            .map(|field| field.path.as_str())
-            .collect::<Vec<_>>();
-        assert_eq!(recommended.len(), MARS_RECOMMENDED_PATHS.len());
-        assert!(
-            recommended
-                .iter()
-                .all(|path| MARS_RECOMMENDED_PATHS.contains(path))
-        );
-
-        let decorations = model_field(&model, "window.decorations");
-        assert_eq!(decorations.section_label, "Window");
-        assert!(
-            decorations
-                .description
-                .starts_with("Choose native window decorations.")
-        );
-        assert!(decorations.description.contains("macOS"));
-        let decoration_choices = choice_values(decorations);
-        let macos = std::env::consts::OS == "macos";
-        assert_eq!(
-            &decoration_choices[..2],
-            [&json!("enabled"), &json!("disabled")]
-        );
-        assert_eq!(decoration_choices.len(), if macos { 4 } else { 2 });
-        assert_eq!(decoration_choices.contains(&&json!("transparent")), macos);
-        assert_eq!(decoration_choices.contains(&&json!("buttonless")), macos);
-        assert_inherited(decorations, &json!("disabled"));
-
-        let blur = model_field(&model, "window.blur");
-        assert_eq!(blur.type_label.as_deref(), Some("union"));
-        assert_inherited(blur, &json!(false));
-        assert_eq!(
-            choice_values(blur),
-            [
-                &json!(false),
-                &json!(true),
-                &json!("macos-glass-regular"),
-                &json!("macos-glass-clear"),
-            ]
-        );
-        assert!(blur.description.contains("macOS 26+"));
-
-        let env_vars = model_field(&model, "env-vars");
-        assert_eq!(env_vars.type_label.as_deref(), Some("list"));
-        assert_inherited(env_vars, &json!([]));
-        assert_eq!(read_only(env_vars).1, None);
-
-        let shell = model_field(&model, "shell");
-        assert_eq!(shell.type_label.as_deref(), Some("table"));
-        assert_eq!(
-            baseline_value(shell),
-            Some(&json!({"program": "", "args": ["--login"]}))
-        );
-        assert_eq!(read_only(shell).1, None);
-
-        let filters = model_field(&model, "renderer.filters");
-        assert!(filters.description.contains("requires wgpu"));
-        assert_eq!(read_only(filters).1, None);
-        let macos_shadow = model_field(&model, "window.macos-use-shadow");
-        assert!(macos_shadow.description.contains("macOS"));
-        if std::env::consts::OS != "macos" {
-            assert!(read_only(macos_shadow).0.contains("only on macOS"));
-        }
-
-        let mut app = app_on_tab(&model, TAB_MARS);
-        assert_eq!(app.settings_view(), ConfigUiSettingsView::Overview);
-        assert_eq!(app.visible_rows().len(), MARS_RECOMMENDED_PATHS.len());
-        app.handle_key(ConfigUiKey::Char('a'));
-        assert_eq!(app.settings_view(), ConfigUiSettingsView::All);
-        assert_eq!(app.visible_rows().len(), catalog_paths.len());
-
-        let filters_index = field_index(&model, SOURCE_MARS, "renderer.filters");
-        let mut search = app_on_tab(&model, TAB_MARS);
-        search_for(&mut search, "renderer.filters");
-        assert_eq!(search.visible_rows(), vec![UiRowRef::Field(filters_index)]);
-    }
-
-    #[test]
-    fn mars_finite_union_writes_and_resets_sparsely() {
-        let (_temp, paths) = temp_sources();
-        for value in [
-            json!(false),
-            json!(true),
-            json!("macos-glass-regular"),
-            json!("macos-glass-clear"),
-        ] {
-            write_source_field(&paths, SOURCE_MARS, "window.blur", &value).unwrap();
-            assert_toml_value(&paths.mars, "window.blur", &value);
-        }
-
-        let error = write_source_field(&paths, SOURCE_MARS, "window.blur", &json!("unknown"))
-            .unwrap_err()
-            .to_string();
-        assert!(error.contains("one of"), "{error}");
-        write_source_default(&paths, SOURCE_MARS, "window.blur").unwrap();
-        assert_eq!(
-            get_toml_path(
-                &read_toml_file_value(&paths.mars, "mars").unwrap(),
-                "window.blur"
-            ),
-            None
-        );
-    }
-
-    #[test]
-    fn malformed_mars_toml_is_source_scoped_and_blocks_inline_edits() {
-        let (_temp, paths) = temp_sources();
-        atomic_write(&paths.mars, "[window\nblur = true\n").unwrap();
-
-        let model = build_model(&paths).unwrap();
-        assert!(model.diagnostics.iter().any(|diagnostic| {
-            diagnostic.scope
-                == ConfigUiDiagnosticScope::Source {
-                    source_id: SOURCE_MARS.to_string(),
-                }
-        }));
-        assert!(
-            model
-                .fields
-                .iter()
-                .filter(|field| field.source_id == SOURCE_MARS)
-                .all(|field| matches!(
-                    field.capability,
-                    ConfigUiCapability::ReadOnly {
-                        file_action_id: None,
-                        ..
-                    }
-                ) && !field.can_unset)
-        );
-        ConfigUiApp::try_new(model).unwrap();
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn home_manager_mars_advanced_value_stays_visible_in_overview() {
-        let temp = TempHome::new();
-        let paths = temp_paths(&temp);
-        link_from_store(&paths, &paths.mars, "[developer]\nenable-log-file = true\n");
-        let paths = ensure_config_sources_at(paths).unwrap();
-        let model = build_model(&paths).unwrap();
-        let advanced = field_index(&model, SOURCE_MARS, "developer.enable-log-file");
-        let field = &model.fields[advanced];
-        assert_eq!(
-            field.snapshot.external_manager.as_deref(),
-            Some("Home Manager")
-        );
-        assert!(matches!(
-            field.capability,
-            ConfigUiCapability::ReadOnly { .. }
-        ));
-        assert!(!field.can_unset);
-
-        let app = app_on_tab(&model, TAB_MARS);
-        assert!(app.visible_rows().contains(&UiRowRef::Field(advanced)));
     }
 
     #[test]
@@ -2342,16 +1732,6 @@ color = "#123456"
     fn read_only_existing_sources_are_not_replaced() {
         let (_temp, paths) = temp_sources();
 
-        atomic_write(&paths.mars, "[window]\nwidth = 960\n").unwrap();
-        let before_mars = fs::read_to_string(&paths.mars).unwrap();
-        set_read_only(&paths.mars);
-
-        let error = write_source_field(&paths, SOURCE_MARS, "window.width", &json!(1200))
-            .unwrap_err()
-            .to_string();
-        assert!(error.contains("read-only"));
-        assert_eq!(fs::read_to_string(&paths.mars).unwrap(), before_mars);
-
         fs::write(&paths.root, "[open]\nlog_level = \"info\"\n").unwrap();
         let before_root = fs::read_to_string(&paths.root).unwrap();
         set_read_only(&paths.root);
@@ -2363,22 +1743,13 @@ color = "#123456"
         assert_eq!(fs::read_to_string(&paths.root).unwrap(), before_root);
 
         let model = build_model(&paths).unwrap();
-        for (source_id, path, origin) in [
-            (SOURCE_CONFIG, OPEN_LOG_LEVEL_PATH, "User config.toml"),
-            (SOURCE_MARS, "window.width", "User mars/config.toml"),
-        ] {
-            let field = model
-                .fields
-                .iter()
-                .find(|field| field.source_id == source_id && field.path == path)
-                .unwrap();
-            assert_eq!(field.snapshot.external_manager, None);
-            assert_eq!(
-                field.snapshot.effective.as_ref().unwrap().origin.as_deref(),
-                Some(origin)
-            );
-            assert_eq!(read_only(field).0, "Source is read-only.");
-        }
+        let field = source_field(&model, SOURCE_CONFIG, OPEN_LOG_LEVEL_PATH);
+        assert_eq!(field.snapshot.external_manager, None);
+        assert_eq!(
+            field.snapshot.effective.as_ref().unwrap().origin.as_deref(),
+            Some("User config.toml")
+        );
+        assert_eq!(read_only(field).0, "Source is read-only.");
         let key = model
             .fields
             .iter()
@@ -2395,7 +1766,7 @@ color = "#123456"
         let temp = TempHome::new();
         let paths = temp_paths(&temp);
         link_from_store(&paths, &paths.root, "");
-        link_from_store(&paths, &paths.cursors, DEFAULT_CURSOR_CONFIG_TEMPLATE);
+        link_from_store(&paths, &paths.rio, DEFAULT_RIO_CONFIG_TOML);
         let managed_starship = "[character\n";
         link_from_store(&paths, &paths.starship, managed_starship);
         let managed_helix = "theme = \"base16_default_dark\"\n[keys.normal]\nA-r = \"noop\"\n";
@@ -2407,15 +1778,13 @@ color = "#123456"
         );
         link_from_store(&paths, &paths.zellij, "theme_dark \"ansi\"\n");
         link_from_store(&paths, &paths.nu_env, "# managed\n");
-        atomic_write(&paths.mars, "[window]\nwidth = 960\n").unwrap();
-        set_read_only(&paths.mars);
         let paths = ensure_config_sources_at(paths).unwrap();
 
         let model = build_model(&paths).unwrap();
         let source = |id| model.sources.iter().find(|source| source.id == id).unwrap();
         let managed_sources = [
             SOURCE_CONFIG,
-            SOURCE_CURSORS,
+            SOURCE_RIO,
             SOURCE_STARSHIP,
             SOURCE_HELIX_CONFIG,
             SOURCE_HELIX_LANGUAGES,
@@ -2428,8 +1797,6 @@ color = "#123456"
             );
             assert!(source(source_id).read_only);
         }
-        assert_eq!(source(SOURCE_MARS).owner_label.as_deref(), Some("User"));
-        assert!(source(SOURCE_MARS).read_only);
         let starship = source_field(&model, SOURCE_STARSHIP, "character.format");
         assert_eq!(read_only(starship).0, "Managed by Home Manager.");
         let reveal = source_field(&model, SOURCE_HELIX_CONFIG, "keys.normal.A-r");
@@ -2472,8 +1839,8 @@ color = "#123456"
             "programs.yazelix.config.starship",
         );
         rejects(
-            write_source_field(&paths, SOURCE_CURSORS, CURSOR_TRAIL_PATH, &json!("none")),
-            "programs.yazelix.config.cursors",
+            prepare_file_action(&paths, SOURCE_RIO, ACTION_RIO_CONFIG, &paths.rio, true),
+            "programs.yazelix.config.rio",
         );
         rejects(
             write_source_field(
@@ -2513,7 +1880,7 @@ color = "#123456"
             "programs.yazelix.config.nu.env",
         );
         assert_file_text(&paths.root, "");
-        assert_file_text(&paths.cursors, DEFAULT_CURSOR_CONFIG_TEMPLATE);
+        assert_file_text(&paths.rio, DEFAULT_RIO_CONFIG_TOML);
         assert_file_text(&paths.starship, managed_starship);
         assert_file_text(&paths.helix_config, managed_helix);
         assert_file_text(&paths.nu_env, "# managed\n");
@@ -2597,10 +1964,9 @@ color = "#123456"
     fn ensure_config_sources_creates_source_backed_files() {
         let (_temp, paths) = temp_sources();
 
-        assert_exists(&[&paths.cursors]);
+        assert_exists(&[&paths.rio]);
         assert_missing(&[
             &paths.root,
-            &paths.mars,
             &paths.starship,
             &paths.helix_config,
             &paths.helix_languages,
@@ -2623,7 +1989,7 @@ color = "#123456"
         assert!(model.tabs.contains(&TAB_STARSHIP.to_string()));
         assert!(model.tabs.contains(&TAB_HELIX.to_string()));
         assert!(model.tabs.contains(&TAB_YAZI.to_string()));
-        assert!(model.tabs.contains(&TAB_CURSORS.to_string()));
+        assert!(model.tabs.contains(&TAB_RIO.to_string()));
         let app = app_on_tab(&model, TAB_ADVANCED);
         assert!(
             app.visible_rows()
@@ -2658,7 +2024,7 @@ color = "#123456"
         );
         assert!(model.file_actions.iter().all(|action| {
             let expected = match action.label.as_str() {
-                "cursors.toml" => (SOURCE_CURSORS, TAB_CURSORS),
+                "rio/config.toml" => (SOURCE_RIO, TAB_RIO),
                 "config.toml" => (SOURCE_CONFIG, TAB_ADVANCED),
                 "helix/config.toml" => (SOURCE_HELIX_CONFIG, TAB_HELIX),
                 "helix/languages.toml" => (SOURCE_HELIX_LANGUAGES, TAB_HELIX),
@@ -2681,7 +2047,7 @@ color = "#123456"
             summaries,
             [
                 (ACTION_ROOT_CONFIG, "config.toml"),
-                (ACTION_CURSORS_CONFIG, "cursors.toml"),
+                (ACTION_RIO_CONFIG, "rio/config.toml"),
                 (ACTION_HELIX_CONFIG, "helix/config.toml"),
                 (ACTION_HELIX_LANGUAGES, "helix/languages.toml"),
                 (ACTION_HELIX_MODULE, "helix/helix.scm"),
@@ -2709,13 +2075,13 @@ color = "#123456"
                 && (action.exists
                     == matches!(
                         action.action_id.as_str(),
-                        ACTION_CURSORS_CONFIG | ACTION_ZELLIJ_CONFIG
+                        ACTION_RIO_CONFIG | ACTION_ZELLIJ_CONFIG
                     ))
         }));
         assert!(model.file_actions.iter().all(|action| {
             if matches!(
                 action.action_id.as_str(),
-                ACTION_CURSORS_CONFIG | ACTION_ZELLIJ_CONFIG
+                ACTION_RIO_CONFIG | ACTION_ZELLIJ_CONFIG
             ) {
                 file_action_status_label(action) == "existing"
                     && file_action_status_style(action) == Style::default().fg(Color::Green)
@@ -3394,104 +2760,6 @@ color = "#123456"
     }
 
     #[test]
-    fn mars_source_stays_sparse_and_inherits_packaged_defaults() {
-        let (_temp, paths) = temp_sources();
-        let model = build_model(&paths).unwrap();
-        assert!(
-            model
-                .fields
-                .iter()
-                .filter(|field| field.source_id == SOURCE_MARS)
-                .all(
-                    |field| matches!(field.snapshot.intent, ConfigUiOverride::Absent)
-                        && field.snapshot.effective == field.snapshot.baseline
-                )
-        );
-
-        write_source_field(&paths, SOURCE_MARS, "window.opacity", &json!(0.5)).unwrap();
-
-        assert!(!paths.root.exists());
-        let raw = fs::read_to_string(&paths.mars).unwrap();
-        assert!(raw.contains("opacity = 0.5"));
-        assert!(!raw.contains("width ="));
-        assert!(!raw.contains("/nix/store"));
-
-        fs::write(
-            &paths.mars,
-            format!("{raw}\n[colors]\nbackground = \"#010203\"\n"),
-        )
-        .unwrap();
-        write_source_field(
-            &paths,
-            SOURCE_MARS,
-            "mars.appearance.preset",
-            &json!("light"),
-        )
-        .unwrap();
-
-        let mars = read_toml_file_value(&paths.mars, "mars").unwrap();
-        assert_eq!(get_toml_path(&mars, "window.opacity"), Some(&json!(0.5)));
-        assert_eq!(
-            get_toml_path(&mars, "mars.appearance.preset"),
-            Some(&json!("light"))
-        );
-        assert_eq!(
-            get_toml_path(&mars, "colors.background"),
-            Some(&json!("#010203"))
-        );
-        let model = build_model(&paths).unwrap();
-        assert_explicit(model_field(&model, "window.opacity"), &json!(0.5));
-        assert_inherited(model_field(&model, "window.width"), &json!(960));
-
-        write_source_default(&paths, SOURCE_MARS, "window.opacity").unwrap();
-        let mars = read_toml_file_value(&paths.mars, "mars").unwrap();
-        assert_eq!(get_toml_path(&mars, "window.opacity"), None);
-        assert_eq!(
-            get_toml_path(&mars, "colors.background"),
-            Some(&json!("#010203"))
-        );
-
-        let error = write_source_field(
-            &paths,
-            SOURCE_MARS,
-            "mars.appearance.preset",
-            &json!("auto"),
-        )
-        .unwrap_err()
-        .to_string();
-        assert!(error.contains("dark, light"), "{error}");
-
-        write_source_field(&paths, SOURCE_MARS, "force-theme", &json!("light")).unwrap();
-        assert_eq!(
-            get_toml_path(
-                &read_toml_file_value(&paths.mars, "mars").unwrap(),
-                "force-theme"
-            ),
-            Some(&json!("light"))
-        );
-        let error = write_source_field(&paths, SOURCE_MARS, "force-theme", &json!("unknown"))
-            .unwrap_err()
-            .to_string();
-        assert!(error.contains("one of"), "{error}");
-
-        if std::env::consts::OS != "macos" {
-            let unavailable = json!("transparent");
-            let error = write_source_field(&paths, SOURCE_MARS, "window.decorations", &unavailable)
-                .unwrap_err()
-                .to_string();
-            assert!(error.contains("enabled, disabled"), "{error}");
-        }
-
-        let error = write_source_field(&paths, SOURCE_MARS, "colors.background", &json!("#f5f3ef"))
-            .unwrap_err()
-            .to_string();
-        assert!(
-            error.contains("no validator-backed inline editor"),
-            "{error}"
-        );
-    }
-
-    #[test]
     fn source_routing_writes_starship_without_touching_config_toml() {
         let (_temp, paths) = temp_sources();
 
@@ -3890,7 +3158,10 @@ ui {\n\
             model_field(&model, "theme_dark").snapshot.intent,
             ConfigUiOverride::Absent
         );
-        assert_inherited(model_field(&model, "window.width"), &json!(960));
+        assert_inherited(
+            source_field(&model, SOURCE_CONFIG, APPEARANCE_MODE_PATH),
+            &json!("dark"),
+        );
 
         let error = write_zellij_config_field(path, "pane_frames", &json!(false)).unwrap_err();
         assert!(error.to_string().contains("guarded Zellij node"));
@@ -3906,7 +3177,10 @@ ui {\n\
         let model = build_model(&paths).unwrap();
         assert_invalid(model_field(&model, "scroll_buffer_size"), "\"100\"");
         assert_inherited(model_field(&model, "theme_dark"), &json!("ansi"));
-        assert_inherited(model_field(&model, "window.width"), &json!(960));
+        assert_inherited(
+            source_field(&model, SOURCE_CONFIG, APPEARANCE_MODE_PATH),
+            &json!("dark"),
+        );
 
         write_source_field(&paths, SOURCE_ZELLIJ, "theme_dark", &json!("ansi")).unwrap();
         assert_eq!(

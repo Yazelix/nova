@@ -463,7 +463,7 @@ and decide explicitly what survives.
 Current runtime chain:
 
 ```text
-yzx -> Mars -> Yazelix Zellij fork
+yzx -> Nova Rio -> Yazelix Zellij fork
 ```
 
 The project interface is a Nix/Lix-compatible flake. `yzx` is the installed

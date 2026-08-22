@@ -5,21 +5,19 @@ matter when changing launch, config, editor, shell, or popup behavior.
 
 ## Config UI
 
-`yzx config` validates the optional root config and seeds `cursors.toml` from
-the child-owned template when that file is missing. Runtime preparation uses
-the same one-time cursor seed.
+`yzx config` validates the optional root config and seeds the complete native
+`rio/config.toml` when that path is missing. Runtime preparation uses the same
+one-time seed.
 
 The UI leaves these sparse sources absent until you save a field:
 
 ```text
 ~/.config/yazelix/config.toml
-~/.config/yazelix/mars/config.toml
 ~/.config/yazelix/zellij/config.kdl
 ~/.config/yazelix/starship.toml
 ```
 
-`yzx launch` may create `mars/config.toml` containing only the managed
-appearance projection before Mars starts.
+Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Helix and advanced native files stay lazy. Opening a file-action row creates
 its starter file. Activating either Steel row creates both
@@ -28,22 +26,11 @@ its starter file. Activating either Steel row creates both
 While editing a text field, `Ctrl+e` opens the staged value in the configured
 editor environment and returns the edited text to the row. `Enter` saves.
 
-## Appearance Projection
+## Managed Appearance
 
 Root `appearance.mode` is the managed dark/light authority. Ratconfig uses it
-for its own palette. When Mars is included and
-`~/.config/yazelix/mars/config.toml` is a writable regular file, a global save
-or reset updates only `mars.appearance.preset`; Mars's existing directory
-watcher reloads that change. Before `yzx launch`, the runtime performs the same
-reconciliation and removes any inherited `MARS_APPEARANCE` that could override
-the file.
-
-A store-backed, symlinked, or otherwise read-only Mars file is never replaced.
-In that case, launch sets `MARS_APPEARANCE` to the validated root value and the
-change applies to the new process. `yzx enter`, SSH use, and no-Mars packages do
-not project terminal appearance. Direct edits to the native Mars field may
-affect a running window, but the next global save or managed launch restores the
-root value.
+for its own palette. Rio is independently configured by its native file and is
+not part of this projection.
 
 Yazelix passes only the root dark/light mode to each new managed Zellij
 session. Zellij resolves the matching `theme_dark` or `theme_light` member. A
@@ -53,7 +40,7 @@ session calls `set-dark-theme` or `set-light-theme` against that exact session.
 Zellij's host-theme event switches the top bar between its child-owned dark and
 light palettes. A bar loaded by a later tab receives the session's current mode
 even when no new host-theme transition occurs. Ratconfig keeps the saved root
-value when either component projection fails and reports that the next launch
+value when a component projection fails and reports that the next launch
 will retry it.
 
 Each managed Yazi launch reads the current root mode before materializing its
@@ -331,7 +318,7 @@ materialization. The materializer requires readable TOML and links it into the
 effective config as `yazelix_starship.toml`; omission retains the packaged file.
 Both the normal sidebar and workspace popup use that same effective path.
 
-Automation can materialize that config without starting Yazi, Zellij, Mars, an
+Automation can materialize that config without starting Yazi, Zellij, Rio, an
 editor, or the full Yazelix runtime:
 
 ```sh

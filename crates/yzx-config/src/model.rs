@@ -4,26 +4,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use ratconfig::toml_adapter::{get_toml_path, parse_toml_value, set_toml_value_text};
-use ratconfig::{
-    ConfigUiApplyStatus, ConfigUiCapability, ConfigUiChoice, ConfigUiDiagnostic,
-    ConfigUiDiagnosticScope, ConfigUiFieldId, ConfigUiFieldSnapshot, ConfigUiFieldSpec,
-    ConfigUiListColumn, ConfigUiListTable, ConfigUiModel, ConfigUiOverride, ConfigUiResolvedValue,
-    ConfigUiSource, ConfigUiTextEncoding, ConfigUiTheme, ConfigUiThemeMapping,
-    ConfigUiThemeSwitcher, ConfigUiTomlDocumentSpec, build_toml_document_fields,
-};
-use serde_json::Value as JsonValue;
-use yazelix_cursors::{
-    CursorConfigFieldKind, CursorConfigFieldSpec as CursorOwnerFieldSpec, CursorRegistry,
-    cursor_config_field_specs,
-};
-
 use crate::{
     catalog::*,
     common::*,
     file_actions::build_file_actions,
     helix_config::{HELIX_RECOMMENDED_PATHS, HELIX_REVEAL_PATH, build_helix_fields},
-    mars_inventory::{MarsField, MarsInventory},
     paths::ConfigPaths,
     root_config::{bar_widgets, default_config, default_config_path_value, validate_root_config},
     starship_inventory::{
@@ -35,16 +20,19 @@ use crate::{
         parse_zellij_sidecar, read_zellij_sidecar,
     },
 };
+use ratconfig::toml_adapter::{get_toml_path, parse_toml_value};
+use ratconfig::{
+    ConfigUiApplyStatus, ConfigUiCapability, ConfigUiChoice, ConfigUiDiagnostic,
+    ConfigUiDiagnosticScope, ConfigUiFieldId, ConfigUiFieldSnapshot, ConfigUiFieldSpec,
+    ConfigUiListColumn, ConfigUiListTable, ConfigUiModel, ConfigUiOverride, ConfigUiResolvedValue,
+    ConfigUiSource, ConfigUiTextEncoding, ConfigUiTheme, ConfigUiThemeMapping,
+    ConfigUiThemeSwitcher, ConfigUiTomlDocumentSpec, build_toml_document_fields,
+};
+use serde_json::Value as JsonValue;
 
 pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
     let (config_active, root_document_valid, mut diagnostics) = load_root_config(&paths.root)?;
     let config_default = default_config()?;
-    let (mars_active, mars_document_valid, mars_diagnostics) =
-        load_toml_source(&paths.mars, "mars/config.toml", SOURCE_MARS)?;
-    diagnostics.extend(mars_diagnostics);
-    let mars_inventory = MarsInventory::parse()?;
-    let mars_default = parse_toml_value(DEFAULT_MARS_CONFIG_TOML)
-        .map_err(|error| boxed_debug("invalid default Mars config", error))?;
     let (starship_active, starship_document_valid, starship_diagnostics) =
         load_toml_source(&paths.starship, "starship.toml", SOURCE_STARSHIP)?;
     diagnostics.extend(starship_diagnostics);
@@ -53,12 +41,6 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
         .map_err(|error| boxed_debug("invalid packaged Starship defaults", error))?;
     let starship_yazelix_default = parse_toml_value(DEFAULT_STARSHIP_CONFIG_TOML)
         .map_err(|error| boxed_debug("invalid default Starship config", error))?;
-    let cursors_raw = fs::read_to_string(&paths.cursors)?;
-    let cursors_active = CursorRegistry::parse_str(&paths.cursors, &cursors_raw)?;
-    let cursors_document = parse_toml_value(&cursors_raw)
-        .map_err(|error| boxed_debug("invalid cursors.toml", error))?;
-    let cursors_default =
-        CursorRegistry::parse_without_finite_overrides(&paths.cursors, &cursors_raw)?;
     let (zellij_active, zellij_invalid, zellij_diagnostics) =
         parse_zellij_sidecar(&read_zellij_sidecar(&paths.zellij)?);
     diagnostics.extend(zellij_diagnostics);
@@ -92,15 +74,6 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
     }
     fields.extend(helix.fields);
     fields.extend(KEY_BINDINGS.iter().map(build_key_binding_field));
-    fields.extend(build_cursor_fields(
-        &cursors_active,
-        &cursors_document,
-        &cursors_default,
-        &cursors_raw,
-    )?);
-    for spec in mars_inventory.fields() {
-        fields.push(build_mars_config_field(spec, &mars_active, &mars_default));
-    }
     for spec in starship_inventory.fields() {
         fields.push(build_starship_config_field(
             spec,
@@ -143,8 +116,7 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
     let advanced_dir = paths.nu_config.parent().expect("Nushell config directory");
     let sources = vec![
         build_config_source(paths, SOURCE_CONFIG, "config.toml", &paths.root),
-        build_config_source(paths, SOURCE_MARS, "mars/config.toml", &paths.mars),
-        build_config_source(paths, SOURCE_CURSORS, "cursors.toml", &paths.cursors),
+        build_config_source(paths, SOURCE_RIO, "rio/config.toml", &paths.rio),
         build_config_source(paths, SOURCE_ZELLIJ, "zellij/config.kdl", &paths.zellij),
         build_config_source(paths, SOURCE_STARSHIP, "starship.toml", &paths.starship),
         build_config_source(
@@ -191,13 +163,6 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             "Repair config.toml before editing individual fields.",
         );
     }
-    if !mars_document_valid {
-        block_source_fields(
-            &mut fields,
-            SOURCE_MARS,
-            "Repair mars/config.toml before editing individual fields.",
-        );
-    }
     if !starship_document_valid {
         block_source_fields(
             &mut fields,
@@ -211,8 +176,6 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             .iter()
             .filter(|field| match field.source_id.as_str() {
                 SOURCE_CONFIG => ROOT_CONFIG_RECOMMENDED_PATHS.contains(&field.path.as_str()),
-                SOURCE_MARS => MARS_RECOMMENDED_PATHS.contains(&field.path.as_str()),
-                SOURCE_CURSORS => CURSOR_RECOMMENDED_PATHS.contains(&field.path.as_str()),
                 SOURCE_ZELLIJ => ZELLIJ_RECOMMENDED_PATHS.contains(&field.path.as_str()),
                 SOURCE_STARSHIP => STARSHIP_RECOMMENDED_PATHS.contains(&field.path.as_str()),
                 SOURCE_HELIX_CONFIG => HELIX_RECOMMENDED_PATHS.contains(&field.path.as_str()),
@@ -232,8 +195,7 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
         tabs: vec![
             TAB_CONFIG.to_string(),
             TAB_POPUPS.to_string(),
-            TAB_MARS.to_string(),
-            TAB_CURSORS.to_string(),
+            TAB_RIO.to_string(),
             TAB_ZELLIJ.to_string(),
             TAB_STARSHIP.to_string(),
             TAB_HELIX.to_string(),
@@ -553,40 +515,6 @@ fn build_config_field(
     field
 }
 
-fn build_mars_config_field(
-    spec: MarsField<'_>,
-    active: &JsonValue,
-    packaged_defaults: &JsonValue,
-) -> ratconfig::ConfigUiField {
-    let current = get_toml_path(active, spec.path());
-    let default = get_toml_path(packaged_defaults, spec.path()).or_else(|| spec.default());
-    let capability = spec.capability();
-    let editable = !matches!(capability, ConfigUiCapability::ReadOnly { .. });
-    let invalid = editable && current.is_some_and(|value| spec.validate(value).is_err());
-    let mut field = ConfigUiFieldSpec {
-        section_label: spec.group().to_string(),
-        can_unset: editable && current.is_some(),
-        ..ConfigUiFieldSpec::new(
-            SOURCE_MARS,
-            spec.path(),
-            TAB_MARS,
-            spec.description(),
-            capability,
-            spec.validation(),
-            mars_apply_status(spec.path()),
-        )
-    }
-    .build(spec.type_label(), current, default);
-    set_snapshot_origins(&mut field, SOURCE_MARS);
-    if invalid {
-        field.snapshot.intent = ConfigUiOverride::Invalid {
-            input: current.map_or_else(String::new, ToString::to_string),
-        };
-        field.snapshot.effective = None;
-    }
-    field
-}
-
 fn build_starship_config_field(
     spec: &ratconfig::ConfigUiSchemaField,
     active: &JsonValue,
@@ -642,163 +570,6 @@ fn build_starship_config_field(
         field.snapshot.effective = None;
     }
     field
-}
-fn build_cursor_fields(
-    active: &CursorRegistry,
-    document: &JsonValue,
-    defaults: &CursorRegistry,
-    raw: &str,
-) -> Result<Vec<ratconfig::ConfigUiField>> {
-    let active_json = serde_json::to_value(active)?;
-    let default_json = serde_json::to_value(defaults)?;
-    cursor_config_field_specs()
-        .iter()
-        .map(|spec| {
-            let current = cursor_config_value(active, &active_json, spec)?;
-            let explicit = spec
-                .kind
-                .is_writable()
-                .then(|| get_toml_path(document, spec.path))
-                .flatten();
-            let default = spec
-                .kind
-                .is_writable()
-                .then(|| cursor_config_value(defaults, &default_json, spec))
-                .transpose()?;
-            let (type_label, mut capability) = cursor_field_capability(active, spec.kind);
-            let patchable =
-                !spec.kind.is_writable() || set_toml_value_text(raw, spec.path, &current).is_ok();
-            if !patchable {
-                capability = ConfigUiCapability::ReadOnly {
-                    reason: "Edit this setting in the complete cursors.toml because its current TOML layout cannot be patched safely.".to_string(),
-                    file_action_id: Some(ACTION_CURSORS_CONFIG.to_string()),
-                };
-            }
-            let mut field = ConfigUiFieldSpec::new(
-                SOURCE_CURSORS,
-                spec.path,
-                TAB_CURSORS,
-                spec.description,
-                capability,
-                spec.validation,
-                cursor_apply_status(spec.path),
-            )
-            .build(type_label, Some(&current), default.as_ref());
-            if spec.kind.is_writable() {
-                field.snapshot.intent = explicit
-                    .cloned()
-                    .map_or(ConfigUiOverride::Absent, ConfigUiOverride::Explicit);
-                field.can_unset = explicit.is_some() && patchable;
-            }
-            set_snapshot_origins(&mut field, SOURCE_CURSORS);
-            Ok(field)
-        })
-        .collect()
-}
-
-fn cursor_config_value(
-    registry: &CursorRegistry,
-    registry_json: &JsonValue,
-    spec: &CursorOwnerFieldSpec,
-) -> Result<JsonValue> {
-    if matches!(spec.kind, CursorConfigFieldKind::DefinitionTables) {
-        return Ok(serde_json::to_value(
-            registry.definitions.values().collect::<Vec<_>>(),
-        )?);
-    }
-    get_toml_path(registry_json, spec.path)
-        .cloned()
-        .ok_or_else(|| {
-            error(format!(
-                "cursor owner schema path is missing: {}",
-                spec.path
-            ))
-        })
-}
-
-fn cursor_field_capability(
-    registry: &CursorRegistry,
-    kind: CursorConfigFieldKind,
-) -> (&'static str, ConfigUiCapability) {
-    match kind {
-        CursorConfigFieldKind::FixedInteger(_) => (
-            "integer",
-            ConfigUiCapability::ReadOnly {
-                reason: "The cursor schema version is child-owned metadata.".to_string(),
-                file_action_id: Some(ACTION_CURSORS_CONFIG.to_string()),
-            },
-        ),
-        CursorConfigFieldKind::DefinitionList => (
-            "string_list",
-            multi_choice_capability(registry.definitions.keys().cloned(), true),
-        ),
-        CursorConfigFieldKind::DefinitionChoice { extra_values } => (
-            "string",
-            choice_capability(
-                registry
-                    .enabled_cursors
-                    .iter()
-                    .map(String::as_str)
-                    .chain(extra_values.iter().copied())
-                    .map(str::to_string),
-            ),
-        ),
-        CursorConfigFieldKind::StringChoice {
-            values,
-            extra_values,
-        } => (
-            "string",
-            choice_capability(
-                values
-                    .iter()
-                    .chain(extra_values)
-                    .map(|value| (*value).to_string()),
-            ),
-        ),
-        CursorConfigFieldKind::NumberRange { .. } => (
-            "float",
-            ConfigUiCapability::FreeText {
-                encoding: ConfigUiTextEncoding::Json,
-            },
-        ),
-        CursorConfigFieldKind::DefinitionTables => (
-            "table array",
-            ConfigUiCapability::ReadOnly {
-                reason: "Edit cursor definition tables in the complete cursors.toml.".to_string(),
-                file_action_id: Some(ACTION_CURSORS_CONFIG.to_string()),
-            },
-        ),
-    }
-}
-fn cursor_apply_status(path: &str) -> ConfigUiApplyStatus {
-    if path == "schema_version" {
-        return apply_status(
-            "—",
-            "not applicable",
-            "The child-owned format version is metadata with no independent runtime effect.",
-        );
-    }
-    if matches!(
-        path,
-        "settings.mode_effect" | "settings.glow" | "settings.duration"
-    ) {
-        return apply_status(
-            "stored",
-            "cursors",
-            "Saved for compatible consumers; Mars does not use this setting yet.",
-        );
-    }
-    apply_status(
-        "next launch",
-        "cursors",
-        if path == "settings.trail_effect" {
-            "Mars currently reads only none versus enabled; compatible consumers may use the named effect."
-        } else if path == "cursor" {
-            "Mars reads the selected cursor definition on its next launch."
-        } else {
-            "Mars reads the saved cursor pool and selection on its next launch."
-        },
-    )
 }
 fn build_bar_widgets_field(
     active: &JsonValue,
@@ -886,8 +657,6 @@ fn multi_choice_capability(
 fn field_origins(source_id: &str) -> (&'static str, &'static str) {
     match source_id {
         SOURCE_CONFIG => ("User config.toml", "Yazelix packaged default"),
-        SOURCE_MARS => ("User mars/config.toml", "Yazelix packaged default"),
-        SOURCE_CURSORS => ("User cursors.toml", "Packaged cursor defaults"),
         SOURCE_ZELLIJ => ("User zellij/config.kdl", "Packaged Zellij defaults"),
         SOURCE_STARSHIP => ("User starship.toml", "Yazelix packaged default"),
         SOURCE_YAZI_CONFIG => ("User yazi/yazi.toml", "Packaged Yazi config"),
@@ -995,7 +764,7 @@ fn apply_source_policy(fields: &mut [ratconfig::ConfigUiField], sources: &[Confi
 fn source_file_action(source_id: &str) -> Option<&'static str> {
     match source_id {
         SOURCE_CONFIG => Some(ACTION_ROOT_CONFIG),
-        SOURCE_CURSORS => Some(ACTION_CURSORS_CONFIG),
+        SOURCE_RIO => Some(ACTION_RIO_CONFIG),
         SOURCE_STARSHIP => Some(ACTION_STARSHIP_CONFIG),
         SOURCE_HELIX_CONFIG => Some(ACTION_HELIX_CONFIG),
         SOURCE_HELIX_LANGUAGES => Some(ACTION_HELIX_LANGUAGES),
@@ -1012,31 +781,6 @@ fn apply_status(summary: &str, label: &str, detail: &str) -> ConfigUiApplyStatus
         detail: detail.to_string(),
         pending: false,
     }
-}
-
-fn mars_apply_status(path: &str) -> ConfigUiApplyStatus {
-    let (summary, label, detail) = match path {
-        "window.width" | "window.height" => (
-            "new windows",
-            "mars",
-            "Saved dimensions apply to newly created Mars windows; existing windows keep their size.",
-        ),
-        "window.opacity" | "fonts.size" | "line-height" | "enable-scroll-bar" => {
-            ("live", "mars", "Saved values update open Mars windows.")
-        }
-        "bell.audio" | "bell.visual" => (
-            "live",
-            "mars",
-            "Saved bell settings apply to the next bell in open Mars windows.",
-        ),
-        _ => (
-            "next launch",
-            "mars",
-            "This setting is not verified for live reload; saved values apply to newly launched Mars.",
-        ),
-    };
-
-    apply_status(summary, label, detail)
 }
 
 pub(crate) fn zellij_apply_status(path: &str, runtime_active: bool) -> ConfigUiApplyStatus {

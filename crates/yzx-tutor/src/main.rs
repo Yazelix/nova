@@ -53,7 +53,7 @@ const TUTOR_LESSONS: &[TutorLesson] = &[
     TutorLesson {
         id: "workspace",
         title: "Start in the right directory",
-        summary: "Choose the workspace root for the current tab or a separate Mars window",
+        summary: "Choose the workspace root for the current tab or a separate Rio window",
         scope: "Shell and current tab",
         outcome: "You can start Yazelix at the intended project and deliberately retarget the current tab from Yazi.",
         escape_hatch: "Open a shell pane and run `pwd` to check your current directory.",
@@ -248,7 +248,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 ## Actions
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
-2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Mars window.
+2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
 3. **Inside Yazi:** Press `{yazi_zoxide}` to choose a directory with zoxide, retarget the current tab, and open it in the editor.
 
 ## Mental model

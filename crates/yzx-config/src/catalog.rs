@@ -78,35 +78,7 @@ pub(crate) const ZELLIJ_RECOMMENDED_PATHS: &[&str] = &[
 ];
 pub(crate) const STARSHIP_RECOMMENDED_PATHS: &[&str] =
     &["format", "right_format", "add_newline", "character.format"];
-pub(crate) const DEFAULT_MARS_CONFIG_TOML: &str =
-    include_str!("../../../defaults/mars/config.toml");
-pub(crate) const MARS_APPEARANCE_PRESET_PATH: &str = "mars.appearance.preset";
-pub(crate) const MARS_RECOMMENDED_PATHS: &[&str] = &[
-    "window.width",
-    "window.height",
-    "window.mode",
-    "window.decorations",
-    "window.opacity",
-    "window.opacity-cells",
-    "window.blur",
-    "fonts.family",
-    "fonts.size",
-    "line-height",
-    "confirm-before-quit",
-    "copy-on-select",
-    "hide-mouse-cursor-when-typing",
-    "bell.audio",
-    "bell.visual",
-];
-pub(crate) const CURSOR_ENABLED_PATH: &str = "enabled_cursors";
-pub(crate) const CURSOR_TRAIL_PATH: &str = "settings.trail";
-pub(crate) const CURSOR_RECOMMENDED_PATHS: &[&str] = &[
-    CURSOR_ENABLED_PATH,
-    CURSOR_TRAIL_PATH,
-    "settings.trail_effect",
-    "settings.mode_effect",
-    "settings.glow",
-];
+pub(crate) const DEFAULT_RIO_CONFIG_TOML: &str = include_str!("../../../defaults/rio/config.toml");
 pub(crate) const DEFAULT_STARSHIP_CONFIG_TOML: &str = "\
 [character]
 format = \":: \"
@@ -115,8 +87,7 @@ pub(crate) const DEFAULT_HELIX_CONFIG_TOML: &str =
     include_str!("../../../defaults/helix/config.toml");
 
 pub(crate) const SOURCE_CONFIG: &str = DEFAULT_CONFIG_SOURCE_ID;
-pub(crate) const SOURCE_MARS: &str = "mars";
-pub(crate) const SOURCE_CURSORS: &str = "cursors";
+pub(crate) const SOURCE_RIO: &str = "rio";
 pub(crate) const SOURCE_ZELLIJ: &str = "zellij";
 pub(crate) const SOURCE_STARSHIP: &str = "starship";
 pub(crate) const SOURCE_HELIX: &str = "helix";
@@ -129,8 +100,7 @@ pub(crate) const SOURCE_KEYS: &str = "keys";
 pub(crate) const SOURCE_ADVANCED: &str = "advanced";
 pub(crate) const TAB_CONFIG: &str = " main";
 pub(crate) const TAB_POPUPS: &str = " popups";
-pub(crate) const TAB_MARS: &str = " mars";
-pub(crate) const TAB_CURSORS: &str = "󰇀 cursors";
+pub(crate) const TAB_RIO: &str = " rio";
 pub(crate) const TAB_ZELLIJ: &str = " zellij";
 pub(crate) const TAB_STARSHIP: &str = " starship";
 pub(crate) const TAB_HELIX: &str = " helix";
@@ -140,7 +110,7 @@ pub(crate) const TAB_ADVANCED: &str = "advanced";
 
 pub(crate) const ACTION_HELIX_CONFIG: &str = "helix.config";
 pub(crate) const ACTION_ROOT_CONFIG: &str = "config.root";
-pub(crate) const ACTION_CURSORS_CONFIG: &str = "cursors.config";
+pub(crate) const ACTION_RIO_CONFIG: &str = "rio.config";
 pub(crate) const ACTION_HELIX_LANGUAGES: &str = "helix.languages";
 pub(crate) const ACTION_HELIX_MODULE: &str = "helix.module";
 pub(crate) const ACTION_HELIX_INIT: &str = "helix.init";

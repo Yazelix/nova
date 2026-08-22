@@ -14,12 +14,8 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mars = {
-      url = "github:Yazelix/mars";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    yazelixCursors = {
-      url = "github:Yazelix/cursors";
+    rio = {
+      url = "github:Yazelix/nova-rio/1024059fa31a3e49680d785ec697967be9e27b51";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
@@ -73,8 +69,7 @@
     self,
     nixpkgs,
     home-manager,
-    mars,
-    yazelixCursors,
+    rio,
     yazelixZellij,
     yazelixHelix,
     yazelixZellijPopup,
@@ -104,21 +99,29 @@
         src = ./crates/yzx-yazi-config;
         cargoLock.lockFile = ./crates/yzx-yazi-config/Cargo.lock;
       };
+    rioPackageFor = system:
+      rio.packages.${system}.rio.overrideAttrs (_: {
+        CARGO_BUILD_JOBS = "1";
+        CARGO_PROFILE_RELEASE_LTO = "false";
+        CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "16";
+        CARGO_PROFILE_RELEASE_DEBUG = "0";
+        CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO = "off";
+      });
   in {
     homeManagerModules.default = homeManagerModule;
 
     packages = eachSystem (system: let
       pkgs = import nixpkgs {inherit system;};
       rustBin = rustBinFor pkgs;
-      marsPackage = mars.packages.${system}.mars;
-      yzxMarsToml = pkgs.replaceVars ./defaults/mars/config.toml {
+      rioPackage = rioPackageFor system;
+      yzxRioToml = pkgs.replaceVars ./defaults/rio/config.toml {
         jetbrainsMonoDir = "${pkgs.jetbrains-mono}/share/fonts/truetype";
         symbolsNerdDir = "${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols";
         notoSymbolsDir = "${pkgs.noto-fonts}/share/fonts/noto";
         notoEmojiDir = "${pkgs.noto-fonts-color-emoji}/share/fonts/noto";
       };
-      yzxMarsConfig = pkgs.runCommand "yzx-mars-config" {} ''
-        install -D -m 644 ${yzxMarsToml} "$out/config.toml"
+      yzxRioConfig = pkgs.runCommand "yzx-rio-config" {} ''
+        install -D -m 644 ${yzxRioToml} "$out/config.toml"
       '';
       yzxCarapaceInit = pkgs.runCommand "yzx-carapace-init" {} ''
         ${pkgs.carapace}/bin/carapace _carapace nushell > "$out"
@@ -214,25 +217,17 @@
         export HOME="$TMPDIR"
         STARSHIP_CONFIG=/dev/null ${pkgs.starship}/bin/starship print-config --default > "$out"
       '';
-      yzxConfigSrc =
-        assert mars.rev == "21109e3ebc24b63da11bae644dfb9bab28ce0e18";
-          pkgs.runCommand "yzx-config-src" {} ''
+      yzxConfigSrc = pkgs.runCommand "yzx-config-src" {} ''
         mkdir -p "$out"
         cp -R ${pkgs.lib.cleanSource ./crates/yzx-config}/. "$out/"
         chmod -R u+w "$out"
-        ln -s ${yazelixCursors} "$out/yazelix-cursors"
         cp ${./defaults/config.toml} "$out/config.toml"
-        cp ${./defaults/mars/config.toml} "$out/mars.toml"
+        cp ${yzxRioToml} "$out/rio.toml"
         cp ${./defaults/helix/config.toml} "$out/helix.toml"
-        cp ${mars}/docs/yazelix/config_inventory.v1.json "$out/mars-config-inventory.v1.json"
-        substituteInPlace "$out/Cargo.toml" \
-          --replace-fail '../../../cursors' './yazelix-cursors'
         substituteInPlace "$out/src/catalog.rs" \
           --replace-fail '../../../defaults/config.toml' '../config.toml' \
-          --replace-fail '../../../defaults/mars/config.toml' '../mars.toml' \
+          --replace-fail '../../../defaults/rio/config.toml' '../rio.toml' \
           --replace-fail '../../../defaults/helix/config.toml' '../helix.toml'
-        substituteInPlace "$out/src/mars_inventory.rs" \
-          --replace-fail '../../../../mars/docs/yazelix/config_inventory.v1.json' '../mars-config-inventory.v1.json'
       '';
       yzxConfig = pkgs.rustPlatform.buildRustPackage {
         pname = "yzx-config";
@@ -539,7 +534,6 @@
         channel ? "stable",
         withManagedHelix,
         withManagedYazi,
-        withMars,
       }: let
         channelLabel =
           {
@@ -552,6 +546,8 @@
           name = "Yazelix Nova";
           version = novaVersion;
           inherit channel;
+          revision = self.rev or (self.dirtyRev or "dirty");
+          rio_revision = rio.rev;
         });
         barRenderRequest = import ./packaging/bar-render-request.nix {
           inherit (pkgs) coreutils nushell;
@@ -565,8 +561,7 @@
             shellLabel = "__YZX_SHELL_LABEL__";
           }));
         variantSuffix = pkgs.lib.concatStringsSep "-" (
-          pkgs.lib.optional (! withMars) "no-mars"
-          ++ pkgs.lib.optional (! withManagedHelix) "no-helix"
+          pkgs.lib.optional (! withManagedHelix) "no-helix"
           ++ pkgs.lib.optional (! withManagedYazi) "no-yazi"
         );
         variant = if variantSuffix == "" then "full" else variantSuffix;
@@ -630,7 +625,6 @@
           text = ''
             unset YAZELIX_EDITOR
             ${editorEnv}
-            export YAZELIX_MARS_INCLUDED=${if withMars then "1" else "0"}
             export YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij
             exec ${yzxConfig}/bin/yzx-config "$@"
           '';
@@ -721,7 +715,7 @@
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzxEnvSupervisor = "${yzxEnvSupervisor}/bin/yzx-env-supervisor";
           zellij = "${yazelixZellijPackage}/bin/zellij";
-          mars = if withMars then "${marsPackage}/bin/mars" else "";
+          rio = "${rioPackage}/bin/rio";
           layout = "${layout}/layout.kdl";
           layoutTemplate = "${./defaults/zellij/layout.kdl}";
           layoutSwapTemplate = "${./defaults/zellij/layout.swap.kdl}";
@@ -730,7 +724,6 @@
           yzxHelix = "${managedEditor}/bin/yzx-hx";
           yzxEditor = "${editor}/bin/yzx-editor";
           yzxConfig = "${yzxConfig}/bin/yzx-config";
-          yzxMarsConfig = if withMars then "${yzxMarsConfig}" else "";
           yzxZellijConfig = "${yzxZellijConfig}/bin/yzx-zellij-config";
           yzxConfigKdl = "${configKdl}";
           yzxYaziConfig = "${yzxYaziConfig}";
@@ -772,7 +765,7 @@
           cp ${main} "$out/main.rs"
         '';
         command = rustBin "yzx" "${src}/main.rs";
-        withDesktop = withMars && pkgs.stdenv.hostPlatform.isLinux;
+        withDesktop = pkgs.stdenv.hostPlatform.isLinux;
         desktop = pkgs.makeDesktopItem {
           name = "yzx-${channel}";
           desktopName = "Yazelix Nova (${channelLabel})";
@@ -798,25 +791,18 @@
               ln -s ${tutor}/bin/yzx-tutor "$out/libexec/yazelix/yzx-tutor"
               install -D -m 644 ${configKdl} "$out/share/yazelix/config.kdl"
               install -D -m 644 ${runtimeIdentity}/runtime_identity.json "$out/share/yazelix/runtime_identity.json"
-              install -D -m 644 ${yazelixCursors}/yazelix_cursors_default.toml "$out/share/yazelix/cursors.toml"
               install -D -m 644 ${./defaults/config.toml} "$out/share/yazelix/config.toml"
+              install -D -m 644 ${yzxRioConfig}/config.toml "$out/share/yazelix/rio/config.toml"
               install -D -m 644 ${layout}/layout.kdl "$out/share/yazelix/layout.kdl"
               install -D -m 644 ${layout}/layout.swap.kdl "$out/share/yazelix/layout.swap.kdl"
               ln -s ${yzxYaziConfig} "$out/share/yazelix/yazi"
               install -D -m 644 ${yzxNuConfig}/config.nu "$out/share/yazelix/nu/config.nu"
               install -D -m 644 ${yzxNuConfig}/env.nu "$out/share/yazelix/nu/env.nu"
             ''
-            + pkgs.lib.optionalString withMars ''
-              install -D -m 644 ${yzxMarsConfig}/config.toml "$out/share/yazelix/mars/config.toml"
-            ''
             + pkgs.lib.optionalString withDesktop ''
-              for icon in ${marsPackage}/share/icons/hicolor/*/apps/mars.png; do
-                size="$(basename "$(dirname "$(dirname "$icon")")")"
-                install -d "$out/share/icons/hicolor/$size/apps"
-                ln -s "$icon" "$out/share/icons/hicolor/$size/apps/yzx.png"
-              done
-              install -d "$out/share/pixmaps"
-              ln -s ${marsPackage}/share/pixmaps/mars.png "$out/share/pixmaps/yzx.png"
+              install -d "$out/share/icons/hicolor/scalable/apps"
+              ln -s ${rioPackage}/share/icons/hicolor/scalable/apps/rio.svg \
+                "$out/share/icons/hicolor/scalable/apps/yzx.svg"
             '';
           meta.platforms = supportedSystems;
         };
@@ -825,7 +811,6 @@
           inherit channel;
           withManagedHelix = true;
           withManagedYazi = true;
-          withMars = true;
         };
     in rec {
       yazelix = mkFullYzx "stable";
@@ -834,37 +819,14 @@
       yazelix-no-helix = mkYzx {
         withManagedHelix = false;
         withManagedYazi = true;
-        withMars = true;
       };
       yazelix-no-yazi = mkYzx {
         withManagedHelix = true;
         withManagedYazi = false;
-        withMars = true;
       };
       yazelix-no-helix-no-yazi = mkYzx {
         withManagedHelix = false;
         withManagedYazi = false;
-        withMars = true;
-      };
-      yazelix-no-mars = mkYzx {
-        withManagedHelix = true;
-        withManagedYazi = true;
-        withMars = false;
-      };
-      yazelix-no-mars-no-helix = mkYzx {
-        withManagedHelix = false;
-        withManagedYazi = true;
-        withMars = false;
-      };
-      yazelix-no-mars-no-yazi = mkYzx {
-        withManagedHelix = true;
-        withManagedYazi = false;
-        withMars = false;
-      };
-      yazelix-no-mars-no-helix-no-yazi = mkYzx {
-        withManagedHelix = false;
-        withManagedYazi = false;
-        withMars = false;
       };
       default = yazelix;
     });
@@ -877,20 +839,11 @@
       yzxNoHelix = self.packages.${system}.yazelix-no-helix;
       yzxNoYazi = self.packages.${system}.yazelix-no-yazi;
       yzxNoHelixNoYazi = self.packages.${system}.yazelix-no-helix-no-yazi;
-      yzxNoMars = self.packages.${system}.yazelix-no-mars;
-      yzxNoMarsNoHelix = self.packages.${system}.yazelix-no-mars-no-helix;
-      yzxNoMarsNoYazi = self.packages.${system}.yazelix-no-mars-no-yazi;
-      yzxNoMarsNoHelixNoYazi =
-        self.packages.${system}.yazelix-no-mars-no-helix-no-yazi;
-      marsPackage = mars.packages.${system}.mars;
+      rioPackage = rioPackageFor system;
+      yzxClosure = pkgs.closureInfo {rootPaths = [yzx];};
       noHelixClosure = pkgs.closureInfo {rootPaths = [yzxNoHelix];};
       noYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoYazi];};
       noHelixNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoHelixNoYazi];};
-      noMarsClosure = pkgs.closureInfo {rootPaths = [yzxNoMars];};
-      noMarsNoHelixClosure = pkgs.closureInfo {rootPaths = [yzxNoMarsNoHelix];};
-      noMarsNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoMarsNoYazi];};
-      noMarsNoHelixNoYaziClosure =
-        pkgs.closureInfo {rootPaths = [yzxNoMarsNoHelixNoYazi];};
       novaBarPackage = novaBar.packages.${system}.default;
       yzxYaziMaterializer = yzxYaziMaterializerFor pkgs;
       checksSrc = pkgs.lib.cleanSource ./checks;
@@ -969,10 +922,9 @@
         [[language]]
         name = "nix"
       '';
-      fakeCursors = pkgs.writeText "hm-cursors.toml" ''
-        enabled_cursors = ["reef"]
-        [settings]
-        trail = "reef"
+      fakeRio = pkgs.writeText "hm-rio.toml" ''
+        [colors]
+        cursor = "#00e6ff"
       '';
       fakeStarship = pkgs.writeText "hm-starship.toml" ''
         format = "$directory$git_branch"
@@ -1000,9 +952,6 @@
       homeManagerOverride = homeManagerConfiguration {
         programs.yazelix.package = fakeYazelix;
       };
-      homeManagerNoMars = homeManagerConfiguration {
-        programs.yazelix.package = yzxNoMars;
-      };
       homeManagerNoYazi = homeManagerConfiguration {
         home.packages = [pkgs.yazi];
         programs.yazelix.package = yzxNoYazi;
@@ -1029,8 +978,7 @@
             keybindings.sidebar_focus = "Ctrl Shift E";
             bar.widgets = ["editor" "shell"];
           };
-          cursors.source = fakeCursors;
-          mars.text = "[window]\nwidth = 1200\n";
+          rio.source = fakeRio;
           zellij.text = "pane_frames false\n";
           starship.text = "[character]\nformat = \"::\"\n";
           helix.config.text = "[editor]\nline-number = \"relative\"\n";
@@ -1056,7 +1004,6 @@
       home_manager = pkgs.runCommand "yzx-home-manager-check" {} ''
         default_path="${homeManagerDefault.activationPackage}/home-path"
         override_path="${homeManagerOverride.activationPackage}/home-path"
-        no_mars_path="${homeManagerNoMars.activationPackage}/home-path"
         no_yazi_path="${homeManagerNoYazi.activationPackage}/home-path"
         shared_config_files="${homeManagerSharedStarship.activationPackage}/home-files/.config/yazelix"
         hm_yzx="${homeManagerConfigFiles.activationPackage}/home-path/bin/yzx"
@@ -1074,8 +1021,6 @@
         test "$("$override_path/bin/yzx")" = fake-yazelix
         grep -q 'Fake Yazelix' "$override_path/share/applications/yzx.desktop"
 
-        test -x "$no_mars_path/bin/yzx"
-        test ! -e "$no_mars_path/share/applications/yzx-stable.desktop"
         test -x "$no_yazi_path/bin/yzx"
         test -x "$no_yazi_path/bin/yazi"
         test -x "$no_yazi_path/bin/ya"
@@ -1097,11 +1042,11 @@
         grep -q 'sidebar = "Ctrl Shift B"' "$config_files/config.toml"
         grep -q 'sidebar_focus = "Ctrl Shift E"' "$config_files/config.toml"
         ! grep -q 'ratconfig' "$config_files/config.toml"
-        grep -q 'trail = "reef"' "$config_files/cursors.toml"
-        test -L "$config_files/cursors.toml"
-        case "$(readlink "$config_files/cursors.toml")" in
+        grep -q 'cursor = "#00e6ff"' "$config_files/rio/config.toml"
+        test -L "$config_files/rio/config.toml"
+        case "$(readlink "$config_files/rio/config.toml")" in
           /nix/store/*) ;;
-          *) printf '%s\n' 'Home Manager cursor source is not store-backed' >&2; exit 1 ;;
+          *) printf '%s\n' 'Home Manager Rio source is not store-backed' >&2; exit 1 ;;
         esac
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get shell.program)" = fish
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get appearance.mode)" = light
@@ -1115,10 +1060,6 @@
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get keybindings.screen)" = false
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get keybindings.sidebar)" = "Ctrl Shift B"
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get keybindings.sidebar_focus)" = "Ctrl Shift E"
-        grep -q 'width = 1200' "$config_files/mars/config.toml"
-        test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --project-mars-appearance)" = "environment light"
-        grep -q 'width = 1200' "$config_files/mars/config.toml"
-        ! grep -q 'preset' "$config_files/mars/config.toml"
         grep -q 'pane_frames false' "$config_files/zellij/config.kdl"
         grep -q '^\[character\]$' "$config_files/starship.toml"
         grep -q 'format = "::"' "$config_files/starship.toml"
@@ -1319,45 +1260,14 @@
         check_channel ${yzxEdge} edge
         touch "$out"
       '';
-      no_mars_contracts = pkgs.runCommand "yzx-no-mars-contracts" {} ''
-        check_no_mars() {
-          local package="$1"
-          local variant="$2"
-          local closure="$3"
-          local root="$TMPDIR/$variant"
-
-          test -x "$package/bin/yzx"
-          test ! -e "$package/share/applications"
-          ! grep -Fx ${marsPackage} "$closure"
-          ! grep -E '/[^/]*-rio-[^/]*$' "$closure"
-
-          export HOME="$root/home"
-          export YAZELIX_CONFIG_HOME="$root/config"
-          export YAZELIX_STATE_DIR="$root/state"
-          export XDG_DATA_HOME="$root/data"
-          mkdir -p "$HOME" "$YAZELIX_CONFIG_HOME" "$YAZELIX_STATE_DIR" "$XDG_DATA_HOME"
-          printf '%s\n' '[welcome]' 'enabled = false' > "$YAZELIX_CONFIG_HOME/config.toml"
-
-          "$package/bin/yzx" status --json > "$root/status.json"
-          test "$(${pkgs.jq}/bin/jq -r .package "$root/status.json")" = "$variant"
-          "$package/bin/yzx" status > "$root/status"
-          grep -Fqx "package: $variant" "$root/status"
-          grep -Fqx 'mars config: not included' "$root/status"
-          grep -q 'host_theme_mode "dark"' "$package/share/yazelix/layout.kdl"
-          grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$package/share/yazelix/layout.kdl"
-          "$package/bin/yzx" doctor > "$root/doctor"
-          grep -Fqx 'ok mars: not included' "$root/doctor"
-          if "$package/bin/yzx" launch 2> "$root/launch-error"; then
-            printf '%s\n' "$variant launch unexpectedly succeeded" >&2
-            exit 1
-          fi
-          grep -q 'this package omits Mars' "$root/launch-error"
-          "$package/bin/yzx" enter --version > "$root/enter-version"
-          grep -q '^zellij ' "$root/enter-version"
-        }
-
-        check_no_mars ${yzxNoMars} no-mars ${noMarsClosure}/store-paths
-        check_no_mars ${yzxNoMarsNoHelix} no-mars-no-helix ${noMarsNoHelixClosure}/store-paths
+      rio_contracts = pkgs.runCommand "yzx-rio-contracts" {} ''
+        grep -Fx ${rioPackage} ${yzxClosure}/store-paths
+        ! grep -E '/[^/]*-(mars|yazelix-cursors)-' ${yzxClosure}/store-paths
+        test -x ${yzx}/bin/yzx
+        test -f ${yzx}/share/yazelix/rio/config.toml
+        grep -Fqx 'cursor = "#00e6ff"' ${yzx}/share/yazelix/rio/config.toml
+        grep -Fqx 'trail-cursor = true' ${yzx}/share/yazelix/rio/config.toml
+        test "$(${pkgs.jq}/bin/jq -r .rio_revision ${yzx}/share/yazelix/runtime_identity.json)" = ${rio.rev}
         touch "$out"
       '';
       helix_contracts = pkgs.runCommand "yzx-helix-contracts" {} ''
@@ -1366,23 +1276,19 @@
       no_helix_contracts = pkgs.runCommand "yzx-no-helix-contracts" {} ''
         ${noHelixContractsCheck}/bin/no-helix-contracts-check \
           ${yzxNoHelix} ${noHelixClosure}/store-paths no-helix
-        ${noHelixContractsCheck}/bin/no-helix-contracts-check \
-          ${yzxNoMarsNoHelix} ${noMarsNoHelixClosure}/store-paths no-mars-no-helix
         touch "$out"
       '';
       host_yazi_contracts = pkgs.runCommand "yzx-host-yazi-contracts" {} ''
         for closure in \
           ${noYaziClosure}/store-paths \
-          ${noHelixNoYaziClosure}/store-paths \
-          ${noMarsNoYaziClosure}/store-paths \
-          ${noMarsNoHelixNoYaziClosure}/store-paths; do
+          ${noHelixNoYaziClosure}/store-paths; do
           if grep -Fx ${pkgs.yazi} "$closure"; then
             printf '%s\n' "host-Yazi closure retained ${pkgs.yazi}" >&2
             exit 1
           fi
         done
 
-        package=${yzxNoMarsNoHelixNoYazi}
+        package=${yzxNoHelixNoYazi}
         root="$TMPDIR/host-yazi"
         export HOME="$root/home"
         export YAZELIX_CONFIG_HOME="$root/config"

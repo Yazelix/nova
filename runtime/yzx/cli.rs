@@ -1,7 +1,7 @@
 use std::{env, ffi::OsString, path::Path, process::Command};
 
 use crate::{
-    MARS, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
+    RIO, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
     YZX_SHELL, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_YAZI_CONFIG, YZX_YAZI_MATERIALIZER, ZELLIJ,
     command::{exec, run_checked, trim_output},
     doctor::print_doctor,
@@ -194,17 +194,15 @@ fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
     exec(command, "yzx anima")
 }
 
-fn exec_managed(through_mars: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
-    let program = managed_program(through_mars, MARS)?;
+fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
+    let program = if graphical { RIO } else { YZX_WELCOME };
     let runtime = Runtime::prepare_with_yazi()?;
-    let mars_appearance = if through_mars {
-        runtime.project_mars_appearance()?
-    } else {
-        None
-    };
     let mut command = Command::new(program);
-    if through_mars {
-        command.arg("-e").arg(YZX_WELCOME).arg(ZELLIJ);
+    if graphical {
+        command
+            .args(["--app-id", "yzx", "-e"])
+            .arg(YZX_WELCOME)
+            .arg(ZELLIJ);
     } else {
         command.arg(ZELLIJ);
     }
@@ -216,16 +214,16 @@ fn exec_managed(through_mars: bool, zellij_args: Vec<OsString>) -> Result<(), Ap
         .arg(&runtime.layout)
         .args(zellij_args);
     runtime.apply(&mut command);
-    apply_mars_launch_env(
-        &mut command,
-        through_mars,
-        &runtime.config_home.join("cursors.toml"),
-        mars_appearance.as_deref(),
-    );
+    if graphical {
+        command.env(
+            "RIO_CONFIG_HOME",
+            runtime.rio_config.parent().expect("Rio config directory"),
+        );
+    }
     command.env(
         "YAZELIX_SESSION_TERMINAL",
-        if through_mars {
-            nonempty_env("YAZELIX_SESSION_TERMINAL").unwrap_or_else(|| OsString::from("mars"))
+        if graphical {
+            nonempty_env("YAZELIX_SESSION_TERMINAL").unwrap_or_else(|| OsString::from("rio"))
         } else {
             enter_terminal_label()
         },
@@ -237,66 +235,12 @@ fn apply_zellij_launch_theme_mode(command: &mut Command, mode: &str) {
     command.arg("--theme-mode").arg(mode);
 }
 
-fn managed_program(through_mars: bool, mars: &'static str) -> Result<&'static str, AppError> {
-    match (through_mars, mars) {
-        (true, "") => Err(AppError::Usage(
-            "yzx launch is unavailable because this package omits Mars; use yzx enter or select a package that includes Mars\n".to_string(),
-        )),
-        (true, mars) => Ok(mars),
-        (false, _) => Ok(YZX_WELCOME),
-    }
-}
-
-fn apply_mars_launch_env(
-    command: &mut Command,
-    through_mars: bool,
-    path: &Path,
-    appearance: Option<&str>,
-) {
-    if through_mars {
-        command
-            .env("MARS_APP_ID", "yzx")
-            .env("YAZELIX_CURSOR_CONFIG", path);
-        if let Some(appearance) = appearance {
-            command.env("MARS_APPEARANCE", appearance);
-        } else {
-            command.env_remove("MARS_APPEARANCE");
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn managed_entry_respects_the_fixed_package_variant() {
-        assert_eq!(managed_program(false, "").ok(), Some(YZX_WELCOME));
-        assert!(matches!(managed_program(true, ""), Err(AppError::Usage(_))));
-        assert_eq!(managed_program(true, MARS).ok(), Some(MARS));
-        let path = Path::new("/tmp/cursors.toml");
-        let mut launch = Command::new(MARS);
-        apply_mars_launch_env(&mut launch, true, path, None);
-        assert!(launch.get_envs().any(|(key, value)| {
-            key == "MARS_APP_ID" && value == Some(std::ffi::OsStr::new("yzx"))
-        }));
-        assert!(launch.get_envs().any(|(key, value)| {
-            key == "YAZELIX_CURSOR_CONFIG" && value == Some(path.as_os_str())
-        }));
-        assert!(
-            launch
-                .get_envs()
-                .any(|(key, value)| { key == "MARS_APPEARANCE" && value.is_none() })
-        );
-        let mut declarative_launch = Command::new(MARS);
-        apply_mars_launch_env(&mut declarative_launch, true, path, Some("light"));
-        assert!(declarative_launch.get_envs().any(|(key, value)| {
-            key == "MARS_APPEARANCE" && value == Some(std::ffi::OsStr::new("light"))
-        }));
-        let mut enter = Command::new(YZX_WELCOME);
-        apply_mars_launch_env(&mut enter, false, path, Some("light"));
-        assert_eq!(enter.get_envs().next(), None);
-
+    fn zellij_launch_theme_mode_is_explicit() {
         let mut zellij = Command::new(ZELLIJ);
         apply_zellij_launch_theme_mode(&mut zellij, "light");
         assert_eq!(
@@ -365,7 +309,7 @@ Commands:
   doctor  Check Yazelix runtime setup
   env     Open the managed shell without launching the UI
   enter   Start Yazelix in the current terminal
-  launch  Open Mars and start Yazelix
+  launch  Open Rio and start Yazelix
   menu    Open the Yazelix Nova command palette
   tutor   Show the guided Yazelix Nova tutor
   reveal  Reveal a file or directory in the persistent Yazi popup
@@ -376,9 +320,9 @@ Commands:
 
 Sessions:
   yzx enter --session NAME   Start a fresh named session in this terminal
-  yzx launch --session NAME  Start a fresh named session in Mars
+  yzx launch --session NAME  Start a fresh named session in Rio
   yzx enter attach NAME      Attach to a live named session in this terminal
-  yzx launch attach NAME     Attach to a live named session in Mars
+  yzx launch attach NAME     Attach to a live named session in Rio
 
 Sponsor: https://github.com/sponsors/luccahuguet
 ";

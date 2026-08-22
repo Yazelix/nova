@@ -914,16 +914,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "yazelix_cursors"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
- "toml",
-]
-
-[[package]]
 name = "yzx-config"
 version = "0.1.0"
 dependencies = [
@@ -932,7 +922,6 @@ dependencies = [
  "ratconfig",
  "serde_json",
  "toml",
- "yazelix_cursors",
 ]
 
 [[package]]

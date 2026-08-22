@@ -1,4 +1,4 @@
-use std::{env, io};
+use std::io;
 
 use crossterm::{
     cursor,
@@ -16,8 +16,8 @@ use ratconfig::{ConfigUiApp, ConfigUiFieldId, ConfigUiIntent, ConfigUiKey, draw_
 use crate::{
     common::*,
     file_actions::{
-        AppearanceProjection, MarsAppearanceProjection, ZellijAppearanceProjection,
-        edit_text_externally, open_file_action, write_config_ui,
+        AppearanceProjection, ZellijAppearanceProjection, edit_text_externally, open_file_action,
+        write_config_ui,
     },
     model::build_model,
     paths::{ConfigPaths, ensure_config_sources},
@@ -30,8 +30,6 @@ pub(crate) fn run_ui() -> Result<()> {
     let mut app = ConfigUiApp::try_new(build_model(&paths)?).map_err(error)?;
     let mut session = TerminalSession::enter()?;
     let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
-    let mars_included = env::var("YAZELIX_MARS_INCLUDED").as_deref() == Ok("1");
-
     loop {
         terminal.draw(|frame| draw_config_ui(frame, &mut app))?;
         let Some(key) = config_event(event::read()?) else {
@@ -74,10 +72,10 @@ pub(crate) fn run_ui() -> Result<()> {
                 }
             }
             ConfigUiIntent::SetField { field, value } => {
-                apply_field_write(&mut app, &paths, field, Some(&value), mars_included)?;
+                apply_field_write(&mut app, &paths, field, Some(&value))?;
             }
             ConfigUiIntent::UnsetField { field } => {
-                apply_field_write(&mut app, &paths, field, None, mars_included)?;
+                apply_field_write(&mut app, &paths, field, None)?;
             }
         }
     }
@@ -90,17 +88,9 @@ fn apply_field_write(
     paths: &ConfigPaths,
     field: ConfigUiFieldId,
     value: Option<&serde_json::Value>,
-    mars_included: bool,
 ) -> Result<()> {
     let reset = value.is_none();
-    match write_config_ui(
-        paths,
-        &field.source_id,
-        &field.path,
-        value,
-        mars_included,
-        true,
-    ) {
+    match write_config_ui(paths, &field.source_id, &field.path, value, true) {
         Ok(projection) => reload_after_successful_write(
             app,
             build_model(paths)?,
@@ -118,23 +108,13 @@ fn write_notice(field_path: &str, projection: Option<AppearanceProjection>, rese
     let Some(projection) = projection else {
         return format!("{action} {field_path}.");
     };
-    let mut updates = Vec::new();
-    match projection.mars {
-        Some(MarsAppearanceProjection::Config) => {
-            updates.push("Mars config is synchronized");
-        }
-        Some(MarsAppearanceProjection::Environment(_)) => {
-            updates.push("Mars will apply it on the next launch");
-        }
-        None => {}
-    }
-    updates.push(match projection.zellij {
+    let update = match projection.zellij {
         ZellijAppearanceProjection::Live => "Zellij and the bar switched",
         ZellijAppearanceProjection::NextLaunch => {
             "Zellij and the bar will apply it on the next managed launch"
         }
-    });
-    format!("{action} {field_path}; {}.", updates.join("; "))
+    };
+    format!("{action} {field_path}; {update}.")
 }
 
 pub(crate) fn reload_after_failed_write(

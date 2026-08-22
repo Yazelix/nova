@@ -4,11 +4,11 @@
 
 Normal CI runs Linux checks and the Darwin no-Helix evaluation guard on push,
 pull request, and manual dispatch
-`Publish Nix Cache` publishes all eight Linux capability variants, the Main and
+`Publish Nix Cache` publishes all four Linux capability variants, the Main and
 Edge full-package launcher outputs, and representative Home Manager closures
 from `main` and manual dispatch. `Version Gate` is manual and
-includes all eight Linux profile shapes, all eight `aarch64-darwin` packages,
-the Darwin Home Manager closure, and the Darwin no-Mars, no-Helix, and host-Yazi
+includes all four Linux profile shapes, all four `aarch64-darwin` packages,
+the Darwin Home Manager closure, and the Darwin Rio, no-Helix, and host-Yazi
 contracts.
 `Darwin Package Smoke` runs the same Darwin verification weekly on Monday when
 `main` has commits in the last 7 days, and on manual dispatch always, while
@@ -62,7 +62,7 @@ the same stable path. Do not move `stable` backward.
 Use local sibling repositories while hacking runtime inputs:
 
 ```sh
-nix run --override-input mars ../mars
+nix run --override-input rio ../nova-rio
 nix run --override-input yazelixZellij ../nova-zellij
 nix run --override-input yazelixHelix ../nova-helix
 nix run --override-input yazelixZellijPopup ../zellij-popup
@@ -78,9 +78,8 @@ nix flake check
 nix flake show --all-systems
 nix build .#yazelix --no-link --print-build-logs
 nix build .#yazelix-no-helix --no-link --print-build-logs
-nix build .#yazelix-no-mars --no-link --print-build-logs
-nix build .#yazelix-no-mars-no-helix-no-yazi --no-link --print-build-logs
-nix build .#checks.x86_64-linux.no_mars_contracts --no-link
+nix build .#yazelix-no-helix-no-yazi --no-link --print-build-logs
+nix build .#checks.x86_64-linux.rio_contracts --no-link
 nix build .#checks.x86_64-linux.host_yazi_contracts --no-link
 nix build .#checks.x86_64-linux.no_helix_contracts --no-link
 nix build .#checks.x86_64-linux.yzx_yazi_materialization --no-link
@@ -109,15 +108,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 3688 |
+| Markdown | 3505 |
 | JSON | 117 |
-| Nix | 1764 |
+| Nix | 1665 |
 | Shell | 111 |
-| YAML | 456 |
-| TOML | 470 |
+| YAML | 431 |
+| TOML | 469 |
 | KDL | 252 |
 | Nu | 11 |
 | Lua | 245 |
-| Rust | 20100 |
+| Rust | 18492 |
 | Text | 71 |
-| Total | 27505 |
+| Total | 25589 |

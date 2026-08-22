@@ -4,13 +4,11 @@ use std::{
 };
 
 use crate::common::*;
-use yazelix_cursors::initialize_cursor_config;
 
 pub(crate) struct ConfigPaths {
     pub(crate) store_root: PathBuf,
     pub(crate) root: PathBuf,
-    pub(crate) cursors: PathBuf,
-    pub(crate) mars: PathBuf,
+    pub(crate) rio: PathBuf,
     pub(crate) zellij: PathBuf,
     pub(crate) helix_dir: PathBuf,
     pub(crate) helix_config: PathBuf,
@@ -29,11 +27,10 @@ pub(crate) struct ConfigPaths {
     pub(crate) zellij_plugins: PathBuf,
 }
 impl ConfigPaths {
-    fn home_manager_files(&self) -> [(&Path, &'static str); 16] {
+    fn home_manager_files(&self) -> [(&Path, &'static str); 15] {
         [
             (&self.root, "settings"),
-            (&self.cursors, "cursors"),
-            (&self.mars, "mars"),
+            (&self.rio, "rio"),
             (&self.zellij, "zellij"),
             (&self.starship, "starship"),
             (&self.helix_config, "helix.config"),
@@ -81,8 +78,14 @@ pub(crate) fn ensure_config_sources() -> Result<ConfigPaths> {
     ensure_config_sources_at(config_paths()?)
 }
 pub(crate) fn ensure_config_sources_at(paths: ConfigPaths) -> Result<ConfigPaths> {
-    initialize_cursor_config(&paths.cursors)?;
+    initialize_rio_config(&paths.rio)?;
     Ok(paths)
+}
+pub(crate) fn initialize_rio_config(path: &Path) -> Result<()> {
+    if !path_entry_exists(path)? {
+        atomic_write(path, crate::catalog::DEFAULT_RIO_CONFIG_TOML)?;
+    }
+    Ok(())
 }
 pub(crate) fn config_paths() -> Result<ConfigPaths> {
     let home = config_home()?;
@@ -91,8 +94,7 @@ pub(crate) fn config_paths() -> Result<ConfigPaths> {
             .map(PathBuf::from)
             .ok_or_else(|| error("yzx-config is missing its packaged Nix store root"))?,
         root: home.join("config.toml"),
-        cursors: home.join("cursors.toml"),
-        mars: home.join("mars/config.toml"),
+        rio: home.join("rio/config.toml"),
         zellij: home.join("zellij/config.kdl"),
         helix_dir: home.join("helix"),
         helix_config: home.join("helix/config.toml"),

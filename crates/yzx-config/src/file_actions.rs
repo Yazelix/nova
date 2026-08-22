@@ -13,16 +13,12 @@ use serde_json::Value as JsonValue;
 use crate::{
     catalog::*,
     common::*,
-    native_config::{
-        unset_cursor_config_field, unset_mars_config_field, unset_starship_config_field,
-        write_cursor_config_field, write_mars_config_field, write_starship_config_field,
-    },
+    native_config::{unset_starship_config_field, write_starship_config_field},
     paths::ConfigPaths,
     root_config::{config_field, read_config_field, unset_config_field, write_config_field},
     yazi_config::{unset_yazi_field, write_yazi_field},
     zellij_sidecar::{unset_zellij_config_field, write_zellij_config_field},
 };
-use yazelix_cursors::DEFAULT_CURSOR_CONFIG_TEMPLATE;
 
 pub(crate) struct FileActionSpec {
     source_id: &'static str,
@@ -68,13 +64,13 @@ fn file_action_specs(paths: &ConfigPaths) -> impl IntoIterator<Item = FileAction
             starter: "",
         },
         FileActionSpec {
-            source_id: SOURCE_CURSORS,
-            action_id: ACTION_CURSORS_CONFIG,
-            tab: TAB_CURSORS,
-            label: "cursors.toml",
-            description: "Open the complete cursor config for custom definitions.",
-            path: paths.cursors.clone(),
-            starter: DEFAULT_CURSOR_CONFIG_TEMPLATE,
+            source_id: SOURCE_RIO,
+            action_id: ACTION_RIO_CONFIG,
+            tab: TAB_RIO,
+            label: "rio/config.toml",
+            description: "Open the complete native Rio configuration.",
+            path: paths.rio.clone(),
+            starter: DEFAULT_RIO_CONFIG_TOML,
         },
         FileActionSpec {
             source_id: SOURCE_HELIX_CONFIG,
@@ -215,14 +211,6 @@ pub(crate) fn write_source_field(
             paths.reject_mutation(&paths.root, source_id)?;
             write_config_field(&paths.root, field_path, value)
         }
-        SOURCE_MARS => {
-            paths.reject_mutation(&paths.mars, source_id)?;
-            write_mars_config_field(&paths.mars, field_path, value)
-        }
-        SOURCE_CURSORS => {
-            paths.reject_mutation(&paths.cursors, source_id)?;
-            write_cursor_config_field(&paths.cursors, field_path, value)
-        }
         SOURCE_ZELLIJ => {
             paths.reject_mutation(&paths.zellij, source_id)?;
             write_zellij_config_field(&paths.zellij, field_path, value)
@@ -247,14 +235,6 @@ pub(crate) fn write_source_default(
             paths.reject_mutation(&paths.root, source_id)?;
             unset_config_field(&paths.root, field_path)
         }
-        SOURCE_MARS => {
-            paths.reject_mutation(&paths.mars, source_id)?;
-            unset_mars_config_field(&paths.mars, field_path)
-        }
-        SOURCE_CURSORS => {
-            paths.reject_mutation(&paths.cursors, source_id)?;
-            unset_cursor_config_field(&paths.cursors, field_path)
-        }
         SOURCE_STARSHIP => {
             paths.reject_mutation(&paths.starship, source_id)?;
             unset_starship_config_field(&paths.starship, field_path)
@@ -269,12 +249,6 @@ pub(crate) fn write_source_default(
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum MarsAppearanceProjection {
-    Config,
-    Environment(String),
-}
-
-#[derive(Debug, PartialEq)]
 pub(crate) enum ZellijAppearanceProjection {
     Live,
     NextLaunch,
@@ -282,24 +256,7 @@ pub(crate) enum ZellijAppearanceProjection {
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct AppearanceProjection {
-    pub(crate) mars: Option<MarsAppearanceProjection>,
     pub(crate) zellij: ZellijAppearanceProjection,
-}
-
-pub(crate) fn project_mars_appearance(paths: &ConfigPaths) -> Result<MarsAppearanceProjection> {
-    let mode = read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH)?)?;
-    let value = JsonValue::String(mode.clone());
-
-    if paths.is_home_manager_owned(&paths.mars)
-        || fs::symlink_metadata(&paths.mars).is_ok_and(|metadata| metadata.is_symlink())
-        || path_read_only(&paths.mars)
-    {
-        return Ok(MarsAppearanceProjection::Environment(mode));
-    }
-
-    paths.reject_mutation(&paths.mars, SOURCE_MARS)?;
-    write_mars_config_field(&paths.mars, MARS_APPEARANCE_PRESET_PATH, &value)?;
-    Ok(MarsAppearanceProjection::Config)
 }
 
 pub(crate) fn write_config_ui(
@@ -307,7 +264,6 @@ pub(crate) fn write_config_ui(
     source_id: &str,
     field_path: &str,
     value: Option<&JsonValue>,
-    mars_included: bool,
     apply_zellij_live: bool,
 ) -> Result<Option<AppearanceProjection>> {
     match value {
@@ -318,37 +274,16 @@ pub(crate) fn write_config_ui(
         return Ok(None);
     }
     let mode = read_config_field(&paths.root, config_field(APPEARANCE_MODE_PATH)?)?;
-    let mut failures = Vec::new();
-    let mars = if mars_included {
-        match project_mars_appearance(paths) {
-            Ok(projection) => Some(projection),
-            Err(source) => {
-                failures.push(format!("could not update Mars: {source}"));
-                None
-            }
-        }
-    } else {
-        None
-    };
     let zellij_result = if apply_zellij_live {
         apply_zellij_appearance(&mode)
     } else {
         Ok(ZellijAppearanceProjection::NextLaunch)
     };
-    let zellij = match zellij_result {
-        Ok(projection) => projection,
-        Err(source) => {
-            failures.push(format!("could not update Zellij and the bar: {source}"));
-            ZellijAppearanceProjection::NextLaunch
-        }
-    };
-    if failures.is_empty() {
-        Ok(Some(AppearanceProjection { mars, zellij }))
-    } else {
-        Err(error(format!(
-            "Updated {APPEARANCE_MODE_PATH}, but {}. The saved mode remains authoritative; the next managed launch will retry.",
-            failures.join("; ")
-        )))
+    match zellij_result {
+        Ok(zellij) => Ok(Some(AppearanceProjection { zellij })),
+        Err(source) => Err(error(format!(
+            "Updated {APPEARANCE_MODE_PATH}, but could not update Zellij and the bar: {source}. The saved mode remains authoritative; the next managed launch will retry."
+        ))),
     }
 }
 
