@@ -20,17 +20,18 @@
     "autoLayoutYazi": {
       "flake": false,
       "locked": {
-        "lastModified": 1753889470,
-        "narHash": "sha256-4vRIGU/ArXhW9ervhyNhpfDN7UF4pqVYnxi6FExlgGk=",
-        "owner": "Yazelix",
-        "repo": "auto-layout.yazi",
-        "rev": "e24bee9f6dd15ff80eae1b3dc1a6b06ee7e66121",
-        "type": "github"
+        "lastModified": 1787462116,
+        "narHash": "sha256-Y0Gf4enHkcj7F+ePhk/WK75+WycyecZIpHK9ihz2fdY=",
+        "ref": "refs/heads/candidate/yazi-v26.8.15",
+        "rev": "6c4be74524e821e7a06aeb2f4d85a031c468def0",
+        "revCount": 10,
+        "type": "git",
+        "url": "file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi"
       },
       "original": {
-        "owner": "Yazelix",
-        "repo": "auto-layout.yazi",
-        "type": "github"
+        "rev": "6c4be74524e821e7a06aeb2f4d85a031c468def0",
+        "type": "git",
+        "url": "file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi"
       }
     },
     "crane": {
@@ -472,16 +473,17 @@
     "starshipYazi": {
       "flake": false,
       "locked": {
-        "lastModified": 1781463098,
-        "narHash": "sha256-I21to4cxlszRpsb58cvsmwX7VglQBSJC0rrsFIltzC8=",
+        "lastModified": 1786993461,
+        "narHash": "sha256-Jvoc/7YaOOppu8K2lJaVgiuBIyanRHHjEA6ZvnrFtiQ=",
         "owner": "Rolv-Apneseth",
         "repo": "starship.yazi",
-        "rev": "159eaba5b5052bf78ff6cfbfe4e527b946818c82",
+        "rev": "ea92cf49380466f07231c952b409831e6afd2156",
         "type": "github"
       },
       "original": {
         "owner": "Rolv-Apneseth",
         "repo": "starship.yazi",
+        "rev": "ea92cf49380466f07231c952b409831e6afd2156",
         "type": "github"
       }
     },

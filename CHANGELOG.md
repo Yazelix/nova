@@ -9,6 +9,8 @@ User-visible runtime changes for Yazelix Nova live here.
   so the fork removes its Unicode-placeholder translator while retaining its
   five independent appearance, status-hint, permission-cache, stack-order, and
   disconnected-client behaviors.
+- The packaged auto-layout and Starship plugins use Yazi 26.8.15's current APIs
+  without startup deprecation notifications.
 
 ## 1.1.0
 

@@ -44,11 +44,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     autoLayoutYazi = {
-      url = "github:Yazelix/auto-layout.yazi";
+      url = "git+file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi?rev=6c4be74524e821e7a06aeb2f4d85a031c468def0";
       flake = false;
     };
     starshipYazi = {
-      url = "github:Rolv-Apneseth/starship.yazi";
+      url = "github:Rolv-Apneseth/starship.yazi/ea92cf49380466f07231c952b409831e6afd2156";
       flake = false;
     };
     yaziBistro = {
