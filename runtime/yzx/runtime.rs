@@ -13,7 +13,7 @@ use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
     CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM,
     YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
+    RIO, YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
@@ -173,12 +173,14 @@ impl Runtime {
         let config_home = config_home()?;
         let config_toml = config_home.join("config.toml");
         let rio_config = config_home.join("rio/config.toml");
-        run_checked(
-            &rio_config,
-            Command::new(YZX_CONFIG)
-                .arg("--init-rio")
-                .env("YAZELIX_CONFIG_HOME", &config_home),
-        )?;
+        if !RIO.is_empty() {
+            run_checked(
+                &rio_config,
+                Command::new(YZX_CONFIG)
+                    .arg("--init-rio")
+                    .env("YAZELIX_CONFIG_HOME", &config_home),
+            )?;
+        }
         let yzx_open_log = config_value(&config_home, &config_toml, "open.log_level")?;
         let shell_program = trim_output(config_value(&config_home, &config_toml, "shell.program")?);
         let editor_command =
@@ -319,7 +321,11 @@ impl Runtime {
     }
 
     pub(crate) fn rio_config(&self) -> String {
-        source_path("user", self.rio_config.display())
+        if !RIO.is_empty() {
+            source_path("user", self.rio_config.display())
+        } else {
+            "not included".to_string()
+        }
     }
 
     pub(crate) fn zellij_config(&self) -> String {

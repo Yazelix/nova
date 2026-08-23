@@ -120,7 +120,7 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
     }
     let yazi_dir = paths.yazi_config.parent().expect("Yazi config directory");
     let advanced_dir = paths.nu_config.parent().expect("Nushell config directory");
-    let sources = vec![
+    let mut sources = vec![
         build_config_source(paths, SOURCE_CONFIG, "config.toml", &paths.root),
         build_config_source(paths, SOURCE_RIO, "rio/config.toml", &paths.rio),
         build_config_source(paths, SOURCE_ZELLIJ, "zellij/config.kdl", &paths.zellij),
@@ -161,6 +161,9 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             read_only: true,
         },
     ];
+    if !paths.rio_included {
+        sources.retain(|source| source.id != SOURCE_RIO);
+    }
     fields.extend(yazi);
     if !root_document_valid {
         block_source_fields(
@@ -198,17 +201,21 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
 
     Ok(ConfigUiModel {
         sources,
-        tabs: vec![
-            TAB_CONFIG.to_string(),
-            TAB_POPUPS.to_string(),
-            TAB_RIO.to_string(),
-            TAB_ZELLIJ.to_string(),
-            TAB_STARSHIP.to_string(),
-            TAB_HELIX.to_string(),
-            TAB_YAZI.to_string(),
-            TAB_KEYS.to_string(),
-            TAB_ADVANCED.to_string(),
-        ],
+        tabs: [
+            TAB_CONFIG,
+            TAB_POPUPS,
+            TAB_RIO,
+            TAB_ZELLIJ,
+            TAB_STARSHIP,
+            TAB_HELIX,
+            TAB_YAZI,
+            TAB_KEYS,
+            TAB_ADVANCED,
+        ]
+        .into_iter()
+        .filter(|tab| paths.rio_included || *tab != TAB_RIO)
+        .map(str::to_string)
+        .collect(),
         operational_tab: Some(TAB_ADVANCED.to_string()),
         tab_list_tables: BTreeMap::from([
             (TAB_HELIX.to_string(), helix.list_table),

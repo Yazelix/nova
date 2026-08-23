@@ -1,4 +1,5 @@
 use std::{
+    ffi::OsStr,
     fs,
     path::{Path, PathBuf},
 };
@@ -15,6 +16,7 @@ pub(crate) enum RioAppearanceProjection {
 }
 
 pub(crate) struct ConfigPaths {
+    pub(crate) rio_included: bool,
     pub(crate) store_root: PathBuf,
     pub(crate) root: PathBuf,
     pub(crate) rio: PathBuf,
@@ -87,7 +89,9 @@ pub(crate) fn ensure_config_sources() -> Result<ConfigPaths> {
     ensure_config_sources_at(config_paths()?)
 }
 pub(crate) fn ensure_config_sources_at(paths: ConfigPaths) -> Result<ConfigPaths> {
-    initialize_rio_config(&paths.rio)?;
+    if paths.rio_included {
+        initialize_rio_config(&paths.rio)?;
+    }
     Ok(paths)
 }
 pub(crate) fn initialize_rio_config(path: &Path) -> Result<()> {
@@ -117,6 +121,9 @@ pub(crate) fn project_rio_appearance(
     if !matches!(mode, "dark" | "light") {
         return Err(error(format!("unsupported appearance mode: {mode}")));
     }
+    if !paths.rio_included {
+        return Ok(RioAppearanceProjection::NextLaunch);
+    }
     initialize_rio_config(&paths.rio)?;
     if paths.reject_mutation(&paths.rio, SOURCE_RIO).is_err() {
         return Ok(RioAppearanceProjection::NextLaunch);
@@ -133,6 +140,7 @@ pub(crate) fn project_rio_appearance(
 pub(crate) fn config_paths() -> Result<ConfigPaths> {
     let home = config_home()?;
     Ok(ConfigPaths {
+        rio_included: nonempty_env("YZX_RIO_INCLUDED").as_deref() != Some(OsStr::new("0")),
         store_root: option_env!("YAZELIX_NIX_STORE_ROOT")
             .map(PathBuf::from)
             .ok_or_else(|| error("yzx-config is missing its packaged Nix store root"))?,

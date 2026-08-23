@@ -584,6 +584,7 @@
       });
       mkYzx = {
         channel ? "stable",
+        withRio,
         withManagedHelix,
         withManagedYazi,
       }: let
@@ -598,7 +599,7 @@
           name = "Yazelix Nova";
           version = novaVersion;
           inherit channel;
-          rio_revision = rio.rev;
+          rio_revision = if withRio then rio.rev else null;
         });
         barRenderRequest = import ./packaging/bar-render-request.nix {
           inherit (pkgs) coreutils nushell;
@@ -612,7 +613,8 @@
             shellLabel = "__YZX_SHELL_LABEL__";
           }));
         variantSuffix = pkgs.lib.concatStringsSep "-" (
-          pkgs.lib.optional (! withManagedHelix) "no-helix"
+          pkgs.lib.optional (! withRio) "no-rio"
+          ++ pkgs.lib.optional (! withManagedHelix) "no-helix"
           ++ pkgs.lib.optional (! withManagedYazi) "no-yazi"
         );
         variant = if variantSuffix == "" then "full" else variantSuffix;
@@ -676,6 +678,7 @@
           text = ''
             unset YAZELIX_EDITOR
             ${editorEnv}
+            export YZX_RIO_INCLUDED=${if withRio then "1" else "0"}
             export YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij
             exec ${yzxConfig}/bin/yzx-config "$@"
           '';
@@ -766,7 +769,7 @@
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzxEnvSupervisor = "${yzxEnvSupervisor}/bin/yzx-env-supervisor";
           zellij = "${yazelixZellijPackage}/bin/zellij";
-          rio = "${rioPackage}/bin/rio";
+          rio = if withRio then "${rioPackage}/bin/rio" else "";
           layout = "${layout}/layout.kdl";
           layoutTemplate = "${./defaults/zellij/layout.kdl}";
           layoutSwapTemplate = "${./defaults/zellij/layout.swap.kdl}";
@@ -816,7 +819,7 @@
           cp ${main} "$out/main.rs"
         '';
         command = rustBin "yzx" "${src}/main.rs";
-        withDesktop = pkgs.stdenv.hostPlatform.isLinux;
+        withDesktop = withRio && pkgs.stdenv.hostPlatform.isLinux;
         desktop = pkgs.makeDesktopItem {
           name = "yzx-${channel}";
           desktopName = "Yazelix Nova (${channelLabel})";
@@ -843,12 +846,14 @@
               install -D -m 644 ${configKdl} "$out/share/yazelix/config.kdl"
               install -D -m 644 ${runtimeIdentity}/runtime_identity.json "$out/share/yazelix/runtime_identity.json"
               install -D -m 644 ${./defaults/config.toml} "$out/share/yazelix/config.toml"
-              cp -R ${yzxRioConfig}/. "$out/share/yazelix/rio/"
               install -D -m 644 ${layout}/layout.kdl "$out/share/yazelix/layout.kdl"
               install -D -m 644 ${layout}/layout.swap.kdl "$out/share/yazelix/layout.swap.kdl"
               ln -s ${yzxYaziConfig} "$out/share/yazelix/yazi"
               install -D -m 644 ${yzxNuConfig}/config.nu "$out/share/yazelix/nu/config.nu"
               install -D -m 644 ${yzxNuConfig}/env.nu "$out/share/yazelix/nu/env.nu"
+            ''
+            + pkgs.lib.optionalString withRio ''
+              cp -R ${yzxRioConfig}/. "$out/share/yazelix/rio/"
             ''
             + pkgs.lib.optionalString withDesktop ''
               install -d "$out/share/icons/hicolor/scalable/apps"
@@ -860,6 +865,7 @@
       mkFullYzx = channel:
         mkYzx {
           inherit channel;
+          withRio = true;
           withManagedHelix = true;
           withManagedYazi = true;
         };
@@ -868,14 +874,37 @@
       yazelix-main = mkFullYzx "main";
       yazelix-edge = mkFullYzx "edge";
       yazelix-no-helix = mkYzx {
+        withRio = true;
         withManagedHelix = false;
         withManagedYazi = true;
       };
       yazelix-no-yazi = mkYzx {
+        withRio = true;
         withManagedHelix = true;
         withManagedYazi = false;
       };
       yazelix-no-helix-no-yazi = mkYzx {
+        withRio = true;
+        withManagedHelix = false;
+        withManagedYazi = false;
+      };
+      yazelix-no-rio = mkYzx {
+        withRio = false;
+        withManagedHelix = true;
+        withManagedYazi = true;
+      };
+      yazelix-no-rio-no-helix = mkYzx {
+        withRio = false;
+        withManagedHelix = false;
+        withManagedYazi = true;
+      };
+      yazelix-no-rio-no-yazi = mkYzx {
+        withRio = false;
+        withManagedHelix = true;
+        withManagedYazi = false;
+      };
+      yazelix-no-rio-no-helix-no-yazi = mkYzx {
+        withRio = false;
         withManagedHelix = false;
         withManagedYazi = false;
       };
@@ -890,11 +919,19 @@
       yzxNoHelix = self.packages.${system}.yazelix-no-helix;
       yzxNoYazi = self.packages.${system}.yazelix-no-yazi;
       yzxNoHelixNoYazi = self.packages.${system}.yazelix-no-helix-no-yazi;
+      yzxNoRio = self.packages.${system}.yazelix-no-rio;
+      yzxNoRioNoHelix = self.packages.${system}.yazelix-no-rio-no-helix;
+      yzxNoRioNoYazi = self.packages.${system}.yazelix-no-rio-no-yazi;
+      yzxNoRioNoHelixNoYazi = self.packages.${system}.yazelix-no-rio-no-helix-no-yazi;
       rioPackage = rioPackageFor pkgs;
       yzxClosure = pkgs.closureInfo {rootPaths = [yzx];};
       noHelixClosure = pkgs.closureInfo {rootPaths = [yzxNoHelix];};
       noYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoYazi];};
       noHelixNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoHelixNoYazi];};
+      noRioClosure = pkgs.closureInfo {rootPaths = [yzxNoRio];};
+      noRioNoHelixClosure = pkgs.closureInfo {rootPaths = [yzxNoRioNoHelix];};
+      noRioNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoRioNoYazi];};
+      noRioNoHelixNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoRioNoHelixNoYazi];};
       novaBarPackage = novaBar.packages.${system}.default;
       yzxYaziMaterializer = yzxYaziMaterializerFor pkgs;
       checksSrc = pkgs.lib.cleanSource ./checks;
@@ -1003,6 +1040,9 @@
       homeManagerOverride = homeManagerConfiguration {
         programs.yazelix.package = fakeYazelix;
       };
+      homeManagerNoRio = homeManagerConfiguration {
+        programs.yazelix.package = yzxNoRio;
+      };
       homeManagerNoYazi = homeManagerConfiguration {
         home.packages = [pkgs.yazi];
         programs.yazelix.package = yzxNoYazi;
@@ -1055,6 +1095,7 @@
       home_manager = pkgs.runCommand "yzx-home-manager-check" {nativeBuildInputs = [pkgs.util-linux];} ''
         default_path="${homeManagerDefault.activationPackage}/home-path"
         override_path="${homeManagerOverride.activationPackage}/home-path"
+        no_rio_path="${homeManagerNoRio.activationPackage}/home-path"
         no_yazi_path="${homeManagerNoYazi.activationPackage}/home-path"
         shared_config_files="${homeManagerSharedStarship.activationPackage}/home-files/.config/yazelix"
         hm_yzx="${homeManagerConfigFiles.activationPackage}/home-path/bin/yzx"
@@ -1072,6 +1113,8 @@
         test "$("$override_path/bin/yzx")" = fake-yazelix
         grep -q 'Fake Yazelix' "$override_path/share/applications/yzx.desktop"
 
+        test -x "$no_rio_path/bin/yzx"
+        test ! -e "$no_rio_path/share/applications/yzx-stable.desktop"
         test -x "$no_yazi_path/bin/yzx"
         test -x "$no_yazi_path/bin/yazi"
         test -x "$no_yazi_path/bin/ya"
@@ -1332,18 +1375,76 @@
         test "$(${pkgs.jq}/bin/jq -r .rio_revision ${yzx}/share/yazelix/runtime_identity.json)" = ${rio.rev}
         touch "$out"
       '';
+      no_rio_contracts = pkgs.runCommand "yzx-no-rio-contracts" {} ''
+        check_no_rio() {
+          local package="$1"
+          local variant="$2"
+          local closure="$3"
+          local root="$TMPDIR/$variant"
+
+          test -x "$package/bin/yzx"
+          test ! -e "$package/share/applications"
+          test ! -e "$package/share/yazelix/rio"
+          test ! -e "$package/share/icons/hicolor/scalable/apps/yzx.svg"
+          test "$(${pkgs.jq}/bin/jq -r .rio_revision "$package/share/yazelix/runtime_identity.json")" = null
+          ! grep -Fx ${rioPackage} "$closure"
+          ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "! grep -Fx ${pkgs.mesa} \"$closure\""}
+          ! grep -E '/[0-9a-z]{32}-(nova-rio|rio-terminfo)(-|$)' "$closure"
+
+          config_ui="$(${pkgs.gnused}/bin/sed -n 's/.*command "\([^"]*yzx-config-ui\)".*/\1/p' "$package/share/yazelix/config.kdl" | ${pkgs.coreutils}/bin/head -n 1)"
+          grep -Fq 'export YZX_RIO_INCLUDED=0' "$config_ui"
+
+          export HOME="$root/home"
+          export YAZELIX_CONFIG_HOME="$root/config"
+          export YAZELIX_STATE_DIR="$root/state"
+          export XDG_DATA_HOME="$root/data"
+          export PATH=${fakeHostYazi}/bin:${pkgs.gnugrep}/bin:${pkgs.coreutils}/bin
+          mkdir -p "$HOME" "$YAZELIX_CONFIG_HOME" "$YAZELIX_STATE_DIR" "$XDG_DATA_HOME"
+          printf '%s\n' '[welcome]' 'enabled = false' > "$YAZELIX_CONFIG_HOME/config.toml"
+
+          "$package/bin/yzx" status --json > "$root/status.json"
+          test "$(${pkgs.jq}/bin/jq -r .package "$root/status.json")" = "$variant"
+          "$package/bin/yzx" status > "$root/status"
+          grep -Fqx "package: $variant" "$root/status"
+          grep -Fqx 'rio config: not included' "$root/status"
+          "$package/bin/yzx" doctor > "$root/doctor"
+          grep -Fqx 'ok rio config: not included' "$root/doctor"
+          grep -Fqx 'ok rio: not included' "$root/doctor"
+          if "$package/bin/yzx" launch 2> "$root/launch-error"; then
+            printf '%s\n' "$variant launch unexpectedly succeeded" >&2
+            exit 1
+          else
+            status=$?
+          fi
+          test "$status" -eq 64
+          grep -Fq 'this package omits Rio; use yzx enter' "$root/launch-error"
+          "$package/bin/yzx" enter --version > "$root/enter-version"
+          grep -q '^zellij ' "$root/enter-version"
+          test ! -e "$YAZELIX_CONFIG_HOME/rio"
+        }
+
+        check_no_rio ${yzxNoRio} no-rio ${noRioClosure}/store-paths
+        check_no_rio ${yzxNoRioNoHelix} no-rio-no-helix ${noRioNoHelixClosure}/store-paths
+        check_no_rio ${yzxNoRioNoYazi} no-rio-no-yazi ${noRioNoYaziClosure}/store-paths
+        check_no_rio ${yzxNoRioNoHelixNoYazi} no-rio-no-helix-no-yazi ${noRioNoHelixNoYaziClosure}/store-paths
+        touch "$out"
+      '';
       helix_contracts = pkgs.runCommand "yzx-helix-contracts" {} ''
         ${helixContractsCheck}/bin/helix-contracts-check ${yzx} "$out"
       '';
       no_helix_contracts = pkgs.runCommand "yzx-no-helix-contracts" {} ''
         ${noHelixContractsCheck}/bin/no-helix-contracts-check \
           ${yzxNoHelix} ${noHelixClosure}/store-paths no-helix
+        ${noHelixContractsCheck}/bin/no-helix-contracts-check \
+          ${yzxNoRioNoHelix} ${noRioNoHelixClosure}/store-paths no-rio-no-helix
         touch "$out"
       '';
       host_yazi_contracts = pkgs.runCommand "yzx-host-yazi-contracts" {} ''
         for closure in \
           ${noYaziClosure}/store-paths \
-          ${noHelixNoYaziClosure}/store-paths; do
+          ${noHelixNoYaziClosure}/store-paths \
+          ${noRioNoYaziClosure}/store-paths \
+          ${noRioNoHelixNoYaziClosure}/store-paths; do
           if grep -Fx ${pkgs.yazi} "$closure"; then
             printf '%s\n' "host-Yazi closure retained ${pkgs.yazi}" >&2
             exit 1

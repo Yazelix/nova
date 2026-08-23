@@ -9,6 +9,10 @@ matter when changing launch, config, editor, shell, or popup behavior.
 `rio/config.toml` when that path is missing. Runtime preparation uses the same
 one-time seed.
 
+Packages with the `no-rio` suffix skip that initialization entirely. Their
+`yzx enter` path starts the managed workspace in the current terminal, while
+`yzx launch` returns an instruction to use `enter` instead.
+
 The UI leaves these sparse sources absent until you save a field:
 
 ```text

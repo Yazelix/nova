@@ -233,6 +233,7 @@ mod tests {
         )
         .unwrap();
         ConfigPaths {
+            rio_included: true,
             store_root: temp.path.join("store"),
             root: temp.path.join("config.toml"),
             rio: temp.path.join("rio/config.toml"),
@@ -282,6 +283,25 @@ mod tests {
         for path in [&paths.rio, &dark, &light] {
             assert_file_text(path, "# custom\n");
         }
+    }
+
+    #[test]
+    fn rio_free_model_has_no_rio_state_or_actions() {
+        let temp = TempHome::new();
+        let mut paths = temp_paths(&temp);
+        paths.rio_included = false;
+        let paths = ensure_config_sources_at(paths).unwrap();
+        let model = build_model(&paths).unwrap();
+
+        assert!(!paths.rio.exists());
+        assert!(!model.tabs.iter().any(|tab| tab == TAB_RIO));
+        assert!(!model.sources.iter().any(|source| source.id == SOURCE_RIO));
+        assert!(
+            !model
+                .file_actions
+                .iter()
+                .any(|action| action.source_id == SOURCE_RIO)
+        );
     }
 
     #[test]

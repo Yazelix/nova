@@ -270,8 +270,11 @@ outside the Nova v1 continuity contract.
 
 ## Packages and platforms
 
-Package names follow `yazelix[-no-helix][-no-yazi]`. Each suffix
+Package names follow `yazelix[-no-rio][-no-helix][-no-yazi]`. Each suffix
 removes that managed package while retaining the integration around it.
+`no-rio` is terminal-free: `yzx enter` uses the current terminal, while
+`yzx launch` explains that Rio is unavailable. It installs no Rio config,
+icon, or desktop entry.
 `no-helix` uses the configured host editor; `no-yazi` requires matching host
 `yazi` and `ya` commands.
 
@@ -285,6 +288,10 @@ as `yazelix` and do not multiply the capability-variant matrix.
 | `yazelix-no-helix` | Yes | No | Yes |
 | `yazelix-no-yazi` | Yes | Yes | No |
 | `yazelix-no-helix-no-yazi` | Yes | No | No |
+| `yazelix-no-rio` | No | Yes | Yes |
+| `yazelix-no-rio-no-helix` | No | No | Yes |
+| `yazelix-no-rio-no-yazi` | No | Yes | No |
+| `yazelix-no-rio-no-helix-no-yazi` | No | No | No |
 
 See [Installation and packages](docs/installation.md) for package variants,
 platform support, SSH use, Home Manager, and updates.
@@ -435,8 +442,9 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **26,177 lines** of tracked text project files. The
+Yazelix owns **26,367 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,328 lines below the pre-Rio fork surface. The current increase
-also records the exact Zellij v0.45.0 fork boundary and Yazi 26.8.15 runtime.
+This remains 1,138 lines below the pre-Rio fork surface. The current increase
+also records the terminal-free package matrix, exact Zellij v0.45.0 fork
+boundary, and Yazi 26.8.15 runtime.

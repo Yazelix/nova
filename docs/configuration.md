@@ -10,6 +10,9 @@ fine tuning and configured custom-popup fields. Normal-mode `a` switches between
 Overview and All only when Overview hides at least three fields and one quarter
 of the tab. Search spans All without changing the saved view
 
+Packages with the `no-rio` suffix omit the Rio source, tab, native-file action,
+and initialization. Their remaining configuration surfaces are unchanged
+
 On a free-form setting, `Enter` starts single-line inline editing and `e` opens
 the same staged value in `editor.command`. Inline editing supports Left/Right,
 Home/End, Backspace/Delete, Unicode text, and single-line paste; `Ctrl+e` opens

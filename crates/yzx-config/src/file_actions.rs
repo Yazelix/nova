@@ -55,7 +55,7 @@ pub(crate) fn build_file_actions(paths: &ConfigPaths) -> Vec<ConfigUiFileAction>
         })
         .collect()
 }
-fn file_action_specs(paths: &ConfigPaths) -> impl IntoIterator<Item = FileActionSpec> {
+fn file_action_specs(paths: &ConfigPaths) -> impl Iterator<Item = FileActionSpec> + '_ {
     [
         FileActionSpec {
             source_id: SOURCE_CONFIG,
@@ -202,6 +202,8 @@ fn file_action_specs(paths: &ConfigPaths) -> impl IntoIterator<Item = FileAction
             starter: ZELLIJ_PLUGINS_STARTER,
         },
     ]
+    .into_iter()
+    .filter(|spec| paths.rio_included || spec.source_id != SOURCE_RIO)
 }
 pub(crate) fn write_source_field(
     paths: &ConfigPaths,

@@ -34,7 +34,7 @@ their exact immutable packages. Their running top bars identify that package as
 
 ## Package variants
 
-Package names follow `yazelix[-no-helix][-no-yazi]`:
+Package names follow `yazelix[-no-rio][-no-helix][-no-yazi]`:
 
 | Package | Rio | Managed Helix | Managed Yazi | Linux desktop channel |
 | --- | --- | --- | --- | --- |
@@ -42,15 +42,22 @@ Package names follow `yazelix[-no-helix][-no-yazi]`:
 | `yazelix-no-helix` | Yes | No | Yes | Stable |
 | `yazelix-no-yazi` | Yes | Yes | No | Stable |
 | `yazelix-no-helix-no-yazi` | Yes | No | No | Stable |
+| `yazelix-no-rio` | No | Yes | Yes | None |
+| `yazelix-no-rio-no-helix` | No | No | Yes | None |
+| `yazelix-no-rio-no-yazi` | No | Yes | No | None |
+| `yazelix-no-rio-no-helix-no-yazi` | No | No | No | None |
 
+Rio-free packages omit Rio and its terminal-only closure, native config,
+icon, desktop entry, and Ratconfig tab. Use `yzx enter` from the host terminal;
+`yzx launch` exits with that instruction.
 Helix-free packages replace `yzx-hx` with a clear unavailable command, so set
 `editor.command` to an installed editor such as `nvim`. They neither evaluate
 managed Helix nor retain Helix, Steel, or the packaged grammar closure. Yazi-free
 packages retain the managed launcher, configuration, sidebar, popup, opener,
 and reveal integration but require host-provided `yazi` and `ya` commands with
 matching versions. A pair that differs from Nova's tested version warns and
-continues. The host installation owns optional Yazi preview dependencies. All
-four capability variants exist for `x86_64-linux`, `aarch64-linux`,
+continues. The host installation owns optional Yazi preview dependencies.
+All eight capability variants exist for `x86_64-linux`, `aarch64-linux`,
 `x86_64-darwin`, and `aarch64-darwin`. The full `yazelix-main` and
 `yazelix-edge` channel outputs exist on the same systems and differ only in
 their channel-qualified desktop and runtime identities
@@ -74,16 +81,24 @@ The modifiers compose mechanically:
 nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-helix-no-yazi
 ```
 
+Install the terminal-free full-TUI variant with:
+
+```sh
+nix profile add --refresh github:Yazelix/nova/stable#yazelix-no-rio
+```
+
+Add `-no-helix`, `-no-yazi`, or both to compose the reduced variants.
+
 ## Capability matrix
 
 | Surface | Linux | `aarch64-darwin` |
 | --- | --- | --- |
-| All four package variants | Build- and profile-tested on `x86_64-linux`, with flake outputs also covering `aarch64-linux` | Build-tested on a real GitHub macOS runner |
+| All eight package variants | Build- and profile-tested on `x86_64-linux`, with flake outputs also covering `aarch64-linux` | Exposed; Rio packages are build-tested on a real GitHub macOS runner, while Rio-free variants await hosted evidence |
 | Home Manager module | Activation closure build-tested on `x86_64-linux` | Activation closure build-tested on a real GitHub macOS runner |
 | `enter` with managed Zellij and Yazi plus the selected editor | Contract-tested and used interactively with managed Helix; host-editor delegation is contract-tested | Packaged, with interactive workflow unverified |
 | Full-package `launch` through Rio | Contract-tested and used interactively | Package build-tested, with Rio GUI unverified |
 | Host editor delegation | Contract-tested with the selected host editor remaining host-owned | Packaged, with interactive delegation unverified |
-| Desktop entry | Every package | None, as asserted by the macOS package and Home Manager builds |
+| Desktop entry | Packages that include Rio | None, as asserted by the macOS package and Home Manager builds |
 
 `x86_64-darwin` remains an exposed, evaluated flake output rather than a
 build-tested target. The current label is **build-tested on macOS, with

@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Four composable `no-rio` package variants restore a terminal-free runtime.
+  They omit Rio and its terminal-only closure, native config, icon, desktop
+  entry, and Ratconfig surface. `yzx enter` remains fully managed in the host
+  terminal; `yzx launch` exits with a direct instruction to use `enter`.
 - Nova uses upstream Zellij `v0.45.0` as the exact fork base and packages Yazi
   26.8.15. Yazi's released Zellij adapter uses native direct Kitty placements,
   so the fork removes its Unicode-placeholder translator while retaining its

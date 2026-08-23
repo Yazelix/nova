@@ -74,7 +74,7 @@ pub(crate) fn print_doctor() -> Result<(), AppError> {
         println!("warn yazi compatibility: {warning}");
     }
     doctor_ok("zellij", ZELLIJ);
-    doctor_ok("rio", RIO);
+    doctor_ok("rio", if RIO.is_empty() { "not included" } else { RIO });
     doctor_ok("yazi opener", YZX_YAZI);
     doctor_ok(
         "pane orchestrator plugin",
@@ -144,7 +144,9 @@ fn check_doctor_inputs() -> Result<(), AppError> {
     ] {
         require_file(label, path)?;
     }
-    require_file("Rio", Path::new(RIO))?;
+    if !RIO.is_empty() {
+        require_file("Rio", Path::new(RIO))?;
+    }
 
     Ok(())
 }

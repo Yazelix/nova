@@ -198,9 +198,9 @@ fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
 }
 
 fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
-    let program = if graphical { RIO } else { YZX_WELCOME };
+    let program = managed_program(graphical)?;
     let runtime = Runtime::prepare_new_session_with_yazi()?;
-    let live_appearance = project_rio_appearance(&runtime)?;
+    let live_appearance = !RIO.is_empty() && project_rio_appearance(&runtime)?;
     let mut command = Command::new(program);
     if graphical {
         apply_rio_launch_appearance(&mut command, &runtime.appearance_mode, live_appearance);
@@ -237,6 +237,16 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
         },
     );
     exec(command, program)
+}
+
+fn managed_program(graphical: bool) -> Result<&'static str, AppError> {
+    match (graphical, RIO.is_empty()) {
+        (true, true) => Err(AppError::Usage(
+            "yzx launch is unavailable because this package omits Rio; use yzx enter or select a package that includes Rio\n".to_string(),
+        )),
+        (true, false) => Ok(RIO),
+        (false, _) => Ok(YZX_WELCOME),
+    }
 }
 
 fn project_rio_appearance(runtime: &Runtime) -> Result<bool, AppError> {
