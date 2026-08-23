@@ -2,6 +2,14 @@
 
 User-visible runtime changes for Yazelix Nova live here.
 
+## Unreleased
+
+- Nova uses upstream Zellij `v0.45.0` as the exact fork base and packages Yazi
+  26.8.15. Yazi's released Zellij adapter uses native direct Kitty placements,
+  so the fork removes its Unicode-placeholder translator while retaining its
+  five independent appearance, status-hint, permission-cache, stack-order, and
+  disconnected-client behaviors.
+
 ## 1.1.0
 
 - Runtime identity excludes flake transport metadata, so identical source

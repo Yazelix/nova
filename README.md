@@ -333,7 +333,7 @@ Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Yazi tab consumes the native presets and official schemas paired with the
 packaged Yazi version. Overview recommends ten common manager, preview, and
-flavor controls. All exposes 204 base settings plus the five exact native-file
+flavor controls. All exposes 205 base settings plus the five exact native-file
 actions; search includes schema settings absent from both packaged and user
 TOML. Owner-validated booleans, choices, and unconstrained strings are editable.
 Numeric, structured, dynamic, and otherwise incompletely validated values open
@@ -435,9 +435,8 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **26,131 lines** of tracked text project files. The
+Yazelix owns **26,169 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,374 lines below the pre-Rio fork surface. The current increase
-records coherent live/read-only appearance and rollback behavior, additive
-Linux Vulkan discovery, and transport-independent package identity.
+This remains 1,336 lines below the pre-Rio fork surface. The current increase
+also records the exact Zellij v0.45.0 fork boundary and Yazi 26.8.15 runtime.

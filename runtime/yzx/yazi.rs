@@ -181,38 +181,38 @@ mod tests {
     #[test]
     fn parses_upstream_and_distribution_version_output() {
         assert_eq!(
-            parse_version("yazi", "Yazi 26.5.6 (Nixpkgs 2026-05-05)"),
-            Some("26.5.6".into())
+            parse_version("yazi", "Yazi 26.8.15 (Nixpkgs 2026-08-15)"),
+            Some("26.8.15".into())
         );
-        assert_eq!(parse_version("ya", "Ya v26.5.6"), Some("26.5.6".into()));
+        assert_eq!(parse_version("ya", "Ya v26.8.15"), Some("26.8.15".into()));
         assert_eq!(
             parse_version(
                 "yazi",
-                "Yazi\n    Version: 26.5.6 (9accf92 2026-07-21)\n    Debug  : false"
+                "Yazi\n    Version: 26.8.15 (1f3588d 2026-08-15)\n    Debug  : false"
             ),
-            Some("26.5.6".into())
+            Some("26.8.15".into())
         );
         assert_eq!(
             parse_version(
                 "ya",
-                "Ya\n    Version: 26.5.6 (9accf92 2026-07-21)\n    Debug  : false"
+                "Ya\n    Version: 26.8.15 (1f3588d 2026-08-15)\n    Debug  : false"
             ),
-            Some("26.5.6".into())
+            Some("26.8.15".into())
         );
-        assert_eq!(parse_version("ya", "Yazi 26.5.6"), None);
-        assert_eq!(parse_version("ya", "Yazi\n    Version: 26.5.6"), None);
+        assert_eq!(parse_version("ya", "Yazi 26.8.15"), None);
+        assert_eq!(parse_version("ya", "Yazi\n    Version: 26.8.15"), None);
         assert_eq!(parse_version("yazi", "Yazi unknown"), None);
     }
 
     #[test]
     fn rejects_mixed_pairs_and_warns_for_matching_untested_pairs() {
-        assert_eq!(validate_versions("26.5.6", "26.5.6", "26.5.6"), Ok(None));
-        let error = validate_versions("26.6.1", "26.5.6", "26.5.6").unwrap_err();
+        assert_eq!(validate_versions("26.8.15", "26.8.15", "26.8.15"), Ok(None));
+        let error = validate_versions("26.9.1", "26.8.15", "26.8.15").unwrap_err();
         assert!(error.contains("exactly matching pair"), "{error}");
         assert_eq!(
-            validate_versions("26.6.1", "26.6.1", "26.5.6"),
+            validate_versions("26.9.1", "26.9.1", "26.8.15"),
             Ok(Some(
-                "host yazi/ya 26.6.1 differs from Nova's tested 26.5.6; continuing with the host pair"
+                "host yazi/ya 26.9.1 differs from Nova's tested 26.8.15; continuing with the host pair"
                     .into()
             ))
         );

@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/bbccdea6eda81f314151160f9b3f8882a26478ec";
+      url = "git+file:///home/lucca/pjs/yazelix-dir/nova-zellij?rev=b9637022eaddb22855dc9914a0cc06762a124b8c";
       flake = false;
     };
     yazelixHelix = {
@@ -99,6 +99,33 @@
         src = ./crates/yzx-yazi-config;
         cargoLock.lockFile = ./crates/yzx-yazi-config/Cargo.lock;
       };
+    pkgsFor = system:
+      import nixpkgs {
+        inherit system;
+        overlays = [
+          (final: prev: {
+            yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (finalAttrs: previousAttrs: {
+              version = "26.8.15";
+              env = previousAttrs.env // {VERGEN_BUILD_DATE = "2026-08-15";};
+              passthru = previousAttrs.passthru // {
+                srcs = previousAttrs.passthru.srcs // {
+                  code_src = final.fetchFromGitHub {
+                    owner = "sxyazi";
+                    repo = "yazi";
+                    tag = "v${finalAttrs.version}";
+                    hash = "sha256-/BD8rpnje3sIQjQe6fSYJY8u9ypJmUPrX9rNnDS86Ns=";
+                  };
+                };
+              };
+              cargoDeps = final.rustPlatform.fetchCargoVendor {
+                inherit (finalAttrs) pname version srcs sourceRoot;
+                hash = "sha256-YV986OaXk7+0jw0DnD/ydKJTmO0pOGjkVyq6OR3nTOE=";
+              };
+            });
+            yazi = prev.yazi.override {yazi-unwrapped = final.yazi-unwrapped;};
+          })
+        ];
+      };
     rioPackageFor = pkgs: let
       rioPackage = rio.packages.${pkgs.stdenv.hostPlatform.system}.rio.overrideAttrs (_: {
         CARGO_BUILD_JOBS = "1";
@@ -125,7 +152,7 @@
     homeManagerModules.default = homeManagerModule;
 
     packages = eachSystem (system: let
-      pkgs = import nixpkgs {inherit system;};
+      pkgs = pkgsFor system;
       rustBin = rustBinFor pkgs;
       rioPackage = rioPackageFor pkgs;
       yzxRioToml = pkgs.replaceVars ./defaults/rio/config.toml {
@@ -480,7 +507,7 @@
         opener = "YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij ${yzxOpenCore}/bin/yzx-open";
       };
       yzxYaziConfig =
-        assert pkgs.yazi-unwrapped.version == "26.5.6";
+        assert pkgs.yazi-unwrapped.version == "26.8.15";
           pkgs.runCommand "yzx-yazi-config" {} ''
         install -D -m 644 ${./defaults/yazi/init.lua} "$out/init.lua"
         install -D -m 644 ${./defaults/yazi/keymap.toml} "$out/keymap.toml"
@@ -546,7 +573,7 @@
           pname = "zellij";
           version = "0.45.0";
           src = yazelixZellij;
-          hash = "sha256-9vpdDkr4zxS2NJu3/ZUvBGqs9VLlJLJSP2Bw88E1mdA=";
+          hash = "sha256-ZwxoqdZ73/HvdkdNWOKW3Av6htI/vCFcJ0zVpSL1SuU=";
         };
         doCheck = false;
       });
@@ -851,7 +878,7 @@
     });
 
     checks = eachSystem (system: let
-      pkgs = import nixpkgs {inherit system;};
+      pkgs = pkgsFor system;
       yzx = self.packages.${system}.yazelix;
       yzxMain = self.packages.${system}.yazelix-main;
       yzxEdge = self.packages.${system}.yazelix-edge;
@@ -1020,7 +1047,7 @@
         rg -a -q 'tab_activity_pipe_name' ${novaBarPackage}/${novaBarPackage.wasmPath}
         touch "$out"
       '';
-      home_manager = pkgs.runCommand "yzx-home-manager-check" {} ''
+      home_manager = pkgs.runCommand "yzx-home-manager-check" {nativeBuildInputs = [pkgs.util-linux];} ''
         default_path="${homeManagerDefault.activationPackage}/home-path"
         override_path="${homeManagerOverride.activationPackage}/home-path"
         no_yazi_path="${homeManagerNoYazi.activationPackage}/home-path"
@@ -1099,7 +1126,7 @@
         esac
         hm_yazi_runtime="$(${yzxYaziMaterializer}/bin/yzx-yazi-config ${yzx}/share/yazelix/yazi "$config_files/yazi" "$TMPDIR/hm-yazi-state" dark)"
         grep -Fqx 'format = "$directory$git_branch"' "$hm_yazi_runtime/yazelix_starship.toml"
-        YAZI_CONFIG_HOME="$hm_yazi_runtime" ${pkgs.yazi}/bin/yazi --debug > hm-yazi-debug
+        YAZI_CONFIG_HOME="$hm_yazi_runtime" script -qec '${pkgs.yazi}/bin/ya env' /dev/null > hm-yazi-debug
         grep -q 'Dark/light flavor:.*example' hm-yazi-debug
 
         test "$(readlink -f "$shared_config_files/starship.toml")" = \
@@ -1133,12 +1160,16 @@
         grep -q "ok config home: $runtime_config" doctor
         grep -q 'ok shell.program: fish' doctor
         grep -q 'Yazelix Nova tutor lessons' tutor-list
-        grep -q '^Ya ' ya-version
+        grep -qx 'Ya' ya-version
         touch "$out"
       '';
-      yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
+      yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc pkgs.util-linux];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
+
+        yazi_env() {
+          YZX_YAZI_STARSHIP_CONFIG="$1/yazelix_starship.toml" YAZI_CONFIG_HOME="$1" script -qec '${pkgs.yazi}/bin/ya env' /dev/null > "$2"
+        }
 
         user="$TMPDIR/yazi-user"
         state="$TMPDIR/yazi-state"
@@ -1149,7 +1180,7 @@
         printf '%s\n' '[[mgr.prepend_keymap]]' 'on = "l"' 'run = "plugin smart-enter"' > "$user/keymap.toml"
 
         runtime="$(${yzxYaziMaterializer}/bin/yzx-yazi-config ${yzx}/share/yazelix/yazi "$user" "$state" dark)"
-        YZX_YAZI_STARSHIP_CONFIG="$runtime/yazelix_starship.toml" YAZI_CONFIG_HOME="$runtime" ${pkgs.yazi}/bin/yazi --debug > yazi-debug
+        yazi_env "$runtime" yazi-debug
         test -f "$runtime/plugins/smart-enter.yazi/main.lua"
         test -f "$runtime/plugins/starship.yazi/user-managed"
         grep -q 'require("smart-enter")' "$runtime/init.lua"
@@ -1159,7 +1190,7 @@
         light_runtime="$(${yzxYaziMaterializer}/bin/yzx-yazi-config ${yzx}/share/yazelix/yazi "$TMPDIR/no-yazi-user" "$TMPDIR/light-state" light)"
         grep -Fqx 'dark = "${yaziBistro.lib.defaultLight}"' "$light_runtime/theme.toml"
         grep -Fqx 'light = "${yaziBistro.lib.defaultLight}"' "$light_runtime/theme.toml"
-        YAZI_CONFIG_HOME="$light_runtime" ${pkgs.yazi}/bin/yazi --debug > light-yazi-debug
+        yazi_env "$light_runtime" light-yazi-debug
         grep -q 'Dark/light flavor:.*${yaziBistro.lib.defaultLight}' light-yazi-debug
 
         for flavor_path in ${yzx}/share/yazelix/yazi/flavors/*.yazi; do
@@ -1169,7 +1200,7 @@
           mkdir -p "$flavor_user"
           printf '[flavor]\ndark = "%s"\nlight = "%s"\n' "$flavor" "$flavor" > "$flavor_user/theme.toml"
           flavor_runtime="$(${yzxYaziMaterializer}/bin/yzx-yazi-config ${yzx}/share/yazelix/yazi "$flavor_user" "$TMPDIR/state-$flavor" dark)"
-          YAZI_CONFIG_HOME="$flavor_runtime" ${pkgs.yazi}/bin/yazi --debug > "debug-$flavor"
+          yazi_env "$flavor_runtime" "debug-$flavor"
           grep -q "Dark/light flavor:.*$flavor" "debug-$flavor"
           test -f "$flavor_runtime/flavors/$flavor_dir/flavor.toml"
           test -f "$flavor_runtime/flavors/$flavor_dir/tmtheme.xml"

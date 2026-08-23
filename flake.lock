@@ -592,18 +592,18 @@
     "yazelixZellij": {
       "flake": false,
       "locked": {
-        "lastModified": 1786074163,
-        "narHash": "sha256-TYdcCOD/+haJ8xFqQ7UD4ixc4dyH3Q2zruzZrb6ZwiA=",
-        "owner": "Yazelix",
-        "repo": "nova-zellij",
-        "rev": "bbccdea6eda81f314151160f9b3f8882a26478ec",
-        "type": "github"
+        "lastModified": 1787456260,
+        "narHash": "sha256-3MgrLphNXAmkJQSErVxsRoFAdmcfsyv1VcvTXwHKI0E=",
+        "ref": "refs/heads/candidate/v0.45.0",
+        "rev": "b9637022eaddb22855dc9914a0cc06762a124b8c",
+        "revCount": 3342,
+        "type": "git",
+        "url": "file:///home/lucca/pjs/yazelix-dir/nova-zellij"
       },
       "original": {
-        "owner": "Yazelix",
-        "repo": "nova-zellij",
-        "rev": "bbccdea6eda81f314151160f9b3f8882a26478ec",
-        "type": "github"
+        "rev": "b9637022eaddb22855dc9914a0cc06762a124b8c",
+        "type": "git",
+        "url": "file:///home/lucca/pjs/yazelix-dir/nova-zellij"
       }
     },
     "yazelixZellijPaneOrchestrator": {

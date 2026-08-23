@@ -2516,7 +2516,7 @@ mod tests {
                     )
                 })
                 .count(),
-            204
+            205
         );
         for (source_id, schema_name) in [
             (SOURCE_YAZI_CONFIG, "yazi-schema.json"),

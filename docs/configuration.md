@@ -184,7 +184,7 @@ ids that do not exist are not invented; open `config.toml` to add them
 | `helix/init.scm` | Helix Steel | Loaded with `helix/helix.scm` when the pair exists |
 | `nu/env.nu` | Nushell | Executable source loaded after packaged Yazelix `env.nu` |
 | `nu/config.nu` | Nushell | Executable source loaded after packaged Yazelix `config.nu` and any successful host `mise activate nu` output, before the optional managed Atuin default |
-| `yazi/yazi.toml` | Yazi | Native tables merge recursively, while user scalars and arrays replace packaged values. Ratconfig joins the official schema paired with packaged Yazi 26.5.6 to its native preset and the sparse user file. Overview recommends eight manager and preview controls; All exposes 95 finite or preset-observed base rows |
+| `yazi/yazi.toml` | Yazi | Native tables merge recursively, while user scalars and arrays replace packaged values. Ratconfig joins the pinned official schema to the packaged Yazi preset and the sparse user file. Overview recommends eight manager and preview controls; All exposes 95 finite or preset-observed base rows |
 | `yazi/init.lua` | Yazi | Appended after packaged Yazi init |
 | `yazi/keymap.toml` | Yazi | Appended after packaged Yazi keymap |
 | `yazi/starship.toml` | Yazi Starship | Complete replacement for Nova's packaged compact Starship header config |
@@ -251,7 +251,7 @@ keeps Nova's packaged header even when the managed shell uses `starship`.
 Ratconfig's Yazi tab reads the sparse user `yazi.toml` against Nova's packaged
 layer and reads native `theme.toml` against the dark or light Yazi preset
 selected by the active session appearance. The version-paired official schemas add
-known settings absent from both documents, so All exposes 204 base settings and
+known settings absent from both documents, so All exposes 205 base settings and
 search spans the complete finite catalog. Overview recommends manager layout,
 sorting, line mode, visibility, preview wrapping, and the two flavor choices;
 explicit or invalid advanced settings remain visible there too
