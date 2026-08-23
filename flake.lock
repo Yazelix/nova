@@ -22,16 +22,16 @@
       "locked": {
         "lastModified": 1787462116,
         "narHash": "sha256-Y0Gf4enHkcj7F+ePhk/WK75+WycyecZIpHK9ihz2fdY=",
-        "ref": "refs/heads/candidate/yazi-v26.8.15",
+        "owner": "Yazelix",
+        "repo": "auto-layout.yazi",
         "rev": "6c4be74524e821e7a06aeb2f4d85a031c468def0",
-        "revCount": 10,
-        "type": "git",
-        "url": "file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi"
+        "type": "github"
       },
       "original": {
+        "owner": "Yazelix",
+        "repo": "auto-layout.yazi",
         "rev": "6c4be74524e821e7a06aeb2f4d85a031c468def0",
-        "type": "git",
-        "url": "file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi"
+        "type": "github"
       }
     },
     "crane": {
@@ -614,16 +614,16 @@
       "locked": {
         "lastModified": 1787456260,
         "narHash": "sha256-3MgrLphNXAmkJQSErVxsRoFAdmcfsyv1VcvTXwHKI0E=",
-        "ref": "refs/heads/candidate/v0.45.0",
+        "owner": "Yazelix",
+        "repo": "nova-zellij",
         "rev": "b9637022eaddb22855dc9914a0cc06762a124b8c",
-        "revCount": 3342,
-        "type": "git",
-        "url": "file:///home/lucca/pjs/yazelix-dir/nova-zellij"
+        "type": "github"
       },
       "original": {
+        "owner": "Yazelix",
+        "repo": "nova-zellij",
         "rev": "b9637022eaddb22855dc9914a0cc06762a124b8c",
-        "type": "git",
-        "url": "file:///home/lucca/pjs/yazelix-dir/nova-zellij"
+        "type": "github"
       }
     },
     "yazelixZellijPaneOrchestrator": {

@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "git+file:///home/lucca/pjs/yazelix-dir/nova-zellij?rev=b9637022eaddb22855dc9914a0cc06762a124b8c";
+      url = "github:Yazelix/nova-zellij/b9637022eaddb22855dc9914a0cc06762a124b8c";
       flake = false;
     };
     yazelixHelix = {
@@ -44,7 +44,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     autoLayoutYazi = {
-      url = "git+file:///home/lucca/pjs/yazelix-dir/auto-layout.yazi?rev=6c4be74524e821e7a06aeb2f4d85a031c468def0";
+      url = "github:Yazelix/auto-layout.yazi/6c4be74524e821e7a06aeb2f4d85a031c468def0";
       flake = false;
     };
     starshipYazi = {
