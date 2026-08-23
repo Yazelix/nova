@@ -206,6 +206,23 @@
         "type": "github"
       }
     },
+    "gitYazi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787402219,
+        "narHash": "sha256-16QrkNkTMVfmjVqnIYsCGlw6jBDstPhOTnuWgyL+i9s=",
+        "owner": "yazi-rs",
+        "repo": "plugins",
+        "rev": "72f9e3c007956c122d8657f6d39c78e7585a4718",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yazi-rs",
+        "repo": "plugins",
+        "rev": "72f9e3c007956c122d8657f6d39c78e7585a4718",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -324,6 +341,7 @@
     "root": {
       "inputs": {
         "autoLayoutYazi": "autoLayoutYazi",
+        "gitYazi": "gitYazi",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "novaBar": "novaBar",

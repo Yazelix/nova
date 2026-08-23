@@ -51,6 +51,10 @@
       url = "github:Rolv-Apneseth/starship.yazi/ea92cf49380466f07231c952b409831e6afd2156";
       flake = false;
     };
+    gitYazi = {
+      url = "github:yazi-rs/plugins/72f9e3c007956c122d8657f6d39c78e7585a4718";
+      flake = false;
+    };
     yaziBistro = {
       url = "github:Yazelix/yazi-bistro";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -78,6 +82,7 @@
     yazelixScreen,
     autoLayoutYazi,
     starshipYazi,
+    gitYazi,
     yaziBistro,
     yaziSchemas,
     zjstatus,
@@ -524,7 +529,7 @@
         install -D -m 644 ${./defaults/yazi/plugins/sidebar-status.yazi/main.lua} "$out/plugins/sidebar-status.yazi/main.lua"
         install -D -m 644 ${./defaults/yazi/plugins/zoxide-editor.yazi/main.lua} "$out/plugins/zoxide-editor.yazi/main.lua"
         ln -s ${autoLayoutYazi} "$out/plugins/auto-layout.yazi"
-        ln -s ${pkgs.yaziPlugins.git} "$out/plugins/git.yazi"
+        ln -s ${gitYazi}/git.yazi "$out/plugins/git.yazi"
         ln -s ${starshipYazi} "$out/plugins/starship.yazi"
         ln -s ${yaziBistroPackage}/share/yazi-flavors/catalog.toml "$out/catalog.toml"
         ln -s ${yaziBistroPackage}/share/yazi-flavors/flavors "$out/flavors"
