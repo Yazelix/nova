@@ -53,6 +53,7 @@ jobs:
             .#checks.x86_64-linux.host_yazi_contracts \
             .#checks.x86_64-linux.key_reference_parity \
             .#checks.x86_64-linux.rio_contracts \
+            .#checks.x86_64-linux.no_rio_contracts \
             .#checks.x86_64-linux.no_helix_contracts
 
       - name: Smoke installed yzx commands

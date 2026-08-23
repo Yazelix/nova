@@ -58,4 +58,5 @@ jobs:
             .#checks.x86_64-linux.yzx_yazi_materialization \
             .#checks.x86_64-linux.yzx_launcher_unit \
             .#checks.x86_64-linux.rio_contracts \
+            .#checks.x86_64-linux.no_rio_contracts \
             .#checks.x86_64-linux.zellij_sidecar_guard_parity
