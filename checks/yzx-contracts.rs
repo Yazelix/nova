@@ -581,8 +581,6 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     let custom_popup_config = custom_popup.zellij_file("config.kdl");
     expect_popup_defaults(&custom_popup_config, "2", "1", "custom popup status config");
-    assert_eq!(custom_popup_config.matches("width_percent 100").count(), 6);
-    assert_eq!(custom_popup_config.matches("height_percent 100").count(), 6);
     assert_eq!(custom_popup_config.matches("side_margin 2").count(), 1);
     assert_eq!(custom_popup_config.matches("vertical_margin 1").count(), 1);
 
@@ -600,7 +598,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains(
         &custom_agent_config,
         &format!(
-            "agent {{\n                command \"{}\"\n                arg_1 \"codex\"\n                arg_2 \"resume\"\n                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n                pane_title \"agent_popup\"\n                width_percent 100\n                height_percent 100\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
+            "agent {{\n                command \"{}\"\n                arg_1 \"codex\"\n                arg_2 \"resume\"\n                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n                pane_title \"agent_popup\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
             agent_launcher.display(),
         ),
         "custom agent config",
@@ -620,7 +618,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let custom_popup_spec = custom_popup_spec_case.zellij_file("config.kdl");
     expect_contains(
         &custom_popup_spec,
-        "btm {\n                command \"btm\"\n                arg_1 \"--basic\"\n                pane_title \"btm_popup\"\n                command_marker \"btm_popup\"\n                width_percent 100\n                height_percent 100\n                toggle_close_behavior \"hide\"\n            }",
+        "btm {\n                command \"btm\"\n                arg_1 \"--basic\"\n                pane_title \"btm_popup\"\n                command_marker \"btm_popup\"\n                toggle_close_behavior \"hide\"\n            }",
         "custom popup spec config",
     );
     expect_popup_binding(
@@ -629,8 +627,6 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "btm",
         "custom popup spec config",
     );
-    assert_eq!(custom_popup_spec.matches("width_percent 100").count(), 7);
-    assert_eq!(custom_popup_spec.matches("height_percent 100").count(), 7);
     assert_eq!(custom_popup_spec.matches("side_margin 2").count(), 1);
     assert_eq!(custom_popup_spec.matches("vertical_margin 1").count(), 1);
 
@@ -2028,12 +2024,12 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "yazi",
             "yazi_popup",
             "/bin/yzx-yazi",
-            "\n                arg_1 \"--yzx-workspace-popup\"\n                toggle_close_behavior \"hide\"",
+            "\n                arg_1 \"--yzx-workspace-popup\"\n                toggle_close_behavior \"hide\"\n                preserve_on_cwd_change true",
         ),
     ] {
         let command = popup_command(config, command_suffix);
         let expected = format!(
-            "{id} {{\n                command \"{}\"\n                pane_title \"{pane_title}\"\n                width_percent 100\n                height_percent 100{extra}\n            }}",
+            "{id} {{\n                command \"{}\"\n                pane_title \"{pane_title}\"{extra}\n            }}",
             command.display()
         );
         assert!(
@@ -2041,8 +2037,10 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "config.kdl is missing {id} popup block\n{expected}",
         );
     }
-    assert_eq!(config.matches("width_percent 100").count(), 6);
-    assert_eq!(config.matches("height_percent 100").count(), 6);
+    assert!(
+        !config.contains("width_percent") && !config.contains("height_percent"),
+        "packaged popup config must not use removed percentage fields",
+    );
     assert_eq!(config.matches("side_margin 1").count(), 1);
     assert_eq!(config.matches("vertical_margin 0").count(), 1);
     for (key, payload) in [

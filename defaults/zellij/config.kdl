@@ -24,16 +24,12 @@ plugins {
             config {
                 command "@yzxConfig@"
                 pane_title "config_popup"
-                width_percent 100
-                height_percent 100
                 toggle_close_behavior "hide"
             }
 
             agent {
                 command "@yzxAgent@"
                 pane_title "agent_popup"
-                width_percent 100
-                height_percent 100
                 preserve_terminal_title true
                 toggle_close_behavior "hide"
             }
@@ -41,32 +37,25 @@ plugins {
             git {
                 command "@git@"
                 pane_title "git_popup"
-                width_percent 100
-                height_percent 100
             }
 
             menu {
                 command "@yzxMenu@"
                 pane_title "menu_popup"
-                width_percent 100
-                height_percent 100
             }
 
             screen {
                 command "@yzxScreen@"
                 pane_title "screen_popup"
-                width_percent 100
-                height_percent 100
                 arg_1 "random"
             }
 
             yazi {
                 command "@yzxYazi@"
                 pane_title "yazi_popup"
-                width_percent 100
-                height_percent 100
                 arg_1 "--yzx-workspace-popup"
                 toggle_close_behavior "hide"
+                preserve_on_cwd_change true
             }
         }
     }

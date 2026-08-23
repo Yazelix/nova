@@ -199,11 +199,10 @@ arguments in `agent.args`, not in `agent.command`.
 
 `Alt Shift Y` asks the pane orchestrator to toggle the packaged `yazi` popup
 with the active tab's canonical workspace root as its explicit request cwd.
-The popup uses `toggle_close_behavior "hide"`, so the popup plugin preserves
-the live Yazi process and navigation state while that requested root still
-matches. It remembers the launch root separately from Yazi's changing process
-cwd. If the canonical root changes, the next ordinary toggle closes the stale
-process and launches a fresh one at the new root. `yzx reveal` sends one
+The popup uses `toggle_close_behavior "hide"` and
+`preserve_on_cwd_change true`, so ordinary toggles only hide or show the same
+live Yazi process. Yazi remains the sole owner of its navigation state even if
+its process cwd or the canonical tab root changes. `yzx reveal` sends one
 configured `replace` request to the popup owner with the absolute target as a
 launch argument. Yazi reveals that target during normal startup, so reveal does
 not wait for or address a partially started process. This deliberately resets

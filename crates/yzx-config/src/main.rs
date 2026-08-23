@@ -1049,8 +1049,6 @@ mod tests {
                 "                arg_2 \"--battery\"\n",
                 "                pane_title \"btm_popup\"\n",
                 "                command_marker \"btm_popup\"\n",
-                "                width_percent 100\n",
-                "                height_percent 100\n",
                 "                toggle_close_behavior \"hide\"\n",
                 "            }\n",
             )
@@ -1096,8 +1094,6 @@ mod tests {
                     "                arg_2 \"resume\"\n",
                     "                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n",
                     "                pane_title \"agent_popup\"\n",
-                    "                width_percent 100\n",
-                    "                height_percent 100\n",
                     "                preserve_terminal_title true\n",
                     "                toggle_close_behavior \"hide\"\n",
                     "            }}",

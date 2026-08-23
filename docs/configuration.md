@@ -133,11 +133,11 @@ popup role keys:
 
 `Alt Shift Y` is the fixed packaged key for the full managed Yazi popup. It is
 not a root setting. The popup opens at the active tab's canonical workspace
-root and hides on toggle, preserving its live Yazi navigation state while that
-root remains unchanged. It uses the same layered Yazi configuration and editor
-opener as the sidebar without registering as the sidebar. `yzx reveal` replaces
-the popup process and starts Yazi at the requested target; ordinary toggles keep
-the existing process alive.
+root and hides on toggle. Ordinary toggles preserve the same live Yazi process
+and its navigation even if the tab root later changes. It uses the same layered
+Yazi configuration and editor opener as the sidebar without registering as the
+sidebar. `yzx reveal` replaces the popup process and starts Yazi at the
+requested target.
 
 `agent.command` accepts one executable name or path, not a shell command with
 arguments. Keep `agent.command = "auto"` to use the built-in `codex resume`,

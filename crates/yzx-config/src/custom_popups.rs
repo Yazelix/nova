@@ -38,7 +38,7 @@ pub(crate) fn read_custom_popups_kdl(path: &Path) -> Result<String> {
             ));
         }
         text.push_str(&format!(
-            "                pane_title {}\n                command_marker {}\n                width_percent 100\n                height_percent 100\n",
+            "                pane_title {}\n                command_marker {}\n",
             kdl_string(&popup.title),
             kdl_string(&popup.title),
         ));
