@@ -4,9 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
-- Linux launches fall back to Nova's packaged Mesa Vulkan manifests when the
-  environment does not select a driver, so the desktop entry can reach Rio
-  without overriding an explicit `VK_ICD_FILENAMES` value.
+- Linux launches add Nova's packaged Mesa Vulkan manifests to standard driver
+  discovery, so the desktop entry can reach Rio without replacing system
+  drivers or user-provided Vulkan manifest settings.
 - Nova launches the exact pinned `Yazelix/nova-rio` revision instead of Mars
   and removes Yazelix Cursors plus the four `no-mars` package variants. Rio's
   complete native `rio/config.toml` is seeded once with Nova's window, font,

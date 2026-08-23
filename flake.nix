@@ -117,10 +117,8 @@
           nativeBuildInputs = [pkgs.makeWrapper];
           postBuild = ''
             rm "$out/bin/rio"
-            vulkan_icds="$(printf '%s:' ${pkgs.mesa}/share/vulkan/icd.d/*.json)"
-            vulkan_icds="''${vulkan_icds%:}"
             makeWrapper "${rioPackage}/bin/rio" "$out/bin/rio" \
-              --run 'if [ -z "''${VK_ICD_FILENAMES:-}" ]; then export VK_ICD_FILENAMES='"$vulkan_icds"'; fi'
+              --set-default VK_ADD_DRIVER_FILES "${pkgs.mesa}/share/vulkan/icd.d"
           '';
         };
   in {
@@ -1284,6 +1282,7 @@
       '';
       rio_contracts = pkgs.runCommand "yzx-rio-contracts" {} ''
         grep -Fx ${rioPackage} ${yzxClosure}/store-paths
+        ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "grep -Fx ${pkgs.mesa} ${yzxClosure}/store-paths && grep -Fq VK_ADD_DRIVER_FILES ${rioPackage}/bin/rio && ! grep -Fq VK_ICD_FILENAMES ${rioPackage}/bin/rio"}
         ! grep -E '/[0-9a-z]{32}-(mars|yazelix[-_]cursors)(-|$)' ${yzxClosure}/store-paths
         ${rioPackage}/bin/rio --help | grep -F -- '--theme-mode <THEME_MODE>'
         test -x ${yzx}/bin/yzx

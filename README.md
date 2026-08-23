@@ -435,9 +435,9 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **26,131 lines** of tracked text project files. The
+Yazelix owns **26,130 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,374 lines below the pre-Rio fork surface. The current increase
+This remains 1,375 lines below the pre-Rio fork surface. The current increase
 records the coherent live/read-only appearance contract, its rollback and
-session behavior, and reliable packaged Vulkan discovery on Linux.
+session behavior, and additive packaged Vulkan discovery on Linux.
