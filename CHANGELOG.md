@@ -4,6 +4,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## 1.1.0
 
+- Runtime identity excludes flake transport metadata, so identical source
+  content substitutes across Git and plain-path inputs.
 - Linux launches add Nova's packaged Mesa Vulkan manifests to standard driver
   discovery, so the desktop entry can reach Rio without replacing system
   drivers or user-provided Vulkan manifest settings.

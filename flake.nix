@@ -566,7 +566,6 @@
           name = "Yazelix Nova";
           version = novaVersion;
           inherit channel;
-          revision = self.rev or (self.dirtyRev or "dirty");
           rio_revision = rio.rev;
         });
         barRenderRequest = import ./packaging/bar-render-request.nix {
@@ -1256,7 +1255,7 @@
           identity="$package/share/yazelix/runtime_identity.json"
 
           ${pkgs.jq}/bin/jq -e --arg channel "$channel" --arg version '${novaVersion}' \
-            '.channel == $channel and .version == $version' "$identity" >/dev/null
+            '.channel == $channel and .version == $version and (has("revision") | not)' "$identity" >/dev/null
           badge="$(${novaBarPackage}/${novaBarPackage.widgetPath} version --runtime-dir "$package/share/yazelix")"
           test "''${badge#NOVA }" != "$badge"
           test "''${badge##* }" = "''${channel^^}"
