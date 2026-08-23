@@ -99,21 +99,37 @@
         src = ./crates/yzx-yazi-config;
         cargoLock.lockFile = ./crates/yzx-yazi-config/Cargo.lock;
       };
-    rioPackageFor = system:
-      rio.packages.${system}.rio.overrideAttrs (_: {
+    rioPackageFor = pkgs: let
+      rioPackage = rio.packages.${pkgs.stdenv.hostPlatform.system}.rio.overrideAttrs (_: {
         CARGO_BUILD_JOBS = "1";
         CARGO_PROFILE_RELEASE_LTO = "false";
         CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "16";
         CARGO_PROFILE_RELEASE_DEBUG = "0";
         CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO = "off";
       });
+    in
+      if !pkgs.stdenv.hostPlatform.isLinux
+      then rioPackage
+      else
+        pkgs.symlinkJoin {
+          name = "nova-rio";
+          paths = [rioPackage];
+          nativeBuildInputs = [pkgs.makeWrapper];
+          postBuild = ''
+            rm "$out/bin/rio"
+            vulkan_icds="$(printf '%s:' ${pkgs.mesa}/share/vulkan/icd.d/*.json)"
+            vulkan_icds="''${vulkan_icds%:}"
+            makeWrapper "${rioPackage}/bin/rio" "$out/bin/rio" \
+              --run 'if [ -z "''${VK_ICD_FILENAMES:-}" ]; then export VK_ICD_FILENAMES='"$vulkan_icds"'; fi'
+          '';
+        };
   in {
     homeManagerModules.default = homeManagerModule;
 
     packages = eachSystem (system: let
       pkgs = import nixpkgs {inherit system;};
       rustBin = rustBinFor pkgs;
-      rioPackage = rioPackageFor system;
+      rioPackage = rioPackageFor pkgs;
       yzxRioToml = pkgs.replaceVars ./defaults/rio/config.toml {
         jetbrainsMonoDir = "${pkgs.jetbrains-mono}/share/fonts/truetype";
         symbolsNerdDir = "${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols";
@@ -845,7 +861,7 @@
       yzxNoHelix = self.packages.${system}.yazelix-no-helix;
       yzxNoYazi = self.packages.${system}.yazelix-no-yazi;
       yzxNoHelixNoYazi = self.packages.${system}.yazelix-no-helix-no-yazi;
-      rioPackage = rioPackageFor system;
+      rioPackage = rioPackageFor pkgs;
       yzxClosure = pkgs.closureInfo {rootPaths = [yzx];};
       noHelixClosure = pkgs.closureInfo {rootPaths = [yzxNoHelix];};
       noYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoYazi];};
