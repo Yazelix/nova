@@ -14,6 +14,9 @@ an optional coding agent popup. It uses the
 opens the desktop workspace through Rio, while `yzx enter` opens Yazelix in any
 capable terminal emulator or over SSH. Great defaults out of the box!
 
+If Yazelix is useful to you, [support its development on GitHub
+Sponsors](https://github.com/sponsors/luccahuguet).
+
 ## Preview
 
 ![Yazelix Nova workspace](assets/screenshots/nova_workspace.png)
@@ -437,15 +440,12 @@ macOS and Nix packaging reports, including tested local workarounds and proposed
 fixes that hardened Yazelix's Darwin builds, child-repo release flow,
 runtime-tool sourcing, and bundled KGP package behavior.
 
-If Yazelix is useful to you, you can support its development on
-[GitHub Sponsors](https://github.com/sponsors/luccahuguet).
-
 ## LOC Scorecard
 
-Yazelix owns **26,388 lines** of tracked text project files. The
+Yazelix owns **26,389 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,117 lines below the pre-Rio fork surface. The current increase
+This remains 1,116 lines below the pre-Rio fork surface. The current increase
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
 boundary, Yazi 26.8.15 runtime, native Nushell clipboard commands, and the
-Anima mnemonic.
+Anima mnemonic and GitHub's native sponsor surface.
