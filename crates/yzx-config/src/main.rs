@@ -855,10 +855,10 @@ mod tests {
 
         for (field_path, value) in [
             (KEYBINDINGS_CONFIG_PATH, "Alt Shift C"),
+            (KEYBINDINGS_SCREEN_PATH, "Ctrl Shift S"),
             (KEYBINDINGS_AGENT_PATH, "Alt Shift A"),
             (KEYBINDINGS_GIT_PATH, "Alt Shift G"),
             (KEYBINDINGS_MENU_PATH, "Alt Shift U"),
-            (KEYBINDINGS_SCREEN_PATH, "Ctrl Shift S"),
             (KEYBINDINGS_SIDEBAR_PATH, "Ctrl Shift B"),
             (KEYBINDINGS_SIDEBAR_FOCUS_PATH, "Ctrl Shift E"),
         ] {
@@ -1833,10 +1833,10 @@ mod tests {
         );
         assert!(yazi_popup.description.contains("Owner: Yazelix"));
 
-        let screen_popup = key_field(&model, "Alt Shift S");
+        let screen_popup = key_field(&model, "Alt Shift A");
         assert_eq!(
             screen_popup.display_label,
-            "Popups: Alt Shift S - Show a random full-screen visual"
+            "Popups: Alt Shift A - Show a random full-screen visual"
         );
         assert!(screen_popup.description.contains("Owner: Yazelix"));
     }

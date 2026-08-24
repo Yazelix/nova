@@ -4,6 +4,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- New sessions use the mnemonic `Alt Shift A` default for the random Anima
+  visual. Explicit `keybindings.screen` overrides and `false` remain unchanged.
 - Managed Nushell enables its native `clip copy` and `clip paste` commands, so
   pipeline values such as `pwd | clip copy` reach the system clipboard without
   an external clipboard command. The `clc` and `clp` aliases provide concise

@@ -457,7 +457,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "agent keybinding: Alt Shift L",
         "git keybinding: Alt Shift J",
         "menu keybinding: Alt Shift M",
-        "screen keybinding: Alt Shift S",
+        "screen keybinding: Alt Shift A",
         "sidebar keybinding: Alt Shift H",
         "sidebar focus keybinding: Ctrl y",
         "layout: packaged (/nix/store/",
@@ -649,15 +649,15 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
 
     let custom_keys = RuntimeCase::new(&temp.path, "custom-keys");
-    custom_keys.write_default_config("\n[keybindings]\nconfig = \"Alt Shift C\"\nagent = \"Alt Shift A\"\ngit = \"Alt Shift G\"\nmenu = \"Alt Shift U\"\nscreen = \"Ctrl Shift S\"\nsidebar = \"Ctrl Shift B\"\nsidebar_focus = \"Ctrl Shift E\"\n");
+    custom_keys.write_default_config("\n[keybindings]\nconfig = \"Alt Shift C\"\nagent = \"Ctrl Shift A\"\ngit = \"Alt Shift G\"\nmenu = \"Alt Shift U\"\nscreen = \"Alt Shift S\"\nsidebar = \"Ctrl Shift B\"\nsidebar_focus = \"Ctrl Shift E\"\n");
     let status = custom_keys.run_yzx(&yzx_bin, "status", "custom key status");
     expect_contains_all! {
         &status, "custom key status";
         "config keybinding: Alt Shift C",
-        "agent keybinding: Alt Shift A",
+        "agent keybinding: Ctrl Shift A",
         "git keybinding: Alt Shift G",
         "menu keybinding: Alt Shift U",
-        "screen keybinding: Ctrl Shift S",
+        "screen keybinding: Alt Shift S",
         "sidebar keybinding: Ctrl Shift B",
         "sidebar focus keybinding: Ctrl Shift E",
         "zellij config: runtime (",
@@ -665,10 +665,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let custom_key_config = custom_keys.zellij_file("config.kdl");
     for (key, payload, default) in [
         ("Alt Shift C", "config", "Alt Shift K"),
-        ("Alt Shift A", "agent", "Alt Shift L"),
+        ("Ctrl Shift A", "agent", "Alt Shift L"),
         ("Alt Shift G", "git", "Alt Shift J"),
         ("Alt Shift U", "menu", "Alt Shift M"),
-        ("Ctrl Shift S", "screen", "Alt Shift S"),
+        ("Alt Shift S", "screen", "Alt Shift A"),
     ] {
         expect_popup_binding(&custom_key_config, key, payload, "custom key config");
         assert!(
@@ -706,7 +706,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "agent",
         "unmapped key config",
     );
-    for omitted in ["Alt Shift K", "Alt Shift S", "Alt Shift H"] {
+    for omitted in ["Alt Shift K", "Alt Shift A", "Alt Shift H"] {
         assert!(
             !unmapped_key_config.contains(&format!(r#"bind "{omitted}" {{"#)),
             "unmapped key config kept {omitted}"
@@ -860,7 +860,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "ok keybindings.agent: Alt Shift L",
         "ok keybindings.git: Alt Shift J",
         "ok keybindings.menu: Alt Shift M",
-        "ok keybindings.screen: Alt Shift S",
+        "ok keybindings.screen: Alt Shift A",
         "ok keybindings.sidebar: Alt Shift H",
         "ok keybindings.sidebar_focus: Ctrl y",
         "ok tutor helper: /nix/store/",
@@ -1173,7 +1173,7 @@ fn expect_config_ui(yzx: &Path) {
         "agent = \"Alt Shift L\"",
         "git = \"Alt Shift J\"",
         "menu = \"Alt Shift M\"",
-        "screen = \"Alt Shift S\"",
+        "screen = \"Alt Shift A\"",
         "sidebar = \"Alt Shift H\"",
         "sidebar_focus = \"Ctrl y\"",
         "widgets = [\"editor\", \"shell\", \"term\", \"codex_usage\", \"cpu\", \"ram\"]",
@@ -1198,7 +1198,7 @@ fn expect_config_ui(yzx: &Path) {
         ("keybindings.agent", "Alt Shift L"),
         ("keybindings.git", "Alt Shift J"),
         ("keybindings.menu", "Alt Shift M"),
-        ("keybindings.screen", "Alt Shift S"),
+        ("keybindings.screen", "Alt Shift A"),
         ("keybindings.sidebar", "Alt Shift H"),
         ("keybindings.sidebar_focus", "Ctrl y"),
         (
@@ -1935,7 +1935,7 @@ fn expect_keybinds(config: &str) {
         r#"bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }"#,
         r#"bind "Alt l" "Alt Right" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_right_or_tab"; }; }"#,
         r#"bind "Alt Shift F" { ToggleFocusFullscreen; }"#,
-        r#"bind "Alt Shift S" {"#,
+        r#"bind "Alt Shift A" {"#,
         r#"bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
         r#"bind "Ctrl y" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_editor_sidebar_focus"; }; }"#,
         r#"bind "Ctrl Alt g" { SwitchToMode "Locked"; }"#,
@@ -2048,7 +2048,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         ("Alt Shift K", "config"),
         ("Alt Shift L", "agent"),
         ("Alt Shift M", "menu"),
-        ("Alt Shift S", "screen"),
+        ("Alt Shift A", "screen"),
         ("Alt Shift Y", "yazi"),
     ] {
         expect_popup_binding(config, key, payload, "packaged popup config");

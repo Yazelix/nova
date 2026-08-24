@@ -154,7 +154,7 @@ pub(crate) const MANAGED_KEYBINDINGS: &[(&str, &str)] = &[
     (KEYBINDINGS_AGENT_PATH, "Alt Shift L"),
     (KEYBINDINGS_GIT_PATH, "Alt Shift J"),
     (KEYBINDINGS_MENU_PATH, "Alt Shift M"),
-    (KEYBINDINGS_SCREEN_PATH, "Alt Shift S"),
+    (KEYBINDINGS_SCREEN_PATH, "Alt Shift A"),
     (KEYBINDINGS_SIDEBAR_PATH, "Alt Shift H"),
     (KEYBINDINGS_SIDEBAR_FOCUS_PATH, "Ctrl y"),
 ];
@@ -188,7 +188,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Popups"; "Alt Shift K"; "Toggle config popup"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift L"; "Hide or show agent popup"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift M"; "Toggle menu popup"; "Yazelix"; "config.kdl"),
-    key!("Popups"; "Alt Shift S"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
+    key!("Popups"; "Alt Shift A"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift Y"; "Hide or show Yazi popup"; "Yazelix"; "config.kdl"),
     key!("Sidebar"; "Alt Shift H"; "Toggle Yazi sidebar"; "Yazelix"; "config.kdl"),
     key!("File manager"; "Alt z"; "Retarget tab workspace with zoxide"; "Yazi"; "yazi/keymap.toml"),

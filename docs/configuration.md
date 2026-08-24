@@ -129,7 +129,7 @@ popup role keys:
 | `keybindings.agent` | `Alt Shift L` | Overview | Agent popup trigger |
 | `keybindings.git` | `Alt Shift J` | Overview | Git popup trigger |
 | `keybindings.menu` | `Alt Shift M` | Overview | Menu popup trigger |
-| `keybindings.screen` | `Alt Shift S` | Overview | Random full-screen visual trigger |
+| `keybindings.screen` | `Alt Shift A` | Overview | Random full-screen visual trigger |
 
 `Alt Shift Y` is the fixed packaged key for the full managed Yazi popup. It is
 not a root setting. The popup opens at the active tab's canonical workspace

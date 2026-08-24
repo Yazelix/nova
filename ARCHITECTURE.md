@@ -151,7 +151,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `keybindings.agent` | key chord or `false` | `Alt Shift L` | Agent popup trigger | next launch |
 | `keybindings.git` | key chord or `false` | `Alt Shift J` | Git popup trigger | next launch |
 | `keybindings.menu` | key chord or `false` | `Alt Shift M` | Menu popup trigger | next launch |
-| `keybindings.screen` | key chord or `false` | `Alt Shift S` | Random full-screen visual trigger | next launch |
+| `keybindings.screen` | key chord or `false` | `Alt Shift A` | Random full-screen visual trigger | next launch |
 | `keybindings.sidebar` | key chord or `false` | `Alt Shift H` | Sidebar visibility | next launch |
 | `keybindings.sidebar_focus` | key chord or `false` | `Ctrl y` | Editor/sidebar focus | next launch |
 | `bar.widgets` | ordered string array | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Top-bar tray order; `BAR_WIDGET_VALUES` and `bar_widgets` own validation | next launch |

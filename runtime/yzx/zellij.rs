@@ -543,9 +543,9 @@ mod tests {
         let text = concat!(
             "keybinds {\n",
             "    shared {\n",
-            "        unbind \"Alt Shift S\"\n",
+            "        unbind \"Alt Shift A\"\n",
             "        bind \"Alt Shift K\" { MessagePlugin \"yzpp\" { payload \"config\"; }; }\n",
-            "        bind \"Alt Shift S\" {\n",
+            "        bind \"Alt Shift A\" {\n",
             "            MessagePlugin \"yzpp\" {\n",
             "                payload \"screen\"\n",
             "            }\n",
@@ -568,7 +568,7 @@ mod tests {
                 "Alt Shift K",
                 Some("Alt Shift C"),
             ),
-            binding("screen", "keybindings.screen", "Alt Shift S", None),
+            binding("screen", "keybindings.screen", "Alt Shift A", None),
             binding("sidebar", "keybindings.sidebar", "Alt Shift H", None),
         ];
 
@@ -582,11 +582,11 @@ mod tests {
             patched
                 .contains(r#"bind "Alt Shift C" { MessagePlugin "yzpp" { payload "config"; }; }"#)
         );
-        assert!(patched.contains(r#"unbind "Alt Shift S""#));
+        assert!(patched.contains(r#"unbind "Alt Shift A""#));
         assert!(patched.contains(r#"bind "Ctrl q" { Quit; }"#));
         for omitted in [
             r#"        bind "Alt Shift K""#,
-            r#"        bind "Alt Shift S""#,
+            r#"        bind "Alt Shift A""#,
             r#"        bind "Alt Shift H""#,
             "screen",
             "toggle_sidebar",

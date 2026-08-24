@@ -173,11 +173,11 @@ groups four workspace surfaces:
 | `Ctrl Alt` | Move tab left | Move pane down | Move pane up | Move tab right |
 | `Alt Shift` | Sidebar | Git | Ratconfig | Agent |
 
-Yazi and the menu use their initials:
+Yazi, the menu, and Anima use their initials:
 
 - `Alt Shift Y` toggles the full Yazi popup.
 - `Alt Shift M` toggles the command menu.
-- `Alt Shift S` opens a transient full-screen random visual. Press any ordinary
+- `Alt Shift A` opens a transient full-screen random visual. Press any ordinary
   screen input to return to the unchanged workspace; this is not a session lock.
   Set `keybindings.screen` to remap or unmap it for newly launched sessions.
 
@@ -190,7 +190,7 @@ bindings are:
 | Workspace | `Ctrl q` | Quit the Yazelix session |
 | Workspace | `Alt m` | Open a new pane |
 | Workspace | `Alt Shift F` | Toggle the focused pane fullscreen |
-| Workspace | `Alt Shift S` | Show a random full-screen visual |
+| Workspace | `Alt Shift A` | Show a random full-screen visual |
 | Workspace | `Ctrl y` | Toggle focus between the editor and Yazi sidebar |
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
@@ -442,9 +442,10 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **26,385 lines** of tracked text project files. The
+Yazelix owns **26,388 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,120 lines below the pre-Rio fork surface. The current increase
+This remains 1,117 lines below the pre-Rio fork surface. The current increase
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
-boundary, Yazi 26.8.15 runtime, and native Nushell clipboard commands.
+boundary, Yazi 26.8.15 runtime, native Nushell clipboard commands, and the
+Anima mnemonic.
