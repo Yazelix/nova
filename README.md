@@ -442,9 +442,9 @@ If Yazelix is useful to you, you can support its development on
 
 ## LOC Scorecard
 
-Yazelix owns **26,362 lines** of tracked text project files. The
+Yazelix owns **26,385 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,143 lines below the pre-Rio fork surface. The current increase
+This remains 1,120 lines below the pre-Rio fork surface. The current increase
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
-boundary, and Yazi 26.8.15 runtime.
+boundary, Yazi 26.8.15 runtime, and native Nushell clipboard commands.

@@ -237,6 +237,12 @@ If host `mise` is available on the inherited `PATH`, managed Nu inserts
 `mise activate nu` output after packaged `config.nu` and before user
 `nu/config.nu`. Missing or failing `mise` is skipped.
 
+Managed Nu enables the pinned native clipboard commands. Pipe any Nu value into
+`clip copy` (for example, `pwd | clip copy`) and read it with `clip paste`.
+The managed `clc` and `clp` aliases provide shorter copy and paste forms.
+Nushell owns platform clipboard access and errors; Nova does not translate
+remote or headless sessions to a client clipboard.
+
 `shell.atuin = true` sources Nova's build-generated Atuin integration after the
 selected shell's user startup layer. `yzx-nu` composes Nushell after user
 `nu/config.nu`; `yzx-shell` uses `~/.bashrc`, the effective Zsh `.zshenv` and

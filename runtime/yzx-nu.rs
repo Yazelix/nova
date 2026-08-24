@@ -81,6 +81,7 @@ fn run() -> io::Result<()> {
     )?;
 
     let error = Command::new(NU)
+        .arg("--experimental-options=native-clip")
         .arg("--env-config")
         .arg(env_config)
         .arg("--config")

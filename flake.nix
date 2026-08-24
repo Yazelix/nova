@@ -1326,6 +1326,15 @@
       '';
       contracts = pkgs.runCommand "yzx-contracts" {} ''
         ${yzxContractsCheck}/bin/yzx-contracts-check ${yzx} ${pkgs.git}/bin/git ${pkgs.jq}/bin/jq "$out"
+        yzx_shell="$(${pkgs.gnused}/bin/sed -n 's/.*default_shell "\([^"]*\)".*/\1/p' ${yzx}/share/yazelix/config.kdl)"
+        test -x "$yzx_shell"
+        export HOME="$TMPDIR/home"
+        export YAZELIX_CONFIG_HOME="$TMPDIR/config"
+        export YAZELIX_STATE_DIR="$TMPDIR/state"
+        mkdir -p "$HOME"
+        "$yzx_shell" -c 'help clip copy | ignore'
+        test "$("$yzx_shell" -c 'scope aliases | where name == "clc" | get expansion.0')" = "clip copy"
+        test "$("$yzx_shell" -c 'scope aliases | where name == "clp" | get expansion.0')" = "clip paste"
       '';
       desktop_channels = pkgs.runCommand "yzx-desktop-channels" {} ''
         check_channel() {

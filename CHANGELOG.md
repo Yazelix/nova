@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Managed Nushell enables its native `clip copy` and `clip paste` commands, so
+  pipeline values such as `pwd | clip copy` reach the system clipboard without
+  an external clipboard command. The `clc` and `clp` aliases provide concise
+  copy and paste forms.
 - Four composable `no-rio` package variants restore a terminal-free runtime.
   They omit Rio and its terminal-only closure, native config, icon, desktop
   entry, and Ratconfig surface. `yzx enter` remains fully managed in the host
