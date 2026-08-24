@@ -71,4 +71,5 @@ jobs:
             .#checks.aarch64-darwin.home_manager \
             .#checks.aarch64-darwin.host_yazi_contracts \
             .#checks.aarch64-darwin.rio_contracts \
-            .#checks.aarch64-darwin.no_helix_contracts
+            .#checks.aarch64-darwin.no_helix_contracts \
+            .#checks.aarch64-darwin.yzx_yazi_materialization

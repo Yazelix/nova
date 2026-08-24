@@ -934,6 +934,10 @@
       noRioNoHelixNoYaziClosure = pkgs.closureInfo {rootPaths = [yzxNoRioNoHelixNoYazi];};
       novaBarPackage = novaBar.packages.${system}.default;
       yzxYaziMaterializer = yzxYaziMaterializerFor pkgs;
+      yaziEnvPty =
+        if pkgs.stdenv.hostPlatform.isDarwin
+        then "${pkgs.unixtools.script}/bin/script -qe /dev/null ${pkgs.yazi}/bin/ya env"
+        else "${pkgs.unixtools.script}/bin/script -qec '${pkgs.yazi}/bin/ya env' /dev/null";
       checksSrc = pkgs.lib.cleanSource ./checks;
       yzxContractsCheck = rustBinFor pkgs "yzx-contracts-check" "${checksSrc}/yzx-contracts.rs";
       helixContractsCheck = rustBinFor pkgs "helix-contracts-check" "${checksSrc}/helix-contracts.rs";
@@ -1092,7 +1096,7 @@
         rg -a -q 'tab_activity_pipe_name' ${novaBarPackage}/${novaBarPackage.wasmPath}
         touch "$out"
       '';
-      home_manager = pkgs.runCommand "yzx-home-manager-check" {nativeBuildInputs = [pkgs.util-linux];} ''
+      home_manager = pkgs.runCommand "yzx-home-manager-check" {} ''
         default_path="${homeManagerDefault.activationPackage}/home-path"
         override_path="${homeManagerOverride.activationPackage}/home-path"
         no_rio_path="${homeManagerNoRio.activationPackage}/home-path"
@@ -1174,7 +1178,7 @@
         esac
         hm_yazi_runtime="$(${yzxYaziMaterializer}/bin/yzx-yazi-config ${yzx}/share/yazelix/yazi "$config_files/yazi" "$TMPDIR/hm-yazi-state" dark)"
         grep -Fqx 'format = "$directory$git_branch"' "$hm_yazi_runtime/yazelix_starship.toml"
-        YAZI_CONFIG_HOME="$hm_yazi_runtime" script -qec '${pkgs.yazi}/bin/ya env' /dev/null > hm-yazi-debug
+        YAZI_CONFIG_HOME="$hm_yazi_runtime" ${yaziEnvPty} > hm-yazi-debug
         grep -q 'Dark/light flavor:.*example' hm-yazi-debug
 
         test "$(readlink -f "$shared_config_files/starship.toml")" = \
@@ -1211,12 +1215,12 @@
         grep -qx 'Ya' ya-version
         touch "$out"
       '';
-      yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc pkgs.util-linux];} ''
+      yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
 
         yazi_env() {
-          YZX_YAZI_STARSHIP_CONFIG="$1/yazelix_starship.toml" YAZI_CONFIG_HOME="$1" script -qec '${pkgs.yazi}/bin/ya env' /dev/null > "$2"
+          YZX_YAZI_STARSHIP_CONFIG="$1/yazelix_starship.toml" YAZI_CONFIG_HOME="$1" ${yaziEnvPty} > "$2"
         }
 
         user="$TMPDIR/yazi-user"
