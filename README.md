@@ -442,7 +442,7 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,396 lines** of tracked text project files. The
+Yazelix owns **26,458 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
 This remains 1,109 lines below the pre-Rio fork surface. The current increase

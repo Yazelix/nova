@@ -512,6 +512,12 @@ Use `bv --robot-triage` as the graph-aware planning entry point. Use only
 to work on, while `br` creates, updates, and closes issues. Before claiming a
 recommendation, verify it with `br show <id> --json` or `br ready --json`.
 
+### Command Formatting
+
+Commands shown to the user must work when pasted into Nushell unless the user
+explicitly requests another shell. Never use backslash line continuations. Keep
+each command on one line, or show multiple complete commands on separate lines.
+
 ### LOC and Documentation
 
 Update the README LOC scorecard whenever project files change. Update
@@ -532,6 +538,31 @@ nix flake show --all-systems
 nix build .#yazelix --no-link --print-build-logs
 nix profile add --refresh /home/lucca/pjs/yazelix-dir/yazelix --profile <tmp>
 ```
+
+### Linux and Darwin Gates
+
+Classify every change before implementation as shared, explicitly
+platform-specific, or platform-neutral. Treat Nix evaluation and packaging,
+dependencies, Home Manager, config materialization, and runtime command, shell,
+filesystem, process, or PTY behavior as shared unless the contract says
+otherwise.
+
+Shared changes must not be accepted or promoted from Linux evidence alone:
+
+- On `edge`, require green Linux CI and `Darwin Package Smoke` on the exact
+  revision. Dispatch the Darwin workflow when its scheduled run does not cover
+  that revision; dispatch it after changing the workflow itself.
+- On `main`, require green CI plus both `Publish Nix Cache` jobs:
+  `publish_x86_64_linux` and `publish_aarch64_darwin`.
+- For a release candidate, require both `Version Gate` jobs and the protected
+  Linux and Darwin cache checks before promoting `stable`.
+
+`nix flake show --all-systems` and Darwin derivation evaluation on Linux prove
+flake shape only; they do not replace a real `aarch64-darwin` build. Linux-only
+verification is allowed only for an explicitly Linux-only surface,
+platform-neutral documentation or planning, or an optional capability that is
+unavailable or disabled on Darwin by contract. Record that boundary and reason,
+and keep shared flake evaluation green when the shared graph changes.
 
 After changing the flake runtime, keep the user's installed runtime current:
 
