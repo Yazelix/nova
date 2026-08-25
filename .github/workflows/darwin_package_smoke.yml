@@ -55,7 +55,11 @@ jobs:
             max-jobs = 1
             cores = 2
 
-      - name: Build aarch64-darwin packages and checks
+      - name: Build Yazi PTY checks
+        if: steps.decide.outputs.run == 'true'
+        run: nix build --no-link --no-write-lock-file --print-build-logs .#checks.aarch64-darwin.home_manager .#checks.aarch64-darwin.yzx_yazi_materialization
+
+      - name: Build remaining aarch64-darwin packages and checks
         if: steps.decide.outputs.run == 'true'
         run: |
           for package in \
@@ -68,8 +72,6 @@ jobs:
           done
           nix build --no-link --no-write-lock-file --print-build-logs \
             .#checks.aarch64-darwin.desktop_channels \
-            .#checks.aarch64-darwin.home_manager \
             .#checks.aarch64-darwin.host_yazi_contracts \
             .#checks.aarch64-darwin.rio_contracts \
-            .#checks.aarch64-darwin.no_helix_contracts \
-            .#checks.aarch64-darwin.yzx_yazi_materialization
+            .#checks.aarch64-darwin.no_helix_contracts
