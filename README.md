@@ -196,8 +196,8 @@ bindings are:
 | Workspace | `Alt Shift F` | Toggle the focused pane fullscreen |
 | Workspace | `Alt Shift A` | Show a random full-screen visual |
 | Editor | `Ctrl y` | Toggle focus between Forest and the editor |
-| Radar | `Alt n` / `Alt p` | Cycle attention tabs forward / backward |
-| Radar | `Alt s` / `Alt Shift s` | Cycle sessions forward / backward |
+| Radar | `Ctrl Alt n` / `Ctrl Alt p` | Cycle attention tabs forward / backward |
+| Radar | `Ctrl Tab` / `Ctrl Shift Tab` | Cycle sessions forward / backward |
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Alt z` | Retarget the tab workspace with zoxide |
@@ -468,10 +468,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,874 lines** of tracked text project files. The
+Yazelix owns **26,881 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 631 lines below the pre-Rio fork surface. The current surface
+This remains 624 lines below the pre-Rio fork surface. The current surface
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
 boundary, Yazi 26.8.15 runtime and one-use startup picker, Forest and stock
 Radar integration, package-pinned managed commands, `~/` reveal targets, native

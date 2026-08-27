@@ -193,6 +193,10 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Popups"; "Alt Shift A"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift Y"; "Hide or show Yazi popup"; "Yazelix"; "config.kdl"),
     key!("Sidebar"; "Alt Shift H"; "Toggle Radar sidebar"; "Yazelix"; "config.kdl"),
+    key!("Radar"; "Ctrl Alt n"; "Next attention tab"; "Yazelix"; "config.kdl"),
+    key!("Radar"; "Ctrl Alt p"; "Previous attention tab"; "Yazelix"; "config.kdl"),
+    key!("Radar"; "Ctrl Tab"; "Next session"; "Yazelix"; "config.kdl"),
+    key!("Radar"; "Ctrl Shift Tab"; "Previous session"; "Yazelix"; "config.kdl"),
     key!("File manager"; "Alt z"; "Retarget tab workspace with zoxide"; "Yazi"; "yazi/keymap.toml"),
 ];
 

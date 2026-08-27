@@ -1984,14 +1984,14 @@ fn expect_session_config(config: &str) {
 
 fn expect_keybinds(config: &str) {
     for expected in [
-        r#"unbind "Alt n" "Alt p" "Alt s" "Alt Shift s" "Alt i" "Alt o" "Ctrl g""#,
+        r#"unbind "Alt i" "Alt o" "Ctrl g""#,
         r#"bind "Alt m" { NewPane; }"#,
         r#"bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }"#,
         r#"bind "Alt l" "Alt Right" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_right_or_tab"; }; }"#,
-        r#"bind "Alt n" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }"#,
-        r#"bind "Alt p" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }"#,
-        r#"bind "Alt s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-next"; }; }"#,
-        r#"bind "Alt Shift s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }"#,
+        r#"bind "Ctrl Alt n" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }"#,
+        r#"bind "Ctrl Alt p" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }"#,
+        r#"bind "Ctrl Tab" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-next"; }; }"#,
+        r#"bind "Ctrl Shift Tab" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }"#,
         r#"bind "Alt Shift F" { ToggleFocusFullscreen; }"#,
         r#"bind "Alt Shift A" {"#,
         r#"bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
@@ -2230,12 +2230,13 @@ fn popup_command(config: &str, suffix: &str) -> PathBuf {
 }
 
 fn expect_no_block_binds_and_unbinds_same_key(config: &str) {
-    let mut blocks = Vec::<KeyBlock>::new();
+    let mut blocks = Vec::<(i32, KeyBlock)>::new();
+    let mut depth = 0i32;
     for (line_number, line) in config.lines().map(str::trim).enumerate() {
         if opens_keybind_block(line) {
-            blocks.push(KeyBlock::default());
+            blocks.push((depth + 1, KeyBlock::default()));
         }
-        if let Some(block) = blocks.last_mut() {
+        if let Some((_, block)) = blocks.last_mut() {
             if line.starts_with("bind ") {
                 block.binds.extend(quoted_keys(line));
             } else if line.starts_with("unbind ") {
@@ -2248,7 +2249,8 @@ fn expect_no_block_binds_and_unbinds_same_key(config: &str) {
                 );
             }
         }
-        if line == "}" {
+        depth += line.matches('{').count() as i32 - line.matches('}').count() as i32;
+        while blocks.last().is_some_and(|(block_depth, _)| *block_depth > depth) {
             blocks.pop();
         }
     }

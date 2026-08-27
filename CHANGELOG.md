@@ -24,11 +24,11 @@ User-visible runtime changes for Yazelix Nova live here.
   its collapsed state becomes a clean framed divider instead of rendering
   Radar content in a borderless column.
   `Alt Shift H` collapses or restores the same plugin through the existing swap
-  layouts; `Alt n` / `Alt p` cycle attention tabs, and `Alt s` /
-  `Alt Shift s` cycle sessions. Radar requests its four permissions together
-  through Nova Zellij's focused prompt and isolated cache. The zj-radar CLI is
-  packaged on Nova's managed `PATH`. The default agent launcher idempotently
-  asks stock Radar to configure its Codex or Claude Code producer immediately
+  layouts; `Ctrl Alt n` / `Ctrl Alt p` cycle attention tabs, and `Ctrl Tab` /
+  `Ctrl Shift Tab` cycle sessions without shadowing Helix keys. Radar requests its
+  four permissions together through Nova Zellij's focused prompt and isolated
+  cache. The zj-radar CLI is packaged on Nova's managed `PATH`. The default agent
+  launcher idempotently asks stock Radar to configure its Codex or Claude Code producer immediately
   before launch; setup failures warn without blocking the agent, Codex hook
   trust remains an explicit `/hooks` review, and unsupported providers are not
   modified. Yazi remains the persistent `Alt Shift Y` popup and
