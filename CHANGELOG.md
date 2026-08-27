@@ -54,7 +54,9 @@ User-visible runtime changes for Yazelix Nova live here.
 - Ordinary managed Yazi popup toggles always preserve the same live process and
   its navigation, including after a Zellij client reconnect or tab-root change.
   `yzx reveal` accepts absolute, cwd-relative, and `~` or `~/` targets and
-  remains the explicit navigation reset.
+  remains the explicit navigation reset. Managed children resolve `yzx` to the
+  exact package that launched them, so another installed channel cannot shadow
+  its reveal behavior.
 
 ## 1.1.0
 

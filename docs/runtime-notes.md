@@ -218,6 +218,9 @@ configured `replace` request to the popup owner with the absolute target as a
 launch argument. Yazi reveals that target during normal startup, so reveal does
 not wait for or address a partially started process. This deliberately resets
 the popup's navigation state while leaving the canonical workspace unchanged.
+The managed `PATH` resolves `yzx` to the exact package that launched the
+session before consulting the inherited host path, so mixed installed channels
+cannot change the behavior of Helix's reveal command.
 Managed Yazi owns `Alt r` locally and passes no hovered path. The popup role
 sends one explicit `hide` to the popup owner, preserving the live Yazi process
 and navigation state and returning to the underlying pane. It does not open the

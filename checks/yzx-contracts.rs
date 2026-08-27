@@ -1106,10 +1106,9 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
     }
 
     let case = RuntimeCase::new(&temp.path, "managed-hx-alias");
+    write_executable(&temp.path.join("yzx"), "#!/bin/sh\nexit 99\n");
     let mut command = case.yzx_command(&yzx_bin, "run");
-    command
-        .args(["printenv", "PATH"])
-        .env("PATH", "/private/tmp");
+    command.args(["printenv", "PATH"]).env("PATH", &temp.path);
     let output = successful_stdout(&mut command, "managed hx PATH");
     let path = output.trim();
     let resolve = |name| {
@@ -1122,6 +1121,11 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
         fs::canonicalize(resolve("hx")).unwrap(),
         fs::canonicalize(resolve("yzx-hx")).unwrap(),
         "managed hx must resolve to yzx-hx"
+    );
+    assert_eq!(
+        fs::canonicalize(resolve("yzx")).unwrap(),
+        fs::canonicalize(&yzx_bin).unwrap(),
+        "managed PATH must resolve to its invoking yzx"
     );
     assert!(
         resolve("zj-radar").is_file(),

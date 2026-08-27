@@ -51,15 +51,21 @@ pub(crate) fn enter_terminal_label() -> OsString {
 }
 
 pub(crate) fn runtime_path() -> OsString {
-    match nonempty_env("PATH") {
-        Some(path) => {
-            let mut merged = OsString::from(PATH_PREFIX);
+    let mut merged = env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .map(PathBuf::into_os_string)
+        .unwrap_or_default();
+    for path in [Some(PATH_PREFIX.into()), nonempty_env("PATH")]
+        .into_iter()
+        .flatten()
+    {
+        if !merged.is_empty() {
             merged.push(":");
-            merged.push(path);
-            merged
         }
-        None => PATH_PREFIX.into(),
+        merged.push(path);
     }
+    merged
 }
 
 pub(crate) fn nonempty_env(name: &str) -> Option<OsString> {
