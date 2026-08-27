@@ -53,7 +53,8 @@ User-visible runtime changes for Yazelix Nova live here.
 - The packaged Git plugin uses Yazi 26.8.15's retryable fetcher protocol.
 - Ordinary managed Yazi popup toggles always preserve the same live process and
   its navigation, including after a Zellij client reconnect or tab-root change.
-  `yzx reveal` remains the explicit navigation reset.
+  `yzx reveal` accepts absolute, cwd-relative, and `~` or `~/` targets and
+  remains the explicit navigation reset.
 
 ## 1.1.0
 

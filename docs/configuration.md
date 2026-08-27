@@ -430,9 +430,10 @@ the bridge restores the client's transparent Zellij background
 
 `Alt r` starts the active tab's persistent Yazi popup at the current Helix
 buffer. `yzx reveal <target>` exposes the same behavior inside a managed session
-without changing the tab's canonical workspace. Editor-to-Yazi reveal replaces
-an existing popup process; ordinary popup toggles preserve its live navigation
-state.
+without changing the tab's canonical workspace. The target may be absolute,
+relative to the command's current directory, or use an exact leading `~` or
+`~/` resolved from `HOME`. Editor-to-Yazi reveal replaces an existing popup
+process; ordinary popup toggles preserve its live navigation state.
 
 In the managed Yazi popup, `Alt r` hides the popup, preserves its navigation
 state, and returns to the underlying pane without opening the hovered item.

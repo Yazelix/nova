@@ -54,8 +54,21 @@ fn parse_target(raw_args: impl IntoIterator<Item = OsString>) -> Result<OsString
 }
 
 fn existing_absolute_path(target: &OsString) -> Result<PathBuf> {
-    let path =
-        std::path::absolute(PathBuf::from(target)).context("could not resolve target path")?;
+    let home = env::var_os("HOME")
+        .filter(|home| !home.is_empty())
+        .map(PathBuf::from);
+    existing_absolute_path_with_home(target, home)
+}
+
+fn existing_absolute_path_with_home(target: &OsString, home: Option<PathBuf>) -> Result<PathBuf> {
+    let target = PathBuf::from(target);
+    let target = match target.strip_prefix("~") {
+        Ok(relative) => home
+            .context("could not expand leading ~: HOME is unset or empty")?
+            .join(relative),
+        Err(_) => target,
+    };
+    let path = std::path::absolute(target).context("could not resolve target path")?;
     if !path.exists() {
         bail!("target does not exist: {}", path.display());
     }
@@ -64,7 +77,7 @@ fn existing_absolute_path(target: &OsString) -> Result<PathBuf> {
 
 fn print_help() {
     println!(
-        "Open the persistent Yazi popup at a file or directory\n\nUsage:\n  yzx reveal <target>"
+        "Open the persistent Yazi popup at a file or directory\n\nUsage:\n  yzx reveal <target>\n\nThe target may be absolute, relative to the current directory, or be ~ or ~/..."
     );
 }
 
@@ -84,6 +97,28 @@ mod tests {
         assert!(parse_target(Vec::<OsString>::new()).is_err());
         assert!(parse_target([OsString::new()]).is_err());
         assert!(parse_target(["one".into(), "two".into()]).is_err());
+    }
+
+    #[test]
+    fn home_relative_target_resolves_against_home() {
+        let fixture = TestDir::new();
+        let target = fixture.path.join("target.txt");
+        fs::write(&target, "").unwrap();
+
+        assert_eq!(
+            existing_absolute_path_with_home(
+                &OsString::from("~/target.txt"),
+                Some(fixture.path.clone()),
+            )
+            .unwrap(),
+            target
+        );
+        assert_eq!(
+            existing_absolute_path_with_home(&OsString::from("~/target.txt"), None)
+                .unwrap_err()
+                .to_string(),
+            "could not expand leading ~: HOME is unset or empty"
+        );
     }
 
     #[test]

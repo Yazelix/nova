@@ -248,7 +248,7 @@ Ratconfig's Keys tab is the complete packaged reference, and
 | `yzx env` | Open the managed shell without launching the UI |
 | `yzx tutor [lesson]` | Print guided Yazelix lessons |
 | `yzx anima [style]` | Show a terminal animation with Anima |
-| `yzx reveal <target>` | Start the persistent Yazi popup at a file or directory |
+| `yzx reveal <target>` | Start the persistent Yazi popup at an absolute, cwd-relative, or `~/` file or directory |
 
 The materializer uses the selected Yazelix package's config and does not start
 Yazi or prepare the interactive runtime. See [Runtime Notes](docs/runtime-notes.md#yazi)
@@ -463,12 +463,12 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,723 lines** of tracked text project files. The
+Yazelix owns **26,760 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 782 lines below the pre-Rio fork surface. The current surface
+This remains 745 lines below the pre-Rio fork surface. The current surface
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
 boundary, Yazi 26.8.15 runtime and one-use startup picker, Forest and stock
-Radar integration, native Nushell clipboard commands, portable Yazi PTY checks,
-the Anima mnemonic, and GitHub's native sponsor surface while deleting
-persistent tiled-Yazi machinery.
+Radar integration, `~/` reveal targets, native Nushell clipboard commands,
+portable Yazi PTY checks, the Anima mnemonic, and GitHub's native sponsor
+surface while deleting persistent tiled-Yazi machinery.
