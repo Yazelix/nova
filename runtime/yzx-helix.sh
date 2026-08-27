@@ -62,4 +62,9 @@ if [ -n "$user_steel_dir" ]; then
   @ln@ -sf "$user_steel_dir/helix.scm" "$steel_config_dir/helix.scm"
   @ln@ -sf "$packaged_steel_dir/init.scm" "$steel_config_dir/init.scm"
 fi
+YAZELIX_FOREST_START_UNFOCUSED=
+if [ "$#" -eq 1 ] && [ -d "$1" ]; then
+  YAZELIX_FOREST_START_UNFOCUSED=1
+fi
+export YAZELIX_FOREST_START_UNFOCUSED
 exec @hx@ --config-dir "$helix_config_dir" -c "$helix_config_file" "$@"

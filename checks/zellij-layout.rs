@@ -48,8 +48,15 @@ fn main() -> ExitCode {
             ok = false;
         }
     }
-    if layout.matches(r#"plugin location="radar""#).count() != 2 {
-        eprintln!("{layout_path}: startup and new-tab templates must each own one Radar pane");
+    if layout.matches(r#"plugin location="radar""#).count() != 2
+        || layout
+            .matches(r#"pane name="sidebar" size=32 borderless=false {"#)
+            .count()
+            != 2
+    {
+        eprintln!(
+            "{layout_path}: startup and new-tab templates must each own one framed sidebar pane"
+        );
         ok = false;
     }
     if layout
@@ -58,9 +65,12 @@ fn main() -> ExitCode {
         != 2
         || layout.matches(r#"args "--yzx-startup-picker""#).count() != 2
         || layout.matches("focus=true close_on_exit=true").count() != 2
+        || layout.contains("floating_panes {")
+        || layout.contains(r#"pane name="editor" command="#)
+        || layout.contains(r#"args "--yzx-managed-pane""#)
     {
         eprintln!(
-            "{layout_path}: startup and new-tab templates must each open one focused tiled Yazi picker"
+            "{layout_path}: startup and new-tab templates must each open one focused tiled Yazi picker without a prestarted editor"
         );
         ok = false;
     }
@@ -93,10 +103,22 @@ fn main() -> ExitCode {
 
     let swap = read(swap_path);
     if swap.matches(r#"plugin location="radar""#).count() != 2
-        || !swap.contains("pane size=32 borderless=true")
-        || !swap.contains("pane size=1 borderless=true")
+        || !swap.contains(r#"pane name="sidebar" size=32 borderless=false {"#)
+        || !swap.contains(r#"pane name="sidebar" size=1 borderless=false {"#)
     {
-        eprintln!("{swap_path}: open and collapsed swaps must preserve the Radar sidebar");
+        eprintln!("{swap_path}: the open and collapsed Radar sidebar states must use pane frames");
+        ok = false;
+    }
+    if !matches!(
+        (
+            swap.find(r#"swap_tiled_layout name="single_closed""#),
+            swap.find(r#"swap_tiled_layout name="single_open""#),
+        ),
+        (Some(closed), Some(open)) if closed < open
+    ) {
+        eprintln!(
+            "{swap_path}: collapsed layout must precede open layout so BASE closes in one native step"
+        );
         ok = false;
     }
     let mut depth = 0i32;

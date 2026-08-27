@@ -798,8 +798,11 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "custom bar layout",
     );
     assert!(
-        !custom_layout.contains("@yazi@") && custom_layout.matches("/bin/yzx-yazi").count() == 2,
-        "custom bar layout did not materialize both startup Yazi pickers"
+        !custom_layout.contains("@yazi@")
+            && !custom_layout.contains("@editor@")
+            && custom_layout.matches("/bin/yzx-yazi").count() == 2
+            && !custom_layout.contains("/bin/yzx-editor"),
+        "custom bar layout did not materialize only the two tiled startup Yazi pickers"
     );
     let format_right = custom_layout
         .lines()
@@ -820,8 +823,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "swap_tiled_layout name=\"single_open\"",
         "swap_tiled_layout name=\"single_closed\"",
         "plugin location=\"radar\"",
-        "pane size=32 borderless=true",
-        "pane size=1 borderless=true",
+        "pane name=\"sidebar\" size=32 borderless=false {",
+        "pane name=\"sidebar\" size=1 borderless=false {",
         "stacked=true",
     }
     assert!(
@@ -1871,8 +1874,10 @@ fn expect_yazi_managed_keys(yzx: &Path) {
         r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} ""##,
     }
     assert!(
-        !layout.contains(r#"pane name="sidebar" command="#),
-        "tiled Yazi remains in the layout"
+        !layout.contains("floating_panes {")
+            && !layout.contains(r#"pane name="editor" command="#)
+            && !layout.contains(r#"pane name="sidebar" command="#),
+        "packaged layout kept a floating picker, prestarted editor, or tiled Yazi sidebar"
     );
     let config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
     let yzx_yazi = popup_command(&config, "/bin/yzx-yazi");

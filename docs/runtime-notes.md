@@ -203,10 +203,11 @@ arguments in `agent.args`, not in `agent.command`.
 
 ## Yazi Picker and Popup
 
-Every new managed tab starts with one focused tiled `yazi_picker`, which is the
-selectable starting pane Zellij requires. A successful file, directory, or
-`Alt z` workspace choice opens the managed editor before closing that exact pane
-by id. There is no hidden starter shell whose cwd can become stale.
+Every new managed tab starts with Radar and one focused tiled `yazi_picker`.
+A successful file, directory, or `Alt z` workspace choice owns the tab's initial
+retarget, creates the managed editor, and only then closes that exact picker by
+id. There is no hidden starter shell or prestarted editor whose cwd can become
+stale.
 
 `Alt Shift Y` asks the pane orchestrator to toggle the packaged `yazi` popup
 with the active tab's canonical workspace root as its explicit request cwd.
@@ -297,7 +298,9 @@ A-r = ':sh yzx reveal "%{buffer_name}"'
 binding at the old key is preserved when Forest moves or is disabled. Managed
 Helix prepends the exact packaged Forest, notify, and glyph modules to
 `STEEL_SEARCH_PATHS`, opens Forest with the `forest.side` choice (`right` by
-default), and still loads user Steel initialization last.
+default), and still loads user Steel initialization last. When managed Helix
+starts on one directory, Forest stays visible but unfocused so Helix's native
+directory picker owns input.
 
 `helix/languages.toml` is loaded by the managed Helix config dir when present.
 `helix/helix.scm` and `helix/init.scm` load through a private

@@ -98,14 +98,16 @@ fn expect_helix_wrapper(helix: &Path) {
         "forest-set-toggle-key!",
         "YAZELIX_FOREST_SIDE",
         "YAZELIX_FOREST_TOGGLE_KEY",
-        "(enqueue-thread-local-callback forest-open)",
+        "YAZELIX_FOREST_START_UNFOCUSED",
+        "(forest-open #:focused #f)",
         "(load yzx-user-init)",
     }
     expect_order(
         &helix_init,
         &[
             "(forest-set-toggle-key! yzx-forest-toggle-key)",
-            "(enqueue-thread-local-callback forest-open)",
+            "(enqueue-thread-local-callback",
+            "(forest-open #:focused #f)",
             "(load yzx-user-init)",
         ],
         "managed Helix Forest startup",
@@ -135,6 +137,7 @@ fn expect_helix_wrapper(helix: &Path) {
         "(define *forest-side* 'left)",
         "(define *forest-style* 'snacks)",
         "(provide forest-set-toggle-key!)",
+        "(define (forest-open #:focused [focused? #t])",
         "(hashset \".git\" \"target\" \".direnv\" \"node_modules\" \"__pycache__\" \".hg\")",
     }
     expect_bridge_registry_publisher(&embedded_store_path(&helix_init, "/bin/yzx-helix-register"));
@@ -266,6 +269,7 @@ printf 'HELIX_STEEL_CONFIG=%s\\n' \"${HELIX_STEEL_CONFIG-}\" > \"$YZX_FAKE_HX_OU
 printf 'STEEL_SEARCH_PATHS=%s\\n' \"${STEEL_SEARCH_PATHS-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_USER_STEEL_INIT=%s\\n' \"${YAZELIX_HELIX_USER_STEEL_INIT-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_TOGGLE_KEY=%s\\n' \"${YAZELIX_FOREST_TOGGLE_KEY-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
+printf 'YAZELIX_FOREST_START_UNFOCUSED=%s\\n' \"${YAZELIX_FOREST_START_UNFOCUSED-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_MANAGED_CONFIG_PATH=%s\\n' \"$YAZELIX_HELIX_MANAGED_CONFIG_PATH\" >> \"$YZX_FAKE_HX_OUT\"\n\
 for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
 
@@ -336,6 +340,7 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
             &home,
             &state,
             &temp.path.join(format!("{name}-output")),
+            &[],
         );
         assert!(
             output.contains(&format!("YAZELIX_FOREST_TOGGLE_KEY={expected_key}\n")),
@@ -344,6 +349,28 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
         );
         let generated = fs::read_to_string(state.join("helix/config.toml")).unwrap();
         assert_eq!(generated.contains(":forest-open"), enabled);
+    }
+
+    let picker_dir = temp.path.join("picker-dir");
+    fs::create_dir(&picker_dir).unwrap();
+    let file = temp.path.join("file.txt");
+    fs::write(&file, "test\n").unwrap();
+    for (name, target, expected) in [
+        ("directory", picker_dir.as_path(), "1"),
+        ("file", file.as_path(), ""),
+    ] {
+        let output = run_helix_wrapper(
+            &test_wrapper,
+            &temp.path.join(format!("{name}-config")),
+            &temp.path.join(format!("{name}-state")),
+            &temp.path.join(format!("{name}-output")),
+            &[target],
+        );
+        expect_contains(
+            &output,
+            &format!("YAZELIX_FOREST_START_UNFOCUSED={expected}\n"),
+            &format!("{name}-start Helix wrapper"),
+        );
     }
 }
 
@@ -365,7 +392,13 @@ fn expect_helix_wrapper_case(
         }
     }
     let state = root.join(format!("{name}-state"));
-    let output = run_helix_wrapper(wrapper, &home, &state, &root.join(format!("{name}-output")));
+    let output = run_helix_wrapper(
+        wrapper,
+        &home,
+        &state,
+        &root.join(format!("{name}-output")),
+        &[],
+    );
     let expected_config_dir = if files.is_empty() {
         packaged_config.parent().unwrap().to_path_buf()
     } else {
@@ -443,8 +476,10 @@ fn run_helix_wrapper(
     config_home: &Path,
     state_dir: &Path,
     output_path: &Path,
+    args: &[&Path],
 ) -> String {
     let output = Command::new(wrapper)
+        .args(args)
         .env("YAZELIX_CONFIG_HOME", config_home)
         .env("YAZELIX_STATE_DIR", state_dir)
         .env("YZX_FAKE_HX_OUT", output_path)

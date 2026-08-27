@@ -14,7 +14,7 @@ layout {
             @bar@
         }
         pane split_direction="vertical" {
-            pane size=32 borderless=true {
+            pane name="sidebar" size=32 borderless=false {
                 plugin location="radar"
             }
             children
@@ -35,7 +35,7 @@ layout {
             @bar@
         }
         pane split_direction="vertical" {
-            pane size=32 borderless=true {
+            pane name="sidebar" size=32 borderless=false {
                 plugin location="radar"
             }
             pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {

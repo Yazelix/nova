@@ -1,7 +1,7 @@
-swap_tiled_layout name="single_open" {
+swap_tiled_layout name="single_closed" {
     ui min_panes=4 {
         pane split_direction="vertical" {
-            pane size=32 borderless=true {
+            pane name="sidebar" size=1 borderless=false {
                 plugin location="radar"
             }
             pane stacked=true {
@@ -11,10 +11,10 @@ swap_tiled_layout name="single_open" {
     }
 }
 
-swap_tiled_layout name="single_closed" {
+swap_tiled_layout name="single_open" {
     ui min_panes=4 {
         pane split_direction="vertical" {
-            pane size=1 borderless=true {
+            pane name="sidebar" size=32 borderless=false {
                 plugin location="radar"
             }
             pane stacked=true {

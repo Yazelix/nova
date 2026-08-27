@@ -202,13 +202,18 @@ bindings are:
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Alt z` | Retarget the tab workspace with zoxide |
 
-Every new tab starts in a focused, one-use Yazi picker. A successful choice
-opens the managed editor and removes that picker, so no stale shell remains at
-the old directory. `Alt Shift Y` opens the separate persistent Yazi popup later.
+Every new tab starts with Radar and a focused, one-use tiled Yazi picker. A
+successful choice retargets the tab, creates the managed editor, then removes
+that exact picker. Choosing a folder leaves Forest visible while focusing the
+native Helix picker immediately. `Alt Shift Y` opens the separate persistent
+Yazi popup later.
 
-Radar starts at 32 columns. `Alt Shift H` collapses it to one column and restores
-the same live plugin. On first use, Nova Zellij shows one focused prompt for
-Radar's four permissions; `y` stores that decision in Nova's isolated cache.
+Radar starts at 32 columns in the Zellij pane named `sidebar`, following the
+configured pane-frame and rounded-corner appearance. `Alt Shift H` uses one
+native layout step to collapse it to a framed divider or restore the same live
+plugin. On first use, Nova Zellij
+shows one focused prompt for Radar's four permissions; `y` stores that decision
+in Nova's isolated cache.
 Before its default agent launcher starts Codex or Claude Code, Nova runs stock
 Radar's idempotent setup for that provider. Setup failures warn without blocking
 the agent. Codex still requires one `/hooks` review to trust the installed hook;
@@ -463,10 +468,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,775 lines** of tracked text project files. The
+Yazelix owns **26,874 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 730 lines below the pre-Rio fork surface. The current surface
+This remains 631 lines below the pre-Rio fork surface. The current surface
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
 boundary, Yazi 26.8.15 runtime and one-use startup picker, Forest and stock
 Radar integration, package-pinned managed commands, `~/` reveal targets, native

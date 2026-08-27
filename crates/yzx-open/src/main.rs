@@ -172,19 +172,24 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
     }
 
     let current_state = active_tab_workspace(config)?;
-    let candidate = if request.intent == OpenIntent::Ordinary
+    let intent = if config.yazi_role.as_deref() == Some("startup-picker") {
+        OpenIntent::Retarget
+    } else {
+        request.intent
+    };
+    let candidate = if intent == OpenIntent::Ordinary
         && current_state.workspace.source == WorkspaceSource::Explicit
     {
         current_state.workspace.root.clone()
     } else {
         target_workspace_root(config, &targets)
     };
-    let decision = decide_workspace(request.intent, &current_state.workspace, &candidate);
+    let decision = decide_workspace(intent, &current_state.workspace, &candidate);
     log_debug(
         config,
         &format!(
             "operation={} tab={} source={:?} root={} candidate={} targets={}",
-            request.intent.as_str(),
+            intent.as_str(),
             current_state.active_tab_position,
             current_state.workspace.source,
             current_state.workspace.root.display(),
@@ -1446,7 +1451,14 @@ fi
     #[test]
     fn startup_picker_opens_the_editor_before_closing_its_own_pane() {
         let runtime = TestRuntime::new();
-        runtime.write_zellij(false, None);
+        runtime.write_zellij_with_workspace(
+            false,
+            None,
+            &runtime.root.join("stale-workspace"),
+            WorkspaceSource::Explicit,
+            false,
+            2,
+        );
         open_main_rs(&Config {
             zellij_pane_id: Some("terminal:9".into()),
             yazi_role: Some("startup-picker".into()),
@@ -1455,6 +1467,7 @@ fi
         .unwrap();
 
         let log = runtime.zellij_log();
+        assert!(log.contains("--name retarget_workspace"), "{log}");
         let editor = log.find("args=run --name editor").unwrap();
         let close = log
             .find("args=action close-pane --pane-id terminal_9")
