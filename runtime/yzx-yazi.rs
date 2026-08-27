@@ -41,7 +41,7 @@ fn run() -> io::Result<()> {
     let yzx_open_log = yzx_config_value("open.log_level")?;
     let editor = effective_editor_command(yzx_config_value("editor.command")?);
     let mut args = env::args_os().skip(1).collect::<Vec<_>>();
-    let workspace_popup = take_workspace_popup_flag(&mut args);
+    let role = take_role_flag(&mut args);
     let mut command = Command::new(yazi);
     command
         .args(args)
@@ -62,10 +62,13 @@ fn run() -> io::Result<()> {
         .env("GIT_EDITOR", YZX_EDITOR_LAUNCHER)
         .env("YZX_OPEN_LOG", yzx_open_log);
 
-    if workspace_popup {
-        command.env("YZX_YAZI_ROLE", "workspace-popup");
-    } else {
-        command.env_remove("YZX_YAZI_ROLE");
+    match role {
+        Some(role) => {
+            command.env("YZX_YAZI_ROLE", role);
+        }
+        None => {
+            command.env_remove("YZX_YAZI_ROLE");
+        }
     }
 
     if uses_helix_bridge(&editor) {
@@ -82,14 +85,14 @@ fn run() -> io::Result<()> {
     Err(command.exec())
 }
 
-fn take_workspace_popup_flag(args: &mut Vec<OsString>) -> bool {
-    let workspace_popup = args
-        .first()
-        .is_some_and(|arg| arg == OsStr::new("--yzx-workspace-popup"));
-    if workspace_popup {
-        args.remove(0);
-    }
-    workspace_popup
+fn take_role_flag(args: &mut Vec<OsString>) -> Option<&'static str> {
+    let role = match args.first().map(OsString::as_os_str) {
+        Some(arg) if arg == OsStr::new("--yzx-workspace-popup") => "workspace-popup",
+        Some(arg) if arg == OsStr::new("--yzx-startup-picker") => "startup-picker",
+        _ => return None,
+    };
+    args.remove(0);
+    Some(role)
 }
 
 fn yazi_config_home(state_dir: &Path, appearance_mode: &str) -> io::Result<PathBuf> {
@@ -213,16 +216,20 @@ mod tests {
     }
 
     #[test]
-    fn workspace_popup_flag_is_private_to_the_managed_yazi_launcher() {
+    fn private_role_flags_are_removed_before_managed_yazi_launch() {
         let mut popup = vec![
             OsString::from("--yzx-workspace-popup"),
             OsString::from("/workspace with spaces"),
         ];
-        assert!(take_workspace_popup_flag(&mut popup));
+        assert_eq!(take_role_flag(&mut popup), Some("workspace-popup"));
         assert_eq!(popup, [OsString::from("/workspace with spaces")]);
 
+        let mut picker = vec![OsString::from("--yzx-startup-picker")];
+        assert_eq!(take_role_flag(&mut picker), Some("startup-picker"));
+        assert!(picker.is_empty());
+
         let mut ordinary = vec![OsString::from("/workspace"), OsString::from("--debug")];
-        assert!(!take_workspace_popup_flag(&mut ordinary));
+        assert_eq!(take_role_flag(&mut ordinary), None);
         assert_eq!(
             ordinary,
             [OsString::from("/workspace"), OsString::from("--debug")]

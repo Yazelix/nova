@@ -226,7 +226,7 @@ fn document<'a>(
         apply_status: ConfigUiApplyStatus {
             summary: "next Yazi".to_string(),
             label: "yazi".to_string(),
-            detail: "Saved native values apply on the next managed Yazi launch or sidebar reopen."
+            detail: "Saved native values apply on the next managed Yazi launch or popup reopen."
                 .to_string(),
             pending: false,
         },

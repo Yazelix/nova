@@ -65,6 +65,8 @@ Use local sibling repositories while hacking runtime inputs:
 nix run --override-input rio ../nova-rio
 nix run --override-input yazelixZellij ../nova-zellij
 nix run --override-input yazelixHelix ../nova-helix
+nix run --override-input yazelixForest ../yazelix-forest
+nix run --override-input zjRadar ../zj-radar
 nix run --override-input yazelixZellijPopup ../zellij-popup
 nix run --override-input novaBar ../nova-bar
 nix run --override-input yazelixZellijPaneOrchestrator ../zellij-pane-orchestrator
@@ -108,15 +110,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 3682 |
+| Markdown | 3751 |
 | JSON | 117 |
-| Nix | 1841 |
-| Shell | 111 |
+| Nix | 1877 |
+| Shell | 121 |
 | YAML | 445 |
-| TOML | 512 |
-| KDL | 241 |
+| TOML | 516 |
+| KDL | 258 |
 | Nu | 14 |
-| Lua | 245 |
-| Rust | 18959 |
-| Text | 71 |
-| Total | 26458 |
+| Lua | 133 |
+| Rust | 19190 |
+| Text | 81 |
+| Total | 26723 |

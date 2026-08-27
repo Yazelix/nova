@@ -4,6 +4,35 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Managed Helix waits for its first editor view before opening Yazelix Forest's
+  Snacks renderer, avoiding pre-view crashes on fresh starts and Yazi
+  `Alt z` directory retargets. Selecting a folder in Yazi changes the existing
+  Helix workspace and opens one native picker rooted there. Default `Ctrl y`
+  toggles focus between Forest and the editor; `Esc` also returns to the editor
+  and `q` closes the tree.
+  Native Helix pickers stay inside the editor area, Forest file opens dismiss
+  any covered picker, and closing or reloading a Steel component cannot remove
+  an unrelated sidebar layer and leave it black.
+  Remapping or disabling the key preserves user Helix bindings. `forest.side`
+  selects `left` or `right`, with `right` as the default so Forest and Radar use
+  opposite edges. Helix-free packages remain Forest-free.
+- Stock zj-radar 0.4.1 replaces tiled Yazi with a 32-column rail in every tab.
+  `Alt Shift H` collapses or restores the same plugin through the existing swap
+  layouts; `Alt n` / `Alt p` cycle attention tabs, and `Alt s` /
+  `Alt Shift s` cycle sessions. Radar requests its four permissions together
+  through Nova Zellij's focused prompt and isolated cache. The zj-radar CLI is
+  packaged on Nova's managed `PATH`. The default agent launcher idempotently
+  asks stock Radar to configure its Codex or Claude Code producer immediately
+  before launch; setup failures warn without blocking the agent, Codex hook
+  trust remains an explicit `/hooks` review, and unsupported providers are not
+  modified. Yazi remains the persistent `Alt Shift Y` popup and
+  `Alt r` reveal target. Every new tab starts with a separate one-use tiled Yazi
+  picker; a successful open creates the editor before closing that exact picker,
+  so no stale starter shell remains. Persistent tiled-Yazi registration,
+  refresh, and focus code is gone.
+  Zoxide Editor accepts both the released and candidate pane-orchestrator
+  active-tab schemas during local rolling upgrades.
+  The Zellij plugin sidecar cannot replace Nova's owned `radar` alias.
 - New sessions use the mnemonic `Alt Shift A` default for the random Anima
   visual. Explicit `keybindings.screen` overrides and `false` remain unchanged.
 - Managed Nushell enables its native `clip copy` and `clip paste` commands, so

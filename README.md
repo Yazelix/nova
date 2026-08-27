@@ -8,7 +8,8 @@ Yazelix Nova is a Nix-packaged terminal workspace built around
 [Nova Rio](https://github.com/Yazelix/nova-rio), a minimal
 [Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
 Yazi, Nushell, Bash, Zsh, and Fish with Atuin history, a lazygit popup (but you can configure other git clients!), and
-an optional coding agent popup. It uses the
+an optional coding agent popup. Yazelix Forest provides the default managed
+Helix file tree, and stock zj-radar provides the collapsible Zellij rail. Nova uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
 opens the desktop workspace through Rio, while `yzx enter` opens Yazelix in any
@@ -32,7 +33,7 @@ system, compatibility layer, and maintainer toolbox.
 
 Classic's child repositories did not create firm boundaries. The main repo
 still carried their maintenance machinery and overlapping runtime logic. Nova
-gives [first-party Yazelix components](#first-party-components) firm package
+gives [component dependencies](#components) firm package
 boundaries. Each component owns its implementation and contract. Nova pins and
 composes their package outputs.
 
@@ -174,7 +175,7 @@ groups four workspace surfaces:
 | --- | --- | --- | --- | --- |
 | `Alt` | Focus left or previous tab | Focus down | Focus up | Focus right or next tab |
 | `Ctrl Alt` | Move tab left | Move pane down | Move pane up | Move tab right |
-| `Alt Shift` | Sidebar | Git | Ratconfig | Agent |
+| `Alt Shift` | Radar | Git | Ratconfig | Agent |
 
 Yazi, the menu, and Anima use their initials:
 
@@ -194,10 +195,24 @@ bindings are:
 | Workspace | `Alt m` | Open a new pane |
 | Workspace | `Alt Shift F` | Toggle the focused pane fullscreen |
 | Workspace | `Alt Shift A` | Show a random full-screen visual |
-| Workspace | `Ctrl y` | Toggle focus between the editor and Yazi sidebar |
+| Editor | `Ctrl y` | Toggle focus between Forest and the editor |
+| Radar | `Alt n` / `Alt p` | Cycle attention tabs forward / backward |
+| Radar | `Alt s` / `Alt Shift s` | Cycle sessions forward / backward |
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Alt z` | Retarget the tab workspace with zoxide |
+
+Every new tab starts in a focused, one-use Yazi picker. A successful choice
+opens the managed editor and removes that picker, so no stale shell remains at
+the old directory. `Alt Shift Y` opens the separate persistent Yazi popup later.
+
+Radar starts at 32 columns. `Alt Shift H` collapses it to one column and restores
+the same live plugin. On first use, Nova Zellij shows one focused prompt for
+Radar's four permissions; `y` stores that decision in Nova's isolated cache.
+Before its default agent launcher starts Codex or Claude Code, Nova runs stock
+Radar's idempotent setup for that provider. Setup failures warn without blocking
+the agent. Codex still requires one `/hooks` review to trust the installed hook;
+Grok, OpenCode, and Pi remain unchanged until Radar supports their activity.
 
 If popup or `Alt h` / `Alt l` shortcuts briefly stop responding immediately
 after switching sessions, use `Alt 1-9` to select a tab, then retry. Native tab
@@ -299,15 +314,17 @@ as `yazelix` and do not multiply the capability-variant matrix.
 See [Installation and packages](docs/installation.md) for package variants,
 platform support, SSH use, Home Manager, and updates.
 
-## First-party components
+## Components
 
-Yazelix assembles focused first-party forks, plugins, libraries, and commands:
+Yazelix assembles focused forks, plugins, libraries, and commands:
 
 | Component | Yazelix role |
 | --- | --- |
 | [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes and launch-time theme override Nova still needs |
 | [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
+| [Yazelix Forest](https://github.com/luccahuguet/yazelix-forest) | Hardened Helix file tree, packaged with the Snacks renderer open by default |
+| [zj-radar](https://github.com/marktoda/zj-radar) | Stock Zellij plugin and producer CLI for the collapsible session and attention rail |
 | [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with tabs, modes, session details, status widgets, and activity markers, built on the narrow Yazelix `zjstatus` fork |
@@ -328,6 +345,10 @@ invalid, externally managed, or diagnosed field. All includes complete owner
 inventories where the owner publishes one, and the strongest honest curated or
 observed inventory otherwise. Tabs whose Overview would hide fewer than three
 fields or less than one quarter of their inventory simply show All.
+
+Forest renders on the right by default so it occupies the edge opposite Radar.
+Set `forest.side` to `left` or `right`; the choice applies to newly launched
+managed Helix editors.
 
 Rio owns its complete native configuration at
 `~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once and Ratconfig
@@ -442,10 +463,12 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,458 lines** of tracked text project files. The
+Yazelix owns **26,723 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 1,109 lines below the pre-Rio fork surface. The current increase
+This remains 782 lines below the pre-Rio fork surface. The current surface
 also records the terminal-free package matrix, exact Zellij v0.45.0 fork
-boundary, Yazi 26.8.15 runtime, native Nushell clipboard commands, portable
-Yazi PTY checks, the Anima mnemonic, and GitHub's native sponsor surface.
+boundary, Yazi 26.8.15 runtime and one-use startup picker, Forest and stock
+Radar integration, native Nushell clipboard commands, portable Yazi PTY checks,
+the Anima mnemonic, and GitHub's native sponsor surface while deleting
+persistent tiled-Yazi machinery.

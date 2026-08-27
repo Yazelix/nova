@@ -59,11 +59,12 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
+| `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
 | `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, Matrix, the Boids/Mandelbrot/Game of Life styles, or `random` |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
-| `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the managed Yazi sidebar |
-| `keybindings.sidebar_focus` | `Ctrl y` | Overview | Toggle focus between the editor and managed Yazi sidebar |
+| `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the Radar rail |
+| `keybindings.sidebar_focus` | `Ctrl y` | Overview | Toggle focus between Forest and managed Helix |
 | `bar.widgets` | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Overview | Top bar widgets, left to right |
 
 The Codex quota widget identifies periods from their reported duration and shows
@@ -134,10 +135,9 @@ popup role keys:
 `Alt Shift Y` is the fixed packaged key for the full managed Yazi popup. It is
 not a root setting. The popup opens at the active tab's canonical workspace
 root and hides on toggle. Ordinary toggles preserve the same live Yazi process
-and its navigation even if the tab root later changes. It uses the same layered
-Yazi configuration and editor opener as the sidebar without registering as the
-sidebar. `yzx reveal` replaces the popup process and starts Yazi at the
-requested target.
+and its navigation even if the tab root later changes. It uses the layered Yazi
+configuration and editor opener. `yzx reveal` replaces the popup process and
+starts Yazi at the requested target.
 
 `agent.command` accepts one executable name or path, not a shell command with
 arguments. Keep `agent.command = "auto"` to use the built-in `codex resume`,
@@ -215,7 +215,7 @@ user document contains another value; Ratconfig shows both that explicit intent
 and the integration-owned effective value. `helix.scm` and `init.scm` stay a
 paired Steel source action rather than inferred settings.
 
-The managed Yazi merge restores Yazelix's edit opener and its two sidebar Git
+The managed Yazi merge restores Yazelix's edit opener and its two managed Git
 fetchers exactly once. Other user fetchers and previewers remain in the merged
 native config. Invalid TOML, a broken input, or an incomplete flavor stops launch
 
@@ -225,7 +225,7 @@ the packaged Starship plugin as one complete directory and must contain
 `main.lua`; plugin directories are never recursively merged. Nova still
 initializes and refreshes Starship, so a replacement must preserve that plugin
 API. Other packaged plugin names remain protected because they own managed
-layout, navigation, or sidebar behavior. A user flavor with a packaged name
+layout or navigation behavior. A user flavor with a packaged name
 takes precedence, so `ya` can own an explicitly installed version. Create the
 directories directly under the managed Yazi tree or symlink them there
 
@@ -234,7 +234,7 @@ their resolved targets must stay outside the generated `state/yazi` runtime
 
 The optional `yazi/starship.toml` file replaces the packaged compact Starship
 config without replacing `starship.yazi` itself. It is syntax-validated as TOML
-and projected to the existing runtime path used by both sidebar and popup Yazi.
+and projected to the existing managed Yazi runtime path.
 Home Manager exposes it through the same native `text`/`source` contract:
 
 ```nix
@@ -266,7 +266,7 @@ action. Existing dynamic opener entries remain visible without pretending
 arbitrary opener names form a finite schema. `keymap.toml`, `package.toml`, and
 `init.lua` remain honest file actions rather than synthetic scalar inventories.
 A setting added through a file action appears after the editor closes. Saved
-native values apply on the next managed Yazi launch or sidebar reopen
+native values apply on the next managed Yazi launch
 
 ### Yazi flavors
 
@@ -383,7 +383,7 @@ are ignored by Nova
 
 Yazi's compact Starship header mirrors the default contextual module coverage.
 Directory and Git retain compact text; every other decoration renders only its
-symbol, so values such as cloud profiles and regions stay out of the sidebar
+symbol, so values such as cloud profiles and regions stay out of the header
 
 Ratconfig's Zellij Dark theme and Light theme pickers list the identities
 declared by the pinned Zellij package rather than maintaining theme definitions.
@@ -435,11 +435,9 @@ an existing popup process; ordinary popup toggles preserve its live navigation
 state.
 
 In the managed Yazi popup, `Alt r` hides the popup, preserves its navigation
-state, and returns to the underlying pane without opening the hovered item. In
-tiled Yazi, it focuses the existing Helix buffer without opening the hovered
-item; the tiled pane remains visible. `Enter` remains the explicit file-open
-action. Helix and Yazi bind `Alt r` locally, and Zellij does not replay it
-across the focus change.
+state, and returns to the underlying pane without opening the hovered item.
+`Enter` remains the explicit file-open action. Helix and Yazi bind `Alt r`
+locally, and Zellij does not replay it across the focus change.
 
 Yazelix does not modify external editor configuration. Neovim users can opt
 into the same `Alt r` behavior in their own config:
@@ -470,9 +468,7 @@ Choose another key to retain `move-to-window-line-top-bottom`.
 
 `Alt z` opens a zoxide picker in Yazi, moves to the selected directory, and
 explicitly retargets the tab workspace and managed editor through `yzx-open`.
-Ordinary Yazi opens keep the existing tab workspace. After the editor accepts
-the request, the originating managed sidebar follows the primary file's parent
-or the opened directory; failed and non-sidebar opens do not move it
+Ordinary Yazi opens keep the existing tab workspace.
 
 `yzx-open` writes bounded logs under:
 

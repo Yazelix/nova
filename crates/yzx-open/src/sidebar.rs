@@ -1,5 +1,6 @@
+//! Shared calls into Nova's Zellij plugins.
+
 use anyhow::{Context, Result, bail};
-use serde_json::Value;
 use std::{
     env,
     ffi::OsString,
@@ -12,56 +13,18 @@ const ZELLIJ_SESSION_NAME_ENV: &str = "ZELLIJ_SESSION_NAME";
 
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub ya: OsString,
     pub zellij: OsString,
     pub zellij_session_name: Option<OsString>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SidebarYaziState {
-    pub yazi_id: String,
-    pub cwd: Option<String>,
 }
 
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            ya: nonempty_env("YZX_YA").unwrap_or_else(|| "ya".into()),
             zellij: nonempty_env("YZX_ZELLIJ").unwrap_or_else(|| "zellij".into()),
             zellij_session_name: nonempty_env(ZELLIJ_SESSION_NAME_ENV)
                 .or_else(|| nonempty_env("YAZELIX_ZELLIJ_SESSION_NAME")),
         }
     }
-}
-
-pub fn optional_sidebar_yazi_state(raw: &str) -> Result<Option<SidebarYaziState>> {
-    let value = serde_json::from_str::<Value>(raw)
-        .context("pane orchestrator returned invalid session JSON")?;
-    let Some(sidebar) = value
-        .pointer("/sidebar_yazi")
-        .filter(|value| !value.is_null())
-    else {
-        return Ok(None);
-    };
-    let Some(yazi_id) = sidebar
-        .get("yazi_id")
-        .and_then(Value::as_str)
-        .map(str::trim)
-        .filter(|id| !id.is_empty())
-    else {
-        return Ok(None);
-    };
-    let cwd = sidebar
-        .get("cwd")
-        .and_then(Value::as_str)
-        .map(str::trim)
-        .filter(|cwd| !cwd.is_empty())
-        .map(str::to_string);
-
-    Ok(Some(SidebarYaziState {
-        yazi_id: yazi_id.to_string(),
-        cwd,
-    }))
 }
 
 pub fn orchestrator_query(config: &Config, name: &str) -> Result<String> {

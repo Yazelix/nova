@@ -8,8 +8,8 @@ use std::{
 use crate::{
     DEFAULT_BAR_WIDGETS_JSON, DEFAULT_POPUP_SIDE_MARGIN, DEFAULT_POPUP_VERTICAL_MARGIN,
     DEFAULT_SHELL_PROGRAM, LAYOUT, LAYOUT_BAR_PLACEHOLDER, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
-    LAYOUT_YAZI_PLACEHOLDER, YZX_AGENT, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST,
-    YZX_SIDEBAR_REFRESH, YZX_YAZI, ZELLIJ_HOME_PLACEHOLDER,
+    LAYOUT_YAZI_PLACEHOLDER, YZX_AGENT, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_YAZI,
+    ZELLIJ_HOME_PLACEHOLDER,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error, startup},
     paths::parent,
@@ -127,7 +127,7 @@ fn patch_managed_keybindings(
 ) -> Result<String, AppError> {
     let mut patched = text;
     for (index, binding) in managed_keybindings.iter().enumerate() {
-        if binding.is_default() {
+        if binding.is_default() || binding.path == "keybindings.sidebar_focus" {
             continue;
         }
         let marker = format!("        bind {}", kdl_string(binding.default));
@@ -145,7 +145,7 @@ fn patch_managed_keybindings(
         patched = patched.replace(&marker, &replacement);
     }
     for (index, binding) in managed_keybindings.iter().enumerate() {
-        if binding.is_default() {
+        if binding.is_default() || binding.path == "keybindings.sidebar_focus" {
             continue;
         }
         let marker = format!("__YZX_MANAGED_KEY_{index}__");
@@ -195,9 +195,7 @@ fn patch_popup_default_margins(
     vertical_margin: &str,
 ) -> Result<String, AppError> {
     let marker = format!(
-        "        popup_defaults {{\n            side_margin {DEFAULT_POPUP_SIDE_MARGIN}\n            vertical_margin {DEFAULT_POPUP_VERTICAL_MARGIN}\n            on_close {{\n                command {}\n            }}\n            on_hide {{\n                command {}\n            }}\n        }}",
-        kdl_string(YZX_SIDEBAR_REFRESH),
-        kdl_string(YZX_SIDEBAR_REFRESH),
+        "        popup_defaults {{\n            side_margin {DEFAULT_POPUP_SIDE_MARGIN}\n            vertical_margin {DEFAULT_POPUP_VERTICAL_MARGIN}\n        }}",
     );
     if !text.contains(&marker) {
         return Err(startup(
@@ -209,9 +207,7 @@ fn patch_popup_default_margins(
     Ok(text.replacen(
         &marker,
         &format!(
-            "        popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n            on_close {{\n                command {}\n            }}\n            on_hide {{\n                command {}\n            }}\n        }}",
-            kdl_string(YZX_SIDEBAR_REFRESH),
-            kdl_string(YZX_SIDEBAR_REFRESH),
+            "        popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n        }}",
         ),
         1,
     ))
@@ -240,7 +236,7 @@ fn patch_agent_popup(
     Ok(text.replacen(&marker, replacement, 1))
 }
 
-const OWNED_ZELLIJ_PLUGIN_IDS: &[&str] = &["yzpp", "yazelix_pane_orchestrator"];
+const OWNED_ZELLIJ_PLUGIN_IDS: &[&str] = &["yzpp", "yazelix_pane_orchestrator", "radar"];
 
 #[derive(Clone, Copy)]
 enum ZellijPluginBlock {
@@ -522,11 +518,10 @@ fn materialize_layout(path: &Path, plugin_block: &str) -> Result<(), AppError> {
     let layout = template
         .replace(LAYOUT_YAZI_PLACEHOLDER, YZX_YAZI)
         .replace(LAYOUT_BAR_PLACEHOLDER, plugin_block);
-    let swap_layout = swap_template.replace(LAYOUT_YAZI_PLACEHOLDER, YZX_YAZI);
     let swap_path = path.with_file_name("layout.swap.kdl");
     create_dir_all_checked(parent(path), path)?;
     fs::write(path, layout).map_err(|error| path_error("write", path, path, error))?;
-    fs::write(&swap_path, swap_layout)
+    fs::write(&swap_path, swap_template)
         .map_err(|error| path_error("write", &swap_path, &swap_path, error))
 }
 
@@ -570,6 +565,12 @@ mod tests {
             ),
             binding("screen", "keybindings.screen", "Alt Shift A", None),
             binding("sidebar", "keybindings.sidebar", "Alt Shift H", None),
+            binding(
+                "forest",
+                "keybindings.sidebar_focus",
+                "Ctrl y",
+                Some("Ctrl Shift E"),
+            ),
         ];
 
         let patched =
@@ -594,5 +595,6 @@ mod tests {
             assert!(!patched.contains(omitted), "unmapped bind kept {omitted}");
         }
         assert!(!patched.contains("__YZX_MANAGED_KEY_"));
+        assert!(!patched.contains("Ctrl Shift E"));
     }
 }

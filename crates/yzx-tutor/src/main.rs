@@ -6,6 +6,7 @@ use tutor_document::render_tutor_markdown;
 
 const YZX_HELIX: &str = "@yzxHelix@";
 const NUSHELL: &str = "@nu@";
+const MANAGED_HELIX: bool = false; // @managedHelix@
 
 const KEY_CONFIG: &str = "Alt Shift K";
 const KEY_AGENT: &str = "Alt Shift L";
@@ -14,7 +15,7 @@ const KEY_MENU: &str = "Alt Shift M";
 const KEY_FOCUS_LEFT: &str = "Alt h";
 const KEY_FOCUS_RIGHT: &str = "Alt l";
 const KEY_FULLSCREEN: &str = "Alt Shift F";
-const KEY_EDITOR_SIDEBAR_FOCUS: &str = "Ctrl y";
+const KEY_FOREST_FOCUS: &str = "Ctrl y";
 const KEY_REVEAL: &str = "Alt r";
 const KEY_SIDEBAR_SWAP: &str = "Alt Shift H";
 const KEY_YAZI_POPUP: &str = "Alt Shift Y";
@@ -28,6 +29,16 @@ const KEY_PANE_MODE: &str = "Ctrl p";
 const KEY_TAB_MODE: &str = "Ctrl t";
 const KEY_RESIZE_MODE: &str = "Ctrl n";
 const KEY_QUIT: &str = "Ctrl q";
+const FILES_SUMMARY: &str = if MANAGED_HELIX {
+    "Use Forest or Yazi without losing your browsing place"
+} else {
+    "Use Yazi without losing your browsing place"
+};
+const FILES_OUTCOME: &str = if MANAGED_HELIX {
+    "You can browse in Forest or Yazi, open a file, and move repeatedly between the editor file and persistent popup."
+} else {
+    "You can browse in Yazi, open a file, and move repeatedly between the editor file and persistent popup."
+};
 
 #[derive(Debug, PartialEq, Eq)]
 enum TutorView {
@@ -62,9 +73,9 @@ const TUTOR_LESSONS: &[TutorLesson] = &[
     TutorLesson {
         id: "files",
         title: "Open and reveal files",
-        summary: "Use the Yazi sidebar or popup without losing your browsing place",
+        summary: FILES_SUMMARY,
         scope: "Current tab",
-        outcome: "You can browse with Yazi, open a file in the managed editor, and move repeatedly between the editor file and persistent popup.",
+        outcome: FILES_OUTCOME,
         escape_hatch: "Use `Alt h` or `Alt l` to walk visible panes.",
         render: render_files_lesson,
     },
@@ -263,24 +274,38 @@ Next lesson: `yzx tutor files`.
 }
 
 fn render_files_lesson(index: usize, lesson: &TutorLesson) -> String {
+    let editor_action = if MANAGED_HELIX {
+        format!(
+            "1. **Inside managed Helix:** Press `{}` to toggle focus between Forest and the editor. `Esc` also returns to the editor while leaving Forest open; `q` closes it.",
+            key(KEY_FOREST_FOCUS)
+        )
+    } else {
+        "1. **Inside your editor:** Use its own file navigation.".to_string()
+    };
+    let editor_model = if MANAGED_HELIX {
+        "Forest is the editor-local tree; Yazi remains the workspace browser."
+    } else {
+        "Your editor owns editor-local navigation; Yazi remains the workspace browser."
+    };
     markdown(&format!(
         r#"{header}
 
 ## Actions
 
-1. **Inside Yazelix:** Press `{sidebar_focus}` to move between the editor and Yazi sidebar, or `{sidebar_swap}` to hide or show the sidebar.
-2. **Inside Yazelix:** Press `{yazi_popup}` to hide or show the full Yazi popup. Its navigation state stays live while hidden.
-3. **Inside Yazi:** Press `Enter` to open the selected file in the managed editor.
-4. **Inside the editor:** Press `{reveal}` to restart the persistent Yazi popup at the current file. Press it again in the popup to hide it and return without opening the hovered item. In tiled Yazi, it returns focus to the unchanged editor buffer.
+{editor_action}
+2. **Inside Yazelix:** Press `{sidebar_swap}` to hide or show the Radar sidebar.
+3. **Inside Yazelix:** Press `{yazi_popup}` to hide or show the full Yazi popup. Its navigation state stays live while hidden.
+4. **Open or reveal:** In Yazi, press `Enter` to open the selected file. In the editor, press `{reveal}` to restart the persistent Yazi popup at the current file; press it again in the popup to hide it without opening the hovered item.
 
 ## Mental model
 
-The sidebar is the quick companion. Ordinary popup toggles keep Yazi's browsing state while hidden; reveal starts a reversible round trip at the editor file. Press the same key in Yazi to return without changing the editor buffer. Use `Enter` when opening the selected file is intentional.
+{editor_model} Ordinary popup toggles keep Yazi's browsing state while hidden; reveal starts a reversible round trip at the editor file. Press the same key in Yazi to return without changing the editor buffer. Use `Enter` when opening the selected file is intentional.
 
 Next lesson: `yzx tutor panes`.
 "#,
         header = lesson_intro(index, lesson),
-        sidebar_focus = key(KEY_EDITOR_SIDEBAR_FOCUS),
+        editor_action = editor_action,
+        editor_model = editor_model,
         sidebar_swap = key(KEY_SIDEBAR_SWAP),
         yazi_popup = key(KEY_YAZI_POPUP),
         reveal = key(KEY_REVEAL),
@@ -539,14 +564,10 @@ mod tests {
         assert!(!workspace.contains("launch --path"));
 
         let files = render_lesson(lesson_index("files").unwrap());
-        for expected in [
-            KEY_EDITOR_SIDEBAR_FOCUS,
-            KEY_SIDEBAR_SWAP,
-            KEY_YAZI_POPUP,
-            KEY_REVEAL,
-        ] {
+        for expected in [KEY_SIDEBAR_SWAP, KEY_YAZI_POPUP, KEY_REVEAL] {
             assert!(files.contains(expected), "missing {expected}");
         }
+        assert_eq!(files.contains(KEY_FOREST_FOCUS), MANAGED_HELIX);
 
         let panes = render_lesson(lesson_index("panes").unwrap());
         for expected in [

@@ -33,10 +33,17 @@ fn expect_helix_wrapper(helix: &Path) {
     let helix_script = fs::read_to_string(helix).unwrap();
     let context = format!("{} managed Helix wrapper", helix.display());
     expect_contains(&helix_script, "YAZELIX_HELIX_BRIDGE=1", &context);
+    expect_contains(&helix_script, "STEEL_SEARCH_PATHS=", &context);
+    expect_contains(&helix_script, "--get forest.side", &context);
+    expect_contains(&helix_script, "export YAZELIX_FOREST_SIDE", &context);
 
     let helix_config =
         fs::read_to_string(embedded_store_path(&helix_script, "-config.toml").join("config.toml"))
             .unwrap();
+    assert!(
+        !helix_config.contains(":forest-open"),
+        "packaged Helix config must leave the Forest binding to root config"
+    );
     expect_contains(
         &helix_config,
         r#"A-r = ':sh yzx reveal "%{buffer_name}"'"#,
@@ -85,7 +92,50 @@ fn expect_helix_wrapper(helix: &Path) {
         "/share/yazelix-helix/steel/yazelix/bridge.scm",
         "/bin/yzx-helix-register",
         "YAZELIX_HELIX_USER_STEEL_INIT",
+        "(require (only-in \"helix/misc.scm\" enqueue-thread-local-callback))",
+        "forest/forest.scm",
+        "forest-configure!",
+        "forest-set-toggle-key!",
+        "YAZELIX_FOREST_SIDE",
+        "YAZELIX_FOREST_TOGGLE_KEY",
+        "(enqueue-thread-local-callback forest-open)",
         "(load yzx-user-init)",
+    }
+    expect_order(
+        &helix_init,
+        &[
+            "(forest-set-toggle-key! yzx-forest-toggle-key)",
+            "(enqueue-thread-local-callback forest-open)",
+            "(load yzx-user-init)",
+        ],
+        "managed Helix Forest startup",
+    );
+    assert!(
+        !helix_init
+            .lines()
+            .any(|line| line.trim() == "(forest-open)"),
+        "managed Helix must not open Forest before its first view exists\n{}",
+        excerpt(&helix_init)
+    );
+    let forest_cogs = embedded_store_path(&helix_script, "-yzx-forest-cogs");
+    for module in [
+        "forest/forest.scm",
+        "forest/core.scm",
+        "notify/notify.scm",
+        "glyph/glyph.scm",
+    ] {
+        assert!(
+            forest_cogs.join(module).is_file(),
+            "managed Helix is missing Forest module {module}"
+        );
+    }
+    let forest_source = fs::read_to_string(forest_cogs.join("forest/forest.scm")).unwrap();
+    expect_contains_all! {
+        &forest_source, "managed Forest defaults";
+        "(define *forest-side* 'left)",
+        "(define *forest-style* 'snacks)",
+        "(provide forest-set-toggle-key!)",
+        "(hashset \".git\" \"target\" \".direnv\" \"node_modules\" \"__pycache__\" \".hg\")",
     }
     expect_bridge_registry_publisher(&embedded_store_path(&helix_init, "/bin/yzx-helix-register"));
 
@@ -213,7 +263,9 @@ fn expect_helix_doctor_warnings(yzx: &Path) {
 fn expect_helix_wrapper_config_selection(helix_script: &str) {
     const FAKE_HX: &str = "#!/bin/sh\n\
 printf 'HELIX_STEEL_CONFIG=%s\\n' \"${HELIX_STEEL_CONFIG-}\" > \"$YZX_FAKE_HX_OUT\"\n\
+printf 'STEEL_SEARCH_PATHS=%s\\n' \"${STEEL_SEARCH_PATHS-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_USER_STEEL_INIT=%s\\n' \"${YAZELIX_HELIX_USER_STEEL_INIT-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
+printf 'YAZELIX_FOREST_TOGGLE_KEY=%s\\n' \"${YAZELIX_FOREST_TOGGLE_KEY-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_MANAGED_CONFIG_PATH=%s\\n' \"$YAZELIX_HELIX_MANAGED_CONFIG_PATH\" >> \"$YZX_FAKE_HX_OUT\"\n\
 for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
 
@@ -259,6 +311,39 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
             files,
             uses_user_steel,
         );
+    }
+
+    for (name, root_config, expected_key, enabled) in [
+        (
+            "remapped-key",
+            "[keybindings]\nsidebar_focus = \"Ctrl Shift E\"\n",
+            "C-S-e",
+            true,
+        ),
+        (
+            "disabled-key",
+            "[keybindings]\nsidebar_focus = false\n",
+            "",
+            false,
+        ),
+    ] {
+        let home = temp.path.join(format!("{name}-config"));
+        fs::create_dir_all(&home).unwrap();
+        fs::write(home.join("config.toml"), root_config).unwrap();
+        let state = temp.path.join(format!("{name}-state"));
+        let output = run_helix_wrapper(
+            &test_wrapper,
+            &home,
+            &state,
+            &temp.path.join(format!("{name}-output")),
+        );
+        assert!(
+            output.contains(&format!("YAZELIX_FOREST_TOGGLE_KEY={expected_key}\n")),
+            "{name} passed the wrong Forest toggle key\n{}",
+            excerpt(&output)
+        );
+        let generated = fs::read_to_string(state.join("helix/config.toml")).unwrap();
+        assert_eq!(generated.contains(":forest-open"), enabled);
     }
 }
 
@@ -315,6 +400,11 @@ fn expect_helix_wrapper_case(
         "{name} Helix config selected the wrong user Steel init\n{}",
         excerpt(&output)
     );
+    assert!(
+        output.contains("YAZELIX_FOREST_TOGGLE_KEY=C-y\n"),
+        "{name} Helix config passed the wrong default Forest toggle key\n{}",
+        excerpt(&output)
+    );
     if uses_user_steel {
         assert_eq!(
             fs::canonicalize(expected_steel_dir.join("helix.scm")).unwrap(),
@@ -331,6 +421,8 @@ fn expect_helix_wrapper_case(
         "A-r = ",
         ":sh yzx reveal",
         "%{buffer_name}",
+        "C-y = ",
+        ":forest-open",
     }
     if name == "toml" {
         expect_contains_all! {
@@ -357,7 +449,9 @@ fn run_helix_wrapper(
         .env("YAZELIX_STATE_DIR", state_dir)
         .env("YZX_FAKE_HX_OUT", output_path)
         .env("YAZELIX_HELIX_USER_STEEL_INIT", "/ambient/init.scm")
+        .env("YAZELIX_FOREST_TOGGLE_KEY", "A-x")
         .env_remove("HELIX_STEEL_CONFIG")
+        .env_remove("STEEL_SEARCH_PATHS")
         .env_remove("YAZELIX_HELIX_MANAGED_CONFIG_PATH")
         .output()
         .unwrap();
@@ -387,6 +481,8 @@ fn expect_helix_wrapper_output(
     expect_contains_all! {
         output, context;
         steel_line,
+        "STEEL_SEARCH_PATHS=/nix/store/",
+        "-yzx-forest-cogs",
         managed_line,
     }
     expect_order(

@@ -19,6 +19,10 @@ atuin = true
 # Editor command for managed opens. hx and yzx-hx use Nova Helix when included.
 command = "yzx-hx"
 
+[forest]
+# Side where Forest renders in managed Helix: left or right.
+side = "right"
+
 [agent]
 # "auto" keeps the built-in provider fallback. Any other value is one executable
 # command for the managed agent popup; put arguments in args.

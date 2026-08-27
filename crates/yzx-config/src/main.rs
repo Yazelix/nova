@@ -86,16 +86,23 @@ fn run() -> Result<()> {
             let output = args
                 .next()
                 .ok_or_else(|| error("--write-effective-helix-config requires an output path"))?;
+            let forest_keybinding = args.next().ok_or_else(|| {
+                error("--write-effective-helix-config requires a Forest keybinding or false")
+            })?;
             if args.next().is_some() {
                 return Err(error(
-                    "--write-effective-helix-config accepts exactly three paths",
+                    "--write-effective-helix-config accepts exactly three paths and one keybinding",
                 ));
             }
-            write_effective_helix_config(
+            if let Some(keybinding) = write_effective_helix_config(
                 std::path::Path::new(&packaged),
                 std::path::Path::new(&user),
                 std::path::Path::new(&output),
-            )
+                (forest_keybinding != "false").then_some(forest_keybinding.as_str()),
+            )? {
+                print!("{keybinding}");
+            }
+            Ok(())
         }
         Some("--write-effective-starship-config") => {
             let user = args
@@ -234,6 +241,7 @@ mod tests {
         .unwrap();
         ConfigPaths {
             rio_included: true,
+            helix_included: true,
             store_root: temp.path.join("store"),
             root: temp.path.join("config.toml"),
             rio: temp.path.join("rio/config.toml"),
@@ -302,6 +310,21 @@ mod tests {
                 .iter()
                 .any(|action| action.source_id == SOURCE_RIO)
         );
+    }
+
+    #[test]
+    fn helix_free_model_has_no_forest_control() {
+        let temp = TempHome::new();
+        let mut paths = temp_paths(&temp);
+        paths.helix_included = false;
+        let model = build_model(&paths).unwrap();
+
+        assert!(model.fields.iter().all(|field| {
+            !matches!(
+                field.path.as_str(),
+                FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+            ) && !field.display_label.contains("Forest")
+        }));
     }
 
     #[test]
@@ -740,6 +763,10 @@ mod tests {
             (
                 "[shell]\natuin = \"yes\"\n",
                 "shell.atuin must be true or false",
+            ),
+            (
+                "[forest]\nside = \"top\"\n",
+                "forest.side must be one of: left, right",
             ),
             (
                 "[popups.build]\ncommand = \"btm\"\nkeybinding = \"Alt B\"\ncolor = \"blue\"\n",
@@ -1186,6 +1213,12 @@ mod tests {
                 encoding: ConfigUiTextEncoding::String
             }
         ));
+        let forest_side = model_field(&model, FOREST_SIDE_PATH);
+        assert_config_field(&model, FOREST_SIDE_PATH, "string", "next launch");
+        assert_eq!(
+            choice_values(forest_side),
+            [&json!("left"), &json!("right")]
+        );
 
         let appearance = model_field(&model, APPEARANCE_MODE_PATH);
         assert_eq!(appearance.source_id, SOURCE_CONFIG);
@@ -1275,6 +1308,7 @@ mod tests {
                 SHELL_PROGRAM_PATH,
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
+                FOREST_SIDE_PATH,
                 AGENT_COMMAND_PATH,
                 WELCOME_ENABLED_PATH,
                 WELCOME_STYLE_PATH,
@@ -2606,11 +2640,19 @@ mod tests {
                 "[keys.normal]\n",
                 "A-r = \":noop\"\n",
                 "C-r = \":noop\"\n",
+                "C-y = \":noop\"\n",
             ),
         )
         .unwrap();
 
-        write_effective_helix_config(&packaged, &paths.helix_config, &output).unwrap();
+        let forest_key = write_effective_helix_config(
+            &packaged,
+            &paths.helix_config,
+            &output,
+            Some("Ctrl Shift E"),
+        )
+        .unwrap();
+        assert_eq!(forest_key.as_deref(), Some("C-S-e"));
 
         let value = read_toml_file_value(&output, "effective Helix config").unwrap();
         assert_eq!(get_toml_path(&value, "theme"), Some(&json!("ayu_evolve")));
@@ -2630,6 +2672,30 @@ mod tests {
             get_toml_path(&value, "keys.normal.C-r"),
             Some(&json!(":noop"))
         );
+        assert_eq!(
+            get_toml_path(&value, "keys.normal.C-y"),
+            Some(&json!(":noop"))
+        );
+        assert_eq!(
+            get_toml_path(&value, "keys.normal.C-S-e"),
+            Some(&json!(":forest-open"))
+        );
+
+        fs::write(&paths.helix_config, "[keys.normal]\nC-y = \":noop\"\n").unwrap();
+        assert_eq!(
+            write_effective_helix_config(&packaged, &paths.helix_config, &output, None).unwrap(),
+            None
+        );
+        let value = read_toml_file_value(&output, "effective Helix config").unwrap();
+        assert_eq!(
+            get_toml_path(&value, "keys.normal.C-y"),
+            Some(&json!(":noop"))
+        );
+        assert!(
+            !fs::read_to_string(&output)
+                .unwrap()
+                .contains(":forest-open")
+        );
     }
 
     #[test]
@@ -2641,7 +2707,7 @@ mod tests {
         fs::write(&packaged, "[keys.normal]\nA-r = \":noop\"\n").unwrap();
         fs::write(&user, "keys = \"not a table\"\n").unwrap();
 
-        let error = write_effective_helix_config(&packaged, &user, &output)
+        let error = write_effective_helix_config(&packaged, &user, &output, None)
             .unwrap_err()
             .to_string();
 

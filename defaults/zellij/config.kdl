@@ -12,12 +12,6 @@ plugins {
         popup_defaults {
             side_margin @defaultPopupSideMargin@
             vertical_margin @defaultPopupVerticalMargin@
-            on_close {
-                command "@yzxSidebarRefresh@"
-            }
-            on_hide {
-                command "@yzxSidebarRefresh@"
-            }
         }
 
         popups {
@@ -65,6 +59,11 @@ plugins {
         popup_plugin_url "yzpp"
         managed_agent_command_marker "@yzxAgent@"
     }
+
+    radar location="@zjRadar@" {
+        naming "off"
+        notify false
+    }
 }
 
 load_plugins {
@@ -100,7 +99,7 @@ keybinds {
         bind "Ctrl Alt o" { SwitchToMode "Normal"; }
     }
     shared_except "locked" {
-        unbind "Alt n" "Alt i" "Alt o" "Ctrl g"
+        unbind "Alt n" "Alt p" "Alt s" "Alt Shift s" "Alt i" "Alt o" "Ctrl g"
         bind "Alt m" { NewPane; }
         bind "Alt Shift Y" {
             MessagePlugin "yazelix_pane_orchestrator" {
@@ -140,6 +139,10 @@ keybinds {
         }
         bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }
         bind "Alt l" "Alt Right" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_right_or_tab"; }; }
+        bind "Alt n" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }
+        bind "Alt p" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }
+        bind "Alt s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-next"; }; }
+        bind "Alt Shift s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }
         bind "Alt 1" { GoToTab 1; }
         bind "Alt 2" { GoToTab 2; }
         bind "Alt 3" { GoToTab 3; }
@@ -151,7 +154,6 @@ keybinds {
         bind "Alt 9" { GoToTab 9; }
         bind "Alt Shift F" { ToggleFocusFullscreen; }
         bind "@sidebarKey@" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }
-        bind "@sidebarFocusKey@" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_editor_sidebar_focus"; }; }
         bind "Ctrl Alt g" { SwitchToMode "Locked"; }
         bind "Ctrl q" { Quit; }
         bind "Ctrl Alt h" { MoveTab "Left"; }

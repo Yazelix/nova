@@ -14,21 +14,33 @@ layout {
             @bar@
         }
         pane split_direction="vertical" {
-            pane name="sidebar" command="@yazi@" size="20%"
+            pane size=32 borderless=true {
+                plugin location="radar"
+            }
+            children
         }
         pane size=1 borderless=true {
             plugin location="status-bar"
         }
     }
 
-    tab name=""
+    tab name="" {
+        pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {
+            args "--yzx-startup-picker"
+        }
+    }
 
     new_tab_template cwd="$HOME" {
         pane size=1 borderless=true {
             @bar@
         }
         pane split_direction="vertical" {
-            pane name="sidebar" command="@yazi@" size="20%"
+            pane size=32 borderless=true {
+                plugin location="radar"
+            }
+            pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {
+                args "--yzx-startup-picker"
+            }
         }
         pane size=1 borderless=true {
             plugin location="status-bar"

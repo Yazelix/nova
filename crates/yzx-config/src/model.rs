@@ -72,6 +72,13 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
 
     let mut fields: Vec<_> = CONFIG_FIELDS
         .iter()
+        .filter(|spec| {
+            paths.helix_included
+                || !matches!(
+                    spec.field.path,
+                    FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+                )
+        })
         .map(|spec| build_root_config_field(&config_active, &config_default, spec))
         .collect::<Result<_>>()?;
     fields.push(build_bar_widgets_field(&config_active, &config_default)?);
@@ -79,7 +86,12 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
         fields.extend(build_custom_popup_fields(&paths.root)?);
     }
     fields.extend(helix.fields);
-    fields.extend(KEY_BINDINGS.iter().map(build_key_binding_field));
+    fields.extend(
+        KEY_BINDINGS
+            .iter()
+            .filter(|binding| paths.helix_included || binding[4] != "helix/config.toml")
+            .map(build_key_binding_field),
+    );
     for spec in starship_inventory.fields() {
         fields.push(build_starship_config_field(
             spec,

@@ -52,8 +52,9 @@ icon, desktop entry, and Ratconfig tab. Use `yzx enter` from the host terminal;
 `yzx launch` exits with that instruction.
 Helix-free packages replace `yzx-hx` with a clear unavailable command, so set
 `editor.command` to an installed editor such as `nvim`. They neither evaluate
-managed Helix nor retain Helix, Steel, or the packaged grammar closure. Yazi-free
-packages retain the managed launcher, configuration, sidebar, popup, opener,
+managed Helix nor retain Helix, Steel, Forest, its notify/glyph dependencies,
+or the packaged grammar closure. Yazi-free
+packages retain the managed launcher, configuration, Radar sidebar, popup, opener,
 and reveal integration but require host-provided `yazi` and `ya` commands with
 matching versions. A pair that differs from Nova's tested version warns and
 continues. The host installation owns optional Yazi preview dependencies.

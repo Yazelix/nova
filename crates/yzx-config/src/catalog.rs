@@ -7,6 +7,7 @@ pub(crate) const OPEN_LOG_LEVEL_PATH: &str = "open.log_level";
 pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
 pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
 pub(crate) const EDITOR_COMMAND_PATH: &str = "editor.command";
+pub(crate) const FOREST_SIDE_PATH: &str = "forest.side";
 pub(crate) const AGENT_COMMAND_PATH: &str = "agent.command";
 pub(crate) const AGENT_ARGS_PATH: &str = "agent.args";
 pub(crate) const AGENT_POPUP_KDL_PATH: &str = "agent.popup.kdl";
@@ -56,6 +57,7 @@ pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     SHELL_PROGRAM_PATH,
     SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
+    FOREST_SIDE_PATH,
     AGENT_COMMAND_PATH,
     WELCOME_ENABLED_PATH,
     WELCOME_STYLE_PATH,
@@ -145,7 +147,7 @@ pub(crate) const YAZI_PACKAGE_STARTER: &str = "# Managed Yazi package metadata. 
 pub(crate) const YAZI_THEME_STARTER: &str = "# Managed native Yazi theme config.\n";
 pub(crate) const ZELLIJ_CONFIG_STARTER: &str =
     "// Sparse native Zellij overrides layered over Yazelix packaged configuration.\n";
-pub(crate) const ZELLIJ_PLUGINS_STARTER: &str = "// Extra managed Zellij plugins. Do not declare yzpp or yazelix_pane_orchestrator here.\nplugins {\n}\n\nload_plugins {\n}\n";
+pub(crate) const ZELLIJ_PLUGINS_STARTER: &str = "// Extra managed Zellij plugins. Do not declare yzpp, yazelix_pane_orchestrator, or radar here.\nplugins {\n}\n\nload_plugins {\n}\n";
 pub(crate) const KEY_READ_ONLY_REASON: &str =
     "Read-only key binding; yzx config does not rewrite native keymaps.";
 
@@ -175,7 +177,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Panes"; "Alt h / Alt Left"; "Move focus left or previous tab"; "Yazelix"; "config.kdl"),
     key!("Panes"; "Alt l / Alt Right"; "Move focus right or next tab"; "Yazelix"; "config.kdl"),
     key!("Panes"; "Alt Shift F"; "Toggle focused pane fullscreen"; "Zellij"; "config.kdl"),
-    key!("Sidebar"; "Ctrl y"; "Toggle editor/sidebar focus"; "Yazelix"; "config.kdl"),
+    key!("Editor"; "Ctrl y"; "Toggle Forest focus"; "Yazelix"; "helix/config.toml"),
     key!("Editor / Yazi"; "Alt r"; "Reveal in Yazi or return unchanged"; "Yazelix"; "helix/config.toml + yazi/keymap.toml"),
     key!("Tabs"; "Ctrl t"; "Toggle tab mode"; "Zellij"; "config.kdl"),
     key!("Tabs"; "Alt 1-9"; "Go directly to tab 1-9"; "Zellij"; "config.kdl"),
@@ -190,7 +192,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Popups"; "Alt Shift M"; "Toggle menu popup"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift A"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift Y"; "Hide or show Yazi popup"; "Yazelix"; "config.kdl"),
-    key!("Sidebar"; "Alt Shift H"; "Toggle Yazi sidebar"; "Yazelix"; "config.kdl"),
+    key!("Sidebar"; "Alt Shift H"; "Toggle Radar sidebar"; "Yazelix"; "config.kdl"),
     key!("File manager"; "Alt z"; "Retarget tab workspace with zoxide"; "Yazi"; "yazi/keymap.toml"),
 ];
 
@@ -245,6 +247,16 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "new opens",
         apply_detail: "Saved editor command applies to newly launched managed Yazi opens.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::string_choice(
+            FOREST_SIDE_PATH,
+            "Side where Forest renders in managed Helix.",
+            &["left", "right"],
+            "left or right",
+        ),
+        apply_summary: "next launch",
+        apply_detail: "Saved Forest placement applies to newly launched managed Helix editors.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(
@@ -358,7 +370,7 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
     ConfigFieldSpec {
         field: FieldSpec::managed_keybinding(
             KEYBINDINGS_SIDEBAR_PATH,
-            "Key chord that hides or shows the managed Yazi sidebar. Set false to leave it unmapped.",
+            "Key chord that hides or shows the Radar sidebar. Set false to leave it unmapped.",
             "key chord like Alt Shift A that does not conflict with a packaged binding, or false",
         ),
         apply_summary: "next launch",
@@ -367,7 +379,7 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
     ConfigFieldSpec {
         field: FieldSpec::managed_keybinding(
             KEYBINDINGS_SIDEBAR_FOCUS_PATH,
-            "Key chord that toggles focus between the editor and managed Yazi sidebar. Set false to leave it unmapped.",
+            "Managed Helix key chord that toggles focus between Forest and the editor. Set false to leave it unmapped.",
             "key chord like Ctrl y that does not conflict with a packaged binding, or false",
         ),
         apply_summary: "next launch",

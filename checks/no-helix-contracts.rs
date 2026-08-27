@@ -22,6 +22,7 @@ fn main() {
         "-helix-runtime",
         "-consolidated-helix-grammars",
         "-yzx-helix-steel-config",
+        "-yzx-forest-cogs",
         "-helix-tree-sitter-",
         "-steel-core-",
     ] {
@@ -33,6 +34,13 @@ fn main() {
     }
 
     let launcher = binary_text(&yzx_bin);
+    let config_ui =
+        fs::read_to_string(embedded_store_path(&launcher, "/bin/yzx-config-ui")).unwrap();
+    expect_contains(
+        &config_ui,
+        "export YZX_HELIX_INCLUDED=0",
+        "no-Helix config UI",
+    );
     let helix = embedded_store_path(&launcher, "/bin/yzx-hx");
     let editor = embedded_store_path(&launcher, "/bin/yzx-editor");
     assert!(
@@ -71,6 +79,12 @@ fn main() {
         &format!(r#""package":"{expected_variant}""#),
         "no-Helix package identity",
     );
+    let status_text = external_case.run_yzx(&yzx_bin, "status", "no-Helix text status");
+    assert!(
+        !status_text.contains("forest keybinding:"),
+        "no-Helix status advertised an unavailable Forest binding\n{}",
+        excerpt(&status_text)
+    );
     let mut external_doctor = external_case.yzx_command(&yzx_bin, "doctor");
     let external_doctor_stdout = successful_stdout(
         external_doctor.env("PATH", &host_path),
@@ -84,6 +98,11 @@ fn main() {
     assert!(
         !external_doctor_stdout.contains("warn editor.command:"),
         "no-Helix doctor warned about the configured external editor\n{}",
+        excerpt(&external_doctor_stdout)
+    );
+    assert!(
+        !external_doctor_stdout.contains("keybindings.sidebar_focus:"),
+        "no-Helix doctor advertised an unavailable Forest binding\n{}",
         excerpt(&external_doctor_stdout)
     );
 
@@ -113,6 +132,16 @@ fn main() {
         "If your selected package omits managed Helix",
         "no-Helix tutor",
     );
+    for args in [["tutor", "list"], ["tutor", "files"]] {
+        let output = successful_stdout(Command::new(&yzx_bin).args(args), "no-Helix tutor");
+        for unavailable in ["Forest", "Ctrl y"] {
+            assert!(
+                !output.contains(unavailable),
+                "no-Helix tutor advertised {unavailable}\n{}",
+                excerpt(&output)
+            );
+        }
+    }
 
     successful_output(
         Command::new(editor)

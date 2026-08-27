@@ -11,9 +11,9 @@ use std::{
 
 use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
-    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM,
+    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM, RIO,
     YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    RIO, YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
+    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
@@ -78,6 +78,7 @@ fn read_managed_keybindings(
 ) -> Result<Vec<ManagedKeybinding>, AppError> {
     MANAGED_KEYBINDING_SPECS
         .iter()
+        .filter(|&&(_, path, _)| MANAGED_HELIX == "included" || path != "keybindings.sidebar_focus")
         .map(|&(label, path, default)| {
             let configured = trim_output(config_value(config_home, config_toml, path)?);
             Ok(ManagedKeybinding {

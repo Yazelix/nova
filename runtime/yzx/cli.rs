@@ -9,7 +9,6 @@ use crate::{
     paths::{enter_terminal_label, nonempty_env, runtime_path},
     runtime::{Runtime, current_appearance_mode},
     status::{print_status, print_status_json},
-    yazi::YaziRuntime,
 };
 
 pub(crate) fn run() -> Result<(), AppError> {
@@ -177,12 +176,9 @@ fn exec_run(args: Vec<OsString>) -> Result<(), AppError> {
 }
 
 fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
-    let yazi = YaziRuntime::resolve()?;
-    yazi.warn();
     let mut command = Command::new(YZX_REVEAL);
     command
         .args(args)
-        .env("YZX_YA", &yazi.ya)
         .env("YZX_ZELLIJ", ZELLIJ)
         .env("PATH", runtime_path());
     exec(command, "yzx reveal")

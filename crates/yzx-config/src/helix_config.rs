@@ -11,6 +11,7 @@ use crate::{catalog::*, common::*, paths::ConfigPaths};
 
 const REVEAL_KEY: &str = "A-r";
 const REVEAL_COMMAND: &str = r#":sh yzx reveal "%{buffer_name}""#;
+const FOREST_COMMAND: &str = ":forest-open";
 pub(crate) const HELIX_REVEAL_PATH: &str = "keys.normal.A-r";
 
 pub(crate) const HELIX_RECOMMENDED_PATHS: &[&str] = &[
@@ -139,16 +140,66 @@ pub(crate) fn write_effective_helix_config(
     packaged_path: &Path,
     user_path: &Path,
     output_path: &Path,
-) -> Result<()> {
+    forest_keybinding: Option<&str>,
+) -> Result<Option<String>> {
     let mut config = read_toml_config(packaged_path, "packaged Helix config")?;
     if user_path.is_file() {
         let user_config = read_toml_config(user_path, "user Helix config")?;
         deep_merge_toml(&mut config, &user_config);
     }
     enforce_reveal_binding(&mut config)?;
+    let forest_keybinding = forest_keybinding.map(helix_key_chord).transpose()?;
+    if let Some(keybinding) = &forest_keybinding {
+        normal_keymap(&mut config)?.insert(
+            keybinding.clone(),
+            TomlValue::String(FOREST_COMMAND.to_string()),
+        );
+    }
     let output = toml::to_string_pretty(&config)
         .map_err(|err| error(format!("could not serialize effective Helix config: {err}")))?;
-    atomic_write(output_path, &output)
+    atomic_write(output_path, &output)?;
+    Ok(forest_keybinding)
+}
+
+fn normal_keymap(config: &mut TomlValue) -> Result<&mut TomlMap<String, TomlValue>> {
+    let root = config
+        .as_table_mut()
+        .ok_or_else(|| error("effective Helix config root must be a TOML table"))?;
+    let keys = table_entry(root, "keys", "[keys]")?;
+    table_entry(keys, "normal", "[keys.normal]")
+}
+
+fn helix_key_chord(chord: &str) -> Result<String> {
+    let (modifiers, key) = chord
+        .rsplit_once(' ')
+        .ok_or_else(|| error(format!("invalid managed key chord: {chord}")))?;
+    let modifiers = modifiers
+        .split_ascii_whitespace()
+        .map(|modifier| match modifier {
+            "Ctrl" => Ok("C"),
+            "Alt" => Ok("A"),
+            "Shift" => Ok("S"),
+            _ => Err(error(format!("invalid managed key modifier: {modifier}"))),
+        })
+        .collect::<Result<Vec<_>>>()?
+        .join("-");
+    let key = match key {
+        "Enter" => "ret",
+        "Esc" => "esc",
+        "Space" => "space",
+        "Backspace" => "backspace",
+        "Left" => "left",
+        "Right" => "right",
+        "Up" => "up",
+        "Down" => "down",
+        "Home" => "home",
+        "End" => "end",
+        "PageUp" => "pageup",
+        "PageDown" => "pagedown",
+        "Tab" => "tab",
+        key => key,
+    };
+    Ok(format!("{modifiers}-{}", key.to_ascii_lowercase()))
 }
 
 fn read_toml_config(path: &Path, label: &str) -> Result<TomlValue> {
@@ -159,12 +210,7 @@ fn read_toml_config(path: &Path, label: &str) -> Result<TomlValue> {
 }
 
 fn enforce_reveal_binding(config: &mut TomlValue) -> Result<()> {
-    let root = config
-        .as_table_mut()
-        .ok_or_else(|| error("effective Helix config root must be a TOML table"))?;
-    let keys = table_entry(root, "keys", "[keys]")?;
-    let normal = table_entry(keys, "normal", "[keys.normal]")?;
-    normal.insert(
+    normal_keymap(config)?.insert(
         REVEAL_KEY.to_string(),
         TomlValue::String(REVEAL_COMMAND.to_string()),
     );

@@ -29,6 +29,8 @@ if [ -f "$user_helix_config" ] ||
 fi
 HELIX_STEEL_CONFIG="$steel_config_dir"
 export HELIX_STEEL_CONFIG
+STEEL_SEARCH_PATHS="@yzxForestCogs@${STEEL_SEARCH_PATHS:+:$STEEL_SEARCH_PATHS}"
+export STEEL_SEARCH_PATHS
 
 if [ "${YAZELIX_HELIX_BRIDGE:-1}" != 0 ]; then
   if [ -z "${YAZELIX_HELIX_BRIDGE_SESSION_ID:-}" ]; then
@@ -46,7 +48,15 @@ if [ "${YAZELIX_HELIX_BRIDGE:-1}" != 0 ]; then
 fi
 
 @mkdir@ -p "$YAZELIX_STATE_DIR"
-@yzxConfig@ --write-effective-helix-config "$packaged_helix_config" "$user_helix_config" "$helix_config_file"
+YAZELIX_FOREST_SIDE="$(@yzxConfig@ --get forest.side)"
+export YAZELIX_FOREST_SIDE
+forest_keybinding="$(@yzxConfig@ --get keybindings.sidebar_focus)"
+YAZELIX_FOREST_TOGGLE_KEY="$(@yzxConfig@ --write-effective-helix-config "$packaged_helix_config" "$user_helix_config" "$helix_config_file" "$forest_keybinding")"
+if [ -n "$YAZELIX_FOREST_TOGGLE_KEY" ]; then
+  export YAZELIX_FOREST_TOGGLE_KEY
+else
+  unset YAZELIX_FOREST_TOGGLE_KEY
+fi
 if [ -n "$user_steel_dir" ]; then
   @mkdir@ -p "$steel_config_dir"
   @ln@ -sf "$user_steel_dir/helix.scm" "$steel_config_dir/helix.scm"

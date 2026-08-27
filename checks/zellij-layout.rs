@@ -14,6 +14,7 @@ fn main() -> ExitCode {
         .lines()
         .filter_map(tab_template)
         .collect::<BTreeSet<_>>();
+    let home_tab = format!("tab name=\"{HOME_TAB_MARKER}\"");
     let mut ok = true;
     for (block, needle, message) in [
         (
@@ -23,13 +24,23 @@ fn main() -> ExitCode {
         ),
         (
             "default_tab_template",
-            "pane name=\"sidebar\" command=",
-            "missing Yazi sidebar command in default tab template",
+            "plugin location=\"radar\"",
+            "missing Radar sidebar in default tab template",
         ),
         (
             "new_tab_template",
-            "pane name=\"sidebar\" command=",
-            "missing Yazi sidebar command in new tab template",
+            "plugin location=\"radar\"",
+            "missing Radar sidebar in new tab template",
+        ),
+        (
+            &home_tab,
+            "pane name=\"yazi_picker\" command=",
+            "missing tiled Yazi picker in startup tab",
+        ),
+        (
+            "new_tab_template",
+            "pane name=\"yazi_picker\" command=",
+            "missing tiled Yazi picker in new tab template",
         ),
     ] {
         if !block_contains(&layout, block, needle) {
@@ -37,16 +48,32 @@ fn main() -> ExitCode {
             ok = false;
         }
     }
+    if layout.matches(r#"plugin location="radar""#).count() != 2 {
+        eprintln!("{layout_path}: startup and new-tab templates must each own one Radar pane");
+        ok = false;
+    }
+    if layout
+        .matches(r#"pane name="yazi_picker" command="#)
+        .count()
+        != 2
+        || layout.matches(r#"args "--yzx-startup-picker""#).count() != 2
+        || layout.matches("focus=true close_on_exit=true").count() != 2
+    {
+        eprintln!(
+            "{layout_path}: startup and new-tab templates must each open one focused tiled Yazi picker"
+        );
+        ok = false;
+    }
     if !layout_order_is_valid(&layout) {
         eprintln!(
             "{layout_path}: startup tab must follow default_tab_template and precede new_tab_template"
         );
         ok = false;
     }
-    if !layout
-        .lines()
-        .any(|line| line.trim() == format!(r#"tab name="{HOME_TAB_MARKER}""#))
-    {
+    if !layout.lines().any(|line| {
+        line.trim()
+            .starts_with(&format!(r#"tab name="{HOME_TAB_MARKER}""#))
+    }) {
         eprintln!("{layout_path}: startup tab must use the Yazelix home tab marker");
         ok = false;
     }
@@ -65,6 +92,13 @@ fn main() -> ExitCode {
     }
 
     let swap = read(swap_path);
+    if swap.matches(r#"plugin location="radar""#).count() != 2
+        || !swap.contains("pane size=32 borderless=true")
+        || !swap.contains("pane size=1 borderless=true")
+    {
+        eprintln!("{swap_path}: open and collapsed swaps must preserve the Radar sidebar");
+        ok = false;
+    }
     let mut depth = 0i32;
 
     for (index, line) in swap.lines().enumerate() {

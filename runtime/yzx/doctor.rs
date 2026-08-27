@@ -5,8 +5,7 @@ use crate::{
     MANAGED_HELIX, NOVA_BAR_WASM, PACKAGE_VARIANT, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
     YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YAZI_TESTED_VERSION, YZX_BAR_RENDER,
     YZX_BAR_RENDER_REQUEST, YZX_CONFIG, YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU,
-    YZX_REVEAL, YZX_SCREEN, YZX_SIDEBAR_REFRESH, YZX_TUTOR, YZX_WELCOME, YZX_YAZI,
-    YZX_ZELLIJ_CONFIG, ZELLIJ,
+    YZX_REVEAL, YZX_SCREEN, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::executable_file,
     error::{AppError, path_error, startup},
     paths::{runtime_path, zellij_session_label},
@@ -63,7 +62,6 @@ pub(crate) fn print_doctor() -> Result<(), AppError> {
     doctor_ok("welcome helper", YZX_WELCOME);
     doctor_ok("zellij helper", YZX_ZELLIJ_CONFIG);
     doctor_ok("reveal helper", YZX_REVEAL);
-    doctor_ok("sidebar refresh helper", YZX_SIDEBAR_REFRESH);
     doctor_ok("yazi source", YAZI_SOURCE);
     doctor_ok("yazi lookup PATH", yazi.lookup_path.to_string_lossy());
     doctor_ok("yazi", yazi.yazi.display());
@@ -125,7 +123,6 @@ fn check_doctor_inputs() -> Result<(), AppError> {
         ("config helper", Path::new(YZX_CONFIG)),
         ("zellij config helper", Path::new(YZX_ZELLIJ_CONFIG)),
         ("reveal helper", Path::new(YZX_REVEAL)),
-        ("sidebar refresh helper", Path::new(YZX_SIDEBAR_REFRESH)),
         ("packaged Zellij config", Path::new(YZX_CONFIG_KDL)),
         ("Zellij", Path::new(ZELLIJ)),
         ("layout", Path::new(LAYOUT)),

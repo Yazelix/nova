@@ -71,7 +71,6 @@ fn config_has_chord(config: &str, chord: &str) -> bool {
         "Alt Shift M" => Some("menuKey"),
         "Alt Shift A" => Some("screenKey"),
         "Alt Shift H" => Some("sidebarKey"),
-        "Ctrl y" => Some("sidebarFocusKey"),
         _ => None,
     };
     if let Some(placeholder) = placeholder {

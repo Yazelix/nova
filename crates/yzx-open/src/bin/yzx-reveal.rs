@@ -100,7 +100,6 @@ mod tests {
             ),
         );
         let config = Config {
-            ya: "unused-ya".into(),
             zellij: fixture.path.join("zellij").into_os_string(),
             zellij_session_name: Some("saved-session".into()),
         };
@@ -135,7 +134,6 @@ mod tests {
             ),
         );
         let config = Config {
-            ya: "unused-ya".into(),
             zellij: fixture.path.join("zellij").into_os_string(),
             zellij_session_name: None,
         };

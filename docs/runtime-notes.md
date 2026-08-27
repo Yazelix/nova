@@ -191,11 +191,22 @@ Later launches use that stored provider. If the stored provider is unknown or
 missing from `PATH`, the popup prints a diagnostic and tells the user to remove
 the provider file so Yazelix can choose again.
 
+Immediately before launching an auto-selected Codex or Claude Code provider,
+the launcher runs stock Radar's idempotent setup. A setup failure prints a
+warning and does not block the provider. Codex still requires the user to trust
+the installed hook through `/hooks`. Grok, OpenCode, and Pi are not configured
+because the pinned Radar does not provide adapters for them.
+
 Any other `agent.command` value is executed directly by the same launcher for
 new sessions, so custom commands receive the same initial title. Put argv-style
 arguments in `agent.args`, not in `agent.command`.
 
-## Yazi Popup
+## Yazi Picker and Popup
+
+Every new managed tab starts with one focused tiled `yazi_picker`, which is the
+selectable starting pane Zellij requires. A successful file, directory, or
+`Alt z` workspace choice opens the managed editor before closing that exact pane
+by id. There is no hidden starter shell whose cwd can become stale.
 
 `Alt Shift Y` asks the pane orchestrator to toggle the packaged `yazi` popup
 with the active tab's canonical workspace root as its explicit request cwd.
@@ -209,18 +220,15 @@ not wait for or address a partially started process. This deliberately resets
 the popup's navigation state while leaving the canonical workspace unchanged.
 Managed Yazi owns `Alt r` locally and passes no hovered path. The popup role
 sends one explicit `hide` to the popup owner, preserving the live Yazi process
-and navigation state and returning to the underlying pane. Tiled Yazi asks the
-pane orchestrator to focus the existing editor and remains visible. Neither
-role opens the hovered item or changes editor cwd, canonical workspace, or
-sidebar state; `Enter` remains the explicit file-open action. Helix owns its
+and navigation state and returning to the underlying pane. It does not open the
+hovered item or change editor cwd or the canonical workspace; `Enter` remains
+the explicit file-open action. Helix owns its
 reveal binding locally as well. Zellij does not intercept or reroute the chord,
 so hiding the popup cannot replay it as a Helix reveal.
 
-The popup runs the same `yzx-yazi` launcher and layered config as the tiled
-sidebar with the private `workspace-popup` role. Packaged Yazi initialization
-omits sidebar registration and `sidebar-status` for that role. Popup navigation
-and ordinary opens retain their existing local and canonical-workspace
-semantics.
+The popup runs the `yzx-yazi` launcher and layered config with the private
+`workspace-popup` role. Popup navigation and ordinary opens retain their local
+and canonical-workspace semantics.
 
 ## Shell History, Nushell, And Starship
 
@@ -281,6 +289,13 @@ effective file is `${YAZELIX_STATE_DIR}/helix/config.toml`. Yazelix reserves
 A-r = ':sh yzx reveal "%{buffer_name}"'
 ```
 
+`keybindings.sidebar_focus` adds, remaps, or disables Nova's generated
+`:forest-open` binding and Forest's matching focus toggle. A user-owned Helix
+binding at the old key is preserved when Forest moves or is disabled. Managed
+Helix prepends the exact packaged Forest, notify, and glyph modules to
+`STEEL_SEARCH_PATHS`, opens Forest with the `forest.side` choice (`right` by
+default), and still loads user Steel initialization last.
+
 `helix/languages.toml` is loaded by the managed Helix config dir when present.
 `helix/helix.scm` and `helix/init.scm` load through a private
 `HELIX_STEEL_CONFIG` overlay once both files exist. The overlay keeps the user
@@ -325,7 +340,7 @@ user-owned asset tree:
 
 Native TOML tables merge recursively. User scalars and arrays replace packaged
 values; only `plugin.prepend_fetchers` uses replace-plus-managed-Git semantics,
-which keeps user fetchers while restoring the two sidebar Git fetchers exactly
+which keeps user fetchers while restoring the two managed Git fetchers exactly
 once. Broken config paths, invalid TOML, and incomplete flavors stop Yazi launch.
 The managed edit opener is always restored. Normal `~/.config/yazi` is not read.
 
@@ -333,7 +348,7 @@ Optional `yazi/starship.toml` is a complete replacement for Nova's packaged
 compact Starship header config, not a merge layer. Its presence alone activates
 materialization. The materializer requires readable TOML and links it into the
 effective config as `yazelix_starship.toml`; omission retains the packaged file.
-Both the normal sidebar and workspace popup use that same effective path.
+The workspace popup uses that same effective path.
 
 Automation can materialize that config without starting Yazi, Zellij, Rio, an
 editor, or the full Yazelix runtime:
@@ -402,6 +417,3 @@ require("foo"):setup()
 dark = "foo"
 light = "foo"
 ```
-
-Managed Yazi refreshes sidebar git decorations on setup, directory changes, tab
-changes, and managed popup close or hide hooks.

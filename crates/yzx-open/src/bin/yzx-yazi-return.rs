@@ -1,6 +1,6 @@
 use anyhow::Result;
 use std::{env, process::ExitCode};
-use yzx_open::sidebar::{Config, orchestrator_pipe, popup_pipe};
+use yzx_open::sidebar::{Config, popup_pipe};
 
 #[cfg(test)]
 #[path = "../test_support.rs"]
@@ -23,7 +23,7 @@ fn run(config: &Config, role: Option<&str>) -> Result<()> {
     if role == Some("workspace-popup") {
         popup_pipe(config, "hide", "yazi").map(|_| ())
     } else {
-        orchestrator_pipe(config, "focus_editor", "").map(|_| ())
+        Ok(())
     }
 }
 
@@ -35,7 +35,7 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn popup_hides_and_tiled_yazi_returns_to_the_existing_editor() {
+    fn popup_hides_and_non_popup_yazi_is_unchanged() {
         let fixture = TestDir::new();
         let zellij_log = fixture.path.join("zellij.log");
         write_executable(
@@ -46,7 +46,6 @@ mod tests {
             ),
         );
         let config = Config {
-            ya: "unused-ya".into(),
             zellij: fixture.path.join("zellij").into_os_string(),
             zellij_session_name: Some("saved-session".into()),
         };
@@ -56,8 +55,7 @@ mod tests {
 
         assert_eq!(
             fs::read_to_string(zellij_log).unwrap(),
-            "action pipe --plugin yzpp --name hide -- yazi\n\
-action pipe --plugin yazelix_pane_orchestrator --name focus_editor -- \n"
+            "action pipe --plugin yzpp --name hide -- yazi\n"
         );
     }
 }

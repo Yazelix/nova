@@ -9,7 +9,7 @@ Manager config system, or a main-Yazelix compatibility layer.
 ## Runtime chain
 
 ```text
-yzx launch  →  Rio  →  yzx-welcome  →  Nova Zellij  →  Yazi sidebar + work panes
+yzx launch  →  Rio  →  yzx-welcome  →  Nova Zellij  →  Radar + work panes
 yzx enter   →  yzx-welcome  →  Nova Zellij  →  same layout
 yzx run     →  prepared Yazelix environment  →  exact child argv/status
 yzx yazi-config materialize  →  private materializer  →  effective Yazi config path
@@ -73,12 +73,12 @@ One owner per concern. Paths are the durable map.
 | --- | --- |
 | `runtime/yzx/` | CLI, public Yazi materializer grammar/delegation, startup env, host-Yazi pair resolution, launch/enter handoff |
 | `runtime/yzx-menu.rs` | Menu palette |
-| `runtime/yzx-agent.rs` | Initial agent title, custom-command exec, and provider bootstrap (`codex resume` → `grok` → `opencode` → `pi` → `claude --resume`) |
-| `runtime/yzx-yazi.rs` | Managed Yazi process/env launch, active session appearance lookup, editor resolve, non-sidebar workspace-popup role |
+| `runtime/yzx-agent.rs` | Initial agent title, custom-command exec, provider bootstrap (`codex resume` → `grok` → `opencode` → `pi` → `claude --resume`), and stock Radar setup before auto-selected Codex or Claude Code |
+| `runtime/yzx-yazi.rs` | Managed Yazi process/env launch, active session appearance lookup, editor resolve, startup-picker and workspace-popup roles |
 | `runtime/yzx-nu.rs` | Managed Nu layering; runtime-effective Starship config request |
 | `runtime/yzx-zellij-config.rs` | Packaged + guarded Zellij scalar sidecar merge |
 | `runtime/yzx/zellij.rs` | Plugin sidecar inject; launch materialize/patches |
-| `crates/yzx-open/` | Editor open, Helix bridge, target-at-launch popup reveal, bounded diagnostics |
+| `crates/yzx-open/` | Editor open, Helix bridge, successful startup-picker removal, target-at-launch popup reveal, bounded diagnostics |
 | `crates/yzx-yazi-config/` | Managed Yazi config-home materialization, native TOML layering, and runtime-only flavor projection |
 | `crates/yzx-tutor/` | Tutor CLI and lessons |
 | `runtime/yzx-helix.sh` (`yzx-hx`) | Effective Helix config + Steel wiring |
@@ -140,6 +140,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
 | `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
 | `editor.command` | executable string | `yzx-hx` | Yazi opens, config text edits, and Git clients | new opens |
+| `forest.side` | string enum | `right` | Forest placement in managed Helix | next launch |
 | `agent.command` | executable string or `auto` | `auto` | Managed agent popup command | next launch |
 | `agent.args` | string array | `[]` | Arguments for a custom agent command | next launch |
 | `welcome.enabled` | boolean | `true` | Enables the pre-Zellij splash | next launch |
@@ -152,8 +153,8 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `keybindings.git` | key chord or `false` | `Alt Shift J` | Git popup trigger | next launch |
 | `keybindings.menu` | key chord or `false` | `Alt Shift M` | Menu popup trigger | next launch |
 | `keybindings.screen` | key chord or `false` | `Alt Shift A` | Random full-screen visual trigger | next launch |
-| `keybindings.sidebar` | key chord or `false` | `Alt Shift H` | Sidebar visibility | next launch |
-| `keybindings.sidebar_focus` | key chord or `false` | `Ctrl y` | Editor/sidebar focus | next launch |
+| `keybindings.sidebar` | key chord or `false` | `Alt Shift H` | Radar visibility | next launch |
+| `keybindings.sidebar_focus` | key chord or `false` | `Ctrl y` | Forest open/refocus in managed Helix | next launch |
 | `bar.widgets` | ordered string array | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Top-bar tray order; `BAR_WIDGET_VALUES` and `bar_widgets` own validation | next launch |
 
 `custom_popups.rs` owns the dynamic `[popups.<id>]` namespace. An id starts
@@ -177,20 +178,22 @@ custom popup entry.
 | --- | --- |
 | `defaults/rio/` | Complete seed-once Rio window, font, cursor, effects, and adaptive-theme configuration; Nova reserves only top-level `force-theme` for integrated appearance |
 | `defaults/zellij/config.kdl` | Zellij keys, plugin loads, popup wiring, Kitty protocol; leaves application-local `Alt r` routing to Helix and Yazi |
-| `defaults/zellij/layout*.kdl` | Sidebar + stacked panes, open/closed swap |
+| `defaults/zellij/layout*.kdl` | Radar + stacked panes, open/closed swap |
 | `defaults/nu/` | Packaged Nu: carapace, zoxide, and Starship invocation |
-| `defaults/yazi/` | Sidebar/popup role initialization, opens via `yzx-open`, plugins, `Alt z` workspace retarget, role-local `Alt r` return / popup hide |
-| `defaults/helix/config.toml` | Packaged defaults; `Alt r` reveal, `Ctrl r` reload (overridable) |
+| `defaults/yazi/` | Popup initialization, opens via `yzx-open`, plugins, `Alt z` workspace retarget, and `Alt r` popup hide |
+| `defaults/helix/config.toml` | Packaged defaults; `Alt r` reveal and `Ctrl r` reload; runtime composition adds the Forest binding |
 
-### First-party children (not owned here)
+### Packaged components (not owned here)
 
 | Child | Domain |
 | --- | --- |
 | Nova Rio | Terminal and native configuration schema |
 | Nova Zellij | Multiplexer fork |
 | Nova Helix | Editor fork |
+| Yazelix Forest | Managed Helix file tree and its native interaction behavior |
+| zj-radar | Session and agent-attention rail, command pipe, and producer CLI |
 | Zellij Popup (`yzpp`) | Popup lifecycle |
-| Zellij Pane Orchestrator | Focus, sidebar walk, workspace state, and popup request routing |
+| Zellij Pane Orchestrator | Pane focus, Radar visibility, workspace state, and popup request routing |
 | Nova Bar | Top bar rendering, widgets, palettes, and integrated KDL |
 | zjstatus | WebAssembly renderer used by Nova Bar; narrow activity-marker fork |
 | Ratconfig | Config UI toolkit |
@@ -304,7 +307,8 @@ Yazelix integration owner. This uses Ratconfig's existing views, search, file
 actions, and diagnostics without extending its API or Yazelix's typed schema.
 
 `zellij/plugins.kdl` accepts only `plugins` / `load_plugins` and must not
-redeclare Yazelix-owned plugin ids (`yzpp`, `yazelix_pane_orchestrator`, …).
+redeclare Yazelix-owned plugin ids (`yzpp`, `yazelix_pane_orchestrator`, or
+`radar`).
 
 Inside a managed session, `yzx config` Zellij scalar saves and resets also patch
 `$YAZELIX_STATE_DIR/zellij/config.kdl` (watched active file) without wiping
@@ -368,7 +372,9 @@ Owned by `runtime/yzx/` (Nix substitutes paths; Rust owns wiring and `exec`).
 3. Config home: `YAZELIX_CONFIG_HOME` → `XDG_CONFIG_HOME/yazelix` → `~/.config/yazelix`
 4. Root settings → env and launch args (`YZX_OPEN_LOG`, welcome, Zellij theme mode, popup chords/custom KDL, bar tray)
 5. Rio native config home
-6. Zellij materialize (sidecar + patches) + status-bar cache path + isolated exact bundled-plugin permission seeds
+6. Zellij materialize (sidecar + patches) + status-bar cache path + isolated
+   exact bundled-plugin permission seeds; Radar uses one grouped native prompt
+   stored in that same isolated cache
 
 Pre-`exec` failures → Yazelix diagnostics.  
 After `exec` → Rio / Zellij / child tool.
@@ -412,7 +418,7 @@ Detail lives in Owners, checks, and the notes below.
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
 | C2 | Complete Rio config is seeded once and selected through `RIO_CONFIG_HOME`; Nova owns only top-level `force-theme`, using native reload when writable and coherent next-session fallback when read-only | `defaults/rio/config.toml`, runtime, `yzx-config` | launcher/config unit tests, `yzx-contracts` | Visual dogfood |
-| C3 | Layout sidebar template for swaps | `defaults/zellij/layout*.kdl` | `zellij-layout` | — |
+| C3 | Layout Radar template for swaps | `defaults/zellij/layout*.kdl` | `zellij-layout` | Live state-retention dogfood |
 | C4 | Packaged keys + guarded Zellij sidecar | `defaults/zellij/config.kdl`, `yzx-zellij-config` | `yzx-contracts` | Full keys |
 | C5 | Managed Nu layering | `yzx-nu`, `defaults/nu/` | `yzx-contracts` | — |
 | C6 | Managed Yazi layering, public noninteractive materialization, `yzx-open`, and zoxide | `defaults/yazi/`, `runtime/yzx-yazi.rs`, `runtime/yzx/`, `crates/yzx-yazi-config/`, `crates/yzx-open/` | host-Yazi contracts + materialization + open tests | Yazi UI |
@@ -427,7 +433,7 @@ Detail lives in Owners, checks, and the notes below.
 | C9a | Kitty protocol + `yzpp` packaged/loaded | `defaults/zellij/config.kdl`, flake | `yzx-contracts` | Visual |
 | C9b | Role popups + popups tab remaps + margins + refresh hooks | config, runtime, `yzx-config` | contracts + keybinding tests | Visual |
 | C9c | Custom `[popups.<id>]` argv + unique titles | `yzx-config`, runtime | custom popup tests + contracts | Visual |
-| C9d | Agent hide keep-alive + custom command or provider bootstrap | `yzx-agent`, config | `yzx-contracts` | Provider UX |
+| C9d | Agent hide keep-alive + custom command or provider bootstrap + supported stock Radar setup | `yzx-agent`, config | `yzx-contracts` | Provider UX |
 | C9e | Git LazyGit + editor env + close-on-toggle | config, runtime | `yzx-contracts` | Visual |
 
 ### Config UI (`C11*`)

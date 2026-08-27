@@ -35,7 +35,7 @@ fn run() -> i32 {
     for (provider, provider_args) in PROVIDERS.iter().copied() {
         if command_available(provider) {
             let _ = write_provider(&provider_file, provider);
-            return exec_command(OsStr::new(provider), provider_args);
+            return launch_provider(provider, provider_args);
         }
     }
 
@@ -56,6 +56,24 @@ fn exec_command<T: AsRef<OsStr>>(command: &OsStr, args: &[T]) -> i32 {
     );
     pause_if_tty();
     127
+}
+
+fn launch_provider(provider: &str, args: &[&str]) -> i32 {
+    if matches!(provider, "codex" | "claude") {
+        match Command::new("zj-radar")
+            .args(["setup", provider, "-y"])
+            .status()
+        {
+            Ok(status) if status.success() => {}
+            Ok(status) => eprintln!(
+                "Yazelix Nova agent popup: `zj-radar setup {provider} -y` failed with {status}; launching {provider} without Radar integration"
+            ),
+            Err(error) => eprintln!(
+                "Yazelix Nova agent popup: failed to run `zj-radar setup {provider} -y`: {error}; launching {provider} without Radar integration"
+            ),
+        }
+    }
+    exec_command(OsStr::new(provider), args)
 }
 
 fn launch_configured(id: &str, provider_file: &Path) -> i32 {
@@ -81,7 +99,7 @@ fn launch_configured(id: &str, provider_file: &Path) -> i32 {
         return 127;
     }
 
-    exec_command(OsStr::new(provider), provider_args)
+    launch_provider(provider, provider_args)
 }
 
 fn read_provider(path: &Path) -> Option<String> {

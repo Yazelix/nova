@@ -13,10 +13,7 @@ use std::{
     process::{Command, ExitCode, Output},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use yzx_open::sidebar::{
-    Config as OrchestratorConfig, SidebarYaziState, optional_sidebar_yazi_state, orchestrator_pipe,
-    orchestrator_query,
-};
+use yzx_open::sidebar::{Config as OrchestratorConfig, orchestrator_pipe, orchestrator_query};
 
 #[cfg(test)]
 mod test_support;
@@ -25,13 +22,12 @@ mod test_support;
 struct Config {
     editor: OsString,
     git: OsString,
-    ya: OsString,
     zellij: OsString,
     state_dir: PathBuf,
     session_id: String,
-    yazi_id: Option<String>,
     zellij_session_name: Option<String>,
     zellij_pane_id: Option<String>,
+    yazi_role: Option<String>,
     log_level: LogLevel,
 }
 
@@ -235,8 +231,8 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
         }
         return Err(error);
     }
-    if request.intent == OpenIntent::Ordinary {
-        follow_originating_sidebar(config, &current_state, &targets)?;
+    if config.yazi_role.as_deref() == Some("startup-picker") {
+        close_startup_picker(config)?;
     }
     Ok(())
 }
@@ -263,13 +259,12 @@ impl Config {
         Self {
             editor: nonempty_env("YZX_EDITOR").unwrap_or_else(|| "yzx-hx".into()),
             git: "git".into(),
-            ya: nonempty_env("YZX_YA").unwrap_or_else(|| "ya".into()),
             zellij: nonempty_env("YZX_ZELLIJ").unwrap_or_else(|| "zellij".into()),
             state_dir,
             session_id: bridge_session_id(env::var("YAZELIX_HELIX_BRIDGE_SESSION_ID").ok()),
-            yazi_id: env::var("YAZI_ID").ok().filter(|id| !id.trim().is_empty()),
             zellij_session_name: zellij_session_name_from_env(),
             zellij_pane_id: env::var("ZELLIJ_PANE_ID").ok(),
+            yazi_role: env::var("YZX_YAZI_ROLE").ok(),
             log_level: LogLevel::from_env(),
         }
     }
@@ -694,29 +689,17 @@ fn focus_pane(config: &Config, pane_id: &str) -> Result<()> {
     ensure_success(&output, "zellij failed to focus editor pane")
 }
 
-fn follow_originating_sidebar(
-    config: &Config,
-    state: &ActiveWorkspaceState,
-    targets: &[PathBuf],
-) -> Result<()> {
-    let Some(sidebar) = &state.sidebar_yazi else {
-        return Ok(());
-    };
-    if config.yazi_id.as_deref() != Some(&sidebar.yazi_id) {
-        return Ok(());
-    }
-    let primary = &targets[0];
-    let target_dir = if primary.is_dir() {
-        primary.as_path()
-    } else {
-        primary.parent().unwrap_or_else(|| Path::new("/"))
-    };
-    let output = Command::new(&config.ya)
-        .args(["emit-to", &sidebar.yazi_id, "cd"])
-        .arg(target_dir)
+fn close_startup_picker(config: &Config) -> Result<()> {
+    let pane_id = config
+        .zellij_pane_id
+        .as_deref()
+        .context("startup Yazi picker has no Zellij pane id")?;
+    let output = zellij_command(config)
+        .args(["action", "close-pane", "--pane-id"])
+        .arg(zellij_pane_arg(pane_id))
         .output()
-        .context("could not run ya")?;
-    ensure_success(&output, "ya failed to follow opened target")
+        .context("could not close startup Yazi picker")?;
+    ensure_success(&output, "zellij failed to close startup Yazi picker")
 }
 
 fn target_workspace_root(config: &Config, targets: &[PathBuf]) -> PathBuf {
@@ -767,10 +750,9 @@ fn decide_workspace(
 
 fn active_tab_workspace(config: &Config) -> Result<ActiveWorkspaceState> {
     let raw = orchestrator_query(&orchestrator_config(config), "get_active_tab_session_state")?;
-    let sidebar_yazi = optional_sidebar_yazi_state(&raw)?;
     let state = serde_json::from_str::<ActiveTabSessionState>(&raw)
         .context("pane orchestrator returned invalid active-tab session state")?;
-    if state.schema_version != 1 {
+    if !matches!(state.schema_version, 1 | 2) {
         bail!(
             "pane orchestrator returned unsupported active-tab schema {}",
             state.schema_version
@@ -788,7 +770,6 @@ fn active_tab_workspace(config: &Config) -> Result<ActiveWorkspaceState> {
     Ok(ActiveWorkspaceState {
         active_tab_position: state.active_tab_position,
         workspace,
-        sidebar_yazi,
     })
 }
 
@@ -796,7 +777,6 @@ fn active_tab_workspace(config: &Config) -> Result<ActiveWorkspaceState> {
 struct ActiveWorkspaceState {
     active_tab_position: usize,
     workspace: CanonicalWorkspace,
-    sidebar_yazi: Option<SidebarYaziState>,
 }
 
 fn set_workspace(config: &Config, root: &Path, source: WorkspaceSource) -> Result<()> {
@@ -805,7 +785,6 @@ fn set_workspace(config: &Config, root: &Path, source: WorkspaceSource) -> Resul
         "workspace_source": source,
         "cd_focused_pane": false,
         "editor": null,
-        "sidebar_yazi": null,
     })
     .to_string();
     let raw = orchestrator_pipe(&orchestrator_config(config), "retarget_workspace", &payload)?;
@@ -819,7 +798,6 @@ fn set_workspace(config: &Config, root: &Path, source: WorkspaceSource) -> Resul
 
 fn orchestrator_config(config: &Config) -> OrchestratorConfig {
     OrchestratorConfig {
-        ya: config.ya.clone(),
         zellij: config.zellij.clone(),
         zellij_session_name: config.zellij_session_name.clone().map(OsString::from),
     }
@@ -1021,13 +999,6 @@ mod tests {
                 .unwrap_or_else(|poisoned| poisoned.into_inner());
             let dir = TestDir::new();
             let root = dir.path.clone();
-            write_executable(
-                &root.join("ya"),
-                format!(
-                    "#!/bin/sh\nprintf '%s\\n' \"$*\" >> '{}'\n",
-                    root.join("ya.log").display()
-                ),
-            );
             Self {
                 zellij: root.join("zellij"),
                 zellij_log: root.join("zellij.log"),
@@ -1045,13 +1016,12 @@ mod tests {
             Config {
                 editor: editor.into_os_string(),
                 git: "__missing_git__".into(),
-                ya: self.root.join("ya").into_os_string(),
                 zellij: self.zellij.clone().into_os_string(),
                 state_dir: self.root.clone(),
                 session_id: session_id.into(),
-                yazi_id: None,
                 zellij_session_name: None,
                 zellij_pane_id: None,
+                yazi_role: None,
                 log_level: LogLevel::Debug,
             }
         }
@@ -1063,6 +1033,7 @@ mod tests {
                 &self.root,
                 WorkspaceSource::Bootstrap,
                 false,
+                2,
             );
         }
 
@@ -1073,6 +1044,7 @@ mod tests {
             workspace_root: &Path,
             workspace_source: WorkspaceSource,
             fail_editor_open: bool,
+            schema_version: u64,
         ) {
             let list_panes = list_panes_json.map_or_else(String::new, |panes| {
                 format!(
@@ -1081,12 +1053,8 @@ mod tests {
                 )
             });
             let session_state = json!({
-                "schema_version": 1,
+                "schema_version": schema_version,
                 "active_tab_position": 0,
-                "sidebar_yazi": {
-                    "yazi_id": "managed-yazi",
-                    "cwd": workspace_root,
-                },
                 "workspace": {
                     "root": workspace_root,
                     "source": workspace_source,
@@ -1359,9 +1327,10 @@ fi
         let cwd = target_workspace_root(&config, &targets);
         let (action, payload) = bridge_open_request(&targets, &cwd);
         assert_eq!(action, "helix.open_directory");
-        assert_eq!(payload["working_dir"], root.to_string_lossy().to_string());
-        assert_eq!(payload["picker_dir"], root.to_string_lossy().to_string());
-        assert!(payload.get("file_paths").is_none());
+        assert_eq!(
+            payload,
+            json!({ "working_dir": root, "picker_dir": targets[1] })
+        );
     }
 
     #[test]
@@ -1454,7 +1423,6 @@ fi
         run(
             &Config {
                 git: git.into_os_string(),
-                yazi_id: Some("managed-yazi".into()),
                 ..runtime.config("test-session")
             },
             [target.clone().into_os_string()],
@@ -1473,10 +1441,59 @@ fi
             "{log}"
         );
         assert!(log.contains(target.to_string_lossy().as_ref()), "{log}");
-        assert_eq!(
-            fs::read_to_string(runtime.root.join("ya.log")).unwrap(),
-            format!("emit-to managed-yazi cd {}\n", target.display())
+    }
+
+    #[test]
+    fn startup_picker_opens_the_editor_before_closing_its_own_pane() {
+        let runtime = TestRuntime::new();
+        runtime.write_zellij(false, None);
+        open_main_rs(&Config {
+            zellij_pane_id: Some("terminal:9".into()),
+            yazi_role: Some("startup-picker".into()),
+            ..runtime.config("test-session")
+        })
+        .unwrap();
+
+        let log = runtime.zellij_log();
+        let editor = log.find("args=run --name editor").unwrap();
+        let close = log
+            .find("args=action close-pane --pane-id terminal_9")
+            .unwrap();
+        assert!(editor < close, "{log}");
+    }
+
+    #[test]
+    fn active_tab_workspace_accepts_released_and_candidate_schemas() {
+        for schema_version in [1, 2] {
+            let runtime = TestRuntime::new();
+            let workspace = runtime.root.clone();
+            runtime.write_zellij_with_workspace(
+                false,
+                None,
+                &workspace,
+                WorkspaceSource::Explicit,
+                false,
+                schema_version,
+            );
+
+            let state = active_tab_workspace(&runtime.config("test-session")).unwrap();
+            assert_eq!(state.workspace.root, workspace);
+        }
+
+        let runtime = TestRuntime::new();
+        let workspace = runtime.root.clone();
+        runtime.write_zellij_with_workspace(
+            false,
+            None,
+            &workspace,
+            WorkspaceSource::Explicit,
+            false,
+            3,
         );
+        let error = active_tab_workspace(&runtime.config("test-session"))
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("unsupported active-tab schema 3"), "{error}");
     }
 
     #[test]
@@ -1496,6 +1513,7 @@ fi
             &workspace,
             WorkspaceSource::Explicit,
             false,
+            2,
         );
         let server = spawn_ok_bridge(listener, request_path.clone());
         let git_probe = runtime.root.join("git-probe");
@@ -1507,7 +1525,6 @@ fi
 
         let config = Config {
             git: git.into_os_string(),
-            yazi_id: Some("managed-yazi".into()),
             zellij_pane_id: Some("terminal:7".into()),
             ..runtime.config(session_id)
         };
@@ -1541,10 +1558,6 @@ fi
         assert!(
             !runtime.zellij_log().contains("focus-pane-id"),
             "the already-focused bridge pane must not be focused again"
-        );
-        assert_eq!(
-            fs::read_to_string(runtime.root.join("ya.log")).unwrap(),
-            format!("emit-to managed-yazi cd {}\n", primary_dir.display())
         );
         assert!(
             !git_probe.exists(),
@@ -1584,7 +1597,6 @@ fi
             !request_path.exists(),
             "{command} unexpectedly sent a Helix bridge request"
         );
-        assert!(!runtime.root.join("ya.log").exists());
     }
 
     #[test]
@@ -1616,11 +1628,13 @@ fi
             &runtime.root,
             WorkspaceSource::Bootstrap,
             true,
+            2,
         );
 
         let error = open_main_rs(&Config {
             editor: editor.into_os_string(),
-            yazi_id: Some("managed-yazi".into()),
+            zellij_pane_id: Some("terminal:9".into()),
+            yazi_role: Some("startup-picker".into()),
             ..runtime.config("test-session")
         })
         .unwrap_err()
@@ -1634,7 +1648,7 @@ fi
         assert_eq!(log.matches("--name retarget_workspace").count(), 2, "{log}");
         assert!(log.contains(r#""workspace_source":"explicit""#), "{log}");
         assert!(log.contains(r#""workspace_source":"bootstrap""#), "{log}");
-        assert!(!runtime.root.join("ya.log").exists());
+        assert!(!log.contains("close-pane"), "{log}");
     }
 
     #[test]

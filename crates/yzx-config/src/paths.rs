@@ -17,6 +17,7 @@ pub(crate) enum RioAppearanceProjection {
 
 pub(crate) struct ConfigPaths {
     pub(crate) rio_included: bool,
+    pub(crate) helix_included: bool,
     pub(crate) store_root: PathBuf,
     pub(crate) root: PathBuf,
     pub(crate) rio: PathBuf,
@@ -141,6 +142,7 @@ pub(crate) fn config_paths() -> Result<ConfigPaths> {
     let home = config_home()?;
     Ok(ConfigPaths {
         rio_included: nonempty_env("YZX_RIO_INCLUDED").as_deref() != Some(OsStr::new("0")),
+        helix_included: nonempty_env("YZX_HELIX_INCLUDED").as_deref() != Some(OsStr::new("0")),
         store_root: option_env!("YAZELIX_NIX_STORE_ROOT")
             .map(PathBuf::from)
             .ok_or_else(|| error("yzx-config is missing its packaged Nix store root"))?,

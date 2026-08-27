@@ -23,8 +23,20 @@
       flake = false;
     };
     yazelixHelix = {
-      url = "github:Yazelix/nova-helix/7e6cd307d00783c16ad4cff99ed71936d34f6572";
+      url = "github:Yazelix/nova-helix/917e6e2ee19745c55c31f9cbed34770e18c16339";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    yazelixForest = {
+      url = "github:luccahuguet/yazelix-forest/f3a759595f75af981d0b6a62511e7f3cc1106782";
+      flake = false;
+    };
+    notifyHx = {
+      url = "github:chuwy/notify.hx/0a328073e6d3e5041346374ae747c275ab8ce746";
+      flake = false;
+    };
+    glyphHx = {
+      url = "github:Ra77a3l3-jar/glyph.hx/1e63ccbc8f17511543412c955879ba672f3f8ec1";
+      flake = false;
     };
     yazelixZellijPopup = {
       url = "github:Yazelix/zellij-popup";
@@ -37,6 +49,10 @@
     };
     yazelixZellijPaneOrchestrator = {
       url = "github:Yazelix/zellij-pane-orchestrator";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    zjRadar = {
+      url = "github:marktoda/zj-radar/e4b9d9ca1f0e8743320910db86978f43881361c9";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixScreen = {
@@ -76,9 +92,13 @@
     rio,
     yazelixZellij,
     yazelixHelix,
+    yazelixForest,
+    notifyHx,
+    glyphHx,
     yazelixZellijPopup,
     novaBar,
     yazelixZellijPaneOrchestrator,
+    zjRadar,
     yazelixScreen,
     autoLayoutYazi,
     starshipYazi,
@@ -320,6 +340,8 @@
       yzxMenu = rustBin "yzx-menu" yzxMenuSrc;
       yazelixZellijPopupPackage = yazelixZellijPopup.packages.${system}.yzpp;
       novaBarPackage = novaBar.packages.${system}.nova_bar;
+      zjRadarPackage = zjRadar.packages.${system}.zj-radar;
+      zjRadarCliPackage = zjRadar.packages.${system}.zj-radar-cli;
       yazelixZellijPaneOrchestratorPackage =
         yazelixZellijPaneOrchestrator.packages.${system}.yazelix_zellij_pane_orchestrator;
       tokenusage = import ./packaging/tokenusage.nix {inherit pkgs;};
@@ -341,6 +363,12 @@
       yzxZellijConfig = rustBin "yzx-zellij-config" ./runtime/yzx-zellij-config.rs;
       yazelixHelixPackage = yazelixHelix.packages.${system}.yazelix_helix;
       yazelixHelixSteelPackage = yazelixHelix.packages.${system}.yazelix_helix_steel;
+      yzxForestCogs = pkgs.runCommand "yzx-forest-cogs" {} ''
+        install -D -m 444 ${yazelixForest}/forest.scm "$out/forest/forest.scm"
+        install -D -m 444 ${yazelixForest}/forest/core.scm "$out/forest/core.scm"
+        install -D -m 444 ${notifyHx}/notify.scm "$out/notify/notify.scm"
+        install -D -m 444 ${glyphHx}/glyph.scm "$out/glyph/glyph.scm"
+      '';
       yzxHelixConfig = pkgs.writeTextDir "config.toml" (builtins.readFile ./defaults/helix/config.toml);
       yzxOpenTerminal = pkgs.writeShellApplication {
         name = "yzx-open-terminal";
@@ -485,6 +513,7 @@
         yzxConfig = "${yzxConfig}/bin/yzx-config";
         yzxHelixConfig = "${yzxHelixConfig}";
         yzxHelixSteelConfig = "${yzxHelixSteelConfig}";
+        yzxForestCogs = "${yzxForestCogs}";
       };
       yzxHelix = pkgs.runCommand "yzx-hx" {} ''
         install -D -m 755 ${yzxHelixSrc} "$out/bin/yzx-hx"
@@ -525,8 +554,6 @@
         install -D -m 644 ${yaziSchemas}/schemas/theme.json "$out/theme-schema.json"
         install -D -m 644 ${yaziSchemas}/LICENSE "$out/share/licenses/yazi-schemas/LICENSE"
         mkdir -p "$out/plugins"
-        install -D -m 644 ${./defaults/yazi/plugins/sidebar-state.yazi/main.lua} "$out/plugins/sidebar-state.yazi/main.lua"
-        install -D -m 644 ${./defaults/yazi/plugins/sidebar-status.yazi/main.lua} "$out/plugins/sidebar-status.yazi/main.lua"
         install -D -m 644 ${./defaults/yazi/plugins/zoxide-editor.yazi/main.lua} "$out/plugins/zoxide-editor.yazi/main.lua"
         ln -s ${autoLayoutYazi} "$out/plugins/auto-layout.yazi"
         ln -s ${gitYazi}/git.yazi "$out/plugins/git.yazi"
@@ -642,6 +669,7 @@
             chmod -R u+w "$out"
             substituteInPlace "$out/src/main.rs" \
               --replace-fail '@yzxHelix@' '${managedEditor}/bin/yzx-hx' \
+              --replace-fail 'false; // @managedHelix@' '${if withManagedHelix then "true;" else "false;"}' \
               --replace-fail '@nu@' '${pkgs.nushell}/bin/nu'
           '';
         in
@@ -679,6 +707,7 @@
             unset YAZELIX_EDITOR
             ${editorEnv}
             export YZX_RIO_INCLUDED=${if withRio then "1" else "0"}
+            export YZX_HELIX_INCLUDED=${if withManagedHelix then "1" else "0"}
             export YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij
             exec ${yzxConfig}/bin/yzx-config "$@"
           '';
@@ -705,9 +734,7 @@
               --replace-fail '@yazi@' '${yazi}/bin/yzx-yazi' \
               --replace-fail '@bar@' "$bar"
           '';
-          swap = pkgs.replaceVars ./defaults/zellij/layout.swap.kdl {
-            yazi = "${yazi}/bin/yzx-yazi";
-          };
+          swap = ./defaults/zellij/layout.swap.kdl;
         in
           pkgs.runCommand "yzx-zellij-layout" {} ''
             ${yzxLayoutCheck}/bin/yzx-layout-check ${main} ${swap}
@@ -740,6 +767,7 @@
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzpp = "file:${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
           yzxPaneOrchestrator = "file:${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
+          zjRadar = "file:${zjRadarPackage}/bin/zj_radar.wasm";
           yzxAgent = "${yzxAgent}/bin/yzx-agent";
           configKey = defaultConfig.keybindings.config;
           agentKey = defaultConfig.keybindings.agent;
@@ -747,13 +775,11 @@
           menuKey = defaultConfig.keybindings.menu;
           screenKey = defaultConfig.keybindings.screen;
           sidebarKey = defaultConfig.keybindings.sidebar;
-          sidebarFocusKey = defaultConfig.keybindings.sidebar_focus;
           inherit defaultPopupSideMargin defaultPopupVerticalMargin;
           yzxConfig = "${configUi}/bin/yzx-config-ui";
           yzxMenu = "${yzxMenu}/bin/yzx-menu";
           yzxScreen = "${yazelixScreenPackage}/bin/yzs";
           yzxYazi = "${yazi}/bin/yzx-yazi";
-          yzxSidebarRefresh = "${yzxOpenCore}/bin/yzx-sidebar-refresh";
           git = "${git}/bin/yzx-git";
           layout = "${layout}/layout.kdl";
           layoutDir = "${layout}";
@@ -783,7 +809,6 @@
           yzxYaziConfig = "${yzxYaziConfig}";
           yzxYaziMaterializer = "${yzxYaziMaterializer}/bin/yzx-yazi-config";
           yzxReveal = "${yzxOpenCore}/bin/yzx-reveal";
-          yzxSidebarRefresh = "${yzxOpenCore}/bin/yzx-sidebar-refresh";
           yaziSource = yaziRuntime.source;
           yaziCommand = yaziRuntime.yaziCommand;
           yaCommand = yaziRuntime.yaCommand;
@@ -810,6 +835,7 @@
             pkgs.lazygit
             tokenusage
             managedEditor
+            zjRadarCliPackage
           ];
         };
         src = pkgs.runCommand "yzx-command-${variant}-src" {} ''
@@ -835,7 +861,7 @@
       in
         pkgs.symlinkJoin {
           inherit name;
-          paths = [command] ++ pkgs.lib.optional withDesktop desktop;
+          paths = [command zjRadarCliPackage] ++ pkgs.lib.optional withDesktop desktop;
           postBuild =
             ''
               ${yazelixZellijPackage}/bin/zellij --config ${configKdl} setup --check >/dev/null
@@ -848,9 +874,15 @@
               install -D -m 644 ${./defaults/config.toml} "$out/share/yazelix/config.toml"
               install -D -m 644 ${layout}/layout.kdl "$out/share/yazelix/layout.kdl"
               install -D -m 644 ${layout}/layout.swap.kdl "$out/share/yazelix/layout.swap.kdl"
+              install -D -m 644 ${zjRadar}/LICENSE "$out/share/licenses/zj-radar/LICENSE"
               ln -s ${yzxYaziConfig} "$out/share/yazelix/yazi"
               install -D -m 644 ${yzxNuConfig}/config.nu "$out/share/yazelix/nu/config.nu"
               install -D -m 644 ${yzxNuConfig}/env.nu "$out/share/yazelix/nu/env.nu"
+            ''
+            + pkgs.lib.optionalString withManagedHelix ''
+              install -D -m 644 ${yazelixForest}/LICENSE "$out/share/licenses/yazelix-forest/LICENSE"
+              install -D -m 644 ${notifyHx}/LICENSE "$out/share/licenses/notify-hx/LICENSE"
+              install -D -m 644 ${glyphHx}/LICENSE "$out/share/licenses/glyph-hx/LICENSE"
             ''
             + pkgs.lib.optionalString withRio ''
               cp -R ${yzxRioConfig}/. "$out/share/yazelix/rio/"
@@ -1556,6 +1588,10 @@
         grep -F "starship=$YAZELIX_STATE_DIR/yazi/yazelix_starship.toml" "$root/yazi-popup"
         grep -F 'role=workspace-popup' "$root/yazi-popup"
         grep -F 'args=popup ' "$root/yazi-popup"
+        PATH=${fakeHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" run yazi \
+          --yzx-startup-picker > "$root/yazi-picker"
+        grep -F 'role=startup-picker' "$root/yazi-picker"
+        grep -F 'args=' "$root/yazi-picker"
 
         YZX_YAZI_BIN=${fakeHostYazi}/bin/yazi \
           YZX_YA=${fakeHostYazi}/bin/ya \

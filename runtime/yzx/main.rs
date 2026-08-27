@@ -34,7 +34,6 @@ pub(crate) const YZX_CONFIG_KDL: &str = "@yzxConfigKdl@";
 pub(crate) const YZX_YAZI_CONFIG: &str = "@yzxYaziConfig@";
 pub(crate) const YZX_YAZI_MATERIALIZER: &str = "@yzxYaziMaterializer@";
 pub(crate) const YZX_REVEAL: &str = "@yzxReveal@";
-pub(crate) const YZX_SIDEBAR_REFRESH: &str = "@yzxSidebarRefresh@";
 pub(crate) const YAZI_SOURCE: &str = "@yaziSource@";
 pub(crate) const YAZI_COMMAND: &str = "@yaziCommand@";
 pub(crate) const YA_COMMAND: &str = "@yaCommand@";
@@ -71,7 +70,7 @@ pub(crate) const MANAGED_KEYBINDING_SPECS: &[(&str, &str, &str)] = &[
         "@defaultSidebarKeybinding@",
     ),
     (
-        "sidebar focus",
+        "forest",
         "keybindings.sidebar_focus",
         "@defaultSidebarFocusKeybinding@",
     ),

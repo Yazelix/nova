@@ -357,6 +357,32 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let menu_helper = embedded_store_path(&yzx_launcher, "/bin/yzx-menu");
     let zellij = embedded_store_path(&yzx_launcher, "/bin/zellij");
     let popup_wasm = embedded_store_path(&yzx_launcher, "share/yazelix_zellij_popup/yzpp.wasm");
+    let packaged_zellij_config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
+    let radar_wasm = packaged_zellij_config
+        .lines()
+        .find_map(|line| {
+            line.trim()
+                .strip_prefix(r#"radar location="file:"#)?
+                .strip_suffix(r#"" {"#)
+                .map(PathBuf::from)
+        })
+        .expect("packaged Zellij config is missing the Radar alias");
+    assert!(radar_wasm.is_file(), "packaged Radar WASM is missing");
+    assert!(
+        yzx.join("bin/zj-radar").is_file(),
+        "packaged Radar CLI is missing"
+    );
+    for license in [
+        "share/licenses/zj-radar/LICENSE",
+        "share/licenses/yazelix-forest/LICENSE",
+        "share/licenses/notify-hx/LICENSE",
+        "share/licenses/glyph-hx/LICENSE",
+    ] {
+        assert!(
+            yzx.join(license).is_file(),
+            "full package is missing dependency license {license}"
+        );
+    }
     expect_menu_dispatch(&menu_helper);
     expect_contains_all! {
         &yzx_launcher, "bin/yzx runtime fragment";
@@ -459,7 +485,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "menu keybinding: Alt Shift M",
         "screen keybinding: Alt Shift A",
         "sidebar keybinding: Alt Shift H",
-        "sidebar focus keybinding: Ctrl y",
+        "forest keybinding: Ctrl y",
         "layout: packaged (/nix/store/",
         "yazi source: bundled",
         "yazi: /nix/store/",
@@ -569,6 +595,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "runtime plugin permissions have the wrong {permission} grants\n{permissions}"
         );
     }
+    assert!(
+        !permissions.contains(&radar_wasm.display().to_string()),
+        "runtime silently seeded Radar permissions instead of using grouped consent"
+    );
     let custom_popup = RuntimeCase::new(&temp.path, "custom-popup");
     custom_popup.write_default_config("\n[popup]\nside_margin = 2\nvertical_margin = 1\n");
     let status = custom_popup.run_yzx(&yzx_bin, "status", "custom popup status");
@@ -659,7 +689,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "menu keybinding: Alt Shift U",
         "screen keybinding: Alt Shift S",
         "sidebar keybinding: Ctrl Shift B",
-        "sidebar focus keybinding: Ctrl Shift E",
+        "forest keybinding: Ctrl Shift E",
         "zellij config: runtime (",
     }
     let custom_key_config = custom_keys.zellij_file("config.kdl");
@@ -679,9 +709,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains_all! {
         &custom_key_config, "custom key config";
         r#"bind "Ctrl Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
-        r#"bind "Ctrl Shift E" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_editor_sidebar_focus"; }; }"#,
     }
-    for default in ["Alt Shift H", "Ctrl y"] {
+    for default in ["Alt Shift H", "Ctrl y", "Ctrl Shift E"] {
         assert!(
             !custom_key_config.contains(&format!(r#"bind "{default}" {{"#)),
             "custom key kept the default {default} binding"
@@ -739,8 +768,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains_all! {
         &swapped_key_config, "swapped key config";
         r#"bind "Alt Shift K" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
-        r#"bind "Alt Shift L" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_editor_sidebar_focus"; }; }"#,
     }
+    assert!(!swapped_key_config.contains(r#"bind "Alt Shift L""#));
 
     let custom_editor = RuntimeCase::new(&temp.path, "custom-editor");
     custom_editor.write_default_config("\n[editor]\ncommand = \"nvim\"\n");
@@ -768,6 +797,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         r#"new_tab_template cwd="$HOME" {"#,
         "custom bar layout",
     );
+    assert!(
+        !custom_layout.contains("@yazi@") && custom_layout.matches("/bin/yzx-yazi").count() == 2,
+        "custom bar layout did not materialize both startup Yazi pickers"
+    );
     let format_right = custom_layout
         .lines()
         .find(|line| line.contains("format_right"))
@@ -786,12 +819,14 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         &custom_swap, "custom bar swap layout";
         "swap_tiled_layout name=\"single_open\"",
         "swap_tiled_layout name=\"single_closed\"",
-        "pane name=\"sidebar\" command=\"/nix/store/",
+        "plugin location=\"radar\"",
+        "pane size=32 borderless=true",
+        "pane size=1 borderless=true",
         "stacked=true",
     }
     assert!(
-        !custom_swap.contains("@yazi@"),
-        "custom bar swap layout kept the unresolved Yazi placeholder"
+        !custom_swap.contains('@'),
+        "custom bar swap layout kept an unresolved placeholder"
     );
     let custom_config = custom_bar.zellij_file("config.kdl");
     expect_contains_all! {
@@ -1088,6 +1123,10 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
         fs::canonicalize(resolve("yzx-hx")).unwrap(),
         "managed hx must resolve to yzx-hx"
     );
+    assert!(
+        resolve("zj-radar").is_file(),
+        "managed PATH is missing the Radar producer CLI"
+    );
 }
 
 fn expect_menu_dispatch(menu: &Path) {
@@ -1169,6 +1208,7 @@ fn expect_config_ui(yzx: &Path) {
         "duration_seconds = 3",
         "side_margin = 1",
         "vertical_margin = 0",
+        "side = \"right\"",
         "config = \"Alt Shift K\"",
         "agent = \"Alt Shift L\"",
         "git = \"Alt Shift J\"",
@@ -1194,6 +1234,7 @@ fn expect_config_ui(yzx: &Path) {
         ("welcome.duration_seconds", "3"),
         ("popup.side_margin", "1"),
         ("popup.vertical_margin", "0"),
+        ("forest.side", "right"),
         ("keybindings.config", "Alt Shift K"),
         ("keybindings.agent", "Alt Shift L"),
         ("keybindings.git", "Alt Shift J"),
@@ -1391,6 +1432,11 @@ fn expect_startup_diagnostics(yzx: &Path) {
             "bad-zellij-plugin-owned-id",
             "plugins {\n    yzpp location=\"file:/tmp/owned.wasm\"\n}\n",
             "Zellij plugin sidecar plugins entry `yzpp` is owned by Yazelix",
+        ),
+        (
+            "bad-zellij-plugin-radar-id",
+            "plugins {\n    radar location=\"file:/tmp/other-radar.wasm\"\n}\n",
+            "Zellij plugin sidecar plugins entry `radar` is owned by Yazelix",
         ),
     ] {
         let case = RuntimeCase::new(&temp.path, name);
@@ -1785,24 +1831,14 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     );
 
     let init = fs::read_to_string(yzx.join("share/yazelix/yazi/init.lua")).unwrap();
-    expect_contains(
-        &init,
-        "if os.getenv(\"YZX_YAZI_ROLE\") ~= \"workspace-popup\" then\n\trequire(\"sidebar-state\"):setup()\n\trequire(\"sidebar-status\"):setup()\nend",
-        "Yazi workspace popup role fragment",
-    );
-    let sidebar_state =
-        fs::read_to_string(yzx.join("share/yazelix/yazi/plugins/sidebar-state.yazi/main.lua"))
-            .unwrap();
-    expect_contains_all! {
-        &sidebar_state, "Yazi sidebar-state plugin fragment";
-        "register_sidebar_yazi_state",
-        "YAZELIX_ZELLIJ_SESSION_NAME",
-        "ZELLIJ_SESSION_NAME",
-        "YZX_ZELLIJ",
-    }
+    assert!(!init.contains("sidebar-state") && !init.contains("sidebar-status"));
     assert!(
-        !sidebar_state.contains("emit(\"plugin\", { \"git\""),
-        "sidebar-state must not invoke the fetch-only git plugin as a functional action",
+        !yzx.join("share/yazelix/yazi/plugins/sidebar-state.yazi")
+            .exists()
+    );
+    assert!(
+        !yzx.join("share/yazelix/yazi/plugins/sidebar-status.yazi")
+            .exists()
     );
     assert!(
         yzx.join("share/yazelix/yazi/plugins/git.yazi").is_dir(),
@@ -1823,21 +1859,29 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     let layout = fs::read_to_string(yzx.join("share/yazelix/layout.kdl")).unwrap();
     expect_contains_all! {
         &layout, "packaged dark appearance layout";
+        r#"plugin location="radar""#,
+        r#"pane name="yazi_picker" command="/nix/store/"#,
+        r#"args "--yzx-startup-picker""#,
         r#"host_theme_mode "dark""#,
         r##"host_theme_dark_tab_normal "#[fg=#ffff00] [{index}] {name} ""##,
         r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} ""##,
     }
-    let yzx_yazi = layout
-        .lines()
-        .find_map(|line| {
-            line.trim()
-                .strip_prefix(r#"pane name="sidebar" command=""#)?
-                .split('"')
-                .next()
-                .filter(|path| !path.is_empty())
-                .map(PathBuf::from)
-        })
-        .expect("layout is missing sidebar yzx-yazi command");
+    assert!(
+        !layout.contains(r#"pane name="sidebar" command="#),
+        "tiled Yazi remains in the layout"
+    );
+    let config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
+    let yzx_yazi = popup_command(&config, "/bin/yzx-yazi");
+    assert_eq!(
+        layout
+            .matches(&format!(
+                r#"pane name="yazi_picker" command="{}""#,
+                yzx_yazi.display()
+            ))
+            .count(),
+        2,
+        "startup and new-tab templates must launch the configured Yazi picker command"
+    );
     let wrapper = binary_text(&yzx_yazi);
     let materializer = embedded_store_path(&wrapper, "/bin/yzx-yazi-config");
     assert!(materializer.is_file());
@@ -1853,6 +1897,7 @@ fn expect_yazi_managed_keys(yzx: &Path) {
         "editor.command",
         "appearance.mode",
         "--yzx-workspace-popup",
+        "--yzx-startup-picker",
         "YZX_YAZI_ROLE",
         "YZX_YAZI_BIN",
         "YZX_APPEARANCE_MODE",
@@ -1930,14 +1975,17 @@ fn expect_session_config(config: &str) {
 
 fn expect_keybinds(config: &str) {
     for expected in [
-        r#"unbind "Alt n" "Alt i" "Alt o" "Ctrl g""#,
+        r#"unbind "Alt n" "Alt p" "Alt s" "Alt Shift s" "Alt i" "Alt o" "Ctrl g""#,
         r#"bind "Alt m" { NewPane; }"#,
         r#"bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }"#,
         r#"bind "Alt l" "Alt Right" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_right_or_tab"; }; }"#,
+        r#"bind "Alt n" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }"#,
+        r#"bind "Alt p" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }"#,
+        r#"bind "Alt s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-next"; }; }"#,
+        r#"bind "Alt Shift s" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }"#,
         r#"bind "Alt Shift F" { ToggleFocusFullscreen; }"#,
         r#"bind "Alt Shift A" {"#,
         r#"bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
-        r#"bind "Ctrl y" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_editor_sidebar_focus"; }; }"#,
         r#"bind "Ctrl Alt g" { SwitchToMode "Locked"; }"#,
         r#"bind "Ctrl p" { SwitchToMode "Pane"; }"#,
         r#"bind "Ctrl t" { SwitchToMode "Tab"; }"#,
@@ -1956,9 +2004,8 @@ fn expect_keybinds(config: &str) {
         !config.contains("smart_reveal") && !config.contains(r#"bind "Alt r""#),
         "config.kdl must leave Alt r to the focused application"
     );
-    for expected in ["ToggleFocusFullscreen", "toggle_editor_sidebar_focus"] {
-        assert_eq!(config.matches(expected).count(), 1, "duplicate {expected}");
-    }
+    assert_eq!(config.matches("ToggleFocusFullscreen").count(), 1);
+    assert!(!config.contains("toggle_editor_sidebar_focus"));
     for tab in 1..=9 {
         let expected = format!(r#"bind "Alt {tab}" {{ GoToTab {tab}; }}"#);
         assert!(
@@ -2157,11 +2204,8 @@ fn expect_popup_binding(config: &str, key: &str, payload: &str, context: &str) {
 }
 
 fn expect_popup_defaults(config: &str, side_margin: &str, vertical_margin: &str, context: &str) {
-    let refresh = popup_command(config, "/bin/yzx-sidebar-refresh");
     let expected = format!(
-        "popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n            on_close {{\n                command \"{}\"\n            }}\n            on_hide {{\n                command \"{}\"\n            }}\n        }}",
-        refresh.display(),
-        refresh.display(),
+        "popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n        }}",
     );
     expect_contains(config, &expected, context);
 }
@@ -2253,7 +2297,11 @@ fn expect_agent_bootstrap(agent: &Path) {
     );
 
     for (name, available, expected_output) in [
-        ("codex-first", &["codex", "opencode"][..], "codex resume\n"),
+        (
+            "codex-first",
+            &["codex", "opencode"][..],
+            "radar setup codex -y\ncodex resume\n",
+        ),
         ("grok-fallback", &["grok", "opencode"], "grok\n"),
         (
             "opencode-fallback",
@@ -2261,7 +2309,11 @@ fn expect_agent_bootstrap(agent: &Path) {
             "opencode\n",
         ),
         ("pi-fallback", &["pi", "claude"], "pi\n"),
-        ("claude-fallback", &["claude"], "claude --resume\n"),
+        (
+            "claude-fallback",
+            &["claude"],
+            "radar setup claude -y\nclaude --resume\n",
+        ),
     ] {
         expect_agent_bootstrap_case(agent, &temp.path, name, available, expected_output);
     }
@@ -2283,6 +2335,30 @@ fn expect_agent_bootstrap(agent: &Path) {
         "agent popup persisted provider",
     );
     assert_eq!(fs::read_to_string(&output_file).unwrap(), "opencode\n");
+
+    let failed_setup_state = temp.path.join("failed-setup-state");
+    let failed_setup_bin = temp.path.join("failed-setup-bin");
+    fs::create_dir(&failed_setup_bin).unwrap();
+    write_fake_radar(&failed_setup_bin);
+    write_fake_agent(&failed_setup_bin, "codex");
+    let failed_setup_output = temp.path.join("failed-setup-output");
+    let output = Command::new(agent)
+        .env("PATH", &failed_setup_bin)
+        .env("YAZELIX_STATE_DIR", &failed_setup_state)
+        .env("YAZELIX_AGENT_TEST_OUT", &failed_setup_output)
+        .env("YAZELIX_AGENT_TEST_RADAR_FAIL", "1")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "Radar setup failure blocked Codex");
+    assert_eq!(
+        fs::read_to_string(&failed_setup_output).unwrap(),
+        "radar setup codex -y\ncodex resume\n"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("launching codex without Radar integration"),
+        "Radar setup failure warning is unclear: {stderr}",
+    );
 
     let missing_state = temp.path.join("missing-state");
     let missing_agent = missing_state.join("agent");
@@ -2318,6 +2394,7 @@ fn expect_agent_bootstrap_case(
     for provider in available {
         write_fake_agent(&bin, provider);
     }
+    write_fake_radar(&bin);
 
     let state = root.join(format!("{name}-state"));
     let output_file = root.join(format!("{name}-output"));
@@ -2340,8 +2417,15 @@ fn write_fake_agent(bin: &Path, name: &str) {
     write_executable(
         &path,
         format!(
-            "#!/bin/sh\nif [ \"$#\" -eq 0 ]; then\n  printf '%s\\n' \"{name}\" >\"$YAZELIX_AGENT_TEST_OUT\"\nelse\n  printf '%s %s\\n' \"{name}\" \"$*\" >\"$YAZELIX_AGENT_TEST_OUT\"\nfi\n"
+            "#!/bin/sh\nif [ \"$#\" -eq 0 ]; then\n  printf '%s\\n' \"{name}\" >>\"$YAZELIX_AGENT_TEST_OUT\"\nelse\n  printf '%s %s\\n' \"{name}\" \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\nfi\n"
         ),
+    );
+}
+
+fn write_fake_radar(bin: &Path) {
+    write_executable(
+        &bin.join("zj-radar"),
+        "#!/bin/sh\nprintf 'radar %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\n[ \"${YAZELIX_AGENT_TEST_RADAR_FAIL:-}\" != 1 ]\n",
     );
 }
 
