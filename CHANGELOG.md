@@ -35,9 +35,9 @@ User-visible runtime changes for Yazelix Nova live here.
   `Alt r` reveal target. Every new tab starts with Radar and a focused, one-use
   tiled Yazi picker. A successful choice retargets the tab, creates the editor,
   and only then closes that exact picker, so there is no stale starter shell or
-  prestarted editor. The collapsed swap layout is first, so the initial BASE
-  layout collapses or restores Radar in one native step without the former
-  delayed intermediate redraw. Persistent tiled-Yazi registration, refresh,
+  prestarted editor. Clean BASE layouts toggle Radar in one native step. When pane
+  replacement makes Zellij reapply the current layout, the orchestrator completes
+  the toggle in the same shortcut. Persistent tiled-Yazi registration, refresh,
   and focus code is gone.
   Zoxide Editor accepts both the released and candidate pane-orchestrator
   active-tab schemas during local rolling upgrades.
