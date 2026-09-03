@@ -9,7 +9,8 @@ Yazelix Nova is a Nix-packaged terminal workspace built around
 [Nova Zellij fork](https://github.com/Yazelix/nova-zellij),
 Yazi, Nushell, Bash, Zsh, and Fish with Atuin history, a lazygit popup (but you can configure other git clients!), and
 an optional coding agent popup. Yazelix Forest provides the default managed
-Helix file tree, and stock zj-radar provides the collapsible Zellij rail. Nova uses the
+Helix file tree, and the narrow Yazelix zj-radar fork provides the collapsible
+Zellij rail. Nova uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default
 (but `editor.command` can select your preferred terminal editor). `yzx launch`
 opens the desktop workspace through Rio, while `yzx enter` opens Yazelix in any
@@ -146,9 +147,11 @@ Start the guided tour after launching Yazelix:
 yzx tutor begin
 ```
 
-`yzx help` lists every command. `yzx doctor` checks the owned runtime setup
-without opening Rio or Zellij. Inside Yazelix, press `Alt Shift M` to open the
-command palette, which includes both help and tutor entries.
+`yzx help` lists every command. `yzx doctor` gives a compact, colored health
+summary without opening Rio or Zellij; `yzx doctor --verbose` expands diagnostic
+evidence, while `yzx status` owns paths and settings. Inside Yazelix, press
+`Alt Shift M` to open the command palette, which includes both help and tutor
+entries.
 
 ### Ratconfig
 
@@ -211,13 +214,29 @@ Yazi popup later.
 Radar starts at 32 columns in the Zellij pane named `sidebar`, following the
 configured pane-frame and rounded-corner appearance. `Alt Shift H` uses one
 native layout step to collapse it to a framed divider or restore the same live
-plugin. On first use, Nova Zellij
-shows one focused prompt for Radar's four permissions; `y` stores that decision
-in Nova's isolated cache.
-Before its default agent launcher starts Codex or Claude Code, Nova runs stock
-Radar's idempotent setup for that provider. Setup failures warn without blocking
-the agent. Codex still requires one `/hooks` review to trust the installed hook;
-Grok, OpenCode, and Pi remain unchanged until Radar supports their activity.
+plugin. Its ten-frame working spinner refreshes every 200 ms and completes a
+two-second cycle without accelerating its lifecycle timers. Nova
+Zellij grants the exact bundled Radar artifact its four required permissions in
+Nova's isolated cache, so the unfocused startup sidebar cannot trap a consent prompt.
+On the first interactive Codex launch through Nova's agent popup, Nova checks
+the existing Radar hooks. If they are missing, it asks once whether to install
+them. `y` runs the marker-owned Radar setup before Codex starts; `n` is
+remembered. Non-interactive launches do not prompt, and Nova never silently
+repairs hooks that are disabled or removed later. Run `yzx doctor` to see the
+current hook state. Claude Code and OpenCode remain explicit setup choices:
+
+```sh
+zj-radar setup claude -y
+zj-radar setup opencode -y
+```
+
+Codex setup installs and enables only Radar-owned hooks without changing trust
+hashes. Run `/hooks` in Codex, review the hooks awaiting approval, then press `t`
+on the Events page to trust that reviewed set together. The generated hook
+quietly does nothing when `zj-radar` is unavailable, so the global Codex config
+does not produce failures in Eon or another non-Nova environment. OpenCode
+setup installs Radar's bridge plugin; Grok and Pi remain unchanged because
+Radar does not provide adapters for them.
 
 If popup or `Alt h` / `Alt l` shortcuts briefly stop responding immediately
 after switching sessions, use `Alt 1-9` to select a tab, then retry. Native tab
@@ -247,7 +266,7 @@ Ratconfig's Keys tab is the complete packaged reference, and
 | `yzx config` | Open the Ratconfig-backed config UI |
 | `yzx yazi-config materialize --user-config-dir <path> --state-dir <path>` | Materialize and print the effective Yazi config directory for automation |
 | `yzx menu` | Open the command palette |
-| `yzx doctor` | Check owned runtime setup without launching Rio or Zellij |
+| `yzx doctor [--verbose]` | Check runtime health; expand diagnostic evidence with `--verbose` |
 | `yzx status` | Print config/runtime paths and selected settings |
 | `yzx status --json` | Print the versioned machine-readable status record |
 | `yzx env` | Open the managed shell without launching the UI |
@@ -326,10 +345,10 @@ Yazelix assembles focused forks, plugins, libraries, and commands:
 | Component | Yazelix role |
 | --- | --- |
 | [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes and launch-time theme override Nova still needs |
-| [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed runtime appearance switching and three-island status hints |
+| [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed appearance, three-island status hints, and bounded Unix session probes |
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
 | [Yazelix Forest](https://github.com/luccahuguet/yazelix-forest) | Hardened Helix file tree, packaged with the Snacks renderer open by default |
-| [zj-radar](https://github.com/marktoda/zj-radar) | Stock Zellij plugin and producer CLI for the collapsible session and attention rail |
+| [Yazelix zj-radar](https://github.com/Yazelix/zj-radar) | Narrow fork of upstream 0.6.0 for the collapsible session and attention rail; Nova adds explicit, cross-environment-safe Codex hook setup and a smooth working animation |
 | [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with tabs, modes, session details, status widgets, and activity markers, built on the narrow Yazelix `zjstatus` fork |
@@ -468,12 +487,13 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,881 lines** of tracked text project files. The
+Yazelix owns **27,160 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 624 lines below the pre-Rio fork surface. The current surface
-also records the terminal-free package matrix, exact Zellij v0.45.0 fork
-boundary, Yazi 26.8.15 runtime and one-use startup picker, Forest and stock
-Radar integration, package-pinned managed commands, `~/` reveal targets, native
-Nushell clipboard commands, portable Yazi PTY checks, the Anima mnemonic, and
-GitHub's native sponsor surface while deleting persistent tiled-Yazi machinery.
+This remains 345 lines below the pre-Rio fork surface. The current surface
+also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
+and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and Radar
+integration, portable Codex hook onboarding, the structured colored doctor,
+package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
+commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
+sponsor surface while deleting persistent tiled-Yazi machinery.

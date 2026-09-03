@@ -40,10 +40,13 @@ pub(crate) fn run() -> Result<(), AppError> {
         }
         "tutor" => exec_tutor(args),
         "anima" => exec_anima(args),
-        "doctor" => {
-            expect_no_args("doctor", &args)?;
-            print_doctor()
-        }
+        "doctor" => match args.as_slice() {
+            [] => print_doctor(false),
+            [flag] if flag == "--verbose" => print_doctor(true),
+            _ => Err(AppError::Usage(
+                "yzx doctor accepts only --verbose\n".to_string(),
+            )),
+        },
         "status" => match args.as_slice() {
             [] => print_status(),
             [flag] if flag == "--json" => print_status_json(),
@@ -352,7 +355,7 @@ Usage:
   yzx help
   yzx config
   yzx yazi-config materialize --user-config-dir <path> --state-dir <path>
-  yzx doctor
+  yzx doctor [--verbose]
   yzx env
   yzx enter [zellij-args...]
   yzx launch [zellij-args...]

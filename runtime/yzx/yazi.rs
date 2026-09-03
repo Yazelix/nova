@@ -1,6 +1,6 @@
 use std::{
     env,
-    ffi::{OsStr, OsString},
+    ffi::OsStr,
     path::{PathBuf, absolute},
     process::Command,
 };
@@ -13,7 +13,6 @@ use crate::{
 };
 
 pub(crate) struct YaziRuntime {
-    pub(crate) lookup_path: OsString,
     pub(crate) yazi: PathBuf,
     pub(crate) ya: PathBuf,
     pub(crate) version: String,
@@ -22,10 +21,8 @@ pub(crate) struct YaziRuntime {
 
 impl YaziRuntime {
     pub(crate) fn resolve() -> Result<Self, AppError> {
-        let lookup_path = runtime_path();
         if YAZI_SOURCE == "bundled" {
             return Ok(Self {
-                lookup_path,
                 yazi: YAZI_COMMAND.into(),
                 ya: YA_COMMAND.into(),
                 version: YAZI_TESTED_VERSION.into(),
@@ -39,6 +36,7 @@ impl YaziRuntime {
                 1,
             ));
         }
+        let lookup_path = runtime_path();
 
         let inherited_yazi = nonempty_env("YZX_YAZI_BIN");
         let inherited_ya = nonempty_env("YZX_YA");
@@ -62,7 +60,6 @@ impl YaziRuntime {
             .map_err(|error| host_pair_error(vec![error], &lookup_path))?;
 
         Ok(Self {
-            lookup_path,
             yazi,
             ya,
             version: yazi_version,

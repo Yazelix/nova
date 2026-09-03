@@ -18,20 +18,36 @@ User-visible runtime changes for Yazelix Nova live here.
   Remapping or disabling the key preserves user Helix bindings. `forest.side`
   selects `left` or `right`, with `right` as the default so Forest and Radar use
   opposite edges. Helix-free packages remain Forest-free.
-- Stock zj-radar 0.4.1 replaces tiled Yazi with a 32-column rail in every tab.
+- The Yazelix zj-radar fork, based on upstream 0.6.0, replaces tiled Yazi with a
+  32-column rail in every tab.
   Its Zellij pane is named `sidebar`. The visible rail uses normal Zellij pane
   framing, including the configured `pane_frames` and rounded-corner behavior;
   its collapsed state becomes a clean framed divider instead of rendering
-  Radar content in a borderless column.
+  Radar content in a borderless column. Its ten-frame working spinner refreshes
+  every 200 ms and completes a two-second cycle without accelerating its
+  lifecycle timers.
   `Alt Shift H` collapses or restores the same plugin through the existing swap
   layouts; `Ctrl Alt n` / `Ctrl Alt p` cycle attention tabs, and `Ctrl Tab` /
   `Ctrl Shift Tab` cycle sessions without shadowing Helix keys. Radar requests its
-  four permissions together through Nova Zellij's focused prompt and isolated
-  cache. The zj-radar CLI is packaged on Nova's managed `PATH`. The default agent
-  launcher idempotently asks stock Radar to configure its Codex or Claude Code producer immediately
-  before launch; setup failures warn without blocking the agent, Codex hook
-  trust remains an explicit `/hooks` review, and unsupported providers are not
-  modified. Yazi remains the persistent `Alt Shift Y` popup and
+  four permissions from the exact bundled artifact, and Nova seeds them in its
+  isolated Zellij cache before startup. The zj-radar CLI is packaged on Nova's
+  managed `PATH`. The first interactive Codex launch checks for Radar hooks and,
+  only when they are missing, asks once whether to install them. Yes and no are remembered;
+  closing the prompt input or entering an unrecognized answer cancels without
+  installing or remembering. Redirected input or prompt output does not trigger
+  the question. Nova does not repair later hook disablement or removal.
+  `yzx doctor` reports a compact, TTY-colored health summary with package-aware
+  component state and the read-only Radar diagnosis;
+  `--verbose` exposes Radar and cleanup evidence, while `yzx status` remains the
+  paths-and-settings report. If `yzx doctor` cannot launch Radar, it includes the
+  operating-system error. It omits the `/hooks` reminder when no hooks exist and
+  prints each startup failure once.
+  This optional integration does not fail the doctor. Codex setup enables only
+  Radar-owned hook entries without changing their trust hashes, and its POSIX
+  hook quietly exits when the Radar CLI is unavailable in a non-Nova
+  environment. Codex trust remains an explicit `/hooks` review; Claude Code and
+  OpenCode setup stays explicit, and Grok and Pi are not modified. Yazi remains
+  the persistent `Alt Shift Y` popup and
   `Alt r` reveal target. Every new tab starts with Radar and a focused, one-use
   tiled Yazi picker. A successful choice retargets the tab, creates the editor,
   and only then closes that exact picker, so there is no stale starter shell or
@@ -55,8 +71,11 @@ User-visible runtime changes for Yazelix Nova live here.
 - Nova uses upstream Zellij `v0.45.0` as the exact fork base and packages Yazi
   26.8.15. Yazi's released Zellij adapter uses native direct Kitty placements,
   so the fork removes its Unicode-placeholder translator while retaining its
-  five independent appearance, status-hint, permission-cache, stack-order, and
-  disconnected-client behaviors.
+  six independent appearance, status-hint, permission-cache, stack-order,
+  disconnected-client, and bounded session-probe behaviors. On Unix, a Zellij
+  server that accepts connections but never answers no longer blocks every new
+  Nova launch or session command indefinitely; discovery continues after five
+  seconds without killing or deleting the wedged session.
 - The packaged auto-layout and Starship plugins use Yazi 26.8.15's current APIs
   without startup deprecation notifications.
 - The packaged Git plugin uses Yazi 26.8.15's retryable fetcher protocol.

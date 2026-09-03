@@ -1,11 +1,18 @@
-use std::{env, fmt::Display, fs, path::Path};
+use std::{
+    env,
+    fmt::Display,
+    fs,
+    io::{self, IsTerminal},
+    path::Path,
+    process::Command,
+};
 
 use crate::{
     AGENT_AUTO_COMMAND, HELIX_REVEAL_COMMAND, LAYOUT, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
     MANAGED_HELIX, NOVA_BAR_WASM, PACKAGE_VARIANT, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
-    YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YAZI_TESTED_VERSION, YZX_BAR_RENDER,
-    YZX_BAR_RENDER_REQUEST, YZX_CONFIG, YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU,
-    YZX_REVEAL, YZX_SCREEN, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ,
+    YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_CONFIG,
+    YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU, YZX_REVEAL, YZX_SCREEN, YZX_TUTOR,
+    YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::executable_file,
     error::{AppError, path_error, startup},
     paths::{runtime_path, zellij_session_label},
@@ -13,96 +20,89 @@ use crate::{
     yazi::YaziRuntime,
 };
 
-pub(crate) fn print_doctor() -> Result<(), AppError> {
-    let runtime = Runtime::prepare().map_err(doctor_failure)?;
-    let yazi = YaziRuntime::resolve().map_err(doctor_failure)?;
+pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
+    let runtime = Runtime::prepare()?;
+    let yazi = YaziRuntime::resolve()?;
     let has_managed_helix = MANAGED_HELIX == "included";
-    check_doctor_inputs().map_err(doctor_failure)?;
-    require_command("editor", &runtime.editor).map_err(doctor_failure)?;
+    check_doctor_inputs()?;
+    require_command("editor", &runtime.editor)?;
     if runtime.agent_command != AGENT_AUTO_COMMAND {
-        require_command("agent.command", &runtime.agent_command).map_err(doctor_failure)?;
+        require_command("agent.command", &runtime.agent_command)?;
     }
 
-    println!("Yazelix Nova doctor");
-    doctor_ok("config home", runtime.config_home.display());
-    doctor_ok("state dir", runtime.state_dir.display());
-    doctor_ok("shell.program", &runtime.shell_program);
+    doctor_header();
+    doctor_section("Core");
+    doctor_ok("Configuration", "config and state directories ready");
+    doctor_ok(
+        "Commands",
+        format!(
+            "shell {} · editor {} · agent {}",
+            runtime.shell_program, runtime.editor_command, runtime.agent_command
+        ),
+    );
     if !has_managed_helix && runtime.editor == YZX_HELIX {
-        println!(
-            "warn editor.command: {} is unavailable in package {}; set editor.command to an installed editor",
-            runtime.editor_command, PACKAGE_VARIANT
+        doctor_warn(
+            "Editor",
+            format!(
+                "{} is unavailable in package {}; set editor.command to an installed editor",
+                runtime.editor_command, PACKAGE_VARIANT
+            ),
         );
-    } else {
-        doctor_ok("editor.command", &runtime.editor_command);
-        doctor_ok("editor", &runtime.editor);
     }
-    doctor_ok("agent.command", &runtime.agent_command);
-    doctor_ok("agent.args", &runtime.agent_args);
-    doctor_ok("open.log_level", &runtime.yzx_open_log);
-    doctor_ok("welcome.enabled", &runtime.welcome_enabled);
-    doctor_ok("welcome.style", &runtime.welcome_style);
     doctor_ok(
-        "welcome.duration_seconds",
-        &runtime.welcome_duration_seconds,
+        "Interface",
+        format!(
+            "{} keybindings · bar widgets configured",
+            runtime.managed_keybindings.len()
+        ),
     );
-    doctor_ok("rio config", runtime.rio_config());
-    doctor_ok("zellij config", runtime.zellij_config());
-    doctor_ok("zellij sidecar", runtime.zellij_sidecar.display());
-    doctor_ok("bar.widgets", &runtime.bar_widgets);
-    doctor_ok("popup.side_margin", &runtime.popup_side_margin);
-    doctor_ok("popup.vertical_margin", &runtime.popup_vertical_margin);
-    for binding in &runtime.managed_keybindings {
-        doctor_ok(binding.path, binding.description());
-    }
-    doctor_ok("zellij status cache", runtime.zellij_status_cache.display());
-    doctor_ok("layout", runtime.layout());
-    doctor_ok("config helper", YZX_CONFIG);
-    doctor_ok("tutor helper", YZX_TUTOR);
-    doctor_ok("anima helper", YZX_SCREEN);
-    doctor_ok("welcome helper", YZX_WELCOME);
-    doctor_ok("zellij helper", YZX_ZELLIJ_CONFIG);
-    doctor_ok("reveal helper", YZX_REVEAL);
-    doctor_ok("yazi source", YAZI_SOURCE);
-    doctor_ok("yazi lookup PATH", yazi.lookup_path.to_string_lossy());
-    doctor_ok("yazi", yazi.yazi.display());
-    doctor_ok("ya", yazi.ya.display());
-    doctor_ok("yazi version", &yazi.version);
-    doctor_ok("yazi tested version", YAZI_TESTED_VERSION);
+
+    doctor_section("Runtime");
+    doctor_ok(
+        "Configs",
+        if RIO.is_empty() {
+            "Zellij · layout ready · Rio omitted"
+        } else {
+            "Rio · Zellij · layout ready"
+        },
+    );
+    doctor_ok("Yazi", format!("{} ({YAZI_SOURCE})", yazi.version));
     if let Some(warning) = &yazi.warning {
-        println!("warn yazi compatibility: {warning}");
+        doctor_warn("Yazi compatibility", warning);
     }
-    doctor_ok("zellij", ZELLIJ);
-    doctor_ok("rio", if RIO.is_empty() { "not included" } else { RIO });
-    doctor_ok("yazi opener", YZX_YAZI);
-    doctor_ok(
-        "pane orchestrator plugin",
-        YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
-    );
+    doctor_ok("Components", "all packaged helpers and plugins found");
+
+    doctor_section("Integrations");
+    doctor_radar_codex(&runtime.agent_command, verbose);
     if has_managed_helix {
-        doctor_helix_config_warning(&runtime.config_home).map_err(doctor_failure)?;
-    }
-    for line in classic_residue_lines(&runtime.config_home, &runtime.state_dir) {
-        println!("{line}");
+        doctor_helix_config_warning(&runtime.config_home)?;
     }
 
-    println!(
-        "warn session: {}",
-        zellij_session_label("already inside zellij", "not inside zellij")
+    doctor_section("Cleanup");
+    let residue = classic_residue_lines(&runtime.config_home, &runtime.state_dir);
+    if residue.is_empty() {
+        doctor_ok("Classic residue", "none found");
+    } else {
+        doctor_warn(
+            "Classic residue",
+            format!(
+                "{} unused paths ignored by Nova · details: yzx doctor --verbose",
+                residue.len()
+            ),
+        );
+        if verbose {
+            for line in &residue {
+                doctor_detail(line);
+            }
+            doctor_detail("external scripts may still reference these paths");
+        }
+    }
+    doctor_info(
+        "Session",
+        zellij_session_label("inside Zellij", "outside Zellij"),
     );
-    Ok(())
-}
 
-fn doctor_failure(error: AppError) -> AppError {
-    println!("Yazelix Nova doctor");
-    if let AppError::Startup { reason, check, .. } = &error {
-        for reason in reason.lines() {
-            println!("fail runtime preflight: {reason}");
-        }
-        if !check.is_empty() {
-            println!("check: {check}");
-        }
-    }
-    error
+    Ok(())
 }
 
 fn check_doctor_inputs() -> Result<(), AppError> {
@@ -161,13 +161,7 @@ fn require_file(label: &str, path: &Path) -> Result<(), AppError> {
 }
 
 fn require_command(label: &str, command: &str) -> Result<(), AppError> {
-    let path = runtime_path();
-    let exists = if command.as_bytes().contains(&b'/') {
-        executable_file(Path::new(command))
-    } else {
-        env::split_paths(&path).any(|dir| executable_file(&dir.join(command)))
-    };
-    if exists {
+    if command_exists(command) {
         return Ok(());
     }
     Err(startup(
@@ -177,8 +171,119 @@ fn require_command(label: &str, command: &str) -> Result<(), AppError> {
     ))
 }
 
+fn command_exists(command: &str) -> bool {
+    if command.as_bytes().contains(&b'/') {
+        executable_file(Path::new(command))
+    } else {
+        env::split_paths(&runtime_path()).any(|dir| executable_file(&dir.join(command)))
+    }
+}
+
+fn doctor_radar_codex(agent_command: &str, verbose: bool) {
+    let configured_codex = (Path::new(agent_command)
+        .file_name()
+        .and_then(|name| name.to_str())
+        == Some("codex")
+        && command_exists(agent_command))
+    .then_some(agent_command);
+    let codex = configured_codex.or_else(|| command_exists("codex").then_some("codex"));
+    let Some(codex) = codex else {
+        doctor_info("Radar", "Codex not found; hook check skipped");
+        return;
+    };
+    let mut path = runtime_path();
+    if let Some(parent) = Path::new(codex)
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+    {
+        let mut with_parent = parent.as_os_str().to_os_string();
+        with_parent.push(":");
+        with_parent.push(path);
+        path = with_parent;
+    }
+    let output = match Command::new("zj-radar")
+        .args(["setup", "codex", "--check"])
+        .env("PATH", path)
+        .output()
+    {
+        Ok(output) => output,
+        Err(error) => {
+            doctor_warn("Radar", format!("zj-radar could not run: {error}"));
+            return;
+        }
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let lines = stdout.lines().chain(stderr.lines()).collect::<Vec<_>>();
+    let attention = lines
+        .iter()
+        .map(|line| line.trim())
+        .filter(|line| line.starts_with("warn ") || line.starts_with("missing "))
+        .collect::<Vec<_>>();
+    if attention.is_empty() && output.status.success() {
+        doctor_ok("Radar", "Codex hooks installed");
+    } else {
+        doctor_warn("Radar", "Codex hooks need attention");
+        for line in &attention {
+            doctor_detail(line);
+        }
+    }
+    if attention.iter().any(|line| !line.contains("run `")) {
+        doctor_detail("action: resolve the warning, then run zj-radar setup codex -y");
+    } else if attention.is_empty() && !output.status.success() {
+        doctor_detail("action: rerun with yzx doctor --verbose for zj-radar output");
+    }
+    if output.status.success()
+        && lines
+            .iter()
+            .any(|line| line.trim().starts_with("note hook trust:"))
+    {
+        doctor_info("Codex trust", "review with /hooks");
+    }
+    if verbose {
+        for line in lines {
+            doctor_detail(&format!("radar: {line}"));
+        }
+    }
+}
+
 fn doctor_ok(label: &str, value: impl Display) {
-    println!("ok {label}: {value}");
+    doctor_status("ok  ", "32", label, value);
+}
+
+fn doctor_warn(label: &str, value: impl Display) {
+    doctor_status("warn", "33", label, value);
+}
+
+fn doctor_info(label: &str, value: impl Display) {
+    doctor_status("info", "36", label, value);
+}
+
+fn doctor_status(status: &str, color: &str, label: &str, value: impl Display) {
+    println!("  {}  {:<16} {value}", paint(status, color), label);
+}
+
+fn doctor_header() {
+    println!("{}", paint("Yazelix Nova doctor", "1;35"));
+}
+
+fn doctor_section(name: &str) {
+    println!("\n{}", paint(name, "1;36"));
+}
+
+fn doctor_detail(detail: &str) {
+    println!("      {detail}");
+}
+
+fn paint(text: &str, color: &str) -> String {
+    if io::stdout().is_terminal()
+        && env::var_os("NO_COLOR").is_none()
+        && env::var("TERM").is_ok_and(|term| term != "dumb")
+    {
+        format!("\x1b[{color}m{text}\x1b[0m")
+    } else {
+        text.into()
+    }
 }
 
 fn doctor_helix_config_warning(config_home: &Path) -> Result<(), AppError> {
@@ -194,9 +299,12 @@ fn doctor_helix_config_warning(config_home: &Path) -> Result<(), AppError> {
         && !text.contains(HELIX_REVEAL_COMMAND)
         && !text.contains(&escaped_command)
     {
-        println!(
-            "warn helix config: helix config override sets reserved Alt r; generated config keeps '{HELIX_REVEAL_COMMAND}' ({})",
-            config.display()
+        doctor_warn(
+            "Helix config",
+            format!(
+                "override sets reserved Alt r; generated config keeps '{HELIX_REVEAL_COMMAND}' ({})",
+                config.display()
+            ),
         );
     }
     Ok(())
@@ -247,13 +355,6 @@ fn classic_residue_lines(config_home: &Path, state_dir: &Path) -> Vec<String> {
         );
     }
 
-    if residue.is_empty() {
-        return vec!["ok classic residue: none recognized in active roots".into()];
-    }
-    residue.push(
-        "warn classic residue: external scripts may still reference these paths; Nova did not load or modify them"
-            .into(),
-    );
     residue
 }
 

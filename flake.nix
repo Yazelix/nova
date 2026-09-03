@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/b9637022eaddb22855dc9914a0cc06762a124b8c";
+      url = "github:Yazelix/nova-zellij/11708fc49cf85671011f81401ed48d3df0c1ebfe";
       flake = false;
     };
     yazelixHelix = {
@@ -27,7 +27,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixForest = {
-      url = "github:luccahuguet/yazelix-forest/f3a759595f75af981d0b6a62511e7f3cc1106782";
+      url = "github:luccahuguet/yazelix-forest/4c7826af01efe8b7328baa1c7e480e7a539e4eda";
       flake = false;
     };
     notifyHx = {
@@ -52,7 +52,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zjRadar = {
-      url = "github:marktoda/zj-radar/e4b9d9ca1f0e8743320910db86978f43881361c9";
+      url = "github:Yazelix/zj-radar/3d4849212af8886e2045a91092ecc25e7bb82da0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixScreen = {
@@ -817,6 +817,7 @@
           yzxBarRender = "${yzxBarRender}/bin/yzx-bar-render";
           yazelixZellijPopupWasm = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
           novaBarWasm = "${novaBarPackage}/share/nova_bar/zjstatus.wasm";
+          zjRadarWasm = "${zjRadarPackage}/bin/zj_radar.wasm";
           yazelixZellijPaneOrchestratorWasm = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
           defaultBarWidgetsJson = builtins.toJSON defaultBarWidgets;
           inherit defaultShellProgram;
@@ -1241,8 +1242,8 @@
         grep -q 'host_theme_mode "light"' "$YAZELIX_STATE_DIR/zellij/layout.kdl"
         grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$YAZELIX_STATE_DIR/zellij/layout.kdl"
         grep -q 'Yazelix Nova doctor' doctor
-        grep -q "ok config home: $runtime_config" doctor
-        grep -q 'ok shell.program: fish' doctor
+        grep -q 'ok    Configuration    config and state directories ready' doctor
+        grep -q 'ok    Commands         shell fish · editor yzx-hx · agent auto' doctor
         grep -q 'Yazelix Nova tutor lessons' tutor-list
         grep -qx 'Ya' ya-version
         touch "$out"
@@ -1295,6 +1296,8 @@
       yzx_launcher_unit = pkgs.runCommand "yzx-launcher-unit-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${pkgs.lib.cleanSource ./runtime/yzx}/main.rs -o yzx-launcher-unit-check
         ./yzx-launcher-unit-check
+        rustc --edition=2024 --test ${./runtime/yzx-agent.rs} -o yzx-agent-unit-check
+        ./yzx-agent-unit-check
         touch "$out"
       '';
       zellij_sidecar_guard_parity = pkgs.runCommand "zellij-sidecar-guard-parity-check" {} ''
@@ -1453,8 +1456,7 @@
           grep -Fqx "package: $variant" "$root/status"
           grep -Fqx 'rio config: not included' "$root/status"
           "$package/bin/yzx" doctor > "$root/doctor"
-          grep -Fqx 'ok rio config: not included' "$root/doctor"
-          grep -Fqx 'ok rio: not included' "$root/doctor"
+          grep -Fq 'ok    Configs          Zellij · layout ready · Rio omitted' "$root/doctor"
           if "$package/bin/yzx" launch 2> "$root/launch-error"; then
             printf '%s\n' "$variant launch unexpectedly succeeded" >&2
             exit 1
@@ -1559,11 +1561,7 @@
         grep -F 'Usage: yzx yazi-config materialize' "$root/materialize-usage"
 
         PATH=${fakeHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" doctor > "$root/doctor"
-        grep -Fqx 'ok yazi source: host' "$root/doctor"
-        grep -Fqx 'ok yazi: ${fakeHostYazi}/bin/yazi' "$root/doctor"
-        grep -Fqx 'ok ya: ${fakeHostYazi}/bin/ya' "$root/doctor"
-        grep -Fqx 'ok yazi version: ${pkgs.yazi.version}' "$root/doctor"
-        grep -Fqx 'ok yazi tested version: ${pkgs.yazi.version}' "$root/doctor"
+        grep -Fq 'ok    Yazi             ${pkgs.yazi.version} (host)' "$root/doctor"
 
         PATH=${fakeHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" run ya --version > "$root/ya-version"
         grep -Fqx 'Ya ${pkgs.yazi.version}' "$root/ya-version"
@@ -1609,7 +1607,7 @@
         PATH=${fakeNewerHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" status > "$root/newer-status" 2> "$root/newer-warning"
         grep -F 'host yazi/ya 99.0.0 differs from Nova' "$root/newer-warning"
         PATH=${fakeNewerHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" doctor > "$root/newer-doctor"
-        grep -F 'warn yazi compatibility: host yazi/ya 99.0.0 differs from Nova' "$root/newer-doctor"
+        grep -F 'warn  Yazi compatibility host yazi/ya 99.0.0 differs from Nova' "$root/newer-doctor"
 
         if PATH=${fakeMismatchedHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" status > /dev/null 2> "$root/mismatch"; then
           printf '%s\n' 'mismatched host Yazi pair unexpectedly succeeded' >&2

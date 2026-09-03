@@ -92,11 +92,11 @@ fn main() {
     );
     expect_contains(
         &external_doctor_stdout,
-        "ok editor.command: external-editor",
+        "shell nu · editor external-editor · agent auto",
         "no-Helix external-editor doctor",
     );
     assert!(
-        !external_doctor_stdout.contains("warn editor.command:"),
+        !external_doctor_stdout.contains("warn  Editor"),
         "no-Helix doctor warned about the configured external editor\n{}",
         excerpt(&external_doctor_stdout)
     );
@@ -114,12 +114,17 @@ fn main() {
     expect_contains(
         &doctor_stdout,
         &format!(
-            "warn editor.command: yzx-hx is unavailable in package {expected_variant}; set editor.command to an installed editor"
+            "warn  Editor           yzx-hx is unavailable in package {expected_variant}; set editor.command to an installed editor"
         ),
         "no-Helix unavailable-editor doctor",
     );
+    expect_contains(
+        &doctor_stdout,
+        "ok    Commands         shell nu · editor yzx-hx · agent auto",
+        "no-Helix unavailable-editor doctor",
+    );
     assert!(
-        !doctor_stdout.contains("warn helix config:"),
+        !doctor_stdout.contains("warn  Helix config"),
         "no-Helix doctor inspected an unused Helix sidecar\n{}",
         excerpt(&doctor_stdout)
     );

@@ -373,8 +373,7 @@ Owned by `runtime/yzx/` (Nix substitutes paths; Rust owns wiring and `exec`).
 4. Root settings → env and launch args (`YZX_OPEN_LOG`, welcome, Zellij theme mode, popup chords/custom KDL, bar tray)
 5. Rio native config home
 6. Zellij materialize (sidecar + patches) + status-bar cache path + isolated
-   exact bundled-plugin permission seeds; Radar uses one grouped native prompt
-   stored in that same isolated cache
+   permission seeds for the exact bundled plugin artifacts, including Radar
 
 Pre-`exec` failures → Yazelix diagnostics.  
 After `exec` → Rio / Zellij / child tool.

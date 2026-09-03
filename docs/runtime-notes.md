@@ -191,11 +191,23 @@ Later launches use that stored provider. If the stored provider is unknown or
 missing from `PATH`, the popup prints a diagnostic and tells the user to remove
 the provider file so Yazelix can choose again.
 
-Immediately before launching an auto-selected Codex or Claude Code provider,
-the launcher runs stock Radar's idempotent setup. A setup failure prints a
-warning and does not block the provider. Codex still requires the user to trust
-the installed hook through `/hooks`. Grok, OpenCode, and Pi are not configured
-because the pinned Radar does not provide adapters for them.
+Before the first interactive Codex launch in a Nova state directory, the agent
+launcher runs `zj-radar setup codex --check`. A healthy or intentionally
+disabled installation is remembered without mutation. Missing hooks produce one
+`Enable Codex activity in Radar? [Y/n]` prompt when stdin and stderr are
+terminals. Either answer creates
+`agent/radar-codex-setup-offered`; yes runs marker-owned setup and no leaves the
+provider untouched. Closing the prompt input or entering an unrecognized answer
+leaves no marker. Redirected input or prompt output skips the prompt and marker.
+Later launches leave removed or disabled hooks alone. Setup failures warn without
+blocking Codex. `yzx doctor` replays Radar's read-only Codex diagnosis and keeps
+missing integration warning-only. It omits the trust reminder until hooks exist
+and reports startup failures once through the shared diagnostic. Its default
+report groups useful health checks and colors statuses on a TTY.
+`yzx doctor --verbose` prints Radar's raw report and individual Classic residue
+entries. `yzx status` remains
+the owner of paths and settings. Trust remains owned by Codex's `/hooks` UI.
+Claude Code and OpenCode setup stays explicit; Grok and Pi have no Radar adapter.
 
 Any other `agent.command` value is executed directly by the same launcher for
 new sessions, so custom commands receive the same initial title. Put argv-style

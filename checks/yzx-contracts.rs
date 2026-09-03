@@ -577,17 +577,21 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "\"third-party.wasm\" {\n    WebAccess\n}",
         "share/yazelix_zellij_popup/yzpp.wasm\" {",
         "share/nova_bar/zjstatus.wasm\" {",
+        &format!(
+            "\"{}\" {{\n    ReadApplicationState\n    ChangeApplicationState\n    RunCommands\n    ReadCliPipes\n}}",
+            radar_wasm.display()
+        ),
         "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm\" {",
         "WriteToStdin",
         "ReadSessionEnvironmentVariables",
         "MessageAndLaunchOtherPlugins",
     }
     for (permission, count) in [
-        ("ReadApplicationState", 4),
-        ("ChangeApplicationState", 4),
-        ("RunCommands", 4),
+        ("ReadApplicationState", 5),
+        ("ChangeApplicationState", 5),
+        ("RunCommands", 5),
         ("OpenTerminalsOrPlugins", 3),
-        ("ReadCliPipes", 3),
+        ("ReadCliPipes", 4),
     ] {
         assert_eq!(
             permissions.matches(permission).count(),
@@ -595,10 +599,6 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "runtime plugin permissions have the wrong {permission} grants\n{permissions}"
         );
     }
-    assert!(
-        !permissions.contains(&radar_wasm.display().to_string()),
-        "runtime silently seeded Radar permissions instead of using grouped consent"
-    );
     let custom_popup = RuntimeCase::new(&temp.path, "custom-popup");
     custom_popup.write_default_config("\n[popup]\nside_margin = 2\nvertical_margin = 1\n");
     let status = custom_popup.run_yzx(&yzx_bin, "status", "custom popup status");
@@ -882,40 +882,45 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains_all! {
         &doctor, "yzx doctor";
         "Yazelix Nova doctor",
-        format!("ok config home: {}", doctor_case.config_home.display()),
-        "ok editor.command: yzx-hx",
-        "ok editor: /nix/store/",
-        "ok agent.command: auto",
-        "ok agent.args: []",
-        "ok open.log_level: info",
-        "ok welcome.enabled: true",
-        "ok welcome.style: random",
-        "ok welcome.duration_seconds: 3",
-        r#"ok bar.widgets: ["editor","shell","term","codex_usage","cpu","ram"]"#,
-        "ok popup.side_margin: 1",
-        "ok popup.vertical_margin: 0",
-        "ok keybindings.config: Alt Shift K",
-        "ok keybindings.agent: Alt Shift L",
-        "ok keybindings.git: Alt Shift J",
-        "ok keybindings.menu: Alt Shift M",
-        "ok keybindings.screen: Alt Shift A",
-        "ok keybindings.sidebar: Alt Shift H",
-        "ok keybindings.sidebar_focus: Ctrl y",
-        "ok tutor helper: /nix/store/",
-        "ok anima helper: /nix/store/",
-        "ok welcome helper: /nix/store/",
-        "ok yazi opener: /nix/store/",
-        "ok reveal helper: /nix/store/",
-        "ok yazi source: bundled",
-        "ok yazi lookup PATH: /nix/store/",
-        "ok yazi: /nix/store/",
-        "ok ya: /nix/store/",
-        "ok yazi version: ",
-        "ok yazi tested version: ",
-        "ok pane orchestrator plugin: /nix/store/",
-        "ok classic residue: none recognized in active roots",
-        "warn session: not inside zellij",
+        "Core",
+        "ok    Configuration    config and state directories ready",
+        "ok    Commands         shell nu · editor yzx-hx · agent auto",
+        "ok    Interface        7 keybindings · bar widgets configured",
+        "Runtime",
+        "ok    Yazi             ",
+        "ok    Components       all packaged helpers and plugins found",
+        "Integrations",
+        "Cleanup",
+        "ok    Classic residue  none found",
+        "info  Session          outside Zellij",
     }
+    assert!(
+        !doctor.contains("yazi lookup PATH") && !doctor.contains("\x1b["),
+        "default redirected doctor output must stay concise plain text: {doctor}"
+    );
+
+    let doctor_codex_bin = temp.path.join("doctor-codex-bin");
+    fs::create_dir(&doctor_codex_bin).unwrap();
+    write_fake_agent(&doctor_codex_bin, "codex");
+    let doctor_codex_home = temp.path.join("doctor-codex-home");
+    fs::create_dir(&doctor_codex_home).unwrap();
+    let doctor_codex = successful_stdout(
+        doctor_case
+            .yzx_command(&yzx_bin, "doctor")
+            .env("PATH", &doctor_codex_bin)
+            .env("CODEX_HOME", &doctor_codex_home),
+        "yzx doctor missing Radar Codex hooks",
+    );
+    expect_contains_all! {
+        &doctor_codex, "yzx doctor missing Radar Codex hooks";
+        "warn  Radar            Codex hooks need attention",
+        "missing hooks.json: zj-radar Codex hooks are not installed",
+        "action: resolve the warning, then run zj-radar setup codex -y",
+    }
+    assert!(
+        !doctor_codex.contains("Codex trust"),
+        "doctor offered a trust review before Radar installed any hooks"
+    );
 
     for current in ["yazi", "zellij", "helix", "helix-steel", "logs"] {
         fs::create_dir_all(doctor_case.state_dir.join(current)).unwrap();
@@ -941,7 +946,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         .join("settings.jsonc.backup-20260711");
     fs::write(&config_backup, "classic").unwrap();
     symlink(temp.path.join("missing-backup"), &settings_backup).unwrap();
-    let residue_doctor = doctor_case.run_yzx(&yzx_bin, "doctor", "yzx doctor residue");
+    let residue_doctor = successful_stdout(
+        doctor_case.yzx_command(&yzx_bin, "doctor").arg("--verbose"),
+        "yzx doctor residue",
+    );
     expect_contains_all! {
         &residue_doctor, "yzx doctor residue";
         classic_residue_warning(&configs, "ambiguous"),
@@ -950,8 +958,12 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         classic_residue_warning(&fingerprint, "ambiguous"),
         classic_residue_warning(&config_backup, "ambiguous"),
         classic_residue_warning(&settings_backup, "ambiguous"),
-        "warn classic residue: external scripts may still reference these paths; Nova did not load or modify them",
+        "external scripts may still reference these paths",
     }
+    assert!(
+        !residue_doctor.contains("yazi lookup PATH:"),
+        "verbose doctor duplicated configuration already owned by yzx status"
+    );
     assert_eq!(fs::read_to_string(snapshot).unwrap(), "untouched");
     for current in ["yazi", "zellij", "helix", "helix-steel", "logs"] {
         let path = doctor_case.state_dir.join(current);
@@ -971,7 +983,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         linked_parent.run_yzx(&yzx_bin, "doctor", "yzx doctor symlinked parent");
     expect_contains(
         &linked_parent_doctor,
-        "ok classic residue: none recognized in active roots",
+        "ok    Classic residue  none found",
         "yzx doctor symlinked parent",
     );
 
@@ -983,7 +995,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         ),
         (
             &["doctor", "extra"][..],
-            "yzx doctor does not accept arguments yet",
+            "yzx doctor accepts only --verbose",
             "yzx doctor argument error",
         ),
         (
@@ -1533,12 +1545,10 @@ fn expect_startup_failure(
         check.to_str().unwrap(),
     }
     if command == "doctor" {
-        let context = format!("{label} doctor stdout");
-        expect_contains_all! {
-            stdout.as_ref(), &context;
-            "Yazelix Nova doctor",
-            "fail runtime preflight:",
-        }
+        assert!(
+            stdout.is_empty(),
+            "{label} doctor duplicated its startup failure on stdout: {stdout}"
+        );
     }
 }
 
@@ -2250,7 +2260,10 @@ fn expect_no_block_binds_and_unbinds_same_key(config: &str) {
             }
         }
         depth += line.matches('{').count() as i32 - line.matches('}').count() as i32;
-        while blocks.last().is_some_and(|(block_depth, _)| *block_depth > depth) {
+        while blocks
+            .last()
+            .is_some_and(|(block_depth, _)| *block_depth > depth)
+        {
             blocks.pop();
         }
     }
@@ -2311,7 +2324,7 @@ fn expect_agent_bootstrap(agent: &Path) {
         (
             "codex-first",
             &["codex", "opencode"][..],
-            "radar setup codex -y\ncodex resume\n",
+            "radar setup codex --check\ncodex resume\n",
         ),
         ("grok-fallback", &["grok", "opencode"], "grok\n"),
         (
@@ -2320,14 +2333,39 @@ fn expect_agent_bootstrap(agent: &Path) {
             "opencode\n",
         ),
         ("pi-fallback", &["pi", "claude"], "pi\n"),
-        (
-            "claude-fallback",
-            &["claude"],
-            "radar setup claude -y\nclaude --resume\n",
-        ),
+        ("claude-fallback", &["claude"], "claude --resume\n"),
     ] {
         expect_agent_bootstrap_case(agent, &temp.path, name, available, expected_output);
     }
+
+    let missing_hooks_bin = temp.path.join("missing-hooks-bin");
+    fs::create_dir(&missing_hooks_bin).unwrap();
+    write_fake_agent(&missing_hooks_bin, "codex");
+    write_fake_radar(&missing_hooks_bin);
+    let missing_hooks_state = temp.path.join("missing-hooks-state");
+    let missing_hooks_output = temp.path.join("missing-hooks-output");
+    let output = successful_output(
+        Command::new(agent)
+            .env("PATH", &missing_hooks_bin)
+            .env("YAZELIX_STATE_DIR", &missing_hooks_state)
+            .env("YAZELIX_AGENT_TEST_OUT", &missing_hooks_output)
+            .env("YAZELIX_AGENT_TEST_RADAR_FAIL", "1"),
+        "noninteractive Codex launch with missing Radar hooks",
+    );
+    assert_eq!(
+        fs::read_to_string(&missing_hooks_output).unwrap(),
+        "radar setup codex --check\ncodex resume\n"
+    );
+    assert!(
+        !String::from_utf8_lossy(&output.stderr).contains("Enable Codex activity in Radar?"),
+        "noninteractive launch must not prompt"
+    );
+    assert!(
+        !missing_hooks_state
+            .join("agent/radar-codex-setup-offered")
+            .exists(),
+        "a skipped noninteractive offer must not be remembered"
+    );
 
     let persisted_state = temp.path.join("persisted-state");
     let persisted_agent = persisted_state.join("agent");
@@ -2346,30 +2384,6 @@ fn expect_agent_bootstrap(agent: &Path) {
         "agent popup persisted provider",
     );
     assert_eq!(fs::read_to_string(&output_file).unwrap(), "opencode\n");
-
-    let failed_setup_state = temp.path.join("failed-setup-state");
-    let failed_setup_bin = temp.path.join("failed-setup-bin");
-    fs::create_dir(&failed_setup_bin).unwrap();
-    write_fake_radar(&failed_setup_bin);
-    write_fake_agent(&failed_setup_bin, "codex");
-    let failed_setup_output = temp.path.join("failed-setup-output");
-    let output = Command::new(agent)
-        .env("PATH", &failed_setup_bin)
-        .env("YAZELIX_STATE_DIR", &failed_setup_state)
-        .env("YAZELIX_AGENT_TEST_OUT", &failed_setup_output)
-        .env("YAZELIX_AGENT_TEST_RADAR_FAIL", "1")
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "Radar setup failure blocked Codex");
-    assert_eq!(
-        fs::read_to_string(&failed_setup_output).unwrap(),
-        "radar setup codex -y\ncodex resume\n"
-    );
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains("launching codex without Radar integration"),
-        "Radar setup failure warning is unclear: {stderr}",
-    );
 
     let missing_state = temp.path.join("missing-state");
     let missing_agent = missing_state.join("agent");
@@ -2421,6 +2435,25 @@ fn expect_agent_bootstrap_case(
         fs::read_to_string(state.join("agent/provider")).unwrap(),
         format!("{}\n", available[0])
     );
+    if available[0] == "codex" {
+        assert!(
+            state.join("agent/radar-codex-setup-offered").is_file(),
+            "a healthy first Codex check must suppress later offers"
+        );
+        fs::write(&output_file, "").unwrap();
+        successful_output(
+            Command::new(agent)
+                .env("PATH", &bin)
+                .env("YAZELIX_STATE_DIR", &state)
+                .env("YAZELIX_AGENT_TEST_OUT", &output_file),
+            "second Codex launch",
+        );
+        assert_eq!(
+            fs::read_to_string(&output_file).unwrap(),
+            "codex resume\n",
+            "the second Codex launch must not check or offer setup again"
+        );
+    }
 }
 
 fn write_fake_agent(bin: &Path, name: &str) {

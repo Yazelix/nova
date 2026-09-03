@@ -225,7 +225,7 @@ fn expect_helix_doctor_warnings(yzx: &Path) {
     default.write_default_config("");
     let doctor = default.run_yzx(&yzx_bin, "doctor", "default Helix doctor");
     assert!(
-        !doctor.contains("warn helix config:"),
+        !doctor.contains("warn  Helix config"),
         "default doctor should not warn about packaged Helix config\n{}",
         excerpt(&doctor)
     );
@@ -237,7 +237,7 @@ fn expect_helix_doctor_warnings(yzx: &Path) {
     fs::write(&helix_override_config, "theme = \"ayu_evolve\"\n").unwrap();
     let doctor = helix_override.run_yzx(&yzx_bin, "doctor", "Helix preference doctor");
     assert!(
-        !doctor.contains("warn helix config:"),
+        !doctor.contains("warn  Helix config"),
         "ordinary Helix preference override should not warn\n{}",
         excerpt(&doctor)
     );
@@ -249,7 +249,7 @@ fn expect_helix_doctor_warnings(yzx: &Path) {
     .unwrap();
     let doctor = helix_override.run_yzx(&yzx_bin, "doctor", "Helix reveal binding doctor");
     assert!(
-        !doctor.contains("warn helix config:"),
+        !doctor.contains("warn  Helix config"),
         "supported Helix reveal binding should not warn\n{}",
         excerpt(&doctor)
     );
@@ -258,7 +258,7 @@ fn expect_helix_doctor_warnings(yzx: &Path) {
     let doctor = helix_override.run_yzx(&yzx_bin, "doctor", "Helix Alt r doctor");
     expect_contains_all! {
         &doctor, "Helix Alt r doctor";
-        r#"warn helix config: helix config override sets reserved Alt r; generated config keeps ':sh yzx reveal "%{buffer_name}"'"#,
+        r#"warn  Helix config     override sets reserved Alt r; generated config keeps ':sh yzx reveal "%{buffer_name}"'"#,
         helix_override_config.display().to_string(),
     }
 }

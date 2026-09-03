@@ -13,7 +13,7 @@ use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
     CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM, RIO,
     YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
+    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
@@ -109,6 +109,10 @@ fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
         (
             NOVA_BAR_WASM,
             "ReadApplicationState ChangeApplicationState RunCommands",
+        ),
+        (
+            ZJ_RADAR_WASM,
+            "ReadApplicationState ChangeApplicationState RunCommands ReadCliPipes",
         ),
         (
             YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
