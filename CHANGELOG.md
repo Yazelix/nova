@@ -4,6 +4,14 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+## 1.2.0 (candidate)
+
+- Top-bar tabs use native names, selection, bells, and layout indicators without
+  execution dots or completion checkmarks. Radar owns activity presentation;
+  hiding it or selecting a custom sidebar does not restore the old markers.
+  The duplicate activity tracker, broadcast pipe, snapshot renderer, and
+  zjstatus overlay are removed, eliminating their stale hidden-tab state.
+
 - Managed Helix waits for its first editor view before opening Yazelix Forest's
   Snacks renderer, avoiding pre-view crashes on fresh starts and Yazi
   `Alt z` directory retargets. Selecting a folder in Yazi changes the existing

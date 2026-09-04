@@ -76,8 +76,8 @@ Linux launchers show their selected channel as `Yazelix Nova (Stable)`,
 `Yazelix Nova (Main)`, or `Yazelix Nova (Edge)`. Stable uses the default
 `yazelix` package; Main and Edge use the explicit `yazelix-main` and
 `yazelix-edge` outputs so the immutable package owns its launcher label. The
-same package identity remains visible inside sessions as `NOVA 1.1 STABLE`,
-`NOVA 1.1 MAIN`, or `NOVA 1.1 EDGE`.
+same package identity remains visible inside sessions as `NOVA 1.2 STABLE`,
+`NOVA 1.2 MAIN`, or `NOVA 1.2 EDGE`, depending on the version and channel installed.
 
 Linux is the dogfooded platform. CI builds all packages and a Home Manager
 activation on `aarch64-darwin`. Sustained interactive macOS beta use has found
@@ -224,6 +224,9 @@ command needs neither a separate Yazi installation nor a Nix store path.
 A custom command disables Radar's key routes, permission grant, Codex setup
 prompt, and doctor diagnosis. See [Configuration](docs/configuration.md#sidebar).
 
+Radar owns activity presentation. Top-bar tabs retain native names, bells, and
+layout indicators, with no execution markers or fallback when Radar is hidden.
+
 With Radar selected, `Alt Shift H` selects the exact named tiled layout
 underneath any visible popup, collapsing the rail to a framed divider or
 restoring the same live plugin without hiding or refocusing the popup. Its
@@ -362,9 +365,9 @@ Yazelix assembles focused forks, plugins, libraries, and commands:
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
 | [Yazelix Forest](https://github.com/luccahuguet/yazelix-forest) | Hardened Helix file tree, packaged with the Snacks renderer open by default |
 | [Yazelix zj-radar](https://github.com/Yazelix/zj-radar) | Narrow fork of upstream 0.6.0 for the collapsible session and attention rail; Nova adds explicit, cross-environment-safe Codex hook setup and a smooth working animation |
-| [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, the editor, and agent activity |
+| [Zellij Pane Orchestrator](https://github.com/Yazelix/zellij-pane-orchestrator) | Zellij plugin that owns tab-local workspace roots and coordinates panes, focus, popups, and the editor |
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
-| [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with tabs, modes, session details, status widgets, and activity markers, built on the narrow Yazelix `zjstatus` fork |
+| [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with native tabs, modes, session details, and status widgets, built on the theme-aware Yazelix `zjstatus` fork |
 | [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
 | [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations including Matrix rain, plus the separately packaged GPL aquarium exposed through `yzx anima` |
 | [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
@@ -500,10 +503,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,643 lines** of tracked text project files. The
+Yazelix owns **27,665 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 138 lines above the pre-Rio fork surface. The current surface
+This is 160 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -512,3 +515,5 @@ package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
 sponsor surface and installed-runtime checks while deleting
 persistent tiled-Yazi machinery.
+The activity cleanup lives in the child repositories; their deletions are
+outside this score. Nova's additions document the 1.2 candidate and its checks.

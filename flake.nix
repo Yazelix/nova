@@ -107,7 +107,7 @@
     yaziSchemas,
     zjstatus,
   }: let
-    novaVersion = "1.1.0";
+    novaVersion = "1.2.0";
     supportedSystems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
     eachSystem = nixpkgs.lib.genAttrs supportedSystems;
     homeManagerModule = import ./home-manager/module.nix {
@@ -1133,8 +1133,12 @@
       };
     in {
       inherit yzx;
-      zjstatus_activity_pipe = pkgs.runCommand "yzx-zjstatus-activity-pipe-check" {nativeBuildInputs = [pkgs.ripgrep];} ''
-        rg -a -q 'tab_activity_pipe_name' ${novaBarPackage}/${novaBarPackage.wasmPath}
+      zjstatus_native_tabs = pkgs.runCommand "yzx-zjstatus-native-tabs-check" {nativeBuildInputs = [pkgs.ripgrep];} ''
+        rg -a -q 'host_theme_mode' ${novaBarPackage}/${novaBarPackage.wasmPath}
+        if rg -a -q 'tab_activity_pipe_name' ${novaBarPackage}/${novaBarPackage.wasmPath}; then
+          echo 'retired tab-activity overlay remains in the packaged renderer' >&2
+          exit 1
+        fi
         touch "$out"
       '';
       home_manager = pkgs.runCommand "yzx-home-manager-check" {} ''

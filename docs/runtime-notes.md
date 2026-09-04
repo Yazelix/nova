@@ -196,6 +196,11 @@ refocused.
 
 ## Agent Popup
 
+Radar owns agent activity. The top bar does not track execution state; its tabs
+use Zellij's native names, selection, bells, and layout indicators. The
+orchestrator's v2 session response retains an empty `extensions.ai_pane_activity`
+list for existing consumers, but no activity tracker or broadcast feeds it.
+
 The packaged agent launcher gives the pane its initial `agent popup` terminal title,
 then replaces itself with `[agent].command`. The default `auto` chooses a
 provider once per state directory. On first launch it checks `PATH` in this
