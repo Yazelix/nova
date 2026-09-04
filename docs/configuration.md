@@ -63,11 +63,16 @@ an Advanced diagnostic with an exact `config.toml` action
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
 | `sidebar.args` | `[]` | All | Arguments for a custom `sidebar.command` |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
-| `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, Matrix, the Boids/Mandelbrot/Game of Life styles, or `random` |
+| `welcome.style` | `random` | Overview | Startup animation, including `friends_and_enemies`, `primordial`, and `game_of_life_tumblers`; `yzx anima --help` lists every supported style |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
 | `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the managed sidebar |
 | `keybindings.sidebar_focus` | `Ctrl y` | Overview | Toggle focus between Forest and managed Helix |
 | `bar.widgets` | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Overview | Top bar widgets, left to right |
+
+Anima owns the animation set and random selection. `static`, `logo`, and
+`friends_and_enemies` require explicit selection; `random` excludes them.
+The retired `game_of_life_oscillators` and `game_of_life_bloom` names are invalid;
+choose `game_of_life_tumblers` or reset `welcome.style` to `random` in Ratconfig.
 
 The Codex quota widget identifies periods from their reported duration and shows
 five-hour before weekly when both exist. Unavailable periods are omitted.

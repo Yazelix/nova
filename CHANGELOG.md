@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Anima includes friends-and-enemies and primordial particles, replaces the Life
+  oscillator/bloom presets with tumblers, and supports `Left`/`h`/`p` and
+  `Right`/`l`/`n` navigation in native animations. Nova's welcome choices match
+  the packaged styles; retired style overrides report a configuration error.
+  The default random pool follows Anima and excludes friends and enemies.
+
 ## 1.2.0 (candidate)
 
 - Top-bar tabs use native names, selection, bells, and layout indicators without

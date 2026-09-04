@@ -26,11 +26,12 @@ pub(crate) const WELCOME_STYLE_VALUES: &[&str] = &[
     "boids",
     "boids_predator",
     "boids_schools",
+    "friends_and_enemies",
+    "primordial",
     "mandelbrot",
     "matrix",
     "game_of_life_gliders",
-    "game_of_life_oscillators",
-    "game_of_life_bloom",
+    "game_of_life_tumblers",
     "random",
 ];
 pub(crate) const POPUP_SIDE_MARGIN_PATH: &str = "popup.side_margin";

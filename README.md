@@ -184,8 +184,9 @@ Yazi, the menu, and Anima use their initials:
 
 - `Alt Shift Y` toggles the full Yazi popup.
 - `Alt Shift M` toggles the command menu.
-- `Alt Shift A` opens a transient random visual popup. Press any ordinary
-  screen input to return to the unchanged workspace; this is not a session lock.
+- `Alt Shift A` opens a transient random visual popup. In native animations,
+  `Left`/`h`/`p` selects the previous animation and `Right`/`l`/`n` selects the next;
+  any other key exits. Other styles exit on any key. This is not a session lock.
   Set `keybindings.screen` to remap or unmap it for newly launched sessions.
 
 Press a popup's key again to close or hide it and return to the tiled workspace.
@@ -369,7 +370,7 @@ Yazelix assembles focused forks, plugins, libraries, and commands:
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with native tabs, modes, session details, and status widgets, built on the theme-aware Yazelix `zjstatus` fork |
 | [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
-| [Anima](https://github.com/Yazelix/anima) | Standalone terminal animations including Matrix rain, plus the separately packaged GPL aquarium exposed through `yzx anima` |
+| [Anima](https://github.com/Yazelix/anima) | Browsable terminal animations including Matrix rain, friends and enemies, primordial particles, and Life tumblers, plus the separately packaged GPL aquarium exposed through `yzx anima` |
 | [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
 | [auto-layout.yazi](https://github.com/Yazelix/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
 
@@ -503,10 +504,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,665 lines** of tracked text project files. The
+Yazelix owns **27,695 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 160 lines above the pre-Rio fork surface. The current surface
+This is 190 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -517,3 +518,5 @@ sponsor surface and installed-runtime checks while deleting
 persistent tiled-Yazi machinery.
 The activity cleanup lives in the child repositories; their deletions are
 outside this score. Nova's additions document the 1.2 candidate and its checks.
+The Anima update adds 30 lines to expose its current styles, document navigation,
+and check that every advertised style is accepted by Nova's welcome config.

@@ -278,12 +278,27 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "logo",
         "asciiquarium",
         "boids_schools",
+        "friends_and_enemies",
+        "primordial",
         "game_of_life_gliders",
+        "game_of_life_tumblers",
         "mandelbrot",
         "matrix",
         "random",
         "--cell-style",
         "--duration-seconds",
+    }
+    let temp = TempDir::new();
+    let styles = anima_help.split_once("Styles:\n").unwrap().1;
+    for style in styles.split_once("\nNotes:").unwrap().0.split_whitespace() {
+        write_config_home(&temp.path, format!("[welcome]\nstyle = {style:?}\n"));
+        let selected = successful_stdout(
+            Command::new(yzx.join("libexec/yazelix/yzx-config"))
+                .args(["--get", "welcome.style"])
+                .env("YAZELIX_CONFIG_HOME", &temp.path),
+            &format!("welcome accepts packaged Anima style {style}"),
+        );
+        assert_eq!(selected.trim(), style);
     }
     let tutor_help = run_help(&yzx_bin, &["tutor", "--help"]);
     expect_contains_all! {
@@ -1470,7 +1485,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
         (
             "bad-welcome-style-config",
             "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"snow\"\n",
-            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, mandelbrot, matrix, game_of_life_gliders, game_of_life_oscillators, game_of_life_bloom, random",
+            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
             "invalid welcome style",
         ),
         (
