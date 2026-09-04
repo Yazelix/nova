@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, IsTerminal, Write},
     os::unix::{fs::PermissionsExt, process::CommandExt},
     path::{Path, PathBuf},
-    process::{Command, Stdio, exit},
+    process::{exit, Command, Stdio},
 };
 
 const PROVIDERS: &[(&str, &[&str])] = &[
@@ -44,15 +44,19 @@ fn run() -> i32 {
 }
 
 fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32 {
-    if Path::new(command).file_name() == Some(OsStr::new("codex")) {
+    if Path::new(command).file_name() == Some(OsStr::new("codex")) && radar_enabled() {
         offer_codex_radar_setup(command, state_dir);
     }
     exec_command(command, args)
 }
 
+fn radar_enabled() -> bool {
+    env::var_os("YZX_RADAR_ENABLED").as_deref() != Some(OsStr::new("false"))
+}
+
 fn emit_initial_title() {
     let mut stdout = io::stdout().lock();
-    let _ = stdout.write_all(b"\x1b]0;agent\x07");
+    let _ = stdout.write_all(b"\x1b]0;agent popup\x07");
     let _ = stdout.flush();
 }
 
@@ -153,11 +157,11 @@ fn radar_setup(codex: &OsStr, flag: &str, quiet: bool) -> io::Result<std::proces
         .parent()
         .filter(|path| !path.as_os_str().is_empty())
     {
-        let mut path = parent.as_os_str().to_os_string();
-        if let Some(existing) = env::var_os("PATH").filter(|path| !path.is_empty()) {
+        let mut path = env::var_os("PATH").unwrap_or_default();
+        if !path.is_empty() {
             path.push(":");
-            path.push(existing);
         }
+        path.push(parent);
         command.env("PATH", path);
     }
     if quiet {

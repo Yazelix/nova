@@ -74,4 +74,5 @@ jobs:
             .#checks.aarch64-darwin.desktop_channels \
             .#checks.aarch64-darwin.host_yazi_contracts \
             .#checks.aarch64-darwin.rio_contracts \
-            .#checks.aarch64-darwin.no_helix_contracts
+            .#checks.aarch64-darwin.no_helix_contracts \
+            .#checks.aarch64-darwin.no_rio_contracts

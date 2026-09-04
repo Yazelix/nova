@@ -8,6 +8,10 @@ pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
 pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
 pub(crate) const EDITOR_COMMAND_PATH: &str = "editor.command";
 pub(crate) const FOREST_SIDE_PATH: &str = "forest.side";
+pub(crate) const SIDEBAR_COMMAND_PATH: &str = "sidebar.command";
+pub(crate) const SIDEBAR_ARGS_PATH: &str = "sidebar.args";
+pub(crate) const SIDEBAR_PANE_KDL_PATH: &str = "sidebar.pane.kdl";
+pub(crate) const SIDEBAR_RADAR_COMMAND: &str = "radar";
 pub(crate) const AGENT_COMMAND_PATH: &str = "agent.command";
 pub(crate) const AGENT_ARGS_PATH: &str = "agent.args";
 pub(crate) const AGENT_POPUP_KDL_PATH: &str = "agent.popup.kdl";
@@ -58,6 +62,7 @@ pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
     FOREST_SIDE_PATH,
+    SIDEBAR_COMMAND_PATH,
     AGENT_COMMAND_PATH,
     WELCOME_ENABLED_PATH,
     WELCOME_STYLE_PATH,
@@ -192,7 +197,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Popups"; "Alt Shift M"; "Toggle menu popup"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift A"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift Y"; "Hide or show Yazi popup"; "Yazelix"; "config.kdl"),
-    key!("Sidebar"; "Alt Shift H"; "Toggle Radar sidebar"; "Yazelix"; "config.kdl"),
+    key!("Sidebar"; "Alt Shift H"; "Toggle sidebar"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Alt n"; "Next attention tab"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Alt p"; "Previous attention tab"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Tab"; "Next session"; "Yazelix"; "config.kdl"),
@@ -261,6 +266,25 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "next launch",
         apply_detail: "Saved Forest placement applies to newly launched managed Helix editors.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::string_choice(
+            SIDEBAR_COMMAND_PATH,
+            "Command for the managed sidebar. Use radar for Radar or yzx-yazi for managed Yazi.",
+            &[],
+            "radar or one non-empty executable command without arguments",
+        ),
+        apply_summary: "next launch",
+        apply_detail: "Saved sidebar command applies to newly launched Yazelix sessions.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::string_list(
+            SIDEBAR_ARGS_PATH,
+            "Arguments passed to yzx-yazi or another custom sidebar command.",
+            "JSON string array; requires sidebar.command to be custom",
+        ),
+        apply_summary: "next launch",
+        apply_detail: "Saved sidebar arguments apply to newly launched Yazelix sessions.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(
@@ -374,7 +398,7 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
     ConfigFieldSpec {
         field: FieldSpec::managed_keybinding(
             KEYBINDINGS_SIDEBAR_PATH,
-            "Key chord that hides or shows the Radar sidebar. Set false to leave it unmapped.",
+            "Key chord that hides or shows the managed sidebar. Set false to leave it unmapped.",
             "key chord like Alt Shift A that does not conflict with a packaged binding, or false",
         ),
         apply_summary: "next launch",

@@ -60,10 +60,12 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
+| `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
+| `sidebar.args` | `[]` | All | Arguments for a custom `sidebar.command` |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
 | `welcome.style` | `random` | Overview | Startup screen style: `static`, `logo`, `asciiquarium`, Matrix, the Boids/Mandelbrot/Game of Life styles, or `random` |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
-| `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the Radar rail |
+| `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the managed sidebar |
 | `keybindings.sidebar_focus` | `Ctrl y` | Overview | Toggle focus between Forest and managed Helix |
 | `bar.widgets` | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Overview | Top bar widgets, left to right |
 
@@ -78,6 +80,33 @@ The no-Helix package reports those managed names as unavailable. Other terminal
 editors such as `nvim`, or an absolute host Helix path, skip the managed bridge.
 Config native-file actions and terminal Git clients run through `yzx-editor`,
 which resolves the current `editor.command` for each edit
+
+### Sidebar
+
+Radar occupies Nova's managed sidebar by default. To run a terminal command in
+the same slot, set one executable and its argv separately:
+
+```toml
+[sidebar]
+command = "yzx-yazi"
+args = []
+```
+
+`yzx-yazi` is Nova's installed managed Yazi wrapper. It uses Yazelix's selected
+Yazi, configuration, theme, and opener without requiring a Nix store path or a
+separate Yazi installation. Other executables work the same way; for example,
+use `command = "btm"` with `args = ["--basic"]`.
+
+The choice applies when you start the next Yazelix session. A custom command
+uses the same 32-column side, pane frame, collapsed layout, focus navigation,
+popup margins, and `Alt Shift H` toggle. Nova runs it without a shell. If the
+command is missing or exits, Zellij shows that failure in the sidebar while the
+rest of the session stays available.
+
+`radar` selects the packaged plugin and does not accept `sidebar.args`.
+`yzx-yazi` and other custom commands omit Radar's four command shortcuts, cached permission grant, Codex
+setup prompt, and doctor integration. User-installed Radar hooks remain under
+the user's control.
 
 ### Atuin history
 
@@ -124,13 +153,18 @@ popup role keys:
 | --- | --- | --- | --- |
 | `agent.command` | `auto` | Overview | Managed agent popup command. `auto` keeps the built-in provider fallback |
 | `agent.args` | `[]` | All | Arguments for a custom `agent.command` |
-| `popup.side_margin` | `1` | All | Left and right popup margin in terminal cells |
+| `popup.side_margin` | `1` | All | Ordinary left and right popup margin in terminal cells |
 | `popup.vertical_margin` | `0` | All | Top and bottom popup margin in terminal cells |
 | `keybindings.config` | `Alt Shift K` | Overview | Config popup trigger |
 | `keybindings.agent` | `Alt Shift L` | Overview | Agent popup trigger |
 | `keybindings.git` | `Alt Shift J` | Overview | Git popup trigger |
 | `keybindings.menu` | `Alt Shift M` | Overview | Menu popup trigger |
-| `keybindings.screen` | `Alt Shift A` | Overview | Random full-screen visual trigger |
+| `keybindings.screen` | `Alt Shift A` | Overview | Random visual popup trigger |
+
+When the sidebar is open, managed popups reserve its framed 32-column rail on
+the left while retaining `popup.side_margin` on the right. They resize in place
+as the sidebar toggles. When it is collapsed, `popup.side_margin` applies
+equally to both horizontal edges.
 
 `Alt Shift Y` is the fixed packaged key for the full managed Yazi popup. It is
 not a root setting. The popup opens at the active tab's canonical workspace

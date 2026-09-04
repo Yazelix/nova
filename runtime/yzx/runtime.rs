@@ -10,15 +10,15 @@ use std::{
 };
 
 use crate::{
-    AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
-    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM, RIO,
-    YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
     command::{create_dir_all_checked, run_checked, trim_output},
-    error::{AppError, path_error},
+    error::{path_error, AppError},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
     yazi::YaziRuntime,
     zellij::{active_layout, active_zellij_config},
+    AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUPS_KDL_CONFIG_PATH,
+    CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS,
+    NOVA_BAR_WASM, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM,
+    YZX_CONFIG, YZX_CONFIG_KDL, YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
 };
 
 pub(crate) struct Runtime {
@@ -31,6 +31,8 @@ pub(crate) struct Runtime {
     pub(crate) editor: String,
     pub(crate) agent_command: String,
     pub(crate) agent_args: String,
+    pub(crate) sidebar_command: String,
+    pub(crate) sidebar_args: String,
     pub(crate) welcome_enabled: String,
     pub(crate) welcome_style: String,
     pub(crate) welcome_duration_seconds: String,
@@ -91,7 +93,7 @@ fn read_managed_keybindings(
         .collect()
 }
 
-fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
+fn seed_plugin_permissions(path: &Path, radar_enabled: bool) -> Result<(), AppError> {
     create_dir_all_checked(parent(path), path)?;
     let current = match fs::read_to_string(path) {
         Ok(current) => current,
@@ -112,7 +114,11 @@ fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
         ),
         (
             ZJ_RADAR_WASM,
-            "ReadApplicationState ChangeApplicationState RunCommands ReadCliPipes",
+            if radar_enabled {
+                "ReadApplicationState ChangeApplicationState RunCommands ReadCliPipes"
+            } else {
+                ""
+            },
         ),
         (
             YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
@@ -125,6 +131,9 @@ fn seed_plugin_permissions(path: &Path) -> Result<(), AppError> {
     ];
     let mut additions = String::new();
     for (plugin, permissions) in grants {
+        if permissions.is_empty() {
+            continue;
+        }
         let header = format!("\"{plugin}\" {{");
         let complete = current.rsplit_once(&header).is_some_and(|(_, tail)| {
             tail.split_once('}').is_some_and(|(body, _)| {
@@ -193,6 +202,15 @@ impl Runtime {
         let editor = effective_editor_command(&editor_command);
         let agent_command = trim_output(config_value(&config_home, &config_toml, "agent.command")?);
         let agent_args = trim_output(config_value(&config_home, &config_toml, "agent.args")?);
+        let sidebar_command =
+            trim_output(config_value(&config_home, &config_toml, "sidebar.command")?);
+        let sidebar_args = trim_output(config_value(&config_home, &config_toml, "sidebar.args")?);
+        let sidebar_pane_kdl = config_value(
+            &config_home,
+            &config_toml,
+            crate::SIDEBAR_PANE_KDL_CONFIG_PATH,
+        )?;
+        let radar_enabled = sidebar_command == crate::SIDEBAR_RADAR_COMMAND;
         let welcome_enabled = config_value(&config_home, &config_toml, "welcome.enabled")?;
         let welcome_style = config_value(&config_home, &config_toml, "welcome.style")?;
         let welcome_duration_seconds =
@@ -221,8 +239,14 @@ impl Runtime {
         )?;
         let agent_popup_kdl =
             config_value(&config_home, &config_toml, AGENT_POPUP_KDL_CONFIG_PATH)?;
-        let (layout_source, layout) =
-            active_layout(&state_dir, &appearance_mode, &bar_widgets, &shell_program)?;
+        let (layout_source, layout) = active_layout(
+            &state_dir,
+            &appearance_mode,
+            &bar_widgets,
+            &shell_program,
+            &sidebar_pane_kdl,
+            radar_enabled,
+        )?;
         let zellij_sidecar = config_home.join("zellij/config.kdl");
         let zellij_plugins_sidecar = config_home.join("zellij/plugins.kdl");
         let zellij_config = PathBuf::from(trim_output(run_checked(
@@ -250,10 +274,11 @@ impl Runtime {
             &custom_popup_keybindings_kdl,
             &zellij_plugins_sidecar,
             &home_dir,
+            radar_enabled,
         )?;
         let zellij_status_cache = state_dir.join("zellij/session/status_bar_cache.json");
         create_dir_all_checked(parent(&zellij_status_cache), &zellij_status_cache)?;
-        seed_plugin_permissions(&state_dir.join(ZELLIJ_PERMISSIONS_FILE))?;
+        seed_plugin_permissions(&state_dir.join(ZELLIJ_PERMISSIONS_FILE), radar_enabled)?;
 
         Ok(Self {
             config_home,
@@ -265,6 +290,8 @@ impl Runtime {
             editor,
             agent_command,
             agent_args,
+            sidebar_command,
+            sidebar_args,
             welcome_enabled: trim_output(welcome_enabled),
             welcome_style: trim_output(welcome_style),
             welcome_duration_seconds: trim_output(welcome_duration_seconds),
@@ -298,6 +325,14 @@ impl Runtime {
             .env("YZX_WELCOME_ENABLED", &self.welcome_enabled)
             .env("YZX_WELCOME_STYLE", &self.welcome_style)
             .env(
+                "YZX_RADAR_ENABLED",
+                if self.radar_enabled() {
+                    "true"
+                } else {
+                    "false"
+                },
+            )
+            .env(
                 "YZX_WELCOME_DURATION_SECONDS",
                 &self.welcome_duration_seconds,
             )
@@ -323,6 +358,10 @@ impl Runtime {
         self.yazi
             .as_ref()
             .expect("Yazi runtime was not prepared for this command")
+    }
+
+    pub(crate) fn radar_enabled(&self) -> bool {
+        self.sidebar_command == crate::SIDEBAR_RADAR_COMMAND
     }
 
     pub(crate) fn rio_config(&self) -> String {

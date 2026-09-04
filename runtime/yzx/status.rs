@@ -1,6 +1,6 @@
 use crate::{
-    PACKAGE_VARIANT, VERSION, YAZI_SOURCE, error::AppError, paths::zellij_session_label,
-    runtime::Runtime,
+    error::AppError, paths::zellij_session_label, runtime::Runtime, PACKAGE_VARIANT, VERSION,
+    YAZI_SOURCE,
 };
 
 pub(crate) fn print_status() -> Result<(), AppError> {
@@ -14,6 +14,8 @@ pub(crate) fn print_status() -> Result<(), AppError> {
     println!("editor: {}", runtime.editor);
     println!("agent command: {}", runtime.agent_command);
     println!("agent args: {}", runtime.agent_args);
+    println!("sidebar command: {}", runtime.sidebar_command);
+    println!("sidebar args: {}", runtime.sidebar_args);
     println!("open log: {}", runtime.yzx_open_log);
     println!("welcome enabled: {}", runtime.welcome_enabled);
     println!("welcome style: {}", runtime.welcome_style);

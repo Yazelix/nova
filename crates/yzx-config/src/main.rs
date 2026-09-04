@@ -138,6 +138,9 @@ fn print_config_field(path: &str) -> Result<()> {
     } else if path == AGENT_POPUP_KDL_PATH {
         let config = validate_config_file_at(config_paths()?.root)?;
         print!("{}", read_agent_popup_kdl(&config)?);
+    } else if path == SIDEBAR_PANE_KDL_PATH {
+        let config = validate_config_file_at(config_paths()?.root)?;
+        print!("{}", read_sidebar_pane_kdl(&config)?);
     } else {
         let spec = config_field(path)?;
         let config = validate_config_file_at(config_paths()?.root)?;
@@ -856,6 +859,12 @@ mod tests {
             (SHELL_PROGRAM_PATH, json!("fish"), None),
             (SHELL_ATUIN_PATH, json!(false), Some("false")),
             (EDITOR_COMMAND_PATH, json!("nvim"), Some("nvim")),
+            (SIDEBAR_COMMAND_PATH, json!("btm"), Some("btm")),
+            (
+                SIDEBAR_ARGS_PATH,
+                json!(["--basic", "two words"]),
+                Some(r#"["--basic","two words"]"#),
+            ),
             (AGENT_COMMAND_PATH, json!("codex"), Some("codex")),
             (
                 AGENT_ARGS_PATH,
@@ -917,6 +926,14 @@ mod tests {
             ),
             (AGENT_ARGS_PATH, json!("resume"), "JSON string array"),
             (AGENT_ARGS_PATH, json!([1]), "contain only strings"),
+            (SIDEBAR_COMMAND_PATH, json!(""), "must not be empty"),
+            (
+                SIDEBAR_COMMAND_PATH,
+                json!("btm --basic"),
+                "without arguments",
+            ),
+            (SIDEBAR_ARGS_PATH, json!("--basic"), "JSON string array"),
+            (SIDEBAR_ARGS_PATH, json!([1]), "contain only strings"),
             (POPUP_SIDE_MARGIN_PATH, json!(-1), "zero or greater"),
             (
                 KEYBINDINGS_AGENT_PATH,
@@ -977,6 +994,15 @@ mod tests {
             AGENT_ARGS_PATH,
             json!(["resume"]),
             "requires agent.command to be a custom command",
+        );
+        write_config_field(&path, SIDEBAR_COMMAND_PATH, &json!(SIDEBAR_RADAR_COMMAND)).unwrap();
+        let value = read_toml_file_value(&path, "config.toml").unwrap();
+        assert_eq!(get_toml_path(&value, SIDEBAR_ARGS_PATH), None);
+        assert_write_config_error(
+            &path,
+            SIDEBAR_ARGS_PATH,
+            json!(["unused"]),
+            "requires sidebar.command to be a custom command",
         );
     }
 
@@ -1127,6 +1153,37 @@ mod tests {
                 ),
                 PACKAGED_AGENT_LAUNCHER,
             )
+        );
+    }
+
+    #[test]
+    fn sidebar_pane_kdl_preserves_radar_default_and_renders_custom_argv() {
+        let temp = TempHome::new();
+        let path = validate_config_file_at(temp.path.join("config.toml")).unwrap();
+
+        assert_eq!(
+            read_sidebar_pane_kdl(&path).unwrap(),
+            "{\n                plugin location=\"radar\"\n            }"
+        );
+
+        write_config_text(
+            &path,
+            "[sidebar]\ncommand = \"btm\"\nargs = [\"--basic\", \"two words\", \"quote\\\"\"]\n",
+        );
+        assert_eq!(
+            read_sidebar_pane_kdl(&path).unwrap(),
+            "command=\"btm\" {\n                args \"--basic\" \"two words\" \"quote\\\"\"\n            }"
+        );
+
+        write_config_text(
+            &path,
+            "[sidebar]\ncommand = \"radar\"\nargs = [\"unused\"]\n",
+        );
+        assert!(
+            validate_config_file_at(path)
+                .unwrap_err()
+                .to_string()
+                .contains("sidebar.args requires sidebar.command to be a custom command")
         );
     }
 
@@ -1309,6 +1366,7 @@ mod tests {
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
                 FOREST_SIDE_PATH,
+                SIDEBAR_COMMAND_PATH,
                 AGENT_COMMAND_PATH,
                 WELCOME_ENABLED_PATH,
                 WELCOME_STYLE_PATH,

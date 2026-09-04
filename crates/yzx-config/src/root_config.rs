@@ -102,6 +102,25 @@ pub(crate) fn read_agent_popup_kdl(path: &Path) -> Result<String> {
     }
     Ok(render_agent_popup_kdl(&command, &agent_args(&value)?))
 }
+pub(crate) fn read_sidebar_pane_kdl(path: &Path) -> Result<String> {
+    let value = read_optional_toml_file_value(path, "config.toml")?;
+    validate_root_config(&value)?;
+    let command = sidebar_command(&value)?;
+    if command == SIDEBAR_RADAR_COMMAND {
+        return Ok("{\n                plugin location=\"radar\"\n            }".to_string());
+    }
+    let mut pane = format!("command={} {{", kdl_string(&command));
+    let args = sidebar_args(&value)?;
+    if !args.is_empty() {
+        pane.push_str("\n                args");
+        for arg in args {
+            pane.push(' ');
+            pane.push_str(&kdl_string(&arg));
+        }
+    }
+    pane.push_str("\n            }");
+    Ok(pane)
+}
 pub(crate) fn bar_widgets(value: &JsonValue) -> Result<Vec<String>> {
     string_list_values_from_json(BAR_WIDGETS_PATH, value, &string_values(BAR_WIDGET_VALUES))
         .map_err(error)
@@ -118,6 +137,20 @@ pub(crate) fn agent_args(value: &JsonValue) -> Result<Vec<String>> {
     json_string_list(
         AGENT_ARGS_PATH,
         &effective_config_path_value(value, AGENT_ARGS_PATH)?,
+    )
+}
+pub(crate) fn sidebar_command(value: &JsonValue) -> Result<String> {
+    let value = effective_config_path_value(value, SIDEBAR_COMMAND_PATH)?;
+    let command = config_field(SIDEBAR_COMMAND_PATH)?
+        .field
+        .json_choice(&value)?;
+    validate_sidebar_command(command)?;
+    Ok(command.to_string())
+}
+pub(crate) fn sidebar_args(value: &JsonValue) -> Result<Vec<String>> {
+    json_string_list(
+        SIDEBAR_ARGS_PATH,
+        &effective_config_path_value(value, SIDEBAR_ARGS_PATH)?,
     )
 }
 fn json_string_list(path: &str, value: &JsonValue) -> Result<Vec<String>> {
@@ -138,6 +171,11 @@ pub(crate) fn write_config_field(path: &Path, field_path: &str, value: &JsonValu
     if field_path == AGENT_COMMAND_PATH && value.as_str() == Some(AGENT_AUTO_COMMAND) {
         text = unset_toml_value_text(&text, AGENT_ARGS_PATH)
             .map_err(|error| boxed_debug("could not clear agent.args", error))?
+            .text;
+    }
+    if field_path == SIDEBAR_COMMAND_PATH && value.as_str() == Some(SIDEBAR_RADAR_COMMAND) {
+        text = unset_toml_value_text(&text, SIDEBAR_ARGS_PATH)
+            .map_err(|error| boxed_debug("could not clear sidebar.args", error))?
             .text;
     }
     let value =
@@ -189,6 +227,8 @@ pub(crate) fn validate_config_value(field_path: &str, value: &JsonValue) -> Resu
                 validate_editor_command(value)?;
             } else if field_path == AGENT_COMMAND_PATH {
                 validate_agent_command(value)?;
+            } else if field_path == SIDEBAR_COMMAND_PATH {
+                validate_sidebar_command(value)?;
             }
             Ok(())
         }
@@ -217,7 +257,8 @@ pub(crate) fn validate_root_config(value: &JsonValue) -> Result<()> {
         .ok_or_else(|| error("config.toml root must be a table"))?;
     validate_config_table(table, "")?;
     validate_keybindings(value)?;
-    validate_agent_config(value)
+    validate_agent_config(value)?;
+    validate_sidebar_config(value)
 }
 fn validate_config_table(table: &serde_json::Map<String, JsonValue>, parent: &str) -> Result<()> {
     for (key, value) in table {
@@ -273,6 +314,16 @@ pub(crate) fn validate_agent_config(value: &JsonValue) -> Result<()> {
     }
     Ok(())
 }
+pub(crate) fn validate_sidebar_config(value: &JsonValue) -> Result<()> {
+    let command = sidebar_command(value)?;
+    let args = sidebar_args(value)?;
+    if command == SIDEBAR_RADAR_COMMAND && !args.is_empty() {
+        return Err(error(
+            "sidebar.args requires sidebar.command to be a custom command",
+        ));
+    }
+    Ok(())
+}
 fn validate_editor_command(value: &str) -> Result<()> {
     if value.is_empty() {
         return Err(error("editor.command must not be empty"));
@@ -291,6 +342,17 @@ fn validate_agent_command(value: &str) -> Result<()> {
     if value.chars().any(char::is_whitespace) {
         return Err(error(
             "agent.command must be auto or one executable command without arguments",
+        ));
+    }
+    Ok(())
+}
+fn validate_sidebar_command(value: &str) -> Result<()> {
+    if value.is_empty() {
+        return Err(error("sidebar.command must not be empty"));
+    }
+    if value.chars().any(char::is_whitespace) {
+        return Err(error(
+            "sidebar.command must be radar or one executable command without arguments",
         ));
     }
     Ok(())

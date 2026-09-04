@@ -9,8 +9,11 @@ theme_light "gruvbox-light"
 
 plugins {
     yzpp location="@yzpp@" {
+        left_margin_pane_title "sidebar"
+
         popup_defaults {
             side_margin @defaultPopupSideMargin@
+            left_margin 33
             vertical_margin @defaultPopupVerticalMargin@
         }
 

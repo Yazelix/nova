@@ -6,14 +6,14 @@ use std::{
 };
 
 use crate::{
-    DEFAULT_BAR_WIDGETS_JSON, DEFAULT_POPUP_SIDE_MARGIN, DEFAULT_POPUP_VERTICAL_MARGIN,
-    DEFAULT_SHELL_PROGRAM, LAYOUT, LAYOUT_BAR_PLACEHOLDER, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
-    LAYOUT_YAZI_PLACEHOLDER, YZX_AGENT, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_YAZI,
-    ZELLIJ_HOME_PLACEHOLDER,
     command::{create_dir_all_checked, run_checked, trim_output},
-    error::{AppError, path_error, startup},
+    error::{path_error, startup, AppError},
     paths::parent,
     runtime::ManagedKeybinding,
+    DEFAULT_BAR_WIDGETS_JSON, DEFAULT_POPUP_SIDE_MARGIN, DEFAULT_POPUP_VERTICAL_MARGIN,
+    DEFAULT_SHELL_PROGRAM, LAYOUT, LAYOUT_BAR_PLACEHOLDER, LAYOUT_SIDEBAR_PLACEHOLDER,
+    LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE, LAYOUT_YAZI_PLACEHOLDER, YZX_AGENT, YZX_BAR_RENDER,
+    YZX_BAR_RENDER_REQUEST, YZX_YAZI, ZELLIJ_HOME_PLACEHOLDER,
 };
 
 pub(crate) fn active_layout(
@@ -21,17 +21,20 @@ pub(crate) fn active_layout(
     appearance_mode: &str,
     bar_widgets: &str,
     shell_label: &str,
+    sidebar_pane_kdl: &str,
+    radar_enabled: bool,
 ) -> Result<(&'static str, PathBuf), AppError> {
     if appearance_mode == "dark"
         && bar_widgets == DEFAULT_BAR_WIDGETS_JSON
         && shell_label == DEFAULT_SHELL_PROGRAM
+        && radar_enabled
     {
         return Ok(("packaged", PathBuf::from(LAYOUT)));
     }
 
     let layout = state_dir.join("zellij/layout.kdl");
     let plugin_block = render_bar_plugin_block(appearance_mode, bar_widgets, shell_label)?;
-    materialize_layout(&layout, &plugin_block)?;
+    materialize_layout(&layout, &plugin_block, sidebar_pane_kdl)?;
     Ok(("runtime", layout))
 }
 
@@ -48,6 +51,7 @@ pub(crate) fn active_zellij_config(
     custom_popup_keybindings_kdl: &str,
     zellij_plugins_sidecar: &Path,
     home_dir: &Path,
+    radar_enabled: bool,
 ) -> Result<(&'static str, PathBuf), AppError> {
     let runtime_config = state_dir.join("zellij/config.kdl");
     let text =
@@ -91,6 +95,9 @@ pub(crate) fn active_zellij_config(
     patched =
         patch_popup_default_margins(patched, &config, popup_side_margin, popup_vertical_margin)?;
     patched = patch_managed_keybindings(patched, &config, managed_keybindings)?;
+    if !radar_enabled {
+        patched = omit_radar_keybindings(patched, &config)?;
+    }
     patched = patch_agent_popup(patched, &config, agent_popup_kdl)?;
     patched = inject_snippet_before(
         patched,
@@ -118,6 +125,18 @@ pub(crate) fn active_zellij_config(
         },
         runtime_config,
     ))
+}
+
+fn omit_radar_keybindings(mut text: String, config: &Path) -> Result<String, AppError> {
+    for payload in [
+        "attention-next",
+        "attention-prev",
+        "session-next",
+        "session-prev",
+    ] {
+        text = omit_managed_binding_node(text, config, "Radar", payload)?;
+    }
+    Ok(text)
 }
 
 fn patch_managed_keybindings(
@@ -195,7 +214,7 @@ fn patch_popup_default_margins(
     vertical_margin: &str,
 ) -> Result<String, AppError> {
     let marker = format!(
-        "        popup_defaults {{\n            side_margin {DEFAULT_POPUP_SIDE_MARGIN}\n            vertical_margin {DEFAULT_POPUP_VERTICAL_MARGIN}\n        }}",
+        "        popup_defaults {{\n            side_margin {DEFAULT_POPUP_SIDE_MARGIN}\n            left_margin 33\n            vertical_margin {DEFAULT_POPUP_VERTICAL_MARGIN}\n        }}",
     );
     if !text.contains(&marker) {
         return Err(startup(
@@ -207,7 +226,7 @@ fn patch_popup_default_margins(
     Ok(text.replacen(
         &marker,
         &format!(
-            "        popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n        }}",
+            "        popup_defaults {{\n            side_margin {side_margin}\n            left_margin 33\n            vertical_margin {vertical_margin}\n        }}",
         ),
         1,
     ))
@@ -508,7 +527,11 @@ fn render_bar_plugin_block(
     )?))
 }
 
-fn materialize_layout(path: &Path, plugin_block: &str) -> Result<(), AppError> {
+fn materialize_layout(
+    path: &Path,
+    plugin_block: &str,
+    sidebar_pane_kdl: &str,
+) -> Result<(), AppError> {
     let template_path = Path::new(LAYOUT_TEMPLATE);
     let swap_template_path = Path::new(LAYOUT_SWAP_TEMPLATE);
     let template = fs::read_to_string(template_path)
@@ -517,7 +540,9 @@ fn materialize_layout(path: &Path, plugin_block: &str) -> Result<(), AppError> {
         .map_err(|error| path_error("read", swap_template_path, swap_template_path, error))?;
     let layout = template
         .replace(LAYOUT_YAZI_PLACEHOLDER, YZX_YAZI)
-        .replace(LAYOUT_BAR_PLACEHOLDER, plugin_block);
+        .replace(LAYOUT_BAR_PLACEHOLDER, plugin_block)
+        .replace(LAYOUT_SIDEBAR_PLACEHOLDER, sidebar_pane_kdl);
+    let swap_template = swap_template.replace(LAYOUT_SIDEBAR_PLACEHOLDER, sidebar_pane_kdl);
     let swap_path = path.with_file_name("layout.swap.kdl");
     create_dir_all_checked(parent(path), path)?;
     fs::write(path, layout).map_err(|error| path_error("write", path, path, error))?;
@@ -579,10 +604,8 @@ mod tests {
                 Err(_) => panic!("managed key patch failed"),
             };
 
-        assert!(
-            patched
-                .contains(r#"bind "Alt Shift C" { MessagePlugin "yzpp" { payload "config"; }; }"#)
-        );
+        assert!(patched
+            .contains(r#"bind "Alt Shift C" { MessagePlugin "yzpp" { payload "config"; }; }"#));
         assert!(patched.contains(r#"unbind "Alt Shift A""#));
         assert!(patched.contains(r#"bind "Ctrl q" { Quit; }"#));
         for omitted in [

@@ -51,6 +51,8 @@ pub(crate) const DEFAULT_POPUP_SIDE_MARGIN: &str = "@defaultPopupSideMargin@";
 pub(crate) const DEFAULT_POPUP_VERTICAL_MARGIN: &str = "@defaultPopupVerticalMargin@";
 pub(crate) const AGENT_POPUP_KDL_CONFIG_PATH: &str = "agent.popup.kdl";
 pub(crate) const AGENT_AUTO_COMMAND: &str = "auto";
+pub(crate) const SIDEBAR_PANE_KDL_CONFIG_PATH: &str = "sidebar.pane.kdl";
+pub(crate) const SIDEBAR_RADAR_COMMAND: &str = "radar";
 pub(crate) const CUSTOM_POPUPS_KDL_CONFIG_PATH: &str = "popups.kdl";
 pub(crate) const CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH: &str = "popups.keybindings.kdl";
 pub(crate) const PATH_PREFIX: &str = "@pathPrefix@";
@@ -58,6 +60,7 @@ pub(crate) const VERSION: &str = "@version@";
 pub(crate) const ZELLIJ_HOME_PLACEHOLDER: &str = "\"__YZX_HOME__\"";
 pub(crate) const LAYOUT_YAZI_PLACEHOLDER: &str = concat!("@", "yazi", "@");
 pub(crate) const LAYOUT_BAR_PLACEHOLDER: &str = concat!("@", "bar", "@");
+pub(crate) const LAYOUT_SIDEBAR_PLACEHOLDER: &str = concat!("@", "sidebar", "@");
 pub(crate) const HELIX_REVEAL_COMMAND: &str = r#":sh yzx reveal "%{buffer_name}""#;
 pub(crate) const MANAGED_KEYBINDING_SPECS: &[(&str, &str, &str)] = &[
     ("config", "keybindings.config", "@defaultConfigKeybinding@"),

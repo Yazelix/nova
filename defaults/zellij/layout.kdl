@@ -14,9 +14,7 @@ layout {
             @bar@
         }
         pane split_direction="vertical" {
-            pane name="sidebar" size=32 borderless=false {
-                plugin location="radar"
-            }
+            pane name="sidebar" size=32 borderless=false @sidebar@
             children
         }
         pane size=1 borderless=true {
@@ -35,9 +33,7 @@ layout {
             @bar@
         }
         pane split_direction="vertical" {
-            pane name="sidebar" size=32 borderless=false {
-                plugin location="radar"
-            }
+            pane name="sidebar" size=32 borderless=false @sidebar@
             pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {
                 args "--yzx-startup-picker"
             }

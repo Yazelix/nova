@@ -293,7 +293,7 @@ fn render_files_lesson(index: usize, lesson: &TutorLesson) -> String {
 ## Actions
 
 {editor_action}
-2. **Inside Yazelix:** Press `{sidebar_swap}` to hide or show the Radar sidebar.
+2. **Inside Yazelix:** Press `{sidebar_swap}` to hide or show the configured sidebar.
 3. **Inside Yazelix:** Press `{yazi_popup}` to hide or show the full Yazi popup. Its navigation state stays live while hidden.
 4. **Open or reveal:** In Yazi, press `Enter` to open the selected file. In the editor, press `{reveal}` to restart the persistent Yazi popup at the current file; press it again in the popup to hide it without opening the hovered item.
 

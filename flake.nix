@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/11708fc49cf85671011f81401ed48d3df0c1ebfe";
+      url = "github:Yazelix/nova-zellij/796a30c44c8c4369021e7bb91e2b6c62cfc257de";
       flake = false;
     };
     yazelixHelix = {
@@ -732,9 +732,16 @@
             }))})"
             substitute ${./defaults/zellij/layout.kdl} "$out" \
               --replace-fail '@yazi@' '${yazi}/bin/yzx-yazi' \
+              --replace-fail '@sidebar@' '{
+                plugin location="radar"
+            }' \
               --replace-fail '@bar@' "$bar"
           '';
-          swap = ./defaults/zellij/layout.swap.kdl;
+          swap = pkgs.replaceVars ./defaults/zellij/layout.swap.kdl {
+            sidebar = ''{
+                plugin location="radar"
+            }'';
+          };
         in
           pkgs.runCommand "yzx-zellij-layout" {} ''
             ${yzxLayoutCheck}/bin/yzx-layout-check ${main} ${swap}
@@ -836,6 +843,7 @@
             pkgs.lazygit
             tokenusage
             managedEditor
+            yazi
             zjRadarCliPackage
           ];
         };
@@ -862,7 +870,7 @@
       in
         pkgs.symlinkJoin {
           inherit name;
-          paths = [command zjRadarCliPackage] ++ pkgs.lib.optional withDesktop desktop;
+          paths = [command yazi zjRadarCliPackage] ++ pkgs.lib.optional withDesktop desktop;
           postBuild =
             ''
               ${yazelixZellijPackage}/bin/zellij --config ${configKdl} setup --check >/dev/null

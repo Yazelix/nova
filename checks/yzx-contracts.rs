@@ -393,6 +393,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "YZX_WELCOME_ENABLED",
         "YZX_WELCOME_STYLE",
         "YZX_WELCOME_DURATION_SECONDS",
+        "YZX_RADAR_ENABLED",
         "YZX_APPEARANCE_MODE",
         "YZX_APPEARANCE_LIVE",
         "YZX_MENU_YZX",
@@ -409,6 +410,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "agent.command",
         "agent.args",
         "agent.popup.kdl",
+        "sidebar.command",
+        "sidebar.args",
+        "sidebar.pane.kdl",
         "bar.widgets",
         "popup.side_margin",
         "popup.vertical_margin",
@@ -472,6 +476,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "editor: /nix/store/",
         "agent command: auto",
         "agent args: []",
+        "sidebar command: radar",
+        "sidebar args: []",
         "open log: info",
         "welcome enabled: true",
         "welcome style: random",
@@ -599,6 +605,67 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "runtime plugin permissions have the wrong {permission} grants\n{permissions}"
         );
     }
+
+    let custom_sidebar = RuntimeCase::new(&temp.path, "custom-sidebar");
+    custom_sidebar.write_default_config(
+        "\n[sidebar]\ncommand = \"true\"\nargs = [\"two words\", \"--basic\"]\n",
+    );
+    let status = custom_sidebar.run_yzx(&yzx_bin, "status", "custom sidebar status");
+    expect_contains_all! {
+        &status, "custom sidebar status";
+        "sidebar command: true",
+        r#"sidebar args: ["two words","--basic"]"#,
+        "zellij config: runtime (",
+        "layout: runtime (",
+    }
+    let custom_sidebar_layout = custom_sidebar.zellij_file("layout.kdl");
+    let custom_sidebar_swap = custom_sidebar.zellij_file("layout.swap.kdl");
+    for (text, context) in [
+        (&custom_sidebar_layout, "custom sidebar layout"),
+        (&custom_sidebar_swap, "custom sidebar swap layout"),
+    ] {
+        assert_eq!(text.matches(r#"pane name="sidebar" size="#).count(), 2);
+        assert_eq!(text.matches(r#"command="true""#).count(), 2);
+        assert_eq!(text.matches(r#"args "two words" "--basic""#).count(), 2);
+        assert!(
+            !text.contains(r#"plugin location="radar""#) && !text.contains("@sidebar@"),
+            "{context} kept Radar or an unresolved sidebar placeholder"
+        );
+    }
+    let custom_sidebar_config = custom_sidebar.zellij_file("config.kdl");
+    assert!(
+        !custom_sidebar_config.contains(r#"MessagePlugin "radar""#),
+        "custom sidebar config kept Radar-only key routes"
+    );
+    expect_contains(
+        &custom_sidebar_config,
+        r#"MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }"#,
+        "custom sidebar config",
+    );
+    successful_output(
+        Command::new(&zellij)
+            .arg("--config")
+            .arg(custom_sidebar.zellij_path("config.kdl"))
+            .args(["setup", "--check"]),
+        "custom sidebar Zellij config check",
+    );
+    let custom_sidebar_permissions = custom_sidebar.zellij_file("permissions.kdl");
+    assert!(
+        !custom_sidebar_permissions.contains(&radar_wasm.display().to_string()),
+        "custom sidebar permissions kept the Radar grant"
+    );
+    expect_contains_all! {
+        &custom_sidebar_permissions, "custom sidebar permissions";
+        "share/yazelix_zellij_popup/yzpp.wasm\" {",
+        "share/nova_bar/zjstatus.wasm\" {",
+        "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm\" {",
+    }
+    let doctor = custom_sidebar.run_yzx(&yzx_bin, "doctor", "custom sidebar doctor");
+    assert!(
+        !doctor.contains("Radar"),
+        "custom sidebar doctor kept Radar integration diagnostics: {doctor}"
+    );
+
     let custom_popup = RuntimeCase::new(&temp.path, "custom-popup");
     custom_popup.write_default_config("\n[popup]\nside_margin = 2\nvertical_margin = 1\n");
     let status = custom_popup.run_yzx(&yzx_bin, "status", "custom popup status");
@@ -902,6 +969,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let doctor_codex_bin = temp.path.join("doctor-codex-bin");
     fs::create_dir(&doctor_codex_bin).unwrap();
     write_fake_agent(&doctor_codex_bin, "codex");
+    write_executable(&doctor_codex_bin.join("zj-radar"), "#!/bin/sh\nexit 0\n");
     let doctor_codex_home = temp.path.join("doctor-codex-home");
     fs::create_dir(&doctor_codex_home).unwrap();
     let doctor_codex = successful_stdout(
@@ -1146,6 +1214,11 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
         resolve("zj-radar").is_file(),
         "managed PATH is missing the Radar producer CLI"
     );
+    assert_eq!(
+        fs::canonicalize(resolve("yzx-yazi")).unwrap(),
+        fs::canonicalize(yzx.join("bin/yzx-yazi")).unwrap(),
+        "managed PATH must resolve the public Yazi wrapper"
+    );
 }
 
 fn expect_menu_dispatch(menu: &Path) {
@@ -1221,6 +1294,8 @@ fn expect_config_ui(yzx: &Path) {
         "atuin = true",
         "command = \"yzx-hx\"",
         "command = \"auto\"",
+        "[sidebar]",
+        "command = \"radar\"",
         "args = []",
         "enabled = true",
         "style = \"random\"",
@@ -1248,6 +1323,8 @@ fn expect_config_ui(yzx: &Path) {
         ("editor.command", "yzx-hx"),
         ("agent.command", "auto"),
         ("agent.args", "[]"),
+        ("sidebar.command", "radar"),
+        ("sidebar.args", "[]"),
         ("welcome.enabled", "true"),
         ("welcome.style", "random"),
         ("welcome.duration_seconds", "3"),
@@ -1371,6 +1448,18 @@ fn expect_startup_diagnostics(yzx: &Path) {
             "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[agent]\ncommand = \"codex resume\"\n",
             "agent.command must be auto or one executable command without arguments",
             "invalid agent command",
+        ),
+        (
+            "bad-sidebar-command-config",
+            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[sidebar]\ncommand = \"btm --basic\"\n",
+            "sidebar.command must be radar or one executable command without arguments",
+            "invalid sidebar command",
+        ),
+        (
+            "bad-radar-args-config",
+            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[sidebar]\ncommand = \"radar\"\nargs = [\"unused\"]\n",
+            "sidebar.args requires sidebar.command to be a custom command",
+            "invalid Radar arguments",
         ),
         (
             "bad-popup-config",
@@ -1891,6 +1980,12 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     );
     let config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
     let yzx_yazi = popup_command(&config, "/bin/yzx-yazi");
+    let public_yzx_yazi = yzx.join("bin/yzx-yazi");
+    assert_eq!(
+        fs::canonicalize(&public_yzx_yazi).unwrap(),
+        fs::canonicalize(&yzx_yazi).unwrap(),
+        "the public yzx-yazi command must be Nova's managed Yazi wrapper"
+    );
     assert_eq!(
         layout
             .matches(&format!(
@@ -2108,6 +2203,11 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         "packaged popup config must not use removed percentage fields",
     );
     assert_eq!(config.matches("side_margin 1").count(), 1);
+    assert_eq!(config.matches("left_margin 33").count(), 1);
+    assert_eq!(
+        config.matches("left_margin_pane_title \"sidebar\"").count(),
+        1
+    );
     assert_eq!(config.matches("vertical_margin 0").count(), 1);
     for (key, payload) in [
         ("Alt Shift J", "git"),
@@ -2224,7 +2324,7 @@ fn expect_popup_binding(config: &str, key: &str, payload: &str, context: &str) {
 
 fn expect_popup_defaults(config: &str, side_margin: &str, vertical_margin: &str, context: &str) {
     let expected = format!(
-        "popup_defaults {{\n            side_margin {side_margin}\n            vertical_margin {vertical_margin}\n        }}",
+        "popup_defaults {{\n            side_margin {side_margin}\n            left_margin 33\n            vertical_margin {vertical_margin}\n        }}",
     );
     expect_contains(config, &expected, context);
 }
@@ -2290,7 +2390,7 @@ fn expect_agent_bootstrap(agent: &Path) {
         "agent popup without providers should exit cleanly, got {:?}",
         output.status.code(),
     );
-    assert_eq!(output.stdout, b"\x1b]0;agent\x07");
+    assert_eq!(output.stdout, b"\x1b]0;agent popup\x07");
     assert!(output.stderr.is_empty());
     assert!(
         !empty_state.join("agent/provider").exists(),
@@ -2312,7 +2412,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     assert!(output.status.success());
     assert_eq!(
         output.stdout,
-        "\x1b]0;agent\x07\x1b]0;⠋ codex\x07\x1b]0;codex\x07".as_bytes(),
+        "\x1b]0;agent popup\x07\x1b]0;⠋ codex\x07\x1b]0;codex\x07".as_bytes(),
         "the fallback must precede provider busy and idle titles",
     );
     assert_eq!(
@@ -2365,6 +2465,54 @@ fn expect_agent_bootstrap(agent: &Path) {
             .join("agent/radar-codex-setup-offered")
             .exists(),
         "a skipped noninteractive offer must not be remembered"
+    );
+
+    let custom_sidebar_state = temp.path.join("custom-sidebar-agent-state");
+    let custom_sidebar_output = temp.path.join("custom-sidebar-agent-output");
+    successful_output(
+        Command::new(agent)
+            .env("PATH", &missing_hooks_bin)
+            .env("YAZELIX_STATE_DIR", &custom_sidebar_state)
+            .env("YAZELIX_AGENT_TEST_OUT", &custom_sidebar_output)
+            .env("YAZELIX_AGENT_TEST_RADAR_FAIL", "1")
+            .env("YZX_RADAR_ENABLED", "false"),
+        "Codex launch with a custom sidebar",
+    );
+    assert_eq!(
+        fs::read_to_string(&custom_sidebar_output).unwrap(),
+        "codex resume\n"
+    );
+    assert!(
+        !custom_sidebar_state
+            .join("agent/radar-codex-setup-offered")
+            .exists(),
+        "a custom sidebar must not trigger or remember Radar setup"
+    );
+
+    let explicit_codex_bin = temp.path.join("explicit-codex-bin");
+    let pinned_radar_bin = temp.path.join("pinned-radar-bin");
+    fs::create_dir(&explicit_codex_bin).unwrap();
+    fs::create_dir(&pinned_radar_bin).unwrap();
+    write_fake_agent(&explicit_codex_bin, "codex");
+    write_executable(
+        &explicit_codex_bin.join("zj-radar"),
+        "#!/bin/sh\nprintf 'wrong radar %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\n",
+    );
+    write_fake_radar(&pinned_radar_bin);
+    let explicit_state = temp.path.join("explicit-codex-state");
+    let explicit_output = temp.path.join("explicit-codex-output");
+    successful_output(
+        Command::new(agent)
+            .arg(explicit_codex_bin.join("codex"))
+            .env("PATH", &pinned_radar_bin)
+            .env("YAZELIX_STATE_DIR", &explicit_state)
+            .env("YAZELIX_AGENT_TEST_OUT", &explicit_output),
+        "explicit Codex path with sibling Radar",
+    );
+    assert_eq!(
+        fs::read_to_string(&explicit_output).unwrap(),
+        "radar setup codex --check\ncodex\n",
+        "an explicit Codex directory shadowed Nova's Radar CLI"
     );
 
     let persisted_state = temp.path.join("persisted-state");

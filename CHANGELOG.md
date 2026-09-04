@@ -18,6 +18,15 @@ User-visible runtime changes for Yazelix Nova live here.
   Remapping or disabling the key preserves user Helix bindings. `forest.side`
   selects `left` or `right`, with `right` as the default so Forest and Radar use
   opposite edges. Helix-free packages remain Forest-free.
+- `sidebar.command` selects the packaged Radar plugin by default or one custom
+  terminal executable with argv-style `sidebar.args`. Custom providers occupy
+  the same framed 32-column pane and retain its collapsed layout, focus path,
+  popup margins, and `Alt Shift H` toggle. Nova omits Radar command routes,
+  permission seeding, Codex onboarding, and doctor diagnostics for custom
+  providers. The installed `yzx-yazi` command exposes Nova's managed Yazi as an
+  explicit sidebar choice without a separate Yazi install or Nix store path.
+  Provider changes apply to the next session. Matching pinned Zellij, controller,
+  and popup revisions support named layout selection and sidebar-aware margins.
 - The Yazelix zj-radar fork, based on upstream 0.6.0, replaces tiled Yazi with a
   32-column rail in every tab.
   Its Zellij pane is named `sidebar`. The visible rail uses normal Zellij pane
@@ -46,7 +55,15 @@ User-visible runtime changes for Yazelix Nova live here.
   Radar-owned hook entries without changing their trust hashes, and its POSIX
   hook quietly exits when the Radar CLI is unavailable in a non-Nova
   environment. Codex trust remains an explicit `/hooks` review; Claude Code and
-  OpenCode setup stays explicit, and Grok and Pi are not modified. Yazi remains
+  OpenCode setup stays explicit, and Grok and Pi are not modified. An explicit
+  Codex binary path cannot shadow Nova's managed Radar CLI. Every managed popup
+  leaves an open Radar rail visible, resizes in place when the rail toggles, and
+  returns to equal `popup.side_margin` insets when Radar is collapsed. Sidebar
+  toggles select the exact named tiled layout in one Zellij render underneath
+  the visible floating layer, preserving the popup process and focus without a
+  hide/show flash. The startup picker hands off to Helix without collapsing an
+  open Radar rail. Hidden popups no longer
+  contaminate tiled layout state. Yazi remains
   the persistent `Alt Shift Y` popup and
   `Alt r` reveal target. Every new tab starts with Radar and a focused, one-use
   tiled Yazi picker. A successful choice retargets the tab, creates the editor,
@@ -71,8 +88,9 @@ User-visible runtime changes for Yazelix Nova live here.
 - Nova uses upstream Zellij `v0.45.0` as the exact fork base and packages Yazi
   26.8.15. Yazi's released Zellij adapter uses native direct Kitty placements,
   so the fork removes its Unicode-placeholder translator while retaining its
-  six independent appearance, status-hint, permission-cache, stack-order,
-  disconnected-client, and bounded session-probe behaviors. On Unix, a Zellij
+  seven independent appearance, status-hint, permission-cache, stack-order,
+  disconnected-client, bounded session-probe, and named tiled-layout
+  behaviors. On Unix, a Zellij
   server that accepts connections but never answers no longer blocks every new
   Nova launch or session command indefinitely; discovery continues after five
   seconds without killing or deleting the wedged session.

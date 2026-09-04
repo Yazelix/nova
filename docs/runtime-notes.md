@@ -157,6 +157,21 @@ Plugin ids owned by Yazelix, such as `yzpp` and
 `yazelix_pane_orchestrator`, cannot be redeclared. Plugin keybindings are not
 managed by this sidecar.
 
+## Sidebar Provider
+
+`sidebar.command = "radar"` selects the packaged Radar plugin. Any other valid
+value creates a terminal pane with that executable and `sidebar.args`. The
+config helper validates the pair and renders one KDL pane body; the launcher
+substitutes it into the base and swap layouts. Both providers therefore use the
+same Zellij pane named `sidebar`, including its open and collapsed sizes.
+
+Nova captures the provider when it creates a session. It passes custom
+arguments as argv without a shell. The pane orchestrator remains
+provider-neutral and addresses the pane by name. With a custom provider, Nova
+omits Radar command bindings and permission seeding, sets
+`YZX_RADAR_ENABLED=false` for child launchers, and skips Radar's Codex doctor
+path.
+
 ## Popup Lifecycle
 
 Opening or revealing a managed popup shows Zellij's tab-wide floating layer.
@@ -166,9 +181,22 @@ workspace instead of exposing a session manager, terminal, or other floating
 pane underneath. Suppressed keep-alive popups and unrelated floating panes
 continue running; their explicit keybindings can show them again.
 
+## Popup Geometry
+
+The popup plugin observes the tiled pane named `sidebar`. While that pane is
+wider than its collapsed divider, managed popups use a shared 33-cell left
+margin so the framed 32-column sidebar rail remains visible. A pane update
+reflows any visible managed popup without restarting it. When the rail is
+collapsed, the configured side margin applies symmetrically again.
+
+For a sidebar toggle, the pane orchestrator asks Nova Zellij to select the
+exact named tiled swap layout underneath the visible floating layer. Zellij
+applies it in one render, so the popup is never hidden, restarted, or
+refocused.
+
 ## Agent Popup
 
-The packaged agent launcher gives the pane its initial `agent` terminal title,
+The packaged agent launcher gives the pane its initial `agent popup` terminal title,
 then replaces itself with `[agent].command`. The default `auto` chooses a
 provider once per state directory. On first launch it checks `PATH` in this
 order:
@@ -191,8 +219,8 @@ Later launches use that stored provider. If the stored provider is unknown or
 missing from `PATH`, the popup prints a diagnostic and tells the user to remove
 the provider file so Yazelix can choose again.
 
-Before the first interactive Codex launch in a Nova state directory, the agent
-launcher runs `zj-radar setup codex --check`. A healthy or intentionally
+With Radar selected, the agent launcher runs `zj-radar setup codex --check`
+before the first interactive Codex launch in a Nova state directory. A healthy or intentionally
 disabled installation is remembered without mutation. Missing hooks produce one
 `Enable Codex activity in Radar? [Y/n]` prompt when stdin and stderr are
 terminals. Either answer creates
@@ -215,11 +243,11 @@ arguments in `agent.args`, not in `agent.command`.
 
 ## Yazi Picker and Popup
 
-Every new managed tab starts with Radar and one focused tiled `yazi_picker`.
-A successful file, directory, or `Alt z` workspace choice owns the tab's initial
-retarget, creates the managed editor, and only then closes that exact picker by
-id. There is no hidden starter shell or prestarted editor whose cwd can become
-stale.
+Every new managed tab starts with the configured sidebar provider and one
+focused tiled `yazi_picker`. A successful file, directory, or `Alt z` workspace
+choice owns the tab's initial retarget, creates the managed editor, and only
+then closes that exact picker by id. There is no hidden starter shell or
+prestarted editor whose cwd can become stale.
 
 `Alt Shift Y` asks the pane orchestrator to toggle the packaged `yazi` popup
 with the active tab's canonical workspace root as its explicit request cwd.

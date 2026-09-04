@@ -1,15 +1,15 @@
 use std::{
     env,
     ffi::OsStr,
-    path::{PathBuf, absolute},
+    path::{absolute, PathBuf},
     process::Command,
 };
 
 use crate::{
-    YA_COMMAND, YAZI_COMMAND, YAZI_SOURCE, YAZI_TESTED_VERSION,
     command::executable_file,
-    error::{AppError, startup},
+    error::{startup, AppError},
     paths::{nonempty_env, runtime_path},
+    YAZI_COMMAND, YAZI_SOURCE, YAZI_TESTED_VERSION, YA_COMMAND,
 };
 
 pub(crate) struct YaziRuntime {
@@ -172,7 +172,7 @@ mod tests {
     use super::*;
     use std::{
         fs,
-        os::unix::fs::{PermissionsExt, symlink},
+        os::unix::fs::{symlink, PermissionsExt},
     };
 
     #[test]

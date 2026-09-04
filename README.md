@@ -178,17 +178,20 @@ groups four workspace surfaces:
 | --- | --- | --- | --- | --- |
 | `Alt` | Focus left or previous tab | Focus down | Focus up | Focus right or next tab |
 | `Ctrl Alt` | Move tab left | Move pane down | Move pane up | Move tab right |
-| `Alt Shift` | Radar | Git | Ratconfig | Agent |
+| `Alt Shift` | Sidebar | Git | Ratconfig | Agent |
 
 Yazi, the menu, and Anima use their initials:
 
 - `Alt Shift Y` toggles the full Yazi popup.
 - `Alt Shift M` toggles the command menu.
-- `Alt Shift A` opens a transient full-screen random visual. Press any ordinary
+- `Alt Shift A` opens a transient random visual popup. Press any ordinary
   screen input to return to the unchanged workspace; this is not a session lock.
   Set `keybindings.screen` to remap or unmap it for newly launched sessions.
 
 Press a popup's key again to close or hide it and return to the tiled workspace.
+Managed popups leave an open sidebar rail visible, resize in place when the
+sidebar toggles without restarting, and return to equal configured side margins
+when the sidebar is collapsed.
 Other floating panes keep running until explicitly shown again. Other useful
 bindings are:
 
@@ -197,33 +200,43 @@ bindings are:
 | Workspace | `Ctrl q` | Quit the Yazelix session |
 | Workspace | `Alt m` | Open a new pane |
 | Workspace | `Alt Shift F` | Toggle the focused pane fullscreen |
-| Workspace | `Alt Shift A` | Show a random full-screen visual |
+| Workspace | `Alt Shift A` | Show a random visual popup |
 | Editor | `Ctrl y` | Toggle focus between Forest and the editor |
-| Radar | `Ctrl Alt n` / `Ctrl Alt p` | Cycle attention tabs forward / backward |
-| Radar | `Ctrl Tab` / `Ctrl Shift Tab` | Cycle sessions forward / backward |
+| Radar provider | `Ctrl Alt n` / `Ctrl Alt p` | Cycle attention tabs forward / backward |
+| Radar provider | `Ctrl Tab` / `Ctrl Shift Tab` | Cycle sessions forward / backward |
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Alt z` | Retarget the tab workspace with zoxide |
 
-Every new tab starts with Radar and a focused, one-use tiled Yazi picker. A
-successful choice retargets the tab, creates the managed editor, then removes
-that exact picker. Choosing a folder leaves Forest visible while focusing the
-native Helix picker immediately. `Alt Shift Y` opens the separate persistent
+Every new tab starts with the configured sidebar and a focused, one-use tiled
+Yazi picker. A successful choice retargets the tab, creates the managed editor,
+then removes that exact picker. Choosing a folder leaves Forest visible while
+focusing the native Helix picker. `Alt Shift Y` opens the separate persistent
 Yazi popup later.
 
-Radar starts at 32 columns in the Zellij pane named `sidebar`, following the
-configured pane-frame and rounded-corner appearance. `Alt Shift H` uses one
-native layout step to collapse it to a framed divider or restore the same live
-plugin. Its ten-frame working spinner refreshes every 200 ms and completes a
-two-second cycle without accelerating its lifecycle timers. Nova
-Zellij grants the exact bundled Radar artifact its four required permissions in
-Nova's isolated cache, so the unfocused startup sidebar cannot trap a consent prompt.
-On the first interactive Codex launch through Nova's agent popup, Nova checks
-the existing Radar hooks. If they are missing, it asks once whether to install
-them. `y` runs the marker-owned Radar setup before Codex starts; `n` is
-remembered. Non-interactive launches do not prompt, and Nova never silently
-repairs hooks that are disabled or removed later. Run `yzx doctor` to see the
-current hook state. Claude Code and OpenCode remain explicit setup choices:
+The sidebar starts at 32 columns in the Zellij pane named `sidebar`, following
+the configured pane-frame and rounded-corner appearance. Radar is the default.
+Set `sidebar.command` and optional `sidebar.args` to run one terminal command in
+the same slot on the next session. Nova passes arguments without a shell and
+keeps the same placement, focus, popup-margin, and `Alt Shift H` toggle behavior.
+Use `sidebar.command = "yzx-yazi"` for Nova's managed Yazi; the installed
+command needs neither a separate Yazi installation nor a Nix store path.
+A custom command disables Radar's key routes, permission grant, Codex setup
+prompt, and doctor diagnosis. See [Configuration](docs/configuration.md#sidebar).
+
+With Radar selected, `Alt Shift H` selects the exact named tiled layout
+underneath any visible popup, collapsing the rail to a framed divider or
+restoring the same live plugin without hiding or refocusing the popup. Its
+ten-frame working spinner refreshes every 200 ms and completes a two-second
+cycle without accelerating its lifecycle timers. Nova Zellij grants the exact
+bundled Radar artifact its four required permissions in Nova's isolated cache,
+so the unfocused startup sidebar cannot trap a consent prompt. On the first
+interactive Codex launch through Nova's agent popup, Nova checks the existing
+Radar hooks. If they are missing, it asks once whether to install them. `y` runs
+the marker-owned Radar setup before Codex starts; `n` is remembered.
+Non-interactive launches do not prompt, and Nova does not repair hooks that a
+user disables or removes later. Run `yzx doctor` to see the current hook state.
+Claude Code and OpenCode remain explicit setup choices:
 
 ```sh
 zj-radar setup claude -y
@@ -345,7 +358,7 @@ Yazelix assembles focused forks, plugins, libraries, and commands:
 | Component | Yazelix role |
 | --- | --- |
 | [Nova Rio](https://github.com/Yazelix/nova-rio) | GUI terminal used by `yzx launch`; its isolated delta adds only the Rio fixes and launch-time theme override Nova still needs |
-| [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed appearance, three-island status hints, and bounded Unix session probes |
+| [Nova Zellij](https://github.com/Yazelix/nova-zellij) | Multiplexer fork based on upstream native Kitty graphics with managed appearance, three-island status hints, exact tiled-layout selection for plugins, and bounded Unix session probes |
 | [Nova Helix](https://github.com/Yazelix/nova-helix) | Steel-enabled editor fork with isolated configuration and explicit workspace bridge hooks |
 | [Yazelix Forest](https://github.com/luccahuguet/yazelix-forest) | Hardened Helix file tree, packaged with the Snacks renderer open by default |
 | [Yazelix zj-radar](https://github.com/Yazelix/zj-radar) | Narrow fork of upstream 0.6.0 for the collapsible session and attention rail; Nova adds explicit, cross-environment-safe Codex hook setup and a smooth working animation |
@@ -487,13 +500,15 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,160 lines** of tracked text project files. The
+Yazelix owns **27,643 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This remains 345 lines below the pre-Rio fork surface. The current surface
+This is 138 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
-and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and Radar
-integration, portable Codex hook onboarding, the structured colored doctor,
+and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
+configurable Radar-default sidebar, portable Codex hook onboarding, the
+structured colored doctor,
 package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
-sponsor surface while deleting persistent tiled-Yazi machinery.
+sponsor surface and installed-runtime checks while deleting
+persistent tiled-Yazi machinery.

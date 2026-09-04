@@ -8,16 +8,16 @@ use std::{
 };
 
 use crate::{
+    command::executable_file,
+    error::{path_error, startup, AppError},
+    paths::{runtime_path, zellij_session_label},
+    runtime::Runtime,
+    yazi::YaziRuntime,
     AGENT_AUTO_COMMAND, HELIX_REVEAL_COMMAND, LAYOUT, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
     MANAGED_HELIX, NOVA_BAR_WASM, PACKAGE_VARIANT, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
     YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_CONFIG,
     YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU, YZX_REVEAL, YZX_SCREEN, YZX_TUTOR,
-    YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ,
-    command::executable_file,
-    error::{AppError, path_error, startup},
-    paths::{runtime_path, zellij_session_label},
-    runtime::Runtime,
-    yazi::YaziRuntime,
+    YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
 };
 
 pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
@@ -28,6 +28,9 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     require_command("editor", &runtime.editor)?;
     if runtime.agent_command != AGENT_AUTO_COMMAND {
         require_command("agent.command", &runtime.agent_command)?;
+    }
+    if !runtime.radar_enabled() {
+        require_command("sidebar.command", &runtime.sidebar_command)?;
     }
 
     doctor_header();
@@ -73,7 +76,9 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     doctor_ok("Components", "all packaged helpers and plugins found");
 
     doctor_section("Integrations");
-    doctor_radar_codex(&runtime.agent_command, verbose);
+    if runtime.radar_enabled() {
+        doctor_radar_codex(&runtime.agent_command, verbose);
+    }
     if has_managed_helix {
         doctor_helix_config_warning(&runtime.config_home)?;
     }
@@ -134,6 +139,7 @@ fn check_doctor_inputs() -> Result<(), AppError> {
         ("Yazi opener", Path::new(YZX_YAZI)),
         ("popup plugin", Path::new(YAZELIX_ZELLIJ_POPUP_WASM)),
         ("bar plugin", Path::new(NOVA_BAR_WASM)),
+        ("Radar plugin", Path::new(ZJ_RADAR_WASM)),
         (
             "pane orchestrator plugin",
             Path::new(YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM),
@@ -144,6 +150,7 @@ fn check_doctor_inputs() -> Result<(), AppError> {
     if !RIO.is_empty() {
         require_file("Rio", Path::new(RIO))?;
     }
+    require_command("Radar CLI", "zj-radar")?;
 
     Ok(())
 }
@@ -196,10 +203,10 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) {
         .parent()
         .filter(|path| !path.as_os_str().is_empty())
     {
-        let mut with_parent = parent.as_os_str().to_os_string();
-        with_parent.push(":");
-        with_parent.push(path);
-        path = with_parent;
+        if !path.is_empty() {
+            path.push(":");
+        }
+        path.push(parent);
     }
     let output = match Command::new("zj-radar")
         .args(["setup", "codex", "--check"])

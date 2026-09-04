@@ -1064,6 +1064,9 @@ mod tests {
                     "root": workspace_root,
                     "source": workspace_source,
                 },
+                "layout": {
+                    "sidebar_collapsed": false,
+                },
             });
             write_executable(
                 &self.zellij,

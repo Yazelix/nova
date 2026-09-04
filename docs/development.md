@@ -73,6 +73,11 @@ nix run --override-input yazelixZellijPaneOrchestrator ../zellij-pane-orchestrat
 nix run --override-input yaziBistro ../yazi-bistro
 ```
 
+For coupled child changes, use the same complete override set for builds,
+checks, and every dogfood profile refresh. The profile does not retain overrides.
+Publish matching child revisions and lock them before verifying without overrides.
+Check popup open/hide and sidebar toggle together in a fresh installed session.
+
 Useful local checks:
 
 ```sh
@@ -110,15 +115,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 3825 |
+| Markdown | 3925 |
 | JSON | 117 |
-| Nix | 1875 |
+| Nix | 1883 |
 | Shell | 126 |
-| YAML | 445 |
-| TOML | 516 |
-| KDL | 258 |
+| YAML | 446 |
+| TOML | 522 |
+| KDL | 253 |
 | Nu | 14 |
 | Lua | 133 |
-| Rust | 19547 |
+| Rust | 19920 |
 | Text | 84 |
-| Total | 27160 |
+| Total | 27643 |

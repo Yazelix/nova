@@ -23,6 +23,12 @@ command = "yzx-hx"
 # Side where Forest renders in managed Helix: left or right.
 side = "right"
 
+[sidebar]
+# "radar" keeps the managed Radar plugin. Use "yzx-yazi" for Nova's managed
+# Yazi, or any other executable; put arguments in args.
+command = "radar"
+args = []
+
 [agent]
 # "auto" keeps the built-in provider fallback. Any other value is one executable
 # command for the managed agent popup; put arguments in args.

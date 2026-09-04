@@ -1,14 +1,14 @@
 use std::{env, ffi::OsString, path::Path, process::Command};
 
 use crate::{
-    RIO, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
-    YZX_SHELL, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_YAZI_CONFIG, YZX_YAZI_MATERIALIZER, ZELLIJ,
     command::{exec, run_checked, trim_output},
     doctor::print_doctor,
-    error::{AppError, startup},
+    error::{startup, AppError},
     paths::{enter_terminal_label, nonempty_env, runtime_path},
-    runtime::{Runtime, current_appearance_mode},
+    runtime::{current_appearance_mode, Runtime},
     status::{print_status, print_status_json},
+    RIO, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
+    YZX_SHELL, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_YAZI_CONFIG, YZX_YAZI_MATERIALIZER, ZELLIJ,
 };
 
 pub(crate) fn run() -> Result<(), AppError> {

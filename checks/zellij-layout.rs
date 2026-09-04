@@ -111,13 +111,13 @@ fn main() -> ExitCode {
     }
     if !matches!(
         (
-            swap.find(r#"swap_tiled_layout name="single_closed""#),
             swap.find(r#"swap_tiled_layout name="single_open""#),
+            swap.find(r#"swap_tiled_layout name="single_closed""#),
         ),
-        (Some(closed), Some(open)) if closed < open
+        (Some(open), Some(closed)) if open < closed
     ) {
         eprintln!(
-            "{swap_path}: collapsed layout must precede open layout so BASE closes in one native step"
+            "{swap_path}: open layout must precede collapsed layout so the startup picker preserves the visible sidebar"
         );
         ok = false;
     }
