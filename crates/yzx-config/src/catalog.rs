@@ -28,6 +28,8 @@ pub(crate) const WELCOME_STYLE_VALUES: &[&str] = &[
     "boids_schools",
     "friends_and_enemies",
     "primordial",
+    "physarum",
+    "chladni",
     "mandelbrot",
     "matrix",
     "game_of_life_gliders",

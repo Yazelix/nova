@@ -280,6 +280,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "boids_schools",
         "friends_and_enemies",
         "primordial",
+        "physarum",
+        "chladni",
         "game_of_life_gliders",
         "game_of_life_tumblers",
         "mandelbrot",
@@ -1485,7 +1487,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
         (
             "bad-welcome-style-config",
             "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"snow\"\n",
-            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
+            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, physarum, chladni, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
             "invalid welcome style",
         ),
         (

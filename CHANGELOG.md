@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Anima offers `chladni` nodal patterns and `physarum` trail networks through
+  `yzx anima`, native previous/next browsing, and `welcome.style`. Both stay
+  outside random selection pending integrated dogfooding.
+
 - Rio stops drawing trails for hidden cursors and starts fresh when the cursor
   reappears. Visible cursor animations finish without waiting for unrelated
   terminal output, preventing ghost trails during TUI redraws.
