@@ -197,7 +197,8 @@ Run `yzx anima plasma` for flowing color fields, `yzx anima chladni` for geometr
 nodal patterns, or `yzx anima physarum` for trail networks. All three work as
 `welcome.style` choices and through native previous/next browsing; none is
 selected randomly. Native animations display fading name, credit, and navigation
-cards. Outside Nova, the standalone command is `anima`.
+cards, with black backing confined inside the rounded border. Outside Nova,
+the standalone command is `anima`.
 
 Press a popup's key again to close or hide it and return to the tiled workspace.
 Managed popups leave an open sidebar rail visible, resize in place when the
@@ -518,10 +519,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,776 lines** of tracked text project files. The
+Yazelix owns **27,782 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 271 lines above the pre-Rio fork surface. The current surface
+This is 277 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -547,3 +548,4 @@ remain in Anima without adding runtime dependencies.
 The Anima pane title and custom-popup collision checks use its product name.
 Anima 0.2.0 uses its named executable; Plasma adds one welcome choice and a parity
 check, while animation rendering and fading cards remain in the child.
+The card-corner correction stays in Anima; Nova only pins and documents it.

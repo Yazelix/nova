@@ -882,11 +882,11 @@
         "recording-mars": "recording-mars"
       },
       "locked": {
-        "lastModified": 1788636726,
-        "narHash": "sha256-mRg+xSb2cuvGDCwIBVCBEDUcdpZJbbztMSQ3VvXEbYM=",
+        "lastModified": 1788640401,
+        "narHash": "sha256-t1G/eUx4+/5nsBjgS9QEWgMWujFu3rgC0cAMZ52jaSw=",
         "owner": "Yazelix",
         "repo": "anima",
-        "rev": "8ce1120d00a30c740e6a4e5d6fe30e147755b8f3",
+        "rev": "952cec0d12731436d1558ab5c84a32e89479068b",
         "type": "github"
       },
       "original": {

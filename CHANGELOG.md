@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Anima confines black identity-card backing to the interior of its rounded
+  border. Border cells use the terminal background across the CLI, welcome,
+  and popup; credits, navigation, and fade timing are unchanged.
+
 - Rio buffers synchronized drawing from the first payload byte, including when
   the begin marker and drawing share a PTY read. Intermediate cursor changes
   stay inside the frame, preventing partial-frame cursor disappearance.
