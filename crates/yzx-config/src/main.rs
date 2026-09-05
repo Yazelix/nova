@@ -1232,6 +1232,10 @@ mod tests {
                 "popups.btm.title conflicts with packaged popup title screen_popup",
             ),
             (
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \"anima\"\nkeybinding = \"Alt Shift B\"\n",
+                "popups.btm.title conflicts with packaged popup title anima",
+            ),
+            (
                 "[popups.btm]\ncommand = \"btm\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift B\"\n\n[popups.htop]\ncommand = \"htop\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.htop.title conflicts with popups.btm.title: shared_popup",
             ),

@@ -2203,7 +2203,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         ("menu", "menu_popup", "/bin/yzx-menu", ""),
         (
             "screen",
-            "screen_popup",
+            "anima",
             "/bin/yzs",
             "\n                arg_1 \"random\"",
         ),

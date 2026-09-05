@@ -43,7 +43,7 @@ plugins {
 
             screen {
                 command "@yzxScreen@"
-                pane_title "screen_popup"
+                pane_title "anima"
                 arg_1 "random"
             }
 

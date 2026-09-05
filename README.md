@@ -187,10 +187,11 @@ Yazi, the menu, and Anima use their initials:
 
 - `Alt Shift Y` toggles the full Yazi popup.
 - `Alt Shift M` toggles the command menu.
-- `Alt Shift A` opens a transient random visual popup. In native animations,
-  `Left`/`h`/`p` selects the previous animation and `Right`/`l`/`n` selects the next;
-  any other key exits. Other styles exit on any key. This is not a session lock.
-  Set `keybindings.screen` to remap or unmap it for newly launched sessions.
+- `Alt Shift A` opens a transient random visual popup named `anima`.
+  In native animations, `Left`/`h`/`p` selects previous and
+  `Right`/`l`/`n` selects next; any other key exits. Other styles exit on any
+  key. This is not a session lock. Set `keybindings.screen` to remap or unmap
+  it for newly launched sessions.
 
 Run `yzx anima chladni` for geometric nodal patterns or `yzx anima physarum` for
 trail networks. Both also work as `welcome.style` choices and through native
@@ -515,10 +516,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,748 lines** of tracked text project files. The
+Yazelix owns **27,758 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 243 lines above the pre-Rio fork surface. The current surface
+This is 253 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -539,3 +540,4 @@ The cursor-trail fix adds runtime documentation and release notes; its renderer
 correction and regression probes live in Nova Rio.
 Chladni and Physarum add welcome choices and delivery checks; their engines
 remain in Anima without adding runtime dependencies.
+The Anima pane title and custom-popup collision checks use its product name.

@@ -205,7 +205,7 @@ keep_alive = true
 ```
 
 Commands are argv-based. Put arguments in `args`, not in `command`. Popup titles
-must be unique; `screen`, `screen_popup`, `yazi`, and `yazi_popup` are reserved
+must be unique; `anima`, `screen`, `screen_popup`, `yazi`, and `yazi_popup` are reserved
 for packaged surfaces. Custom popup keybindings use the same collision checks
 as all managed action keys. Ratconfig passes every leaf actually present under a
 configured popup through its generic TOML rows. Those values are explicit, so

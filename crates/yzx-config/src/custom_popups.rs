@@ -154,9 +154,10 @@ fn validate_custom_popup_titles(popups: &[CustomPopup]) -> Result<()> {
     for popup in popups {
         let title = popup.title.trim();
         let path = format!("popups.{}.title", popup.id);
-        if title
-            .strip_suffix("_popup")
-            .is_some_and(|id| BUILTIN_POPUP_IDS.contains(&id))
+        if title == "anima"
+            || title
+                .strip_suffix("_popup")
+                .is_some_and(|id| BUILTIN_POPUP_IDS.contains(&id))
         {
             return Err(error(format!(
                 "{path} conflicts with packaged popup title {title}"

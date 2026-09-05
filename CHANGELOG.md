@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The animation popup is titled `anima`. Custom popups cannot reuse that title;
+  the existing `keybindings.screen` setting continues to control its shortcut.
+
 - Anima offers `chladni` nodal patterns and `physarum` trail networks through
   `yzx anima`, native previous/next browsing, and `welcome.style`. Both stay
   outside random selection pending integrated dogfooding.
