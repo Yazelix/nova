@@ -185,7 +185,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Panes"; "Alt Shift F"; "Toggle focused pane fullscreen"; "Zellij"; "config.kdl"),
     key!("Editor"; "Ctrl y"; "Toggle Forest focus"; "Yazelix"; "helix/config.toml"),
     key!("Editor / Yazi"; "Alt r"; "Reveal in Yazi or return unchanged"; "Yazelix"; "helix/config.toml + yazi/keymap.toml"),
-    key!("Tabs"; "Ctrl t"; "Toggle tab mode"; "Zellij"; "config.kdl"),
+    key!("Tabs"; "Ctrl Alt t"; "Toggle tab mode"; "Zellij"; "config.kdl"),
     key!("Tabs"; "Alt 1-9"; "Go directly to tab 1-9"; "Zellij"; "config.kdl"),
     key!("Tabs"; "n in tab mode"; "Open a new tab"; "Zellij"; "config.kdl"),
     key!("Tabs"; "Ctrl Alt h"; "Move tab left"; "Zellij"; "config.kdl"),

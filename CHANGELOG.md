@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `Ctrl Alt t` toggles Zellij tab mode; `Ctrl t` remains available to the focused
+  application. The key reference and tutor use the same chord.
+
 - Anima includes friends-and-enemies and primordial particles, replaces the Life
   oscillator/bloom presets with tumblers, and supports `Left`/`h`/`p` and
   `Right`/`l`/`n` navigation in native animations. Nova's welcome choices match

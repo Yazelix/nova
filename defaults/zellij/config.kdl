@@ -75,6 +75,7 @@ load_plugins {
 }
 
 keybinds {
+    unbind "Ctrl t"
     locked {
         unbind "Ctrl g"
         bind "Ctrl Alt g" { SwitchToMode "Normal"; }
@@ -87,7 +88,7 @@ keybinds {
     }
     tab {
         bind "n" { NewTab { layout "@layout@"; cwd "__YZX_HOME__"; }; SwitchToMode "Normal"; }
-        bind "Ctrl t" { SwitchToMode "Normal"; }
+        bind "Ctrl Alt t" { SwitchToMode "Normal"; }
     }
     scroll {
         unbind "Ctrl s"
@@ -179,7 +180,7 @@ keybinds {
         bind "Ctrl Alt o" { SwitchToMode "Session"; }
     }
     shared_except "tab" "locked" {
-        bind "Ctrl t" { SwitchToMode "Tab"; }
+        bind "Ctrl Alt t" { SwitchToMode "Tab"; }
     }
     shared_except "move" "locked" {
         unbind "Ctrl h"

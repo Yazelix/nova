@@ -199,6 +199,7 @@ bindings are:
 | Scope | Key | Action |
 | --- | --- | --- |
 | Workspace | `Ctrl q` | Quit the Yazelix session |
+| Workspace | `Ctrl Alt t` | Toggle tab mode; `Ctrl t` reaches the focused application |
 | Workspace | `Alt m` | Open a new pane |
 | Workspace | `Alt Shift F` | Toggle the focused pane fullscreen |
 | Workspace | `Alt Shift A` | Show a random visual popup |
@@ -504,10 +505,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,695 lines** of tracked text project files. The
+Yazelix owns **27,710 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 190 lines above the pre-Rio fork surface. The current surface
+This is 205 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -520,3 +521,4 @@ The activity cleanup lives in the child repositories; their deletions are
 outside this score. Nova's additions document the 1.2 candidate and its checks.
 The Anima update adds 30 lines to expose its current styles, document navigation,
 and check that every advertised style is accepted by Nova's welcome config.
+The tab-mode chord change adds 15 lines to document and check `Ctrl t` passthrough.

@@ -2117,7 +2117,9 @@ fn expect_keybinds(config: &str) {
         r#"bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
         r#"bind "Ctrl Alt g" { SwitchToMode "Locked"; }"#,
         r#"bind "Ctrl p" { SwitchToMode "Pane"; }"#,
-        r#"bind "Ctrl t" { SwitchToMode "Tab"; }"#,
+        r#"unbind "Ctrl t""#,
+        r#"bind "Ctrl Alt t" { SwitchToMode "Tab"; }"#,
+        r#"bind "Ctrl Alt t" { SwitchToMode "Normal"; }"#,
         r#"bind "Ctrl n" { SwitchToMode "Resize"; }"#,
         r#"bind "Ctrl Alt s" { SwitchToMode "Scroll"; }"#,
         r#"bind "Ctrl Alt o" { SwitchToMode "Session"; }"#,
@@ -2132,6 +2134,13 @@ fn expect_keybinds(config: &str) {
     assert!(
         !config.contains("smart_reveal") && !config.contains(r#"bind "Alt r""#),
         "config.kdl must leave Alt r to the focused application"
+    );
+    assert!(
+        !config.lines().any(|line| {
+            let line = line.trim();
+            line.starts_with("bind ") && quoted_keys(line).any(|key| key == "Ctrl t")
+        }),
+        "ZELLIJ-TAB-MODE-CHORD-001: Ctrl t must remain available to the focused application"
     );
     assert_eq!(config.matches("ToggleFocusFullscreen").count(), 1);
     assert!(!config.contains("toggle_editor_sidebar_focus"));
