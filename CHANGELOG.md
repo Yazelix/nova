@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Random Anima selection includes Friends and Enemies, Physarum, Chladni, and
+  Plasma alongside the existing animations and Aquarium across `yzx anima`,
+  welcome, and popup. Static and logo remain explicit-only choices.
+
 - Anima confines black identity-card backing to the interior of its rounded
   border. Border cells use the terminal background across the CLI, welcome,
   and popup; credits, navigation, and fade timing are unchanged.
@@ -15,15 +19,13 @@ User-visible runtime changes for Yazelix Nova live here.
 - Anima 0.2.0 renames the standalone executable to `anima`; Nova keeps `yzx anima`
   and uses the renamed package for its CLI, welcome, and popup. Native animations
   show fading name, credit, and navigation cards. `plasma` color fields are
-  available through the command, browsing, and `welcome.style`, outside random
-  selection pending integrated dogfooding.
+  available through the command, browsing, and `welcome.style`.
 
 - The animation popup is titled `anima`. Custom popups cannot reuse that title;
   the existing `keybindings.screen` setting continues to control its shortcut.
 
 - Anima offers `chladni` nodal patterns and `physarum` trail networks through
-  `yzx anima`, native previous/next browsing, and `welcome.style`. Both stay
-  outside random selection pending integrated dogfooding.
+  `yzx anima`, native previous/next browsing, and `welcome.style`.
 
 - Rio stops drawing trails for hidden cursors and starts fresh when the cursor
   reappears. Visible cursor animations finish without waiting for unrelated
@@ -45,7 +47,6 @@ User-visible runtime changes for Yazelix Nova live here.
   oscillator/bloom presets with tumblers, and supports `Left`/`h`/`p` and
   `Right`/`l`/`n` navigation in native animations. Nova's welcome choices match
   the packaged styles; retired style overrides report a configuration error.
-  The default random pool follows Anima and excludes friends and enemies.
 
 ## 1.2.0 (candidate)
 
