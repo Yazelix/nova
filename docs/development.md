@@ -17,6 +17,11 @@ contain no Linux desktop entry. The flake advertises the optional Yazelix
 Cachix cache, while source builds remain valid without it. Use Version Gate
 before publishing a release
 
+Linux CI and Darwin Package Smoke build `helix_grammar_sources`, Nova Helix's
+`HELIX-GRAMMAR-SOURCES-001` check. It rejects Codeberg network fetches during Nix
+evaluation and compiles the pinned Codeberg grammars from bundled, hash-verified
+sources. Grammar revisions and snapshot maintenance belong to Nova Helix.
+
 ## Edge, main, and stable
 
 All development commits land on `edge`, including fixes, reverts,
@@ -123,15 +128,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 4069 |
+| Markdown | 4081 |
 | JSON | 117 |
-| Nix | 1899 |
+| Nix | 1900 |
 | Shell | 126 |
-| YAML | 446 |
+| YAML | 448 |
 | TOML | 522 |
 | KDL | 254 |
 | Nu | 14 |
 | Lua | 133 |
 | Rust | 20226 |
 | Text | 84 |
-| Total | 28110 |
+| Total | 28125 |

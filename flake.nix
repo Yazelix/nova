@@ -23,7 +23,7 @@
       flake = false;
     };
     yazelixHelix = {
-      url = "github:Yazelix/nova-helix/917e6e2ee19745c55c31f9cbed34770e18c16339";
+      url = "github:Yazelix/nova-helix/af40531c58966cb93cab70970ab9154644da6751";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixForest = {
@@ -1503,6 +1503,7 @@
       helix_contracts = pkgs.runCommand "yzx-helix-contracts" {} ''
         ${helixContractsCheck}/bin/helix-contracts-check ${yzx} "$out"
       '';
+      helix_grammar_sources = yazelixHelix.checks.${system}.codeberg_grammars;
       no_helix_contracts = pkgs.runCommand "yzx-no-helix-contracts" {} ''
         ${noHelixContractsCheck}/bin/no-helix-contracts-check \
           ${yzxNoHelix} ${noHelixClosure}/store-paths no-helix

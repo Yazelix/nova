@@ -52,6 +52,7 @@ jobs:
       - name: Build focused checks
         run: |
           nix build --no-link --print-build-logs \
+            .#checks.x86_64-linux.helix_grammar_sources \
             .#checks.x86_64-linux.no_helix_contracts \
             .#checks.x86_64-linux.host_yazi_contracts \
             .#checks.x86_64-linux.desktop_channels \

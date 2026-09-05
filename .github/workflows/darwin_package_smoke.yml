@@ -71,6 +71,7 @@ jobs:
             test ! -e "$path/share/applications"
           done
           nix build --no-link --no-write-lock-file --print-build-logs \
+            .#checks.aarch64-darwin.helix_grammar_sources \
             .#checks.aarch64-darwin.desktop_channels \
             .#checks.aarch64-darwin.host_yazi_contracts \
             .#checks.aarch64-darwin.rio_contracts \

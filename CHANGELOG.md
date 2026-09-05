@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Nova Helix ships the nine pinned Codeberg grammar source trees with their
+  original contents and licenses. Nix evaluation and grammar builds use these
+  verified local snapshots, avoiding Codeberg HTTP 504 failures without disabling
+  languages. Linux and Darwin CI reject live Codeberg grammar fetches.
+
 - Aquarium joins Anima's previous/next cycle before Boids: Predator. Arrow keys,
   `h`/`l`, and `p`/`n` cross between Aquarium and native animations in the CLI,
   welcome, and popup without restarting the welcome timer. Anima keeps one
