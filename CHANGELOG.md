@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Rio stops drawing trails for hidden cursors and starts fresh when the cursor
+  reappears. Visible cursor animations finish without waiting for unrelated
+  terminal output, preventing ghost trails during TUI redraws.
+
 - Radar keeps running jobs and agents spinning at the same speed throughout
   their work; older rows no longer slow to a barely visible two-frame blink.
 

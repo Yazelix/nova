@@ -403,7 +403,9 @@ The one reserved field is top-level `force-theme`, which Nova projects from
 root `appearance.mode` when the file is writable. Every other Rio setting stays
 native and user-owned.
 The packaged starting point uses a cyan cursor, Rio's native cursor trail, and
-native `nova-dark`/`nova-light` adaptive themes. Files created by that seed
+native `nova-dark`/`nova-light` adaptive themes. Trails follow cursor visibility;
+hidden cursor moves never become trail origins, and visible animations settle
+without waiting for more terminal output. Files created by that seed
 become user-owned apart from `force-theme`; existing theme files remain
 untouched.
 Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
@@ -509,10 +511,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,726 lines** of tracked text project files. The
+Yazelix owns **27,734 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 221 lines above the pre-Rio fork surface. The current surface
+This is 229 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -529,3 +531,5 @@ and check that every advertised style is accepted by Nova's welcome config.
 The tab-mode chord change adds 15 lines to document and check `Ctrl t` passthrough.
 The Rio hyperlink repair adds usage and release notes; the child fork removes
 duplicate link matching and click state from its maintained surface.
+The cursor-trail fix adds runtime documentation and release notes; its renderer
+correction and regression probes live in Nova Rio.
