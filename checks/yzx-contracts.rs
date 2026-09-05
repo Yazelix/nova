@@ -282,6 +282,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "primordial",
         "physarum",
         "chladni",
+        "plasma",
         "game_of_life_gliders",
         "game_of_life_tumblers",
         "mandelbrot",
@@ -449,7 +450,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "yzx-welcome",
         "yzx-shell",
         "yzx-reveal",
-        "/bin/yzs",
+        "/bin/anima",
         "yazelix_pane_orchestrator.wasm",
         "/bin/ya",
         "/bin/zellij",
@@ -1487,7 +1488,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
         (
             "bad-welcome-style-config",
             "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"snow\"\n",
-            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, physarum, chladni, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
+            "welcome.style must be one of: static, logo, asciiquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, physarum, chladni, plasma, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
             "invalid welcome style",
         ),
         (
@@ -2204,7 +2205,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         (
             "screen",
             "anima",
-            "/bin/yzs",
+            "/bin/anima",
             "\n                arg_1 \"random\"",
         ),
         (
@@ -2277,7 +2278,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
     );
 
     assert!(popup_command(config, "/bin/yzx-menu").is_file());
-    assert!(popup_command(config, "/bin/yzs").is_file());
+    assert!(popup_command(config, "/bin/anima").is_file());
 }
 
 fn expect_git_editor(editor: &Path, lazygit_config: &Path, git: &Path) {

@@ -345,12 +345,12 @@
       yazelixZellijPaneOrchestratorPackage =
         yazelixZellijPaneOrchestrator.packages.${system}.yazelix_zellij_pane_orchestrator;
       tokenusage = import ./packaging/tokenusage.nix {inherit pkgs;};
-      yazelixScreenPackage = yazelixScreen.packages.${system}.yzs;
+      yazelixScreenPackage = yazelixScreen.packages.${system}.anima;
       yzxWelcome = pkgs.writeShellApplication {
         name = "yzx-welcome";
         text = ''
           if [ "''${YZX_WELCOME_ENABLED:-true}" != false ]; then
-            if ! YAZELIX_SCREEN_COMMAND_NAME='yzx anima' ${yazelixScreenPackage}/bin/yzs "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}"; then
+            if ! YAZELIX_SCREEN_COMMAND_NAME='yzx anima' ${yazelixScreenPackage}/bin/anima "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}"; then
               printf 'yzx welcome: failed to render welcome screen\n' >&2
             fi
           fi
@@ -785,7 +785,7 @@
           inherit defaultPopupSideMargin defaultPopupVerticalMargin;
           yzxConfig = "${configUi}/bin/yzx-config-ui";
           yzxMenu = "${yzxMenu}/bin/yzx-menu";
-          yzxScreen = "${yazelixScreenPackage}/bin/yzs";
+          yzxScreen = "${yazelixScreenPackage}/bin/anima";
           yzxYazi = "${yazi}/bin/yzx-yazi";
           git = "${git}/bin/yzx-git";
           layout = "${layout}/layout.kdl";
@@ -797,7 +797,7 @@
           yzxConfigUi = "${configUi}/bin/yzx-config-ui";
           yzxMenu = "${yzxMenu}/bin/yzx-menu";
           yzxTutor = "${tutor}/bin/yzx-tutor";
-          yzxScreen = "${yazelixScreenPackage}/bin/yzs";
+          yzxScreen = "${yazelixScreenPackage}/bin/anima";
           yzxWelcome = "${yzxWelcome}/bin/yzx-welcome";
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzxEnvSupervisor = "${yzxEnvSupervisor}/bin/yzx-env-supervisor";

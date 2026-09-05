@@ -30,6 +30,7 @@ pub(crate) const WELCOME_STYLE_VALUES: &[&str] = &[
     "primordial",
     "physarum",
     "chladni",
+    "plasma",
     "mandelbrot",
     "matrix",
     "game_of_life_gliders",

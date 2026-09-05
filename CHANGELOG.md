@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Anima 0.2.0 renames the standalone executable to `anima`; Nova keeps `yzx anima`
+  and uses the renamed package for its CLI, welcome, and popup. Native animations
+  show fading name, credit, and navigation cards. `plasma` color fields are
+  available through the command, browsing, and `welcome.style`, outside random
+  selection pending integrated dogfooding.
+
 - The animation popup is titled `anima`. Custom popups cannot reuse that title;
   the existing `keybindings.screen` setting continues to control its shortcut.
 

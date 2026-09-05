@@ -193,9 +193,11 @@ Yazi, the menu, and Anima use their initials:
   key. This is not a session lock. Set `keybindings.screen` to remap or unmap
   it for newly launched sessions.
 
-Run `yzx anima chladni` for geometric nodal patterns or `yzx anima physarum` for
-trail networks. Both also work as `welcome.style` choices and through native
-previous/next browsing; neither is selected randomly.
+Run `yzx anima plasma` for flowing color fields, `yzx anima chladni` for geometric
+nodal patterns, or `yzx anima physarum` for trail networks. All three work as
+`welcome.style` choices and through native previous/next browsing; none is
+selected randomly. Native animations display fading name, credit, and navigation
+cards. Outside Nova, the standalone command is `anima`.
 
 Press a popup's key again to close or hide it and return to the tiled workspace.
 Managed popups leave an open sidebar rail visible, resize in place when the
@@ -380,7 +382,7 @@ Yazelix assembles focused forks, plugins, libraries, and commands:
 | [Zellij Popup](https://github.com/Yazelix/zellij-popup) | Zellij plugin that opens, focuses, hides, and closes configured floating TUI panes |
 | [Nova Bar](https://github.com/Yazelix/nova-bar) | Compact Nova top bar with native tabs, modes, session details, and status widgets, built on the theme-aware Yazelix `zjstatus` fork |
 | [Ratconfig](https://github.com/Yazelix/ratconfig) | Reusable Ratatui configuration editor and TOML patching and migration library |
-| [Anima](https://github.com/Yazelix/anima) | Browsable terminal animations including Chladni patterns, Physarum networks, Matrix rain, particles, and Life tumblers, plus the separately packaged GPL aquarium exposed through `yzx anima` |
+| [Anima](https://github.com/Yazelix/anima) | Browsable terminal animations including Plasma fields, Chladni patterns, Physarum networks, Matrix rain, particles, and Life tumblers, plus the separately packaged GPL aquarium exposed through `yzx anima` |
 | [Yazi Bistro](https://github.com/Yazelix/yazi-bistro) | Curated complete Yazi flavors with pinned provenance, licenses, and explicit dark/light classification |
 | [auto-layout.yazi](https://github.com/Yazelix/auto-layout.yazi) | Yazi plugin that changes the column layout to match the available pane width |
 
@@ -516,10 +518,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,758 lines** of tracked text project files. The
+Yazelix owns **27,770 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 253 lines above the pre-Rio fork surface. The current surface
+This is 265 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -541,3 +543,5 @@ correction and regression probes live in Nova Rio.
 Chladni and Physarum add welcome choices and delivery checks; their engines
 remain in Anima without adding runtime dependencies.
 The Anima pane title and custom-popup collision checks use its product name.
+Anima 0.2.0 uses its named executable; Plasma adds one welcome choice and a parity
+check, while animation rendering and fading cards remain in the child.
