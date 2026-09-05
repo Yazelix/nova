@@ -236,7 +236,8 @@ With Radar selected, `Alt Shift H` selects the exact named tiled layout
 underneath any visible popup, collapsing the rail to a framed divider or
 restoring the same live plugin without hiding or refocusing the popup. Its
 ten-frame working spinner refreshes every 200 ms and completes a two-second
-cycle without accelerating its lifecycle timers. Nova Zellij grants the exact
+cycle throughout long-running work without accelerating its lifecycle timers.
+Nova Zellij grants the exact
 bundled Radar artifact its four required permissions in Nova's isolated cache,
 so the unfocused startup sidebar cannot trap a consent prompt. On the first
 interactive Codex launch through Nova's agent popup, Nova checks the existing
@@ -508,10 +509,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,721 lines** of tracked text project files. The
+Yazelix owns **27,726 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 216 lines above the pre-Rio fork surface. The current surface
+This is 221 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -520,6 +521,7 @@ package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
 sponsor surface and installed-runtime checks while deleting
 persistent tiled-Yazi machinery.
+Radar keeps a constant working cadence at every task age.
 The activity cleanup lives in the child repositories; their deletions are
 outside this score. Nova's additions document the 1.2 candidate and its checks.
 The Anima update adds 30 lines to expose its current styles, document navigation,

@@ -859,17 +859,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1788466568,
-        "narHash": "sha256-mA+DGUPGt7g6NBCwFkFCbKB5ZeR4go+Fqg0kDS+AB7M=",
+        "lastModified": 1788574920,
+        "narHash": "sha256-XotA9K29dO5tczPMwiCLByH77u6njLzLuN0hR7zLYx0=",
         "owner": "Yazelix",
         "repo": "zj-radar",
-        "rev": "3d4849212af8886e2045a91092ecc25e7bb82da0",
+        "rev": "5bfe77cdbe599a7005824e74a3c0d8985ccf383f",
         "type": "github"
       },
       "original": {
         "owner": "Yazelix",
         "repo": "zj-radar",
-        "rev": "3d4849212af8886e2045a91092ecc25e7bb82da0",
+        "rev": "5bfe77cdbe599a7005824e74a3c0d8985ccf383f",
         "type": "github"
       }
     },

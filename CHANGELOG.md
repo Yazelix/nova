@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Radar keeps running jobs and agents spinning at the same speed throughout
+  their work; older rows no longer slow to a barely visible two-frame blink.
+
 - Ctrl-hover and Ctrl-click activate links in Rio on Linux, including inside
   Zellij; macOS keeps Cmd-click. Modifier changes refresh the underline without
   moving the pointer. Native hints preserve Unicode and soft-wrapped URL spans,

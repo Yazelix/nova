@@ -52,7 +52,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zjRadar = {
-      url = "github:Yazelix/zj-radar/3d4849212af8886e2045a91092ecc25e7bb82da0";
+      url = "github:Yazelix/zj-radar/5bfe77cdbe599a7005824e74a3c0d8985ccf383f";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixScreen = {
