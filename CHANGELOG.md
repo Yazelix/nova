@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Ctrl-hover and Ctrl-click activate links in Rio on Linux, including inside
+  Zellij; macOS keeps Cmd-click. Modifier changes refresh the underline without
+  moving the pointer. Native hints preserve Unicode and soft-wrapped URL spans,
+  case-insensitive schemes, configured OSC 8 actions, and complete OSC 8 URI
+  fields. Link clicks open once; dragging or releasing the modifier cancels them.
+
 - `Ctrl Alt t` toggles Zellij tab mode; `Ctrl t` remains available to the focused
   application. The key reference and tutor use the same chord.
 

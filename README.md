@@ -153,6 +153,9 @@ evidence, while `yzx status` owns paths and settings. Inside Yazelix, press
 `Alt Shift M` to open the command palette, which includes both help and tutor
 entries.
 
+Hold `Ctrl` to underline links and Ctrl-click to open them in Rio on Linux;
+use `Cmd` on macOS. This works inside Zellij as well as in a plain terminal.
+
 ### Ratconfig
 
 Press `Alt Shift K` to open Ratconfig:
@@ -505,10 +508,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,710 lines** of tracked text project files. The
+Yazelix owns **27,721 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 205 lines above the pre-Rio fork surface. The current surface
+This is 216 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -522,3 +525,5 @@ outside this score. Nova's additions document the 1.2 candidate and its checks.
 The Anima update adds 30 lines to expose its current styles, document navigation,
 and check that every advertised style is accepted by Nova's welcome config.
 The tab-mode chord change adds 15 lines to document and check `Ctrl t` passthrough.
+The Rio hyperlink repair adds usage and release notes; the child fork removes
+duplicate link matching and click state from its maintained surface.
