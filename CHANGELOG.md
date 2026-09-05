@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Ratconfig's Rio tab edits eight common native settings using the pinned Rio
+  executable's inventory, defaults, and validation. Edits preserve unrelated
+  values and comments; resets remove overrides. New Rio configs enable background
+  blur at 0.88 opacity where supported. The ignored `bell.visual` starter entry
+  is omitted; this Rio version supports only the audio-bell setting.
+
 - Random Anima selection includes Friends and Enemies, Physarum, Chladni, and
   Plasma alongside the existing animations and Aquarium across `yzx anima`,
   welcome, and popup. Static and logo remain explicit-only choices.

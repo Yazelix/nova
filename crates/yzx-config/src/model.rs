@@ -10,6 +10,7 @@ use crate::{
     file_actions::build_file_actions,
     helix_config::{HELIX_RECOMMENDED_PATHS, HELIX_REVEAL_PATH, build_helix_fields},
     paths::ConfigPaths,
+    rio_config::build_rio_fields,
     root_config::{bar_widgets, default_config, default_config_path_value, validate_root_config},
     starship_inventory::{
         PACKAGED_STARSHIP_DEFAULT_CONFIG_TOML, StarshipInventory, validate_starship_field,
@@ -86,6 +87,9 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
         fields.extend(build_custom_popup_fields(&paths.root)?);
     }
     fields.extend(helix.fields);
+    let (rio_fields, rio_diagnostics) = build_rio_fields(paths);
+    fields.extend(rio_fields);
+    diagnostics.extend(rio_diagnostics);
     fields.extend(
         KEY_BINDINGS
             .iter()

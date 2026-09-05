@@ -15,6 +15,7 @@ use crate::{
     common::*,
     native_config::{unset_starship_config_field, write_starship_config_field},
     paths::{ConfigPaths, RioAppearanceProjection, project_rio_appearance},
+    rio_config::write_rio_field,
     root_config::{
         config_field, default_config_value, read_config_field, unset_config_field,
         write_config_field,
@@ -212,6 +213,7 @@ pub(crate) fn write_source_field(
     value: &JsonValue,
 ) -> Result<()> {
     match source_id {
+        SOURCE_RIO => write_rio_field(paths, field_path, Some(value)),
         SOURCE_CONFIG => {
             paths.reject_mutation(&paths.root, source_id)?;
             write_config_field(&paths.root, field_path, value)
@@ -236,6 +238,7 @@ pub(crate) fn write_source_default(
     field_path: &str,
 ) -> Result<()> {
     match source_id {
+        SOURCE_RIO => write_rio_field(paths, field_path, None),
         SOURCE_CONFIG => {
             paths.reject_mutation(&paths.root, source_id)?;
             unset_config_field(&paths.root, field_path)

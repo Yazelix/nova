@@ -406,12 +406,19 @@ Set `forest.side` to `left` or `right`; the choice applies to newly launched
 managed Helix editors.
 
 Rio owns its complete native configuration at
-`~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once and Ratconfig
-opens it as an exact native-file action; neither layer mirrors Rio's schema.
+`~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once. Ratconfig
+offers blur, opacity, font family and size, line height, cursor trail, audio bell,
+and quit confirmation alongside an action to open the complete file. The pinned
+Rio executable supplies the field inventory, native defaults, and TOML validation;
+Nova maintains no duplicate schema. Edits preserve comments and unrelated values.
+Reset removes the selected override and restores Rio's native default. Controls
+respect read-only and Home Manager ownership and apply on the next Rio launch;
+some values also reload live. Rio-free packages contain no Rio controls or dependency.
 The one reserved field is top-level `force-theme`, which Nova projects from
 root `appearance.mode` when the file is writable. Every other Rio setting stays
 native and user-owned.
-The packaged starting point uses a cyan cursor, Rio's native cursor trail, and
+The packaged starting point enables native background blur with 0.88 opacity,
+where supported by the compositor, and uses a cyan cursor, Rio's native cursor trail, and
 native `nova-dark`/`nova-light` adaptive themes. Trails follow cursor visibility;
 hidden cursor moves never become trail origins, and visible animations settle
 without waiting for more terminal output. Files created by that seed
@@ -520,10 +527,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,785 lines** of tracked text project files. The
+Yazelix owns **28,095 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 280 lines above the pre-Rio fork surface. The current surface
+This is 590 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -532,6 +539,8 @@ package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
 sponsor surface and installed-runtime checks while deleting
 persistent tiled-Yazi machinery.
+Rio settings add one native-inventory consumer and a contract check; Rio retains
+its defaults and validation, and Nova enables blur in newly seeded configs.
 Radar keeps a constant working cadence at every task age.
 The activity cleanup lives in the child repositories; their deletions are
 outside this score. Nova's additions document the 1.2 candidate and its checks.

@@ -101,6 +101,14 @@ nix profile add --refresh /absolute/path/to/yazelix --profile /tmp/yzx-profile
 Detailed launch, config, editor, and shell contracts live in
 [Runtime Notes](runtime-notes.md)
 
+The Rio configuration contract can be exercised against a candidate native binary
+with `YZX_TEST_RIO` set to its absolute path: run the `yzx-config` crate test
+`rio_native_controls_preserve_validate_reset_and_respect_ownership` with
+`--include-ignored`. It covers real native validation, preserved comments, reset,
+invalid-document fallback, Home Manager protection, and Rio-free models. Ordinary
+crate checks omit this external-tool test; the packaged `rio_contracts` check also
+validates the seeded config through the exact pinned Rio executable.
+
 ## LOC scorecard
 
 Counts **tracked text** project files. Excludes Beads state (`.beads/`),
@@ -115,15 +123,15 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
 | --- | ---: |
 | Ignore (`.gitignore`) | 19 |
 | License | 201 |
-| Markdown | 4026 |
+| Markdown | 4061 |
 | JSON | 117 |
-| Nix | 1887 |
+| Nix | 1899 |
 | Shell | 126 |
 | YAML | 446 |
 | TOML | 522 |
 | KDL | 254 |
 | Nu | 14 |
 | Lua | 133 |
-| Rust | 19956 |
+| Rust | 20219 |
 | Text | 84 |
-| Total | 27785 |
+| Total | 28095 |

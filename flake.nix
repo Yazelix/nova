@@ -15,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rio = {
-      url = "github:Yazelix/nova-rio/9a13d2eec7e84cb72422c41ae84d8591dc11e9cd";
+      url = "github:Yazelix/nova-rio/db871376ce4f5b8c8908fa750667cf661c573a51";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
@@ -707,6 +707,7 @@
             unset YAZELIX_EDITOR
             ${editorEnv}
             export YZX_RIO_INCLUDED=${if withRio then "1" else "0"}
+            export YZX_RIO=${if withRio then "${rioPackage}/bin/rio" else "''"}
             export YZX_HELIX_INCLUDED=${if withManagedHelix then "1" else "0"}
             export YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij
             exec ${yzxConfig}/bin/yzx-config "$@"
@@ -1423,6 +1424,17 @@
         ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "grep -Fx ${pkgs.mesa} ${yzxClosure}/store-paths && grep -Fq VK_ADD_DRIVER_FILES ${rioPackage}/bin/rio && ! grep -Fq VK_ICD_FILENAMES ${rioPackage}/bin/rio"}
         ! grep -E '/[0-9a-z]{32}-(mars|yazelix[-_]cursors)(-|$)' ${yzxClosure}/store-paths
         ${rioPackage}/bin/rio --help | grep -F -- '--theme-mode <THEME_MODE>'
+        ${rioPackage}/bin/rio --config-editor < ${yzx}/share/yazelix/rio/config.toml > inventory.toml
+        ${pkgs.python3}/bin/python3 - <<'PY'
+        import tomllib
+        with open("inventory.toml", "rb") as stream:
+            inventory = tomllib.load(stream)
+        assert inventory["version"] == 1
+        blur = next(field for field in inventory["fields"] if field["path"] == "window.blur")
+        assert True in blur["choices"]
+        with open("${yzx}/share/yazelix/rio/config.toml", "rb") as stream:
+            assert tomllib.load(stream)["window"]["blur"] is True
+        PY
         test -x ${yzx}/bin/yzx
         test -f ${yzx}/share/yazelix/rio/config.toml
         grep -Fqx 'cursor = "#00e6ff"' ${yzx}/share/yazelix/rio/config.toml

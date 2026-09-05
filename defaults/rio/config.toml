@@ -6,7 +6,6 @@ adaptive-theme = { dark = "nova-dark", light = "nova-light" }
 
 [bell]
 audio = true
-visual = true
 
 [colors]
 cursor = "#00e6ff"
@@ -19,6 +18,7 @@ width = 960
 height = 620
 decorations = "disabled"
 opacity = 0.88
+blur = true
 opacity-cells = false
 
 [panel]

@@ -415,8 +415,20 @@ configuration directly. Untouched defaults follow upgrades
 Rio owns the full schema and validation for `rio/config.toml`. When that path
 does not already exist, Yazelix copies the packaged config and any missing
 `nova-dark`/`nova-light` themes; an existing theme file is never replaced.
-Upgrades leave those user-owned files alone. Ratconfig's Rio tab contains only
-the exact-file action. Legacy
+Upgrades leave those user-owned files alone. New configs enable `window.blur`
+with `window.opacity = 0.88`; blur depends on compositor support.
+Ratconfig's Rio tab exposes eight native controls: blur, opacity, font family and
+size, line height, cursor trail, audio bell, and quit confirmation. Rio's versioned
+`--config-editor` inventory and native parser own the field defaults and validation
+(RIO-CONFIG-UI-001). Candidate TOML is checked before writing; theme and font
+availability remain Rio launch checks. Comments and unrelated values survive edits.
+Reset removes a key and restores Rio's native default, which can differ from
+Nova's initial seed; for example Rio's native blur default is off. Platform-specific
+window overrides take precedence over the global blur and opacity controls.
+Read-only and Home Manager files retain their existing ownership protections.
+Controls indicate next-Rio-launch application; some values also reload live.
+The complete native-file action remains available for other settings and repairs.
+Rio-free packages expose neither the controls nor a Rio dependency. Legacy
 `mars/config.toml` and `cursors.toml` files remain byte-for-byte untouched and
 are ignored by Nova
 

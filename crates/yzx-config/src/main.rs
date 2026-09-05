@@ -8,6 +8,7 @@ mod helix_config;
 mod model;
 mod native_config;
 mod paths;
+mod rio_config;
 mod root_config;
 mod starship_inventory;
 mod ui;
@@ -244,6 +245,7 @@ mod tests {
         .unwrap();
         ConfigPaths {
             rio_included: true,
+            rio_command: None,
             helix_included: true,
             store_root: temp.path.join("store"),
             root: temp.path.join("config.toml"),
@@ -271,6 +273,95 @@ mod tests {
         let temp = TempHome::new();
         let paths = ensure_config_sources_at(temp_paths(&temp)).unwrap();
         (temp, paths)
+    }
+
+    #[test]
+    #[ignore = "run with YZX_TEST_RIO pointing to the candidate Rio executable"]
+    fn rio_native_controls_preserve_validate_reset_and_respect_ownership() {
+        let (_temp, mut paths) = temp_sources();
+        paths.rio_command = Some(env::var_os("YZX_TEST_RIO").expect("candidate Rio").into());
+        let original = "# keep my setup\n[window]\nopacity = 0.72 # transparency\nblur = true\n[fonts]\nfamily = 'my font'\n[custom]\nuntouched = 42\n";
+        fs::write(&paths.rio, original).unwrap();
+        let find_blur = |model: ratconfig::ConfigUiModel| {
+            model
+                .fields
+                .into_iter()
+                .find(|field| field.source_id == SOURCE_RIO && field.path == "window.blur")
+                .unwrap()
+        };
+        let model = model::build_model(&paths).unwrap();
+        assert!(
+            model
+                .fields
+                .iter()
+                .any(|field| field.source_id == SOURCE_RIO && field.path == "fonts.size")
+        );
+        assert_eq!(
+            find_blur(model).snapshot.effective.unwrap().value,
+            json!(true)
+        );
+        file_actions::write_source_field(&paths, SOURCE_RIO, "window.blur", &json!(false)).unwrap();
+        let edited = fs::read_to_string(&paths.rio).unwrap();
+        assert!(edited.contains("# keep my setup"));
+        assert!(edited.contains("opacity = 0.72 # transparency"));
+        assert!(edited.contains("family = 'my font'"));
+        assert!(edited.contains("untouched = 42"));
+        for (field, value) in [
+            ("fonts.size", json!("large")),
+            ("window.blur", json!("invalid")),
+            ("force-theme", json!("dark")),
+        ] {
+            assert!(file_actions::write_source_field(&paths, SOURCE_RIO, field, &value).is_err());
+            assert_eq!(fs::read_to_string(&paths.rio).unwrap(), edited);
+        }
+        file_actions::write_source_default(&paths, SOURCE_RIO, "window.blur").unwrap();
+        let reset = find_blur(model::build_model(&paths).unwrap());
+        assert!(!reset.can_unset);
+        assert_eq!(reset.snapshot.effective.unwrap().value, json!(false));
+        paths.rio_included = false;
+        assert!(
+            !model::build_model(&paths)
+                .unwrap()
+                .fields
+                .iter()
+                .any(|field| field.source_id == SOURCE_RIO)
+        );
+        assert!(
+            file_actions::write_source_field(&paths, SOURCE_RIO, "window.blur", &json!(true))
+                .is_err()
+        );
+        paths.rio_included = true;
+        fs::write(&paths.rio, "[window]\nblur = 'broken'\n").unwrap();
+        let invalid = model::build_model(&paths).unwrap();
+        assert!(
+            !invalid
+                .fields
+                .iter()
+                .any(|field| field.source_id == SOURCE_RIO)
+        );
+        assert!(
+            invalid
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.path == "rio/config.toml" && diagnostic.blocking)
+        );
+        fs::create_dir_all(&paths.store_root).unwrap();
+        let managed = paths.store_root.join("rio.toml");
+        fs::write(&managed, original).unwrap();
+        fs::remove_file(&paths.rio).unwrap();
+        std::os::unix::fs::symlink(&managed, &paths.rio).unwrap();
+        let field = find_blur(model::build_model(&paths).unwrap());
+        assert!(matches!(
+            field.capability,
+            ratconfig::ConfigUiCapability::ReadOnly { .. }
+        ));
+        assert!(
+            file_actions::write_source_field(&paths, SOURCE_RIO, "window.blur", &json!(false))
+                .unwrap_err()
+                .to_string()
+                .contains("Home Manager")
+        );
+        assert_eq!(fs::read_to_string(managed).unwrap(), original);
     }
 
     #[test]
