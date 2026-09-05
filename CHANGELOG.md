@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Rio buffers synchronized drawing from the first payload byte, including when
+  the begin marker and drawing share a PTY read. Intermediate cursor changes
+  stay inside the frame, preventing partial-frame cursor disappearance.
+
 - Anima 0.2.0 renames the standalone executable to `anima`; Nova keeps `yzx anima`
   and uses the renamed package for its CLI, welcome, and popup. Native animations
   show fading name, credit, and navigation cards. `plasma` color fields are

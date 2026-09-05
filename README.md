@@ -518,10 +518,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **27,770 lines** of tracked text project files. The
+Yazelix owns **27,776 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 265 lines above the pre-Rio fork surface. The current surface
+This is 271 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -540,6 +540,8 @@ The Rio hyperlink repair adds usage and release notes; the child fork removes
 duplicate link matching and click state from its maintained surface.
 The cursor-trail fix adds runtime documentation and release notes; its renderer
 correction and regression probes live in Nova Rio.
+Synchronized-frame buffering across PTY reads also stays in Rio; Nova documents
+and pins the correction without adding a renderer or changing welcome policy.
 Chladni and Physarum add welcome choices and delivery checks; their engines
 remain in Anima without adding runtime dependencies.
 The Anima pane title and custom-popup collision checks use its product name.
