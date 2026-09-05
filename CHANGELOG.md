@@ -6,7 +6,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - Ratconfig's Rio tab edits eight common native settings using the pinned Rio
   executable's inventory, defaults, and validation. Edits preserve unrelated
-  values and comments; resets remove overrides. New Rio configs enable background
+  values and comments; resets remove overrides. Validation errors show the failing
+  TOML excerpt without dumping unrelated settings. New Rio configs enable background
   blur at 0.88 opacity where supported. The ignored `bell.visual` starter entry
   is omitted; this Rio version supports only the audio-bell setting.
 

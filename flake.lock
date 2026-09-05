@@ -518,17 +518,17 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1788642703,
-        "narHash": "sha256-JPcuPD5uwWHgwvQmHTQc7poCfJZcpcIysrllGV5uIXk=",
+        "lastModified": 1788644118,
+        "narHash": "sha256-ic3Aw7lTAVrOJ3RbunpB0Mv1JGtaQMJq6qy6H26lxzg=",
         "owner": "Yazelix",
         "repo": "nova-rio",
-        "rev": "db871376ce4f5b8c8908fa750667cf661c573a51",
+        "rev": "bdf8e51d673da634582cf2b54ad5d19479cb6b39",
         "type": "github"
       },
       "original": {
         "owner": "Yazelix",
         "repo": "nova-rio",
-        "rev": "db871376ce4f5b8c8908fa750667cf661c573a51",
+        "rev": "bdf8e51d673da634582cf2b54ad5d19479cb6b39",
         "type": "github"
       }
     },

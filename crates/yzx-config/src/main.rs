@@ -311,7 +311,13 @@ mod tests {
             ("window.blur", json!("invalid")),
             ("force-theme", json!("dark")),
         ] {
-            assert!(file_actions::write_source_field(&paths, SOURCE_RIO, field, &value).is_err());
+            let rejected = file_actions::write_source_field(&paths, SOURCE_RIO, field, &value)
+                .unwrap_err()
+                .to_string();
+            assert!(
+                !rejected.contains("untouched = 42"),
+                "invalid edits must not dump unrelated config: {rejected}"
+            );
             assert_eq!(fs::read_to_string(&paths.rio).unwrap(), edited);
         }
         file_actions::write_source_default(&paths, SOURCE_RIO, "window.blur").unwrap();
