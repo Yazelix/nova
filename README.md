@@ -188,10 +188,10 @@ Yazi, the menu, and Anima use their initials:
 - `Alt Shift Y` toggles the full Yazi popup.
 - `Alt Shift M` toggles the command menu.
 - `Alt Shift A` opens a transient random visual popup named `anima`.
-  In native animations, `Left`/`h`/`p` selects previous and
-  `Right`/`l`/`n` selects next; any other key exits. Other styles exit on any
-  key. This is not a session lock. Set `keybindings.screen` to remap or unmap
-  it for newly launched sessions.
+  In animations, including Aquarium, `Left`/`h`/`p` selects previous and
+  `Right`/`l`/`n` selects next; any other key exits. Static and logo exit on any
+  key. Switching preserves the original welcome timer. This is not a session
+  lock. Set `keybindings.screen` to remap or unmap it for newly launched sessions.
 
 Run `yzx anima plasma` for flowing color fields, `yzx anima chladni` for geometric
 nodal patterns, or `yzx anima physarum` for trail networks. All three work as
@@ -527,10 +527,10 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **28,103 lines** of tracked text project files. The
+Yazelix owns **28,110 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
-This is 598 lines above the pre-Rio fork surface. The current surface
+This is 605 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.8.15 and its one-use picker, Forest and the
 configurable Radar-default sidebar, portable Codex hook onboarding, the
@@ -560,3 +560,5 @@ Anima 0.2.0 uses its named executable; Plasma adds one welcome choice and a pari
 check, while animation rendering and fading cards remain in the child.
 The card-corner correction stays in Anima; Nova only pins and documents it.
 Random eligibility stays in Anima; Nova consumes its pool without another list.
+Aquarium browsing and child cleanup stay in Anima and its separately packaged
+Aquarium fork; Nova pins them and checks the advertised navigation capability.

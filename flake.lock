@@ -3,17 +3,17 @@
     "asciiquarium": {
       "flake": false,
       "locked": {
-        "lastModified": 1785125952,
-        "narHash": "sha256-IEq6FkaM0ljW2uUtpBqNO84b4gd2W4WuJmVoWMFHGlw=",
-        "owner": "cablehead",
+        "lastModified": 1788644100,
+        "narHash": "sha256-+YTR7rJKiBYo7lFFgXsucrDHs6YuJNlBcS2zTMKH558=",
+        "owner": "Yazelix",
         "repo": "asciiquarium-rs",
-        "rev": "beef5b7dae179937c67f9e1557e02d64be55fa71",
+        "rev": "26e06268d24cd6c31b5d2b88d0eea2ed565f73a1",
         "type": "github"
       },
       "original": {
-        "owner": "cablehead",
+        "owner": "Yazelix",
         "repo": "asciiquarium-rs",
-        "rev": "beef5b7dae179937c67f9e1557e02d64be55fa71",
+        "rev": "26e06268d24cd6c31b5d2b88d0eea2ed565f73a1",
         "type": "github"
       }
     },
@@ -882,11 +882,11 @@
         "recording-mars": "recording-mars"
       },
       "locked": {
-        "lastModified": 1788642442,
-        "narHash": "sha256-OAYh/KmOPOK1M3JM+h9VaMC9R5gjoxgzECrt+xI7B/g=",
+        "lastModified": 1788644925,
+        "narHash": "sha256-odBt8IQD3f8h6fAvTAmKB3yJMwJmezuJGZyi7J+f5Mc=",
         "owner": "Yazelix",
         "repo": "anima",
-        "rev": "0f454b800fd76845c1f04c604f7047e565aec935",
+        "rev": "42e79b74d639ace9aef4703b45ea13ceec18a94f",
         "type": "github"
       },
       "original": {

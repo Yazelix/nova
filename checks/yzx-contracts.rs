@@ -290,6 +290,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "random",
         "--cell-style",
         "--duration-seconds",
+        "Animations, including Aquarium: Left/h/p = previous; Right/l/n = next",
     }
     let temp = TempDir::new();
     let styles = anima_help.split_once("Styles:\n").unwrap().1;

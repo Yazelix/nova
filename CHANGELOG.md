@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Aquarium joins Anima's previous/next cycle before Boids: Predator. Arrow keys,
+  `h`/`l`, and `p`/`n` cross between Aquarium and native animations in the CLI,
+  welcome, and popup without restarting the welcome timer. Anima keeps one
+  terminal screen open and reaps the external Aquarium process on each handoff.
+
 - Ratconfig's Rio tab edits eight common native settings using the pinned Rio
   executable's inventory, defaults, and validation. Edits preserve unrelated
   values and comments; resets remove overrides. Validation errors show the failing
