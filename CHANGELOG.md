@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The existing `zjstatus::notify::<message>` pipe renders a five-second notice
+  over the active tab's top-right bar corner. Notices replace each other without
+  adding panes, moving focus, reflowing tabs, or leaking into another tab.
+
 - `appearance.straight_border_style` selects single or double pane borders for
   new sessions while preserving Zellij's native `rounded_corners` setting.
   Rounded corners take precedence, and the fork-only value exists only in

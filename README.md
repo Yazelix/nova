@@ -276,6 +276,11 @@ and forward mouse input without rebuilding the widget tray. They render from the
 first ordered state snapshot in a new tab. Command-backed status widgets show
 compact loading placeholders immediately, then replace each placeholder as its
 result arrives.
+The same controller composes transient notifications only into the bar frame of
+the tab that was active when they arrived. Each notice covers the top-right
+corner for five seconds, replacing the version badge without adding a pane,
+moving focus, or changing bar layout. A later notice replaces the current one
+and restarts its deadline.
 When tabs need room, widgets disappear from left to right while the surviving
 suffix stays anchored. The version badge remains in the corner until the other
 widgets are gone, then yields before native tab labels are shortened.
@@ -602,11 +607,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **30,639 lines** of tracked text project files. The
+Yazelix owns **30,648 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,735 lines above the pre-Rio fork surface. The current surface
+This is 2,744 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
 crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, Forest and the configurable Radar-default sidebar,
@@ -637,8 +642,8 @@ evaluation and native Linux/Darwin release builds of existing Home Manager check
 Darwin uses cached stages and isolated test directories; Radar layout strings parse cleanly in Lix.
 Home Manager installation guidance explains cache setup and dependency overrides.
 Radar owns the 30-minute transition from a smooth spinner to static yellow `⠿`;
-one session controller now supplies the complete bar to lightweight per-tab
-views, and Nova pins the child artifact.
+one session controller now supplies the complete bar and transient notices to
+lightweight per-tab views, and Nova pins the child artifact.
 The activity cleanup lives in the child repositories; their deletions are
 outside this score. Nova's root straight-border choice renders in the Zellij fork.
 Tabs-first bar fitting and uncapped eligibility live in Nova Bar and zjstatus.
