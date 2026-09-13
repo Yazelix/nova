@@ -3,6 +3,7 @@ use ratconfig::DEFAULT_CONFIG_SOURCE_ID;
 pub(crate) const DEFAULT_CONFIG_TOML: &str = include_str!("../../../defaults/config.toml");
 
 pub(crate) const APPEARANCE_MODE_PATH: &str = "appearance.mode";
+pub(crate) const STRAIGHT_BORDER_STYLE_PATH: &str = "appearance.straight_border_style";
 pub(crate) const OPEN_LOG_LEVEL_PATH: &str = "open.log_level";
 pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
 pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
@@ -63,6 +64,7 @@ pub(crate) const BAR_WIDGET_VALUES: &[&str] = &[
 ];
 pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     APPEARANCE_MODE_PATH,
+    STRAIGHT_BORDER_STYLE_PATH,
     SHELL_PROGRAM_PATH,
     SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
@@ -227,6 +229,16 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "live/next session",
         apply_detail: "Inside a managed session, writable Rio config lets the integrated appearance switch live. Outside one, or with Home Manager-owned or read-only Rio config, the saved mode applies coherently in the next session.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::string_choice(
+            STRAIGHT_BORDER_STYLE_PATH,
+            "Single or double Zellij pane borders when native rounded corners are disabled.",
+            &["single", "double"],
+            "single or double",
+        ),
+        apply_summary: "next session",
+        apply_detail: "Saved straight-border style applies to newly launched Yazelix sessions. Zellij's native rounded_corners setting takes precedence when enabled.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

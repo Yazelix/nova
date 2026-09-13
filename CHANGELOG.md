@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `appearance.straight_border_style` selects single or double pane borders for
+  new sessions while preserving Zellij's native `rounded_corners` setting.
+  Rounded corners take precedence, and the fork-only value exists only in
+  generated runtime configuration.
+
 - New tabs open a fast zoxide search first. `Enter` opens only a selected
   directory, while `Tab` toggles into full Yazi and back without losing Yazi's
   current directory; both views show their active keys in a local footer.

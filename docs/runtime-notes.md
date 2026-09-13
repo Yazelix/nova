@@ -90,6 +90,9 @@ continuity contract. Yazelix adds no registry or second session owner.
 `zellij/config.kdl` is a guarded sidecar for scalar preferences such as paired
 dark/light themes, pane frames, mouse mode, scrollback size, copy behavior,
 styled underlines, startup tips, and `ui.pane_frames.rounded_corners`.
+Nova's root `appearance.straight_border_style` setting independently selects
+single or double glyphs when those native rounded corners are disabled. Only
+the generated runtime KDL receives the fork extension.
 Ratconfig uses the same 41 identities from the pinned Zellij assets for both
 theme fields, with a flake check keeping the inventory aligned. The inherited
 pair is `theme_dark "ansi"` and `theme_light "gruvbox-light"`; resetting a

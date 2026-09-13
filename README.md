@@ -535,6 +535,11 @@ same mode to the top bar, which switches between its internal dark and light
 palettes. Bars loaded by new tabs immediately inherit the session's current
 mode, including after a live switch.
 
+`appearance.straight_border_style` selects `single` or `double` pane borders
+for new sessions. Zellij's native `rounded_corners` setting remains in its
+portable sidecar and takes precedence when enabled. Nova writes the fork-only
+style only to generated runtime configuration.
+
 Each new managed Yazi reads the active session mode. Ratconfig offers separate
 packaged dark and light flavor pools from Yazi Bistro; user-installed
 unclassified flavors appear in both. `default` is the first dark choice and
@@ -597,11 +602,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **30,514 lines** of tracked text project files. The
+Yazelix owns **30,639 lines** of tracked text project files. The
 [reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
 lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,610 lines above the pre-Rio fork surface. The current surface
+This is 2,735 lines above the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.45.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
 crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, Forest and the configurable Radar-default sidebar,
@@ -635,7 +640,7 @@ Radar owns the 30-minute transition from a smooth spinner to static yellow `⠿`
 one session controller now supplies the complete bar to lightweight per-tab
 views, and Nova pins the child artifact.
 The activity cleanup lives in the child repositories; their deletions are
-outside this score. Nova's additions document the 1.3 candidate and its checks.
+outside this score. Nova's root straight-border choice renders in the Zellij fork.
 Tabs-first bar fitting and uncapped eligibility live in Nova Bar and zjstatus.
 Nova documents left-to-right widget removal, checks segments and pins both children.
 Hidden widget updates remain owned by zjstatus; Nova pins the corrected child.

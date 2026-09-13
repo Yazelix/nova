@@ -52,6 +52,7 @@ pub(crate) fn active_zellij_config(
     layout: &Path,
     popup_side_margin: &str,
     popup_vertical_margin: &str,
+    straight_border_style: &str,
     managed_keybindings: &[ManagedKeybinding],
     agent_popup_kdl: &str,
     custom_popups_kdl: &str,
@@ -73,6 +74,7 @@ pub(crate) fn active_zellij_config(
         ));
     }
     patched = replaced;
+    patched = patch_straight_border_style(patched, &config, straight_border_style)?;
     if layout != Path::new(LAYOUT) {
         let packaged_layout_dir = parent(Path::new(LAYOUT));
         let active_layout_dir = parent(layout);
@@ -258,6 +260,54 @@ fn patch_popup_default_margins(
             "        popup_defaults {{\n            side_margin {side_margin}\n            left_margin 33\n            vertical_margin {vertical_margin}\n        }}",
         ),
         1,
+    ))
+}
+
+fn patch_straight_border_style(
+    text: String,
+    config: &Path,
+    style: &str,
+) -> Result<String, AppError> {
+    match style {
+        "single" => return Ok(text),
+        "double" => (),
+        _ => {
+            return Err(startup(
+                format!("unsupported straight border style `{style}`"),
+                config.display(),
+                1,
+            ));
+        }
+    }
+
+    let mut depth = 0isize;
+    let mut in_ui = false;
+    let mut offset = 0usize;
+    for line in text.split_inclusive('\n') {
+        let code = zellij_code_before_comment(line);
+        let delta = zellij_brace_delta(line);
+        if depth == 0 && first_token(code) == Some("ui") && delta > 0 {
+            in_ui = true;
+        } else if in_ui && depth == 1 && first_token(code) == Some("pane_frames") && delta > 0 {
+            let insertion = offset + line.len();
+            let indent = &line[..line.len() - line.trim_start().len()];
+            return Ok(format!(
+                "{}{}    straight_border_style \"double\"\n{}",
+                &text[..insertion],
+                indent,
+                &text[insertion..]
+            ));
+        }
+        depth += delta;
+        if in_ui && depth == 0 {
+            in_ui = false;
+        }
+        offset += line.len();
+    }
+
+    Ok(format!(
+        "{}\nui {{\n    pane_frames {{\n        straight_border_style \"double\"\n    }}\n}}\n",
+        text.trim_end()
     ))
 }
 
@@ -707,5 +757,28 @@ mod tests {
         }
         assert!(!patched.contains("__YZX_MANAGED_KEY_"));
         assert!(!patched.contains("Ctrl Shift E"));
+    }
+
+    #[test]
+    fn straight_border_style_preserves_native_rounded_configuration() {
+        let patch = |text: &str, style| match patch_straight_border_style(
+            text.to_string(),
+            Path::new("config.kdl"),
+            style,
+        ) {
+            Ok(patched) => patched,
+            Err(_) => panic!("straight border patch failed"),
+        };
+        let native = "ui {\n    pane_frames {\n        rounded_corners true\n    }\n}\n";
+        assert_eq!(
+            patch(native, "double"),
+            "ui {\n    pane_frames {\n        straight_border_style \"double\"\n        rounded_corners true\n    }\n}\n"
+        );
+        assert_eq!(patch(native, "single"), native);
+
+        let appended = patch("pane_frames true\n", "double");
+        assert!(appended.ends_with(
+            "ui {\n    pane_frames {\n        straight_border_style \"double\"\n    }\n}\n"
+        ));
     }
 }

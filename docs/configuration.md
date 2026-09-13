@@ -55,6 +55,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | Field | Default | View | Meaning |
 | --- | --- | --- | --- |
 | `appearance.mode` | `dark` | Overview | Shared dark/light appearance and Ratconfig palette |
+| `appearance.straight_border_style` | `single` | Overview | Single or double Zellij pane borders when native rounded corners are disabled |
 | `open.log_level` | `info` | All | Diagnostics for managed Yazi open requests: `off`, `error`, `info`, `debug` |
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
@@ -465,6 +466,12 @@ cannot be projected. Zellij sidecar saves and resets still update the active
 managed session when `yzx config` runs inside it. Pane frames, rounded corners,
 copy-on-select, and clipboard target apply via the Zellij watcher; mouse mode,
 scrollback size, styled underlines, and startup tips need a new session.
+
+Root `appearance.straight_border_style` selects `single` or `double` for new
+sessions when Zellij's native `ui.pane_frames.rounded_corners` value is false.
+Rounded corners take precedence when enabled. Nova adds the fork-only setting
+to generated runtime KDL only for `double`; the editable Zellij sidecar retains
+stock Zellij syntax and remains portable.
 
 ## Editor and file opens
 

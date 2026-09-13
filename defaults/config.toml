@@ -4,6 +4,8 @@
 [appearance]
 # Product appearance projected to managed components.
 mode = "dark"
+# Line style used when Zellij's native rounded_corners setting is false.
+straight_border_style = "single"
 
 [open]
 # yzx-open diagnostics: off, error, info, or debug.

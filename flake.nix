@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/39d174558ca940013817c424d3ace45a3ac400d2";
+      url = "github:Yazelix/nova-zellij/4b8df51e07e935b4699b813c33b1a1f2bdcf7b31";
       flake = false;
     };
     yazelixHelix = {
@@ -1138,6 +1138,7 @@
         programs.yazelix.config = {
           settings = {
             appearance.mode = "light";
+            appearance.straight_border_style = "double";
             shell.program = "fish";
             welcome.enabled = false;
             keybindings.config = "Alt Shift C";
@@ -1211,6 +1212,7 @@
         fi
         grep -q 'program = "fish"' "$config_files/config.toml"
         grep -q 'mode = "light"' "$config_files/config.toml"
+        grep -q 'straight_border_style = "double"' "$config_files/config.toml"
         ! grep -q 'command = "yzx-hx"' "$config_files/config.toml"
         grep -q 'enabled = false' "$config_files/config.toml"
         ! grep -q 'style = "random"' "$config_files/config.toml"
@@ -1230,6 +1232,7 @@
         esac
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get shell.program)" = fish
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get appearance.mode)" = light
+        test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get appearance.straight_border_style)" = double
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get editor.command)" = yzx-hx
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get agent.command)" = auto
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get agent.args)" = "[]"
@@ -1289,6 +1292,8 @@
         grep -q 'welcome enabled: false' status
         grep -q 'layout: runtime (' status
         grep -q 'host_theme_mode "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        grep -q 'straight_border_style "double"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        "${yzx}/bin/yzx-zellij" --config "$YAZELIX_STATE_DIR/zellij/config.kdl" setup --check >/dev/null
         grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'Yazelix Nova doctor' doctor
         grep -q 'ok    Configuration    settings valid' doctor

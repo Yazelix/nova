@@ -1393,6 +1393,12 @@ mod tests {
         assert_eq!(choice_values(appearance), [&json!("dark"), &json!("light")]);
         assert_eq!(appearance.apply_status.summary, "live/next session");
         assert_eq!(appearance.apply_status.label, "runtime");
+        let straight_borders = model_field(&model, STRAIGHT_BORDER_STYLE_PATH);
+        assert_config_field(&model, STRAIGHT_BORDER_STYLE_PATH, "string", "next session");
+        assert_eq!(
+            choice_values(straight_borders),
+            [&json!("single"), &json!("double")]
+        );
         let theme_switcher = model.theme_switcher.as_ref().expect("theme switcher");
         assert_eq!(theme_switcher.field.source_id, SOURCE_CONFIG);
         assert_eq!(theme_switcher.field.path, APPEARANCE_MODE_PATH);
@@ -1471,6 +1477,7 @@ mod tests {
             root_recommended,
             [
                 APPEARANCE_MODE_PATH,
+                STRAIGHT_BORDER_STYLE_PATH,
                 SHELL_PROGRAM_PATH,
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,

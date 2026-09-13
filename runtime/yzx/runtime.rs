@@ -247,6 +247,11 @@ impl Runtime {
         let configured_appearance =
             trim_output(config_value(&config_home, &config_toml, "appearance.mode")?);
         let appearance_mode = current_appearance_mode(configured_appearance, new_session);
+        let straight_border_style = trim_output(config_value(
+            &config_home,
+            &config_toml,
+            "appearance.straight_border_style",
+        )?);
         let bar_widgets = trim_output(config_value(&config_home, &config_toml, "bar.widgets")?);
         let popup_side_margin = trim_output(config_value(
             &config_home,
@@ -300,6 +305,7 @@ impl Runtime {
             &layout,
             &popup_side_margin,
             &popup_vertical_margin,
+            &straight_border_style,
             &managed_keybindings,
             &agent_popup_kdl,
             &custom_popups_kdl,
