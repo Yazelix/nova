@@ -6,7 +6,7 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - `Ctrl Alt j` and `Ctrl Alt k` move work panes circularly. Wrapping keeps the
   top bar, Radar, sidebars, and the bottom status bar fixed. Rapid opposite
-  moves are applied in order instead of losing the second key press.
+  moves remain responsive while Zellij's reported pane order catches up.
 
 - The configured session widget renders from Zellij's current-session snapshot
   when the initial mode event omits the session name.
