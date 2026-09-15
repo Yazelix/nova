@@ -302,6 +302,7 @@ impl Runtime {
             zellij_config_source,
             PathBuf::from(YZX_CONFIG_KDL),
             zellij_text,
+            &appearance_mode,
             &layout,
             &popup_side_margin,
             &popup_vertical_margin,

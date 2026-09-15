@@ -6,6 +6,7 @@ pane_frame_style "full"
 stacked_pane_list false
 theme_dark "ansi"
 theme_light "gruvbox-light"
+explicit_theme_hue "dark"
 
 plugins {
     yzpp location="@yzpp@" {

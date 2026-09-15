@@ -1,14 +1,14 @@
 use std::{env, ffi::OsString, path::Path, process::Command};
 
 use crate::{
-    command::{exec, run_checked, trim_output},
-    doctor::print_doctor,
-    error::{startup, AppError},
-    paths::{enter_terminal_label, nonempty_env, runtime_path},
-    runtime::{current_appearance_mode, Runtime},
-    status::{print_status, print_status_json},
     RIO, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
     YZX_SHELL, YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_YAZI_CONFIG, YZX_YAZI_MATERIALIZER, ZELLIJ,
+    command::{exec, run_checked, trim_output},
+    doctor::print_doctor,
+    error::{AppError, startup},
+    paths::{enter_terminal_label, nonempty_env, runtime_path},
+    runtime::{Runtime, current_appearance_mode},
+    status::{print_status, print_status_json},
 };
 
 pub(crate) fn run() -> Result<(), AppError> {
@@ -215,7 +215,6 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
     } else {
         command.arg(ZELLIJ);
     }
-    apply_zellij_launch_theme_mode(&mut command, &runtime.appearance_mode);
     command
         .arg("--config")
         .arg(&runtime.zellij_config)
@@ -283,26 +282,12 @@ fn apply_rio_launch_appearance(command: &mut Command, mode: &str, live: bool) {
     command.arg("-e");
 }
 
-fn apply_zellij_launch_theme_mode(command: &mut Command, mode: &str) {
-    command.arg("--theme-mode").arg(mode);
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn managed_launch_theme_modes_are_explicit() {
-        let mut zellij = Command::new(ZELLIJ);
-        apply_zellij_launch_theme_mode(&mut zellij, "light");
-        assert_eq!(
-            zellij
-                .get_args()
-                .map(|arg| arg.to_string_lossy().into_owned())
-                .collect::<Vec<_>>(),
-            ["--theme-mode", "light"]
-        );
-
+    fn managed_rio_launch_theme_modes_are_explicit() {
         let mut rio = Command::new(RIO);
         apply_rio_launch_appearance(&mut rio, "light", false);
         assert_eq!(

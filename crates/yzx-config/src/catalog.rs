@@ -445,6 +445,7 @@ pub(crate) const ZELLIJ_FORBIDDEN_TOP_LEVEL: &[&str] = &[
     "layout_dir",
     "layout",
     "support_kitty_keyboard_protocol",
+    "explicit_theme_hue",
     "env",
     "session_name",
     "attach_to_session",

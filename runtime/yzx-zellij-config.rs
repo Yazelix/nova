@@ -14,6 +14,7 @@ const FORBIDDEN: &[&str] = &[
     "plugins",
     "load_plugins",
     "support_kitty_keyboard_protocol",
+    "explicit_theme_hue",
     "env",
     "session_name",
     "attach_to_session",

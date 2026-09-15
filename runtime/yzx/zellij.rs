@@ -49,6 +49,7 @@ pub(crate) fn active_zellij_config(
     source: &'static str,
     config: PathBuf,
     text: String,
+    appearance_mode: &str,
     layout: &Path,
     popup_side_margin: &str,
     popup_vertical_margin: &str,
@@ -74,6 +75,7 @@ pub(crate) fn active_zellij_config(
         ));
     }
     patched = replaced;
+    patched = patch_explicit_theme_hue(patched, &config, appearance_mode)?;
     patched = patch_straight_border_style(patched, &config, straight_border_style)?;
     if layout != Path::new(LAYOUT) {
         let packaged_layout_dir = parent(Path::new(LAYOUT));
@@ -137,6 +139,26 @@ pub(crate) fn active_zellij_config(
             "runtime"
         },
         runtime_config,
+    ))
+}
+
+fn patch_explicit_theme_hue(
+    text: String,
+    config: &Path,
+    appearance_mode: &str,
+) -> Result<String, AppError> {
+    let marker = r#"explicit_theme_hue "dark""#;
+    if !text.contains(marker) {
+        return Err(startup(
+            "Zellij config is missing the managed explicit theme hue",
+            config.display(),
+            1,
+        ));
+    }
+    Ok(text.replacen(
+        marker,
+        &format!("explicit_theme_hue {}", kdl_string(appearance_mode)),
+        1,
     ))
 }
 
@@ -693,6 +715,20 @@ fn kdl_string(value: impl Display) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn appearance_mode_sets_upstream_zellij_theme_hue() {
+        let config = Path::new("config.kdl");
+        let text = "theme_dark \"ansi\"\nexplicit_theme_hue \"dark\"\n".to_string();
+        let patched = match patch_explicit_theme_hue(text, config, "light") {
+            Ok(patched) => patched,
+            Err(_) => panic!("explicit theme hue patch failed"),
+        };
+        assert_eq!(
+            patched,
+            "theme_dark \"ansi\"\nexplicit_theme_hue \"light\"\n"
+        );
+    }
 
     #[test]
     fn managed_key_patch_remaps_active_bindings_and_omits_unmapped_nodes() {

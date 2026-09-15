@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Nova rebuilds its Zellij fork on upstream 0.46.0 and writes `appearance.mode`
+  to upstream's `explicit_theme_hue`, replacing the fork-only startup flag while
+  preserving automatic and manually selected light or dark appearances.
+
 - The existing `zjstatus::notify::<message>` pipe renders a five-second notice
   over the active tab's top-right bar corner. Notices replace each other without
   adding panes, moving focus, reflowing tabs, or leaking into another tab.

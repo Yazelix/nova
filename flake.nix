@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/4b8df51e07e935b4699b813c33b1a1f2bdcf7b31";
+      url = "github:Yazelix/nova-zellij/5bcbddd45ae65220f047caacace9f7fc25df7513";
       flake = false;
     };
     yazelixHelix = {
@@ -601,7 +601,7 @@
         else throw "Yazelix Nova requires an unwrapped nixpkgs Zellij build recipe";
       yazelixZellijPackage = zellijBuildBase.overrideAttrs (_old: {
         pname = "zellij";
-        version = "0.45.0";
+        version = "0.46.0";
         src = yazelixZellij;
         patches = [];
         prePatch = "";
@@ -618,9 +618,9 @@
         '';
         cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
           pname = "zellij";
-          version = "0.45.0";
+          version = "0.46.0";
           src = yazelixZellij;
-          hash = "sha256-ZwxoqdZ73/HvdkdNWOKW3Av6htI/vCFcJ0zVpSL1SuU=";
+          hash = "sha256-lOwmzZZPjit1Hh7/TFZEuUcqBKdZGtvoKT6u6nNxm+Y=";
         };
         doCheck = false;
       });
@@ -1292,6 +1292,7 @@
         grep -q 'welcome enabled: false' status
         grep -q 'layout: runtime (' status
         grep -q 'host_theme_mode "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        grep -q 'explicit_theme_hue "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'straight_border_style "double"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         "${yzx}/bin/yzx-zellij" --config "$YAZELIX_STATE_DIR/zellij/config.kdl" setup --check >/dev/null
         grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$YAZELIX_STATE_DIR/zellij/config.kdl"
