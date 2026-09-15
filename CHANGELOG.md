@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `Ctrl Alt j` and `Ctrl Alt k` move work panes circularly. Wrapping keeps the
+  top bar, Radar, sidebars, and the bottom status bar fixed.
+
 - Nova rebuilds its Zellij fork on upstream 0.46.0 and writes `appearance.mode`
   to upstream's `explicit_theme_hue`, replacing the fork-only startup flag while
   preserving automatic and manually selected light or dark appearances.

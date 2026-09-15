@@ -179,8 +179,8 @@ keybinds {
         bind "Ctrl Alt g" { SwitchToMode "Locked"; }
         bind "Ctrl q" { Quit; }
         bind "Ctrl Alt h" { MoveTab "Left"; }
-        bind "Ctrl Alt j" { MovePane "Down"; }
-        bind "Ctrl Alt k" { MovePane "Up"; }
+        bind "Ctrl Alt j" { MessagePlugin "yazelix_pane_orchestrator" { name "move_pane_down"; }; }
+        bind "Ctrl Alt k" { MessagePlugin "yazelix_pane_orchestrator" { name "move_pane_up"; }; }
         bind "Ctrl Alt l" { MoveTab "Right"; }
     }
     shared_except "pane" "locked" {

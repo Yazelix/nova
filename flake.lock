@@ -685,11 +685,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789214182,
-        "narHash": "sha256-gdDwv7YHeQVrnv05fWvFT63tjYzudiFdGexNsRqmeMI=",
+        "lastModified": 1789454929,
+        "narHash": "sha256-lPxqC81+mVqJR+8ZP2gXEHgiT+rqGsDW5mjU9Hxj4TM=",
         "owner": "Yazelix",
         "repo": "zellij-pane-orchestrator",
-        "rev": "0c1076bf8050e71696683831897b9503e3844322",
+        "rev": "0e196836e2f15c117193ddfab8f7febd65a142cd",
         "type": "github"
       },
       "original": {
