@@ -71,6 +71,9 @@ input to exercise the quick-search/Yazi toggle, retained browse location,
 successful handoff, exact later-tab cancellation, and sole-tab session exit on a
 private X display. Shared acceptance still requires Darwin Package Smoke on the
 exact revision; macOS interaction remains unverified.
+The Linux-only `pane_move_ordering` check uses the same private display to verify
+circular work-pane movement, rapid opposite moves and fixed UI panes through
+packaged Rio and Zellij.
 
 ## Edge, main, and stable
 

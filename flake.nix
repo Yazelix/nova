@@ -1712,6 +1712,24 @@
           ${pkgs.coreutils}/bin/timeout --kill-after=10s 75s ${proof}/bin/nova-startup-picker-cancellation-check
           touch "$out"
         '';
+      pane_move_ordering = let
+        proof = kinestra.lib.${system}.mkRecorder {
+          name = "nova-pane-move-ordering-check";
+          recipe = ./checks/pane-move-ordering.rs;
+          runtimeInputs = [pkgs.jq pkgs.mesa];
+          environment = {
+            YZX_BIN = "${yzx}/bin/yzx";
+            ZELLIJ_BIN = "${yzx}/bin/yzx-zellij";
+            RIO_BIN = "${rioPackage}/bin/rio";
+            JQ_BIN = "${pkgs.jq}/bin/jq";
+            VK_ADD_DRIVER_FILES = "${pkgs.mesa}/share/vulkan/icd.d";
+          };
+        };
+      in
+        pkgs.runCommand "nova-pane-move-ordering-check" {} ''
+          ${pkgs.coreutils}/bin/timeout --kill-after=10s 75s ${proof}/bin/nova-pane-move-ordering-check
+          touch "$out"
+        '';
     });
 
     apps = eachSystem (system:

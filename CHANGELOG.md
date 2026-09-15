@@ -5,7 +5,11 @@ User-visible runtime changes for Yazelix Nova live here.
 ## Unreleased
 
 - `Ctrl Alt j` and `Ctrl Alt k` move work panes circularly. Wrapping keeps the
-  top bar, Radar, sidebars, and the bottom status bar fixed.
+  top bar, Radar, sidebars, and the bottom status bar fixed. Rapid opposite
+  moves are applied in order instead of losing the second key press.
+
+- The configured session widget renders from Zellij's current-session snapshot
+  when the initial mode event omits the session name.
 
 - Nova rebuilds its Zellij fork on upstream 0.46.0 and writes `appearance.mode`
   to upstream's `explicit_theme_hue`, replacing the fork-only startup flag while
