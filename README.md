@@ -608,11 +608,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **25,790 code/configuration lines** and **5,188 documentation/text
+Yazelix owns **25,790 code/configuration lines** and **5,200 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,215 code/configuration lines and 1,258 documentation/text lines above
+This is 2,215 code/configuration lines and 1,270 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty

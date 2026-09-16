@@ -596,10 +596,16 @@ platform-neutral documentation or planning, or an optional capability that is
 unavailable or disabled on Darwin by contract. Record that boundary and reason,
 and keep shared flake evaluation green when the shared graph changes.
 
-After changing the flake runtime, keep the user's installed runtime current:
+After every successful push to `edge`, refresh the user's installed Edge
+dogfood profile:
 
 ```sh
-nix profile upgrade --refresh yazelix
+nix profile upgrade --refresh yazelix-edge
 ```
+
+Then verify with `nix profile list --json` that `yazelix-edge` resolves to the
+exact revision pushed. Report an upgrade or identity mismatch instead of
+treating it as current. Do not update the stable `yazelix` profile unless the
+user explicitly requests it.
 
 Do not launch GUI sessions unless the user asks or reports manual dogfooding.
