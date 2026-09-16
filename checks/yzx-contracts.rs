@@ -797,6 +797,16 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "forest keybinding: Ctrl Shift E",
         "zellij config: runtime (",
     }
+
+    let disabled_forest = RuntimeCase::new(&temp.path, "disabled-forest");
+    disabled_forest.write_default_config("\n[forest]\nenabled = false\n");
+    let status = disabled_forest.prepared_status(&yzx_bin, "disabled Forest status");
+    assert!(
+        !status.contains("forest keybinding:"),
+        "disabled Forest still reported a managed keybinding\n{}",
+        excerpt(&status)
+    );
+
     let custom_key_config = custom_keys.zellij_file("config.kdl");
     for (key, payload, default) in [
         ("Alt Shift C", "config", "Alt Shift K"),
@@ -1446,6 +1456,7 @@ fn expect_config_ui(yzx: &Path) {
         ("welcome.duration_seconds", "3"),
         ("popup.side_margin", "1"),
         ("popup.vertical_margin", "0"),
+        ("forest.enabled", "true"),
         ("forest.side", "right"),
         ("keybindings.config", "Alt Shift K"),
         ("keybindings.agent", "Alt Shift L"),

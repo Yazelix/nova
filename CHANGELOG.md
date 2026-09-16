@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `forest.enabled = false` starts managed Helix without Nova configuring or
+  opening Forest and without generating its focus binding. User Helix and Steel
+  configuration continues to load.
+
 - `Ctrl Alt j` and `Ctrl Alt k` move work panes circularly. Wrapping keeps the
   top bar, Radar, sidebars, and the bottom status bar fixed. Rapid opposite
   moves remain responsive while Zellij's reported pane order catches up.

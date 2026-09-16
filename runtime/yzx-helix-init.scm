@@ -29,15 +29,16 @@
       #f))
 
 (define yzx-forest-toggle-key (yzx-env-or-false "YAZELIX_FOREST_TOGGLE_KEY"))
-(forest-configure!
- (if (equal? (yzx-env-or-false "YAZELIX_FOREST_SIDE") "left") 'left 'right)
- #:ignore (list ".git" "target" ".direnv" "node_modules" "__pycache__" ".hg"))
-(when (string? yzx-forest-toggle-key)
-  (forest-set-toggle-key! yzx-forest-toggle-key))
-(enqueue-thread-local-callback
- (if (equal? (yzx-env-or-false "YAZELIX_FOREST_START_UNFOCUSED") "1")
-     (lambda () (forest-open #:focused #f))
-     forest-open))
+(when (not (equal? (yzx-env-or-false "YAZELIX_FOREST_ENABLED") "false"))
+  (forest-configure!
+   (if (equal? (yzx-env-or-false "YAZELIX_FOREST_SIDE") "left") 'left 'right)
+   #:ignore (list ".git" "target" ".direnv" "node_modules" "__pycache__" ".hg"))
+  (when (string? yzx-forest-toggle-key)
+    (forest-set-toggle-key! yzx-forest-toggle-key))
+  (enqueue-thread-local-callback
+   (if (equal? (yzx-env-or-false "YAZELIX_FOREST_START_UNFOCUSED") "1")
+       (lambda () (forest-open #:focused #f))
+       forest-open)))
 
 (define yzx-user-init (yzx-env-or-false "YAZELIX_HELIX_USER_STEEL_INIT"))
 (if (string? yzx-user-init) (load yzx-user-init) #f)

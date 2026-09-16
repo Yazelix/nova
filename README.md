@@ -473,9 +473,10 @@ inventories where the owner publishes one, and the strongest honest curated or
 observed inventory otherwise. Tabs whose Overview would hide fewer than three
 fields or less than one quarter of their inventory simply show All.
 
-Forest renders on the right by default so it occupies the edge opposite Radar.
-Set `forest.side` to `left` or `right`; the choice applies to newly launched
-managed Helix editors.
+Forest is enabled and renders on the right by default so it occupies the edge
+opposite Radar. Set `forest.enabled = false` to start managed Helix without
+Forest, or set `forest.side` to `left` or `right`; changes apply to newly
+launched managed Helix editors.
 
 Rio owns its complete native configuration at
 `~/.config/yazelix/rio/config.toml`. Yazelix seeds that file once. Ratconfig
@@ -607,14 +608,15 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **30,905 lines** of tracked text project files. The
-[reproducible scorecard](docs/development.md#loc-scorecard) excludes Beads,
-lockfiles, and binary assets.
+Yazelix owns **25,790 code/configuration lines** and **5,188 documentation/text
+lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
+Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 3,001 lines above the pre-Rio fork surface. The current surface
+This is 2,215 code/configuration lines and 1,258 documentation/text lines above
+the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
-crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, Forest and the configurable Radar-default sidebar,
+crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, optional Forest and the configurable Radar-default sidebar,
 portable Codex hook onboarding, the
 public Radar setup command, menu entry, recovery guidance and delegation checks,
 agent popup identity across runtime updates,

@@ -60,6 +60,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
+| `forest.enabled` | `true` | Overview | Show Nova's managed Forest file tree in Helix |
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
 | `sidebar.args` | `[]` | All | Arguments for a custom `sidebar.command` |

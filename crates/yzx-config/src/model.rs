@@ -77,7 +77,7 @@ pub(crate) fn build_model(paths: &ConfigPaths) -> Result<ConfigUiModel> {
             paths.helix_included
                 || !matches!(
                     spec.field.path,
-                    FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+                    FOREST_ENABLED_PATH | FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
                 )
         })
         .map(|spec| build_root_config_field(&config_active, &config_default, spec))

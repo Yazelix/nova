@@ -8,6 +8,7 @@ pub(crate) const OPEN_LOG_LEVEL_PATH: &str = "open.log_level";
 pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
 pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
 pub(crate) const EDITOR_COMMAND_PATH: &str = "editor.command";
+pub(crate) const FOREST_ENABLED_PATH: &str = "forest.enabled";
 pub(crate) const FOREST_SIDE_PATH: &str = "forest.side";
 pub(crate) const SIDEBAR_COMMAND_PATH: &str = "sidebar.command";
 pub(crate) const SIDEBAR_ARGS_PATH: &str = "sidebar.args";
@@ -68,6 +69,7 @@ pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     SHELL_PROGRAM_PATH,
     SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
+    FOREST_ENABLED_PATH,
     FOREST_SIDE_PATH,
     SIDEBAR_COMMAND_PATH,
     AGENT_COMMAND_PATH,
@@ -277,6 +279,14 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "new opens",
         apply_detail: "Saved editor command applies to newly launched managed Yazi opens.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::boolean(
+            FOREST_ENABLED_PATH,
+            "Show Nova's managed Forest file tree in Helix.",
+        ),
+        apply_summary: "next launch",
+        apply_detail: "Saved Forest enablement applies to newly launched managed Helix editors.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

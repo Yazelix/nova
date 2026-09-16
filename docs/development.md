@@ -295,28 +295,19 @@ validates the seeded config through the exact pinned Rio executable.
 
 ## LOC scorecard
 
-Counts **tracked text** project files. Excludes Beads state (`.beads/`),
-lockfiles (`*.lock`), and binary assets. New owned sources count automatically
-once committed
+Counts raw physical lines in tracked project files. **Code and configuration**
+includes every counted file except Markdown, plain-text inventories, and the
+license; those form **documentation and text**. Beads state (`.beads/`),
+lockfiles (`*.lock`), and binary assets are excluded. New owned files count
+automatically once committed. The pre-Rio baseline is `446d2e25`.
 
 ```sh
-git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | xargs wc -l
+git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -Ev '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
+git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
 ```
 
-| Language | Lines |
-| --- | ---: |
-| Ignore (`.gitignore`) | 19 |
-| License | 201 |
-| Markdown | 4900 |
-| JSON | 117 |
-| Nix | 1957 |
-| Shell | 126 |
-| YAML | 615 |
-| TOML | 547 |
-| KDL | 271 |
-| Nu | 14 |
-| Lua | 175 |
-| Rust | 21197 |
-| Text | 85 |
-| Python | 290 |
-| Total | 30514 |
+| Category | Current | Pre-Rio | Difference |
+| --- | ---: | ---: | ---: |
+| Code and configuration | 25,790 | 23,575 | +2,215 |
+| Documentation and text | 5,188 | 3,930 | +1,258 |
+| Total | 30,978 | 27,505 | +3,473 |

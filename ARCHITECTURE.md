@@ -140,6 +140,7 @@ in Overview. Absent optional leaves and unconfigured popup ids are not synthesiz
 | `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
 | `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
 | `editor.command` | executable string | `yzx-hx` | Yazi opens, config text edits, and Git clients | new opens |
+| `forest.enabled` | boolean | `true` | Nova-managed Forest lifecycle in managed Helix | next launch |
 | `forest.side` | string enum | `right` | Forest placement in managed Helix | next launch |
 | `agent.command` | executable string or `auto` | `auto` | Managed agent popup command | next launch |
 | `agent.args` | string array | `[]` | Arguments for a custom agent command | next launch |

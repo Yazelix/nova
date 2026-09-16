@@ -377,14 +377,16 @@ effective file is `${YAZELIX_STATE_DIR}/helix/config.toml`. Yazelix reserves
 A-r = ':sh yzx reveal "%{buffer_name}"'
 ```
 
-`keybindings.sidebar_focus` adds, remaps, or disables Nova's generated
-`:forest-open` binding and Forest's matching focus toggle. A user-owned Helix
-binding at the old key is preserved when Forest moves or is disabled. Managed
-Helix prepends the exact packaged Forest, notify, and glyph modules to
-`STEEL_SEARCH_PATHS`, opens Forest with the `forest.side` choice (`right` by
-default), and still loads user Steel initialization last. When managed Helix
-starts on one directory, Forest stays visible but unfocused so Helix's native
-directory picker owns input.
+`forest.enabled = false` omits Nova's generated `:forest-open` binding and skips
+Forest configuration and startup. Managed Helix and user Steel initialization
+still load. When Forest is enabled, `keybindings.sidebar_focus` adds, remaps, or
+disables its generated binding and matching focus toggle. A user-owned binding
+at the previous key remains when the managed binding is remapped or disabled.
+Managed Helix prepends the exact packaged Forest, notify, and glyph modules to
+`STEEL_SEARCH_PATHS`, opens Forest on the `forest.side` choice (`right` by
+default), and loads user Steel initialization last. When managed Helix starts on
+one directory, Forest stays visible but unfocused so Helix's native directory
+picker owns input.
 
 `helix/languages.toml` is loaded by the managed Helix config dir when present.
 `helix/helix.scm` and `helix/init.scm` load through a private

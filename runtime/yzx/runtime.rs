@@ -76,10 +76,12 @@ impl ManagedKeybinding {
 fn read_managed_keybindings(
     config_home: &Path,
     config_toml: &Path,
+    forest_enabled: bool,
 ) -> Result<Vec<ManagedKeybinding>, AppError> {
     MANAGED_KEYBINDING_SPECS
         .iter()
         .filter(|&&(_, path, _)| MANAGED_HELIX == "included" || path != "keybindings.sidebar_focus")
+        .filter(|&&(_, path, _)| forest_enabled || path != "keybindings.sidebar_focus")
         .map(|&(label, path, default)| {
             let configured = trim_output(config_value(config_home, config_toml, path)?);
             Ok(ManagedKeybinding {
@@ -263,7 +265,10 @@ impl Runtime {
             &config_toml,
             "popup.vertical_margin",
         )?);
-        let managed_keybindings = read_managed_keybindings(&config_home, &config_toml)?;
+        let forest_enabled =
+            trim_output(config_value(&config_home, &config_toml, "forest.enabled")?) == "true";
+        let managed_keybindings =
+            read_managed_keybindings(&config_home, &config_toml, forest_enabled)?;
         let custom_popups_kdl =
             config_value(&config_home, &config_toml, CUSTOM_POPUPS_KDL_CONFIG_PATH)?;
         let custom_popup_keybindings_kdl = config_value(

@@ -48,9 +48,14 @@ if [ "${YAZELIX_HELIX_BRIDGE:-1}" != 0 ]; then
 fi
 
 @mkdir@ -p "$YAZELIX_STATE_DIR"
+YAZELIX_FOREST_ENABLED="$(@yzxConfig@ --get forest.enabled)"
+export YAZELIX_FOREST_ENABLED
 YAZELIX_FOREST_SIDE="$(@yzxConfig@ --get forest.side)"
 export YAZELIX_FOREST_SIDE
-forest_keybinding="$(@yzxConfig@ --get keybindings.sidebar_focus)"
+forest_keybinding=false
+if [ "$YAZELIX_FOREST_ENABLED" = true ]; then
+  forest_keybinding="$(@yzxConfig@ --get keybindings.sidebar_focus)"
+fi
 YAZELIX_FOREST_TOGGLE_KEY="$(@yzxConfig@ --write-effective-helix-config "$packaged_helix_config" "$user_helix_config" "$helix_config_file" "$forest_keybinding")"
 if [ -n "$YAZELIX_FOREST_TOGGLE_KEY" ]; then
   export YAZELIX_FOREST_TOGGLE_KEY
@@ -63,7 +68,7 @@ if [ -n "$user_steel_dir" ]; then
   @ln@ -sf "$packaged_steel_dir/init.scm" "$steel_config_dir/init.scm"
 fi
 YAZELIX_FOREST_START_UNFOCUSED=
-if [ "$#" -eq 1 ] && [ -d "$1" ]; then
+if [ "$YAZELIX_FOREST_ENABLED" = true ] && [ "$#" -eq 1 ] && [ -d "$1" ]; then
   YAZELIX_FOREST_START_UNFOCUSED=1
 fi
 export YAZELIX_FOREST_START_UNFOCUSED

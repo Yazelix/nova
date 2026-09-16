@@ -22,6 +22,8 @@ atuin = true
 command = "yzx-hx"
 
 [forest]
+# Show Nova's managed Forest file tree in Helix.
+enabled = true
 # Side where Forest renders in managed Helix: left or right.
 side = "right"
 

@@ -4,7 +4,7 @@ mod support;
 
 use support::{
     RuntimeCase, TempDir, binary_text, embedded_store_path, excerpt, expect_contains, expect_order,
-    write_executable,
+    write_config_home, write_executable,
 };
 
 macro_rules! expect_contains_all {
@@ -34,6 +34,8 @@ fn expect_helix_wrapper(helix: &Path) {
     let context = format!("{} managed Helix wrapper", helix.display());
     expect_contains(&helix_script, "YAZELIX_HELIX_BRIDGE=1", &context);
     expect_contains(&helix_script, "STEEL_SEARCH_PATHS=", &context);
+    expect_contains(&helix_script, "--get forest.enabled", &context);
+    expect_contains(&helix_script, "export YAZELIX_FOREST_ENABLED", &context);
     expect_contains(&helix_script, "--get forest.side", &context);
     expect_contains(&helix_script, "export YAZELIX_FOREST_SIDE", &context);
 
@@ -96,6 +98,7 @@ fn expect_helix_wrapper(helix: &Path) {
         "forest/forest.scm",
         "forest-configure!",
         "forest-set-toggle-key!",
+        "YAZELIX_FOREST_ENABLED",
         "YAZELIX_FOREST_SIDE",
         "YAZELIX_FOREST_TOGGLE_KEY",
         "YAZELIX_FOREST_START_UNFOCUSED",
@@ -105,6 +108,8 @@ fn expect_helix_wrapper(helix: &Path) {
     expect_order(
         &helix_init,
         &[
+            "YAZELIX_FOREST_ENABLED",
+            "(forest-configure!",
             "(forest-set-toggle-key! yzx-forest-toggle-key)",
             "(enqueue-thread-local-callback",
             "(forest-open #:focused #f)",
@@ -268,6 +273,7 @@ fn expect_helix_wrapper_config_selection(helix_script: &str) {
 printf 'HELIX_STEEL_CONFIG=%s\\n' \"${HELIX_STEEL_CONFIG-}\" > \"$YZX_FAKE_HX_OUT\"\n\
 printf 'STEEL_SEARCH_PATHS=%s\\n' \"${STEEL_SEARCH_PATHS-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_USER_STEEL_INIT=%s\\n' \"${YAZELIX_HELIX_USER_STEEL_INIT-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
+printf 'YAZELIX_FOREST_ENABLED=%s\\n' \"${YAZELIX_FOREST_ENABLED-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_TOGGLE_KEY=%s\\n' \"${YAZELIX_FOREST_TOGGLE_KEY-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_START_UNFOCUSED=%s\\n' \"${YAZELIX_FOREST_START_UNFOCUSED-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_MANAGED_CONFIG_PATH=%s\\n' \"$YAZELIX_HELIX_MANAGED_CONFIG_PATH\" >> \"$YZX_FAKE_HX_OUT\"\n\
@@ -317,23 +323,16 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
         );
     }
 
-    for (name, root_config, expected_key, enabled) in [
+    for (name, root_config, expected_key) in [
         (
             "remapped-key",
             "[keybindings]\nsidebar_focus = \"Ctrl Shift E\"\n",
             "C-S-e",
-            true,
         ),
-        (
-            "disabled-key",
-            "[keybindings]\nsidebar_focus = false\n",
-            "",
-            false,
-        ),
+        ("disabled-key", "[keybindings]\nsidebar_focus = false\n", ""),
     ] {
         let home = temp.path.join(format!("{name}-config"));
-        fs::create_dir_all(&home).unwrap();
-        fs::write(home.join("config.toml"), root_config).unwrap();
+        write_config_home(&home, root_config);
         let state = temp.path.join(format!("{name}-state"));
         let output = run_helix_wrapper(
             &test_wrapper,
@@ -348,11 +347,39 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
             excerpt(&output)
         );
         let generated = fs::read_to_string(state.join("helix/config.toml")).unwrap();
-        assert_eq!(generated.contains(":forest-open"), enabled);
+        assert_eq!(generated.contains(":forest-open"), !expected_key.is_empty());
     }
 
     let picker_dir = temp.path.join("picker-dir");
     fs::create_dir(&picker_dir).unwrap();
+    let disabled_home = temp.path.join("disabled-forest-config");
+    write_config_home(&disabled_home, "[forest]\nenabled = false\n");
+    let disabled_helix = disabled_home.join("helix");
+    fs::create_dir(&disabled_helix).unwrap();
+    fs::write(disabled_helix.join("helix.scm"), ";; module\n").unwrap();
+    fs::write(disabled_helix.join("init.scm"), ";; init\n").unwrap();
+    let disabled_state = temp.path.join("disabled-forest-state");
+    let disabled = run_helix_wrapper(
+        &test_wrapper,
+        &disabled_home,
+        &disabled_state,
+        &temp.path.join("disabled-forest-output"),
+        &[picker_dir.as_path()],
+    );
+    expect_contains_all! {
+        &disabled, "disabled Forest Helix wrapper";
+        "YAZELIX_FOREST_ENABLED=false\n",
+        "YAZELIX_FOREST_TOGGLE_KEY=\n",
+        "YAZELIX_FOREST_START_UNFOCUSED=\n",
+        format!("YAZELIX_HELIX_USER_STEEL_INIT={}/init.scm\n", disabled_helix.display()),
+    }
+    assert!(
+        !fs::read_to_string(disabled_state.join("helix/config.toml"))
+            .unwrap()
+            .contains(":forest-open"),
+        "disabled Forest generated a managed binding"
+    );
+
     let file = temp.path.join("file.txt");
     fs::write(&file, "test\n").unwrap();
     for (name, target, expected) in [
@@ -431,6 +458,11 @@ fn expect_helix_wrapper_case(
             "YAZELIX_HELIX_USER_STEEL_INIT={expected_user_init}\n"
         )),
         "{name} Helix config selected the wrong user Steel init\n{}",
+        excerpt(&output)
+    );
+    assert!(
+        output.contains("YAZELIX_FOREST_ENABLED=true\n"),
+        "{name} Helix config passed the wrong default Forest enablement\n{}",
         excerpt(&output)
     );
     assert!(

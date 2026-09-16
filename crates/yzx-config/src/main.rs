@@ -429,7 +429,7 @@ mod tests {
         assert!(model.fields.iter().all(|field| {
             !matches!(
                 field.path.as_str(),
-                FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+                FOREST_ENABLED_PATH | FOREST_SIDE_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
             ) && !field.display_label.contains("Forest")
         }));
     }
@@ -870,6 +870,10 @@ mod tests {
             (
                 "[shell]\natuin = \"yes\"\n",
                 "shell.atuin must be true or false",
+            ),
+            (
+                "[forest]\nenabled = \"yes\"\n",
+                "forest.enabled must be true or false",
             ),
             (
                 "[forest]\nside = \"top\"\n",
@@ -1379,6 +1383,7 @@ mod tests {
                 encoding: ConfigUiTextEncoding::String
             }
         ));
+        assert_config_field(&model, FOREST_ENABLED_PATH, "boolean", "next launch");
         let forest_side = model_field(&model, FOREST_SIDE_PATH);
         assert_config_field(&model, FOREST_SIDE_PATH, "string", "next launch");
         assert_eq!(
@@ -1481,6 +1486,7 @@ mod tests {
                 SHELL_PROGRAM_PATH,
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
+                FOREST_ENABLED_PATH,
                 FOREST_SIDE_PATH,
                 SIDEBAR_COMMAND_PATH,
                 AGENT_COMMAND_PATH,
