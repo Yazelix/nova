@@ -608,11 +608,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **25,790 code/configuration lines** and **5,200 documentation/text
+Yazelix owns **25,800 code/configuration lines** and **5,237 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,215 code/configuration lines and 1,270 documentation/text lines above
+This is 2,225 code/configuration lines and 1,307 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
@@ -642,7 +642,9 @@ Codeberg outages out of evaluation and builds; third-party sources stay in Helix
 The nixpkgs compatibility guard shares one reviewed pin between ordinary
 evaluation and native Linux/Darwin release builds of existing Home Manager checks.
 Darwin uses cached stages and isolated test directories; Radar layout strings parse cleanly in Lix.
-Home Manager installation guidance explains cache setup and dependency overrides.
+Home Manager installation guidance explains cache setup, dependency overrides,
+and the bounded settings-and-languages bridge; its existing module check proves
+both generated files arrive at Nova's managed Helix config paths.
 Radar owns the 30-minute transition from a smooth spinner to static yellow `⠿`;
 one session controller now supplies the complete bar and transient notices to
 lightweight per-tab views, and Nova pins the child artifact.

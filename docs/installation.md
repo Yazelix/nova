@@ -208,6 +208,41 @@ programs.yazelix.config = {
 };
 ```
 
+### Reuse an existing Home Manager Helix configuration
+
+Home Manager can render its evaluated Helix settings and language definitions
+directly into Nova's managed configuration directory:
+
+```nix
+{ config, pkgs, ... }:
+let
+  tomlFormat = pkgs.formats.toml { };
+  helix = config.programs.helix;
+in {
+  programs.yazelix = {
+    enable = true;
+    config.helix = {
+      config.source =
+        tomlFormat.generate "yazelix-helix-config.toml" helix.settings;
+      languages.source =
+        tomlFormat.generate "yazelix-helix-languages.toml" helix.languages;
+    };
+  };
+}
+```
+
+This reuses only `programs.helix.settings` and `programs.helix.languages`:
+
+- `programs.helix.extraConfig` is appended only to Home Manager's standard
+  `helix/config.toml`
+- `programs.helix.themes` stays in the standard `helix/themes` directory
+- `programs.helix.ignores` stays in the standard `helix/ignore` file
+- `programs.helix.extraPackages` extends the PATH of Home Manager's Helix
+  wrapper, not Nova's managed Helix
+
+Nova starts its managed Helix with `~/.config/yazelix/helix/` as the config
+directory, so configure any required equivalents there explicitly.
+
 `rio.source` replaces Nova's complete native Rio config. If that file uses
 `adaptive-theme`, install its referenced theme files under
 `~/.config/yazelix/rio/themes/` through Home Manager as well, for example with

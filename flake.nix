@@ -1086,10 +1086,6 @@
         Exec=yzx
         EOF
       '';
-      fakeHelixLanguages = pkgs.writeText "hm-helix-languages.toml" ''
-        [[language]]
-        name = "nix"
-      '';
       fakeRio = pkgs.writeText "hm-rio.toml" ''
         [colors]
         cursor = "#00e6ff"
@@ -1133,7 +1129,14 @@
           yazi.starship.source = fakeStarship;
         };
       };
-      homeManagerConfigFiles = homeManagerConfiguration {
+      homeManagerConfigFiles = homeManagerConfiguration ({config, ...}: let
+        tomlFormat = pkgs.formats.toml {};
+        helix = config.programs.helix;
+      in {
+        programs.helix = {
+          settings.editor.line-number = "relative";
+          languages.language = [{name = "nix";}];
+        };
         xdg.configFile."yazelix/yazi/flavors/example.yazi".source = fakeYaziFlavor;
         programs.yazelix.config = {
           settings = {
@@ -1153,8 +1156,8 @@
           rio.source = fakeRio;
           zellij.text = "pane_frames false\n";
           starship.text = "[character]\nformat = \"::\"\n";
-          helix.config.text = "[editor]\nline-number = \"relative\"\n";
-          helix.languages.source = fakeHelixLanguages;
+          helix.config.source = tomlFormat.generate "yazelix-helix-config.toml" helix.settings;
+          helix.languages.source = tomlFormat.generate "yazelix-helix-languages.toml" helix.languages;
           helix.module.text = "(provide yzx-test)\n";
           helix.init.text = ";; init\n";
           yazi.config.text = "[mgr]\nshow_hidden = true\n";
@@ -1166,7 +1169,7 @@
           nu.env.text = "# env\n";
           nu.config.text = "# config\n";
         };
-      };
+      });
     in {
       inherit yzx;
       zjstatus_native_tabs = pkgs.runCommand "yzx-zjstatus-native-tabs-check" {nativeBuildInputs = [pkgs.ripgrep];} ''
@@ -1248,6 +1251,13 @@
         grep -q 'format = "::"' "$config_files/starship.toml"
         grep -q 'line-number = "relative"' "$config_files/helix/config.toml"
         grep -q 'name = "nix"' "$config_files/helix/languages.toml"
+        for file in config.toml languages.toml; do
+          test -L "$config_files/helix/$file"
+          case "$(readlink "$config_files/helix/$file")" in
+            /nix/store/*) ;;
+            *) printf '%s\n' "Home Manager Helix $file is not store-backed" >&2; exit 1 ;;
+          esac
+        done
         grep -q '(provide yzx-test)' "$config_files/helix/helix.scm"
         grep -q 'show_hidden = true' "$config_files/yazi/yazi.toml"
         grep -q -- '-- init' "$config_files/yazi/init.lua"
