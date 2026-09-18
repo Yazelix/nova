@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Live screen-saver enablement preserves pane and tab event delivery. Commands
+  for a brand-new tab wait for its first pane snapshot instead of acting on
+  ambiguous state.
+
 - `forest.enabled = false` starts managed Helix without Nova configuring or
   opening Forest and without generating its focus binding. User Helix and Steel
   configuration continues to load.
