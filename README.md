@@ -625,7 +625,7 @@ read-only colored doctor, its state-preservation regression and release smoke,
 package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
 sponsor surface, release-note footer, installed-runtime checks, and pane-orchestrator
-readiness and timer convergence while deleting persistent tiled-Yazi machinery.
+readiness, timer convergence and child-state simplification while deleting persistent tiled-Yazi machinery.
 Release policy requires whole-revision promotions, published gate results,
 explicit cache uploads, and Bead handoffs for hosted checks expected to exceed 30 minutes.
 Dependency guidance defines monthly review, update ownership and verification.
