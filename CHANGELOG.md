@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Visible floating popups freeze work-pane movement even while Zellij is still
+  converging a preceding rapid move.
+
 - Stale pane-orchestrator timer callbacks converge on the current service
   deadline instead of multiplying heartbeat, screen-saver, and reconciliation
   timeouts.

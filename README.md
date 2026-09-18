@@ -608,11 +608,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **25,847 code/configuration lines** and **5,247 documentation/text
+Yazelix owns **25,847 code/configuration lines** and **5,250 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,272 code/configuration lines and 1,317 documentation/text lines above
+This is 2,272 code/configuration lines and 1,320 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
@@ -625,7 +625,7 @@ read-only colored doctor, its state-preservation regression and release smoke,
 package-pinned managed commands, `~/` reveal targets, native Nushell clipboard
 commands, portable Yazi PTY checks, the Anima mnemonic, and GitHub's native
 sponsor surface, release-note footer, installed-runtime checks, and pane-orchestrator
-readiness, timer convergence, single-owner child state and allocation-free pane lookup while deleting persistent tiled-Yazi machinery.
+readiness, timer convergence, popup-safe projected movement, single-owner child state and allocation-free pane lookup while deleting persistent tiled-Yazi machinery.
 Release policy requires whole-revision promotions, published gate results,
 explicit cache uploads, and Bead handoffs for hosted checks expected to exceed 30 minutes.
 Dependency guidance defines monthly review, update ownership and verification.
