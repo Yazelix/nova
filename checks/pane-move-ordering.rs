@@ -88,6 +88,40 @@ fn expect(
     }
 }
 
+fn sidebar_width(ui: &[String]) -> Option<usize> {
+    ui.iter()
+        .find(|row| row.starts_with("sidebar\t"))
+        .and_then(|row| row.split('\t').nth(3))
+        .and_then(|columns| columns.parse().ok())
+}
+
+fn expect_sidebar_width(
+    recorder: &mut Recorder,
+    zellij: &std::ffi::OsStr,
+    order: &[u32],
+    focused_pane: u32,
+    expected_width: usize,
+) -> Result<()> {
+    let deadline = Instant::now() + MOVE_TIMEOUT;
+    loop {
+        let (actual, focused, focused_expanded, ui) = panes(recorder, zellij)?;
+        if actual == order
+            && focused == focused_pane
+            && focused_expanded
+            && sidebar_width(&ui) == Some(expected_width)
+        {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            assert_eq!(actual, order);
+            assert_eq!(focused, focused_pane);
+            assert!(focused_expanded, "focused pane must stay expanded");
+            assert_eq!(sidebar_width(&ui), Some(expected_width));
+        }
+        recorder.sleep(Duration::from_millis(50))?;
+    }
+}
+
 fn wait_for_session(recorder: &mut Recorder, zellij: &std::ffi::OsStr) -> Result<()> {
     let deadline = Instant::now() + TIMEOUT;
     loop {
@@ -159,6 +193,13 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     assert_eq!(focused, 0);
     assert!(focused_expanded, "focused pane must start expanded");
     assert_eq!(ui.len(), 3, "expected top bar, sidebar and status bar");
+    let open_sidebar_width = sidebar_width(&ui).expect("sidebar geometry");
+    assert!(open_sidebar_width > 2, "sidebar must begin expanded");
+    recorder.key("alt+shift+h", Duration::from_millis(300))?;
+    expect_sidebar_width(recorder, &zellij, &[0, 1, 2], 0, 1)?;
+    recorder.key("alt+shift+h", Duration::from_millis(300))?;
+    expect(recorder, &zellij, &[0, 1, 2], 0, &ui)?;
+
     recorder.key("alt+j", Duration::from_millis(300))?;
     expect(recorder, &zellij, &[0, 1, 2], 1, &ui)?;
     recorder.key("ctrl+alt+k", Duration::from_secs(1))?;
@@ -190,6 +231,19 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         recorder.key("ctrl+alt+j", Duration::from_millis(300))?;
         expect(recorder, &zellij, &[0, 1, 2], 0, &ui)?;
     }
+    recorder.exec(Command::new(&zellij).args([
+        "-s",
+        SESSION,
+        "action",
+        "close-pane",
+        "--pane-id",
+        "terminal_2",
+    ]))?;
+    expect(recorder, &zellij, &[0, 1], 0, &ui)?;
+    recorder.key("ctrl+alt+k", Duration::from_millis(300))?;
+    expect(recorder, &zellij, &[1, 0], 0, &ui)?;
+    recorder.key("ctrl+alt+j", Duration::from_millis(300))?;
+    expect(recorder, &zellij, &[0, 1], 0, &ui)?;
     Ok(())
 }
 

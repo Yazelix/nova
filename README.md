@@ -608,11 +608,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **25,793 code/configuration lines** and **5,237 documentation/text
+Yazelix owns **25,847 code/configuration lines** and **5,239 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,218 code/configuration lines and 1,307 documentation/text lines above
+This is 2,272 code/configuration lines and 1,309 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
@@ -666,6 +666,8 @@ and check managed layouts and shortcut collision rejection.
 Circular vertical focus and work-pane movement reuse the pane orchestrator's
 predicted geometry while Zellij state converges; Nova adds the key routes,
 reference rows and one isolated three-pane Kinestra regression.
+That regression also proves sidebar collapse and restoration plus movement after
+a participating pane is removed.
 The Rio hyperlink repair adds usage and release notes; the child fork removes
 duplicate link matching and click state from its maintained surface.
 The cursor-trail fix adds runtime documentation and release notes; its renderer
