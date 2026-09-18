@@ -152,6 +152,26 @@ fn main() -> ExitCode {
     }
 }
 
+/// Strip a trailing Helix position suffix (`:line[:col]`) so the path itself
+/// can be checked.
+fn strip_position(target: &Path) -> &Path {
+    let Some(text) = target.to_str() else {
+        return target;
+    };
+    let mut end = text.len();
+    for _ in 0..2 {
+        let Some(colon) = text[..end].rfind(':') else {
+            break;
+        };
+        let digits = &text[colon + 1..end];
+        if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+            break;
+        }
+        end = colon;
+    }
+    Path::new(&text[..end])
+}
+
 fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Result<()> {
     let request = parse_open_request(raw_targets)?;
     let targets = request
@@ -163,10 +183,11 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
         if target.to_str().is_none() {
             bail!("target path is not valid UTF-8: {}", target.display());
         }
-        fs::metadata(target).with_context(|| {
+        let check_path = strip_position(target);
+        fs::metadata(check_path).with_context(|| {
             format!(
                 "target does not exist or cannot be inspected: {}",
-                target.display()
+                check_path.display()
             )
         })?;
     }
@@ -1258,6 +1279,28 @@ fi
     }
 
     #[test]
+    fn strip_position_matches_helix_position_parsing() {
+        // Mirrors helix's args.rs parse_file: at most `:line` and `:line:col`.
+        for (target, expected) in [
+            ("/p/main.rs", "/p/main.rs"),
+            ("main.rs:10", "main.rs"),
+            ("/p/main.rs:10", "/p/main.rs"),
+            ("/p/main.rs:10:2", "/p/main.rs"),
+            ("/p/a:b/main.rs:10", "/p/a:b/main.rs"),
+            ("/p/main.rs:abc", "/p/main.rs:abc"),
+            ("/p/main.rs:", "/p/main.rs:"),
+            ("/p/main.rs:10:20:30", "/p/main.rs:10"),
+            ("/p/foo:10", "/p/foo"),
+        ] {
+            assert_eq!(
+                strip_position(Path::new(target)),
+                Path::new(expected),
+                "target={target}"
+            );
+        }
+    }
+
+    #[test]
     fn open_intent_and_workspace_source_define_the_only_retarget_paths() {
         let explicit = CanonicalWorkspace {
             root: "/repo".into(),
@@ -1585,6 +1628,46 @@ fi
             !git_probe.exists(),
             "ordinary explicit opens must not probe Git"
         );
+    }
+
+    #[test]
+    fn position_suffixed_target_reaches_the_live_bridge_unchanged() {
+        let runtime = TestRuntime::new();
+        let session_id = "test-session";
+        let (listener, request_path) =
+            runtime.write_registry("inst", session_id, None, Some("terminal:7"));
+        let panes = pane_list(&[(3, 2), (7, 2)]);
+        let workspace = runtime.root.join("project");
+        runtime.write_zellij_with_workspace(
+            false,
+            Some(&panes),
+            &workspace,
+            WorkspaceSource::Explicit,
+            false,
+            2,
+        );
+        let server = spawn_ok_bridge(listener, request_path.clone());
+
+        let target = workspace.join("src/main.rs");
+        fs::create_dir_all(target.parent().unwrap()).unwrap();
+        fs::write(&target, "").unwrap();
+        let suffixed = format!("{}:10:2", target.display());
+
+        run(
+            &Config {
+                zellij_pane_id: Some("terminal:7".into()),
+                ..runtime.config(session_id)
+            },
+            [OsString::from(&suffixed)],
+        )
+        .unwrap();
+        server.join().unwrap();
+
+        let request: Value =
+            serde_json::from_str(&fs::read_to_string(request_path).unwrap()).unwrap();
+        assert_eq!(request["action"], "helix.open_files");
+        assert_eq!(request["payload"]["file_paths"], json!([suffixed]));
+        assert_eq!(request["payload"]["working_dir"], json!(workspace));
     }
 
     #[test]
