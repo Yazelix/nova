@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Stale pane-orchestrator timer callbacks converge on the current service
+  deadline instead of multiplying heartbeat, screen-saver, and reconciliation
+  timeouts.
+
 - Live screen-saver enablement preserves pane and tab event delivery. Commands
   for a brand-new tab wait for its first pane snapshot instead of acting on
   ambiguous state.
