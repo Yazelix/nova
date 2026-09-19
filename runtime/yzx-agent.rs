@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, IsTerminal, Write},
     os::unix::{fs::PermissionsExt, process::CommandExt},
     path::{Path, PathBuf},
-    process::{exit, Command, Stdio},
+    process::{Command, Stdio, exit},
 };
 
 const PROVIDERS: &[(&str, &[&str])] = &[
@@ -98,16 +98,23 @@ fn launch_configured(id: &str, provider_file: &Path, state_dir: &Path) -> i32 {
 
 fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
     let marker = state_dir.join("agent/radar-codex-setup-offered");
-    if marker.is_file() || !command_available("zj-radar") {
+    if !command_available("zj-radar") {
         return;
     }
+    let interactive = io::stdin().is_terminal() && io::stderr().is_terminal();
 
-    match radar_setup(codex, "--check", true) {
-        Ok(status) if status.success() => {
-            remember_radar_offer(&marker);
+    match radar_check(codex) {
+        Ok(RadarHealth::Healthy) => {
+            remember_radar_disposition(&marker, "enabled");
             return;
         }
-        Ok(_) => {}
+        Ok(RadarHealth::Unhealthy) => {}
+        Ok(RadarHealth::Unknown) => {
+            eprintln!(
+                "Yazelix Nova: could not interpret Radar's Codex hook check; Codex will still start."
+            );
+            return;
+        }
         Err(error) => {
             eprintln!(
                 "Yazelix Nova: failed to check Radar's Codex hooks: {error}; Codex will still start."
@@ -116,7 +123,18 @@ fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
         }
     }
 
-    if !io::stdin().is_terminal() || !io::stderr().is_terminal() {
+    match read_provider(&marker).as_deref() {
+        Some("enabled") => {
+            if interactive {
+                notify_missing_radar_hooks();
+            }
+            return;
+        }
+        Some("declined") => return,
+        _ => {}
+    }
+
+    if !interactive {
         return;
     }
     eprint!(
@@ -126,17 +144,74 @@ fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
     let Some(install) = read_offer_consent(io::stdin().lock()) else {
         return;
     };
-    remember_radar_offer(&marker);
-    if install {
-        match radar_setup(codex, "--yes", false) {
-            Ok(status) if status.success() => {}
-            Ok(status) => {
-                eprintln!("Yazelix Nova: Radar setup failed with {status}; Codex will still start.")
-            }
-            Err(error) => eprintln!(
-                "Yazelix Nova: failed to run Radar setup: {error}; Codex will still start."
+    if !install {
+        remember_radar_disposition(&marker, "declined");
+        return;
+    }
+    match radar_command(codex, "--yes").status() {
+        Ok(status) if status.success() => match radar_check(codex) {
+            Ok(RadarHealth::Healthy) => remember_radar_disposition(&marker, "enabled"),
+            Ok(_) => eprintln!(
+                "Yazelix Nova: Radar setup did not establish healthy Codex hooks; Codex will still start."
             ),
+            Err(error) => eprintln!(
+                "Yazelix Nova: failed to verify Radar setup: {error}; Codex will still start."
+            ),
+        },
+        Ok(status) => {
+            eprintln!("Yazelix Nova: Radar setup failed with {status}; Codex will still start.")
         }
+        Err(error) => {
+            eprintln!("Yazelix Nova: failed to run Radar setup: {error}; Codex will still start.")
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum RadarHealth {
+    Healthy,
+    Unhealthy,
+    Unknown,
+}
+
+fn radar_check(codex: &OsStr) -> io::Result<RadarHealth> {
+    let output = radar_command(codex, "--check").output()?;
+    Ok(classify_radar_report(
+        output.status.success(),
+        &String::from_utf8_lossy(&output.stdout),
+    ))
+}
+
+fn classify_radar_report(success: bool, report: &str) -> RadarHealth {
+    let mut codex_report = false;
+    let mut codex_ok = false;
+    let mut radar_ok = false;
+    let mut hooks_ok = false;
+    let mut feature_ok = false;
+    let mut unhealthy = false;
+    for line in report.lines() {
+        if line == "codex:" {
+            codex_report = true;
+            continue;
+        }
+        if !codex_report {
+            continue;
+        }
+        let line = line.trim_start();
+        unhealthy |= line.starts_with("warn ") || line.starts_with("missing ");
+        codex_ok |= line.starts_with("ok codex binary:");
+        radar_ok |= line.starts_with("ok zj-radar binary:");
+        hooks_ok |= line.starts_with("ok hooks.json:");
+        feature_ok |= line.starts_with("ok hooks feature:");
+    }
+    if !codex_report {
+        RadarHealth::Unknown
+    } else if unhealthy {
+        RadarHealth::Unhealthy
+    } else if success && codex_ok && radar_ok && hooks_ok && feature_ok {
+        RadarHealth::Healthy
+    } else {
+        RadarHealth::Unknown
     }
 }
 
@@ -152,7 +227,7 @@ fn read_offer_consent(mut input: impl BufRead) -> Option<bool> {
     }
 }
 
-fn radar_setup(codex: &OsStr, flag: &str, quiet: bool) -> io::Result<std::process::ExitStatus> {
+fn radar_command(codex: &OsStr, flag: &str) -> Command {
     let mut command = Command::new("zj-radar");
     command.args(["setup", "codex", flag]);
     if let Some(parent) = Path::new(codex)
@@ -166,19 +241,53 @@ fn radar_setup(codex: &OsStr, flag: &str, quiet: bool) -> io::Result<std::proces
         path.push(parent);
         command.env("PATH", path);
     }
-    if quiet {
-        command.stdout(Stdio::null()).stderr(Stdio::null());
-    }
-    command.status()
+    command
 }
 
-fn remember_radar_offer(marker: &Path) {
-    if let Err(error) = write_provider(marker, "1") {
+fn remember_radar_disposition(marker: &Path, disposition: &str) {
+    if let Err(error) = write_provider(marker, disposition) {
         eprintln!(
             "Yazelix Nova: could not remember the Radar setup choice at {}: {error}",
             marker.display()
         );
     }
+}
+
+fn notify_missing_radar_hooks() {
+    let (Some(zellij), Some(session)) = (
+        nonempty_env("YZX_ZELLIJ"),
+        nonempty_env("ZELLIJ_SESSION_NAME"),
+    ) else {
+        return;
+    };
+    let status = notification_command(&zellij, &session)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .status();
+    match status {
+        Ok(status) if status.success() => {}
+        Ok(status) => eprintln!(
+            "Yazelix Nova: Radar warning could not be shown ({status}); Codex will still start."
+        ),
+        Err(error) => eprintln!(
+            "Yazelix Nova: Radar warning could not be shown: {error}; Codex will still start."
+        ),
+    }
+}
+
+fn notification_command(zellij: &OsStr, session: &OsStr) -> Command {
+    let mut command = Command::new(zellij);
+    command
+        .args([
+            "action",
+            "pipe",
+            "--name",
+            "zjstatus",
+            "--",
+            "zjstatus::notify::⚠ Radar cannot see Codex activity · Alt Shift M to repair",
+        ])
+        .env("ZELLIJ_SESSION_NAME", session);
+    command
 }
 
 fn read_provider(path: &Path) -> Option<String> {
@@ -233,7 +342,74 @@ fn pause_if_tty() {
 
 #[cfg(test)]
 mod tests {
-    use super::read_offer_consent;
+    use std::ffi::OsStr;
+
+    use super::{RadarHealth, classify_radar_report, notification_command, read_offer_consent};
+
+    #[test]
+    fn radar_health_uses_the_report_not_just_the_exit_code() {
+        let healthy = "codex:\n  ok codex binary: found on PATH\n  ok zj-radar binary: found on PATH\n  ok hooks feature: enabled or unset in config.toml\n  ok hooks.json: all zj-radar Codex hooks installed\n  note hook trust: review with /hooks\n";
+        assert_eq!(classify_radar_report(true, healthy), RadarHealth::Healthy);
+        assert_eq!(
+            classify_radar_report(
+                true,
+                &healthy.replace("  ok hooks.json:", "  warn hooks.json:")
+            ),
+            RadarHealth::Unhealthy
+        );
+        assert_eq!(
+            classify_radar_report(
+                true,
+                &healthy.replace("  ok hooks feature:", "  warn hooks feature:")
+            ),
+            RadarHealth::Unhealthy
+        );
+        assert_eq!(
+            classify_radar_report(
+                false,
+                &healthy.replace("  ok hooks.json:", "  missing hooks.json:")
+            ),
+            RadarHealth::Unhealthy
+        );
+        assert_eq!(
+            classify_radar_report(
+                true,
+                &format!("{healthy}  warn hook enablement: disabled\n")
+            ),
+            RadarHealth::Unhealthy
+        );
+        assert_eq!(classify_radar_report(true, ""), RadarHealth::Unknown);
+        assert_eq!(classify_radar_report(false, healthy), RadarHealth::Unknown);
+        assert_eq!(
+            classify_radar_report(
+                true,
+                &healthy.replace("  ok codex binary:", "  note codex binary:")
+            ),
+            RadarHealth::Unknown
+        );
+
+        let pipe = notification_command(OsStr::new("zellij"), OsStr::new("nova-test"));
+        assert_eq!(
+            pipe.get_args()
+                .map(OsStr::to_str)
+                .collect::<Option<Vec<_>>>()
+                .unwrap(),
+            [
+                "action",
+                "pipe",
+                "--name",
+                "zjstatus",
+                "--",
+                "zjstatus::notify::⚠ Radar cannot see Codex activity · Alt Shift M to repair",
+            ]
+        );
+        assert_eq!(
+            pipe.get_envs()
+                .find(|(key, _)| *key == OsStr::new("ZELLIJ_SESSION_NAME"))
+                .and_then(|(_, value)| value),
+            Some(OsStr::new("nova-test"))
+        );
+    }
 
     #[test]
     fn radar_setup_offer_accepts_default_and_explicit_answers() {

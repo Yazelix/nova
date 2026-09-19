@@ -298,13 +298,16 @@ agents show a static yellow `⠿` in pane rows and the tab's selected status;
 services keep `▸`. Status changes and lifecycle timers retain their behavior.
 Nova Zellij grants the exact
 bundled Radar artifact its five required permissions in Nova's isolated cache,
-so the unfocused startup sidebar cannot trap a consent prompt. On the first
-interactive Codex launch through Nova's agent popup, Nova checks the existing
-Radar hooks. If they are missing, it asks once whether to install them. Enter or
-`y` runs the marker-owned Radar setup before Codex starts; `n` is remembered and
-starts Codex without enabling activity reporting.
-Non-interactive launches do not prompt, and Nova does not repair hooks that a
-user disables or removes later. Run `yzx doctor` to see the current hook state.
+so the unfocused startup sidebar cannot trap a consent prompt. On a managed
+Codex launch, Nova checks Radar's installed hooks. If they are initially
+missing, the first interactive launch asks whether to install them. Enter or
+`y` runs Radar setup before Codex starts; `n` records a deliberate decline.
+If hooks that previously passed Radar's check become missing, partial, or
+disabled, a five-second bar notice points to `Alt Shift M` for repair. It does not
+interrupt Codex, reopen the consent prompt, or repair hooks automatically.
+A deliberate decline suppresses the notice; non-interactive launches never
+prompt or toast. A later successful manual setup is recognized by the next
+launch check. Run `yzx doctor` to inspect the current hook state.
 To set up activity reporting, including after declining, run:
 
 ```sh
@@ -608,17 +611,19 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **25,847 code/configuration lines** and **5,250 documentation/text
+Yazelix owns **26,190 code/configuration lines** and **5,266 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,272 code/configuration lines and 1,320 documentation/text lines above
+This is 2,615 code/configuration lines and 1,336 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
 crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, optional Forest and the configurable Radar-default sidebar,
 portable Codex hook onboarding, the
 public Radar setup command, menu entry, recovery guidance and delegation checks,
+isolated Codex hook-health transitions, pinned Radar CLI proof, and a
+non-blocking repair notice,
 agent popup identity across runtime updates,
 the agent-status reference ledger with exact sources and proof boundaries,
 read-only colored doctor, its state-preservation regression and release smoke,

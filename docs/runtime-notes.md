@@ -244,19 +244,26 @@ missing from `PATH`, the popup prints a diagnostic and tells the user to remove
 the provider file so Yazelix can choose again.
 
 With Radar selected, the agent launcher runs `zj-radar setup codex --check`
-before the first interactive Codex launch in a Nova state directory. A healthy or intentionally
-disabled installation is remembered without mutation. Missing hooks produce one
-`Enable Codex activity in Radar? [Y/n]` prompt when stdin and stderr are
-terminals, preceded by the hook requirement and `yzx radar-setup` recovery path.
-Either answer creates
-`agent/radar-codex-setup-offered`; yes runs marker-owned setup and no starts Codex
-without enabling activity reporting. Closing the prompt input or entering an
-unrecognized answer leaves no marker. Redirected input or prompt output skips
-the prompt and marker.
-Later launches leave removed or disabled hooks alone. Setup failures warn without
-blocking Codex. `yzx doctor` replays Radar's read-only Codex diagnosis and keeps
-missing integration warning-only. It omits the trust reminder until hooks exist
-and reports startup failures once through the shared diagnostic. Its default
+before each managed Codex launch. It consumes Radar's pinned report rather than
+parsing Codex files: warning lines make partial or disabled hooks unhealthy even
+when Radar exits zero. A healthy report records `enabled` in
+`agent/radar-codex-setup-offered`. An unhealthy report with no known disposition
+produces the `Enable Codex activity in Radar? [Y/n]` prompt only when stdin and
+stderr are terminals. Declining records `declined`; accepting records `enabled`
+only if setup succeeds and a second read-only check proves health. The old `1`
+marker encoded both answers and is treated as unknown. Closing the prompt or
+entering an unrecognized answer leaves that state unknown.
+
+If a previously enabled integration becomes missing, partial, or disabled,
+Nova sends one transient `zjstatus::notify` bar notice per interactive launch
+with `Alt Shift M` as the repair path. It never repairs automatically or
+reopens the consent prompt. A declined state remains quiet until an explicit
+successful `yzx radar-setup` is recognized by a later healthy check.
+Non-interactive launches neither prompt nor toast. Child-check, setup, and toast
+failures never block Codex. `yzx doctor` replays Radar's read-only Codex
+diagnosis and keeps missing integration warning-only. It omits the trust
+reminder until hooks exist and reports startup failures once through the
+shared diagnostic. Its default
 report groups useful health checks and colors statuses on a TTY.
 `yzx doctor --verbose` prints Radar's raw report and individual Classic residue
 entries. `yzx status` remains

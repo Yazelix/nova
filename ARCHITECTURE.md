@@ -73,7 +73,7 @@ One owner per concern. Paths are the durable map.
 | --- | --- |
 | `runtime/yzx/` | CLI, public Yazi materializer grammar/delegation, startup env, host-Yazi pair resolution, launch/enter handoff |
 | `runtime/yzx-menu.rs` | Menu palette |
-| `runtime/yzx-agent.rs` | Initial agent title, custom-command exec, provider bootstrap (`codex resume` → `grok` → `opencode` → `pi` → `claude --resume`), and one-time optional Codex Radar setup |
+| `runtime/yzx-agent.rs` | Initial agent title, custom-command exec, provider bootstrap (`codex resume` → `grok` → `opencode` → `pi` → `claude --resume`), and Codex Radar consent, health checks, and repair notice |
 | `runtime/yzx-yazi.rs` | Managed Yazi process/env launch, active session appearance lookup, editor resolve, fast startup search/Yazi toggle lifecycle, and workspace-popup roles |
 | `runtime/yzx-nu.rs` | Managed Nu layering; runtime-effective Starship config request |
 | `runtime/yzx-zellij-config.rs` | Packaged + guarded Zellij scalar sidecar merge |

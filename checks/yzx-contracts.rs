@@ -39,6 +39,7 @@ fn main() {
     expect_shell_selection(&yzx_shell);
     expect_keybinds(&config);
     expect_first_party_plugins(git, &config);
+    expect_pinned_radar_health_contract(yzx);
     expect_front_door(yzx, Path::new(jq));
     expect_headless_enter(yzx);
     expect_narrow_path_launches(yzx, &yzx_shell);
@@ -1342,6 +1343,68 @@ fn expect_radar_setup(yzx_bin: &Path) {
     assert!(!record.exists(), "invalid arguments must not invoke setup");
 }
 
+fn expect_pinned_radar_health_contract(yzx: &Path) {
+    let temp = TempDir::new();
+    let bin = temp.path.join("bin");
+    fs::create_dir(&bin).unwrap();
+    write_executable(&bin.join("codex"), "#!/bin/sh\nexit 0\n");
+    symlink(yzx.join("bin/zj-radar"), bin.join("zj-radar")).unwrap();
+    let radar = |flag: &str| {
+        Command::new(bin.join("zj-radar"))
+            .args(["setup", "codex", flag])
+            .env_clear()
+            .env("PATH", &bin)
+            .env("HOME", temp.path.join("home"))
+            .env("CODEX_HOME", temp.path.join("codex"))
+            .env("XDG_CONFIG_HOME", temp.path.join("config"))
+            .env("XDG_DATA_HOME", temp.path.join("data"))
+            .env("XDG_STATE_HOME", temp.path.join("xdg-state"))
+            .env("XDG_RUNTIME_DIR", temp.path.join("xdg-runtime"))
+            .env("ZELLIJ_SESSION_NAME", "nova-radar-contract-test")
+            .env(
+                "ZELLIJ_PLUGIN_PERMISSIONS_CACHE",
+                temp.path.join("permissions.kdl"),
+            )
+            .output()
+            .unwrap()
+    };
+    let missing = radar("--check");
+    assert!(!missing.status.success());
+    expect_contains(
+        &String::from_utf8_lossy(&missing.stdout),
+        "missing hooks.json:",
+        "pinned Radar missing report",
+    );
+    let setup = radar("--yes");
+    assert!(
+        setup.status.success(),
+        "isolated Radar setup failed: {setup:?}"
+    );
+    let healthy = radar("--check");
+    assert!(
+        healthy.status.success(),
+        "isolated Radar check failed: {healthy:?}"
+    );
+    let report = String::from_utf8_lossy(&healthy.stdout);
+    for status in [
+        "codex:",
+        "ok codex binary:",
+        "ok zj-radar binary:",
+        "ok hooks feature:",
+        "ok hooks.json:",
+    ] {
+        expect_contains(&report, status, "pinned Radar healthy report");
+    }
+    fs::write(temp.path.join("codex/config.toml"), "[features]\nhooks = false\n").unwrap();
+    let disabled = radar("--check");
+    assert!(disabled.status.success(), "Radar warnings exit zero");
+    expect_contains(
+        &String::from_utf8_lossy(&disabled.stdout),
+        "warn hooks feature:",
+        "pinned Radar disabled-hooks report",
+    );
+}
+
 fn expect_menu_dispatch(menu: &Path) {
     expect_contains(&binary_text(menu), "/bin/fzf", "yzx-menu packaged fzf path");
 
@@ -2482,6 +2545,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
 
     let agent = popup_command(config, "/bin/yzx-agent");
     expect_agent_bootstrap(&agent);
+    expect_radar_health_transition(&agent);
 
     let git = popup_command(config, "/bin/yzx-git");
     let git_script = fs::read_to_string(&git).unwrap();
@@ -2637,10 +2701,27 @@ fn quoted_keys(line: &str) -> impl Iterator<Item = String> + '_ {
     line.split('"').skip(1).step_by(2).map(str::to_string)
 }
 
+fn isolated_agent_command(agent: &Path, root: &Path) -> Command {
+    let mut command = Command::new(agent);
+    command
+        .env_clear()
+        .env("HOME", root.join("home"))
+        .env("CODEX_HOME", root.join("codex"))
+        .env("XDG_CONFIG_HOME", root.join("config"))
+        .env("XDG_DATA_HOME", root.join("data"))
+        .env("XDG_STATE_HOME", root.join("xdg-state"))
+        .env("XDG_RUNTIME_DIR", root.join("xdg-runtime"))
+        .env(
+            "ZELLIJ_PLUGIN_PERMISSIONS_CACHE",
+            root.join("permissions.kdl"),
+        );
+    command
+}
+
 fn expect_agent_bootstrap(agent: &Path) {
     let temp = TempDir::new();
     let empty_state = temp.path.join("empty-state");
-    let output = Command::new(agent)
+    let output = isolated_agent_command(agent, &temp.path)
         .env("PATH", "")
         .env("YAZELIX_STATE_DIR", &empty_state)
         .output()
@@ -2663,7 +2744,7 @@ fn expect_agent_bootstrap(agent: &Path) {
         "#!/bin/sh\nprintf '\\033]0;⠋ codex\\007\\033]0;codex\\007'\nprintf '%s\\n' \"$*\" >\"$YAZELIX_AGENT_TEST_OUT\"\n",
     );
     let title_output_file = temp.path.join("title-agent-output");
-    let output = Command::new(agent)
+    let output = isolated_agent_command(agent, &temp.path)
         .arg(&title_agent)
         .args(["resume", "session"])
         .env("YAZELIX_AGENT_TEST_OUT", &title_output_file)
@@ -2705,7 +2786,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     let missing_hooks_state = temp.path.join("missing-hooks-state");
     let missing_hooks_output = temp.path.join("missing-hooks-output");
     let output = successful_output(
-        Command::new(agent)
+        isolated_agent_command(agent, &temp.path)
             .env("PATH", &missing_hooks_bin)
             .env("YAZELIX_STATE_DIR", &missing_hooks_state)
             .env("YAZELIX_AGENT_TEST_OUT", &missing_hooks_output)
@@ -2730,7 +2811,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     let custom_sidebar_state = temp.path.join("custom-sidebar-agent-state");
     let custom_sidebar_output = temp.path.join("custom-sidebar-agent-output");
     successful_output(
-        Command::new(agent)
+        isolated_agent_command(agent, &temp.path)
             .env("PATH", &missing_hooks_bin)
             .env("YAZELIX_STATE_DIR", &custom_sidebar_state)
             .env("YAZELIX_AGENT_TEST_OUT", &custom_sidebar_output)
@@ -2762,7 +2843,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     let explicit_state = temp.path.join("explicit-codex-state");
     let explicit_output = temp.path.join("explicit-codex-output");
     successful_output(
-        Command::new(agent)
+        isolated_agent_command(agent, &temp.path)
             .arg(explicit_codex_bin.join("codex"))
             .env("PATH", &pinned_radar_bin)
             .env("YAZELIX_STATE_DIR", &explicit_state)
@@ -2785,7 +2866,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     write_fake_agent(&persisted_bin, "opencode");
     let output_file = temp.path.join("persisted-output");
     successful_output(
-        Command::new(agent)
+        isolated_agent_command(agent, &temp.path)
             .env("PATH", &persisted_bin)
             .env("YAZELIX_STATE_DIR", &persisted_state)
             .env("YAZELIX_AGENT_TEST_OUT", &output_file),
@@ -2797,7 +2878,7 @@ fn expect_agent_bootstrap(agent: &Path) {
     let missing_agent = missing_state.join("agent");
     fs::create_dir_all(&missing_agent).unwrap();
     fs::write(missing_agent.join("provider"), "opencode\n").unwrap();
-    let output = Command::new(agent)
+    let output = isolated_agent_command(agent, &temp.path)
         .env("PATH", temp.path.join("missing-bin"))
         .env("YAZELIX_STATE_DIR", &missing_state)
         .output()
@@ -2832,7 +2913,7 @@ fn expect_agent_bootstrap_case(
     let state = root.join(format!("{name}-state"));
     let output_file = root.join(format!("{name}-output"));
     successful_output(
-        Command::new(agent)
+        isolated_agent_command(agent, root)
             .env("PATH", &bin)
             .env("YAZELIX_STATE_DIR", &state)
             .env("YAZELIX_AGENT_TEST_OUT", &output_file),
@@ -2850,7 +2931,7 @@ fn expect_agent_bootstrap_case(
         );
         fs::write(&output_file, "").unwrap();
         successful_output(
-            Command::new(agent)
+            isolated_agent_command(agent, root)
                 .env("PATH", &bin)
                 .env("YAZELIX_STATE_DIR", &state)
                 .env("YAZELIX_AGENT_TEST_OUT", &output_file),
@@ -2858,10 +2939,96 @@ fn expect_agent_bootstrap_case(
         );
         assert_eq!(
             fs::read_to_string(&output_file).unwrap(),
-            "codex resume\n",
-            "the second Codex launch must not check or offer setup again"
+            "radar setup codex --check\ncodex resume\n",
+            "the second Codex launch must recheck without offering setup again"
         );
     }
+}
+
+fn expect_radar_health_transition(agent: &Path) {
+    let temp = TempDir::new();
+    let bin = temp.path.join("bin");
+    let state = temp.path.join("state");
+    let record = temp.path.join("commands");
+    fs::create_dir(&bin).unwrap();
+    write_fake_agent(&bin, "codex");
+    write_executable(
+        &bin.join("zj-radar"),
+        "#!/bin/sh\nprintf 'radar %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\nprintf '%s' \"$YAZELIX_AGENT_TEST_RADAR_REPORT\"\nexit \"$YAZELIX_AGENT_TEST_RADAR_EXIT\"\n",
+    );
+    write_executable(
+        &bin.join("zellij"),
+        "#!/bin/sh\nprintf 'zellij %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\n",
+    );
+    let healthy = "codex:\n  ok codex binary: found on PATH\n  ok zj-radar binary: found on PATH\n  ok hooks feature: enabled or unset in config.toml\n  ok hooks.json: all zj-radar Codex hooks installed\n  note hook trust: review with /hooks\n";
+    let partial = healthy.replace("ok hooks.json:", "warn hooks.json:");
+    let disabled = healthy.replace("ok hooks feature:", "warn hooks feature:");
+    let disabled_hook = format!("{healthy}  warn hook enablement: a Radar hook is disabled\n");
+    let missing = healthy.replace("ok hooks.json:", "missing hooks.json:");
+    let disposition = state.join("agent/radar-codex-setup-offered");
+    let run = |report: &str, exit: i32, sidebar: bool| {
+        fs::write(&record, "").unwrap();
+        let output = successful_output(
+            isolated_agent_command(agent, &temp.path)
+                .env("PATH", &bin)
+                .env("YAZELIX_STATE_DIR", &state)
+                .env("YAZELIX_AGENT_TEST_OUT", &record)
+                .env("YAZELIX_AGENT_TEST_RADAR_REPORT", report)
+                .env("YAZELIX_AGENT_TEST_RADAR_EXIT", exit.to_string())
+                .env("YZX_ZELLIJ", bin.join("zellij"))
+                .env("ZELLIJ_SESSION_NAME", "nova-health-test")
+                .env("YZX_RADAR_ENABLED", if sidebar { "true" } else { "false" }),
+            "isolated Codex Radar health transition",
+        );
+        let commands = fs::read_to_string(&record).unwrap();
+        (output, commands)
+    };
+
+    let (_, commands) = run(&partial, 0, true);
+    assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+    assert!(
+        !disposition.exists(),
+        "warning-only exit zero is not healthy"
+    );
+
+    let (_, commands) = run(healthy, 0, true);
+    assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
+
+    for (report, exit) in [
+        (&partial, 0),
+        (&disabled, 0),
+        (&disabled_hook, 0),
+        (&missing, 1),
+    ] {
+        let (_, commands) = run(report, exit, true);
+        assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+        assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
+    }
+
+    let (output, commands) = run("unexpected report\n", 0, true);
+    assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+    expect_contains(
+        &String::from_utf8_lossy(&output.stderr),
+        "could not interpret Radar's Codex hook check",
+        "unrecognized child report",
+    );
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
+
+    fs::write(&disposition, "declined\n").unwrap();
+    let (_, commands) = run(&missing, 1, true);
+    assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "declined\n");
+    run(healthy, 0, true);
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
+
+    fs::write(&disposition, "1\n").unwrap();
+    run(&missing, 1, true);
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "1\n");
+
+    let (_, commands) = run(&missing, 1, false);
+    assert_eq!(commands, "codex resume\n");
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "1\n");
 }
 
 fn write_fake_agent(bin: &Path, name: &str) {
@@ -2877,7 +3044,7 @@ fn write_fake_agent(bin: &Path, name: &str) {
 fn write_fake_radar(bin: &Path) {
     write_executable(
         &bin.join("zj-radar"),
-        "#!/bin/sh\nprintf 'radar %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\n[ \"${YAZELIX_AGENT_TEST_RADAR_FAIL:-}\" != 1 ]\n",
+        "#!/bin/sh\nprintf 'radar %s\\n' \"$*\" >>\"$YAZELIX_AGENT_TEST_OUT\"\nif [ \"$3\" = --check ]; then\n  printf 'codex:\\n  ok codex binary: found on PATH\\n  ok zj-radar binary: found on PATH\\n  ok hooks feature: enabled or unset in config.toml\\n'\n  if [ \"$YAZELIX_AGENT_TEST_RADAR_FAIL\" = 1 ]; then\n    printf '  missing hooks.json: zj-radar Codex hooks are not installed\\n'\n    exit 1\n  fi\n  printf '  ok hooks.json: all zj-radar Codex hooks installed\\n'\nfi\n",
     );
 }
 
