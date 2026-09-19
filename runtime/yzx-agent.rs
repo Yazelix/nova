@@ -138,7 +138,7 @@ fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
         return;
     }
     eprint!(
-        "Radar needs Codex hooks to show agent activity.\nYou can enable this later: yzx radar-setup\n\nEnable Codex activity in Radar? [Y/n] "
+        "Radar needs Codex hooks to show agent activity.\nYou can enable this later: zj-radar setup codex\n\nEnable Codex activity in Radar? [Y/n] "
     );
     let _ = io::stderr().flush();
     let Some(install) = read_offer_consent(io::stdin().lock()) else {
@@ -284,7 +284,7 @@ fn notification_command(zellij: &OsStr, session: &OsStr) -> Command {
             "--name",
             "zjstatus",
             "--",
-            "zjstatus::notify::⚠ Radar cannot see Codex activity · Alt Shift M to repair",
+            "zjstatus::notify::⚠ Radar cannot see Codex activity · run zj-radar setup codex",
         ])
         .env("ZELLIJ_SESSION_NAME", session);
     command
@@ -400,7 +400,7 @@ mod tests {
                 "--name",
                 "zjstatus",
                 "--",
-                "zjstatus::notify::⚠ Radar cannot see Codex activity · Alt Shift M to repair",
+                "zjstatus::notify::⚠ Radar cannot see Codex activity · run zj-radar setup codex",
             ]
         );
         assert_eq!(

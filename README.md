@@ -303,18 +303,19 @@ Codex launch, Nova checks Radar's installed hooks. If they are initially
 missing, the first interactive launch asks whether to install them. Enter or
 `y` runs Radar setup before Codex starts; `n` records a deliberate decline.
 If hooks that previously passed Radar's check become missing, partial, or
-disabled, a five-second bar notice points to `Alt Shift M` for repair. It does not
-interrupt Codex, reopen the consent prompt, or repair hooks automatically.
+disabled, a five-second bar notice names `zj-radar setup codex` for repair. It
+does not interrupt Codex, reopen the consent prompt, or repair hooks automatically.
 A deliberate decline suppresses the notice; non-interactive launches never
 prompt or toast. A later successful manual setup is recognized by the next
 launch check. Run `yzx doctor` to inspect the current hook state.
-To set up activity reporting, including after declining, run:
+To set up Codex activity reporting, including after declining, run:
 
 ```sh
-yzx radar-setup
+zj-radar setup codex
 ```
 
-The same action appears in `Alt Shift M` as **Set up agent activity in Radar**.
+For all agents, run `yzx radar-setup` or choose **Set up Radar for Codex, Claude
+Code, OpenCode** from `Alt Shift M`.
 Radar checks Codex, Claude Code and OpenCode in order, skips absent agents,
 reports existing integrations and asks before changes (`y` accepts; Enter
 declines). You can enable one agent and decline another. Redirected input skips
@@ -611,11 +612,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,190 code/configuration lines** and **5,266 documentation/text
+Yazelix owns **26,201 code/configuration lines** and **5,272 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,615 code/configuration lines and 1,336 documentation/text lines above
+This is 2,626 code/configuration lines and 1,342 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty

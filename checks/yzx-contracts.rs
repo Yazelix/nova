@@ -1033,7 +1033,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         &doctor_codex, "yzx doctor missing Radar Codex hooks";
         "warn  Radar            Codex hooks need attention",
         "missing hooks.json: zj-radar Codex hooks are not installed",
-        "action: resolve the warning, then run yzx radar-setup",
+        "action: resolve the warning, then run zj-radar setup codex",
     }
     assert!(
         !doctor_codex.contains("Codex trust"),
@@ -1312,6 +1312,13 @@ fn expect_radar_setup(yzx_bin: &Path) {
             drop(child.stdin.take());
             let output = child.wait_with_output().unwrap();
             assert_eq!(output.status.code(), Some(code), "{command}: {output:?}");
+            if command == "menu" {
+                expect_contains(
+                    &String::from_utf8_lossy(&output.stdout),
+                    "Set up Radar for Codex, Claude Code, OpenCode",
+                    "Radar palette scope",
+                );
+            }
             assert_eq!(
                 fs::read_to_string(&record).unwrap(),
                 format!(

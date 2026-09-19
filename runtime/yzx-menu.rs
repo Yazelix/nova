@@ -14,7 +14,11 @@ const COMMANDS: &[(&str, &str, &str)] = &[
     ("launch", "session", "Open Rio and start Yazelix"),
     ("help", "help", "Show this help"),
     ("tutor", "help", "Show the guided Yazelix Nova tutor"),
-    ("radar-setup", "agents", "Set up agent activity in Radar"),
+    (
+        "radar-setup",
+        "agents",
+        "Set up Radar for Codex, Claude Code, OpenCode",
+    ),
 ];
 
 fn main() {

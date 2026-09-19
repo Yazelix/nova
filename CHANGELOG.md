@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
+  repair command. The command menu labels its separate three-agent setup scope.
+
 - Managed Codex launches recheck Radar hooks. If previously verified hooks
   disappear or become partial or disabled, Nova shows a transient repair notice
   without interrupting Codex or overriding a deliberate setup decline.

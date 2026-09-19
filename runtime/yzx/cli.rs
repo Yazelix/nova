@@ -364,7 +364,7 @@ Commands:
   config  Open Yazelix Nova config
   yazi-config  Materialize the effective Yazi configuration
   doctor  Check Yazelix runtime setup
-  radar-setup  Set up agent activity in Radar
+  radar-setup  Set up Radar for Codex, Claude Code, OpenCode
   env     Open the managed shell without launching the UI
   enter   Start Yazelix in the current terminal
   launch  Open Rio and start Yazelix

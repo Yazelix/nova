@@ -245,7 +245,7 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) {
         }
     }
     if !attention.is_empty() {
-        doctor_detail("action: resolve the warning, then run yzx radar-setup");
+        doctor_detail("action: resolve the warning, then run zj-radar setup codex");
     } else if !output.status.success() {
         doctor_detail("action: rerun with yzx doctor --verbose for zj-radar output");
     }

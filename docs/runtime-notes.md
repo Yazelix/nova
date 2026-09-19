@@ -256,9 +256,10 @@ entering an unrecognized answer leaves that state unknown.
 
 If a previously enabled integration becomes missing, partial, or disabled,
 Nova sends one transient `zjstatus::notify` bar notice per interactive launch
-with `Alt Shift M` as the repair path. It never repairs automatically or
-reopens the consent prompt. A declined state remains quiet until an explicit
-successful `yzx radar-setup` is recognized by a later healthy check.
+with `zj-radar setup codex` as the Codex-only repair path. It never repairs
+automatically or reopens the consent prompt. A declined state remains quiet
+until an explicit successful `zj-radar setup codex` is recognized by a later
+healthy check.
 Non-interactive launches neither prompt nor toast. Child-check, setup, and toast
 failures never block Codex. `yzx doctor` replays Radar's read-only Codex
 diagnosis and keeps missing integration warning-only. It omits the trust
@@ -273,7 +274,8 @@ Rio or granting plugin permissions, including their verbose/JSON forms.
 Missing runtime files remain absent until an existing launch/run command prepares
 them. Text status marks absent generated paths as `not initialized`; doctor gives
 the launch action. Invalid settings or sidecars fail without changing user state.
-`yzx radar-setup` and its `Alt Shift M` entry invoke the packaged
+`yzx radar-setup` and its **Set up Radar for Codex, Claude Code, OpenCode**
+entry in `Alt Shift M` invoke the packaged
 `zj-radar setup codex claude opencode` with inherited terminal input/output and
 without `--yes`. Radar owns sequential detection, existing-state handling,
 consent and installation. Its prompts default to no (`[y/N]`); noninteractive
