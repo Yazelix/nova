@@ -532,6 +532,9 @@ opening or focusing Helix from the persistent popup. Existing panes keep their
 own cwd. In the startup picker, the same shortcut also creates the first editor
 pane to complete tab creation. Ordinary Yazi opens preserve an established tab
 workspace; they may sync Helix's own cwd to that root while opening the target.
+On macOS, Rio defaults to treating Option as text input, so set top-level
+`option-as-alt = "Left"` (or `"Both"`) in managed `rio/config.toml` for this
+shortcut. The selected Option key then acts as Alt instead of entering symbols.
 
 `yzx-open` writes bounded logs under:
 

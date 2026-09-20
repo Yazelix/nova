@@ -261,7 +261,8 @@ move existing shell panes. Explicitly chosen folders stay exact even inside a
 Git repository. `Enter` keeps its ordinary open behavior, `Shift z` jumps
 within Yazi, and the persistent popup retains Yazi's native `Tab` Spot action.
 The command menu's **Change tab workspace** entry opens this same popup; the
-direct Yazi shortcut avoids the menu.
+direct Yazi shortcut avoids the menu. On macOS, Rio needs Option-as-Alt enabled
+for that shortcut; see [configuration](docs/configuration.md).
 
 The sidebar starts at 32 columns in the Zellij pane named `sidebar`, following
 the configured pane-frame and rounded-corner appearance. Radar is the default.
@@ -620,11 +621,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,321 code/configuration lines** and **5,291 documentation/text
+Yazelix owns **26,311 code/configuration lines** and **5,295 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,746 code/configuration lines and 1,361 documentation/text lines above
+This is 2,736 code/configuration lines and 1,365 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty

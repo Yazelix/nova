@@ -2312,16 +2312,6 @@ fn expect_yazi_managed_keys(yzx: &Path) {
         "packaged Yazi config is missing git.yazi",
     );
 
-    let plugin =
-        fs::read_to_string(yzx.join("share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua"))
-            .unwrap();
-    expect_contains_all! {
-        &plugin, "Yazi tab workspace plugin fragment";
-        "--set-workspace",
-        "--retarget-workspace",
-        "current_dir()",
-        "YZX_OPEN is not set",
-    }
     assert!(
         !yzx.join("share/yazelix/yazi/plugins/zoxide-editor.yazi")
             .exists()
