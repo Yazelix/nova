@@ -5,10 +5,12 @@ User-visible runtime changes for Yazelix Nova live here.
 ## Unreleased
 
 - Managed Yazi uses `Shift z` for a browse-only zoxide jump and `Alt Enter` to
-  set the tab workspace to its exact current folder. The persistent popup does
-  not open Helix for a workspace change; the startup picker still creates its
-  first editor pane. The command menu provides a discoverable route to the
-  persistent popup. Nova's combined `Alt z` action is removed.
+  set the tab workspace to the hovered folder, falling back to the current
+  folder when on a file or nothing. Both managed Yazi views use clean, pill-free
+  key footers. The persistent popup changes workspace without opening Helix;
+  the startup picker still creates its first editor pane.
+  The command menu provides a discoverable route to the persistent popup.
+  Nova's combined `Alt z` action is removed.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.

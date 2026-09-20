@@ -239,13 +239,14 @@ bindings are:
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Shift z` | Jump with zoxide without changing the tab workspace |
-| Yazi | `Alt Enter` | Use Yazi's current folder as the tab workspace |
+| Yazi | `Alt Enter` | Use the hovered folder, or current folder when on a file, as the tab workspace |
 
 Every new tab starts with the configured sidebar and a focused quick zoxide
 search. `Enter` opens the selected directory; `Tab` switches to full Yazi, and
 `Tab` in that startup Yazi returns to quick search at the directory you reached.
-Both views show their controls in a local footer. `Alt Shift T` and `Ctrl Alt t`,
-then `n`, create tabs at your home directory; `x` in tab mode also closes a tab.
+Quick search and both managed Yazi views show their controls in clean local
+footers. New tabs start at home: use `Alt Shift T`, or `Ctrl Alt t` then `n`.
+In tab mode, `x` also closes a tab.
 The direct shortcuts pass through in locked mode.
 A session exits when its final terminal pane closes, so UI plugins cannot leave
 an empty tab without a focus anchor.
@@ -254,9 +255,10 @@ then removes that exact picker. Exiting the picker without a successful handoff
 closes its exact tab; a surviving editor tab remains focused, while cancelling
 the only picker ends the session. Choosing a folder leaves Forest visible while
 focusing the native Helix picker. `Alt Shift Y` opens the separate persistent
-Yazi popup later. In the startup Yazi, `Alt Enter` chooses its current folder
-and completes the first-editor handoff. In the persistent popup, `Alt Enter`
-changes only the active tab's workspace: it does not open or focus Helix or
+Yazi popup later. In the startup Yazi, `Alt Enter` uses the hovered folder,
+falling back to the current folder, and completes the first-editor handoff.
+In the persistent popup, `Alt Enter` changes only the active tab's workspace:
+it does not open or focus Helix or
 move existing shell panes. Explicitly chosen folders stay exact even inside a
 Git repository. `Enter` keeps its ordinary open behavior, `Shift z` jumps
 within Yazi, and the persistent popup retains Yazi's native `Tab` Spot action.
@@ -621,15 +623,15 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,311 code/configuration lines** and **5,295 documentation/text
+Yazelix owns **26,339 code/configuration lines** and **5,300 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,736 code/configuration lines and 1,365 documentation/text lines above
+This is 2,764 code/configuration lines and 1,370 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
-crops, Sixel preview cleanup and Rio GPU lifetimes, Yazi workspace selection, its one-use picker, optional Forest and the configurable Radar-default sidebar,
+crops, Sixel preview cleanup and Rio GPU lifetimes, hover-aware Yazi workspace selection with consistent pill-free key footers, its one-use picker, optional Forest and the configurable Radar-default sidebar,
 portable Codex hook onboarding, the
 public Radar setup command, menu entry, recovery guidance and delegation checks,
 isolated Codex hook-health transitions, pinned Radar CLI proof, and a

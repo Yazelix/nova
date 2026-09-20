@@ -8,17 +8,15 @@ require("zoxide"):setup({
 })
 
 local role = os.getenv("YZX_YAZI_ROLE")
-if role == "startup-picker" then
+if role == "startup-picker" or role == "workspace-popup" then
 	for id = 1, 6 do
 		Status:children_remove(id, id <= 3 and Status.LEFT or Status.RIGHT)
 	end
 	Status:children_add(function()
-		return tostring(cx.layer) == "mgr"
-			and " Enter Open · Alt+Enter Use this folder · Tab Search · Esc Cancel · F1 Help"
-			or ""
-	end, 1000, Status.LEFT)
-elseif role == "workspace-popup" then
-	Status:children_add(function()
-		return tostring(cx.layer) == "mgr" and " Alt+Enter Set tab workspace · Shift+Z Jump" or ""
+		if tostring(cx.layer) ~= "mgr" then return "" end
+		if role == "startup-picker" then
+			return " Enter Open · Alt+Enter Use this folder · Tab Search · Esc Cancel · F1 Help"
+		end
+		return " Alt+Enter Workspace · Shift+Z Jump"
 	end, 1000, Status.LEFT)
 end

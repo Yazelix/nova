@@ -1,6 +1,10 @@
 local M = {}
 
-local current_dir = ya.sync(function() return tostring(cx.active.current.cwd) end)
+local target_dir = ya.sync(function()
+	local current = cx.active.current
+	local hovered = current.hovered
+	return tostring(hovered and hovered.cha.is_dir and hovered.url or current.cwd)
+end)
 
 function M:entry()
 	local yzx_open = os.getenv("YZX_OPEN")
@@ -8,7 +12,7 @@ function M:entry()
 		return ya.notify({ title = "Tab workspace", content = "YZX_OPEN is not set", timeout = 5, level = "error" })
 	end
 
-	local dir = current_dir()
+	local dir = target_dir()
 	local flag = os.getenv("YZX_YAZI_ROLE") == "startup-picker" and "--retarget-workspace" or "--set-workspace"
 	local child, err = Command(yzx_open)
 		:arg({ flag, dir })

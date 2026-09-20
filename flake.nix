@@ -1431,7 +1431,7 @@
       '';
       contracts = pkgs.runCommand "yzx-contracts" {} ''
         ${yzxContractsCheck}/bin/yzx-contracts-check ${yzx} ${pkgs.git}/bin/git ${pkgs.jq}/bin/jq "$out"
-        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-workspace.lua} ${yzx}/share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua
+        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-workspace.lua} ${yzx}/share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua ${yzx}/share/yazelix/yazi/init.lua
         yzx_shell="$(${pkgs.gnused}/bin/sed -n 's/.*default_shell "\([^"]*\)".*/\1/p' ${yzx}/share/yazelix/config.kdl)"
         test -x "$yzx_shell"
         export HOME="$TMPDIR/home"
