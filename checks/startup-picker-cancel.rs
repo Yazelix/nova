@@ -215,7 +215,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
     send_key(zellij, sessions[0], "Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "target.txt")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Quick search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Enter Use this folder")?;
     let zoxide_status = Command::new("zoxide")
         .env("_ZO_DATA_DIR", home.join(".local/share/zoxide"))
         .args(["add", "--score", "100"])
@@ -272,7 +272,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
     send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Quick search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Enter Use this folder")?;
     send_key(zellij, sessions[0], "q")?;
     wait_for_panes(
         recorder,

@@ -526,10 +526,12 @@ These bindings expect the editor process to inherit the managed Yazelix
 session environment. The Emacs example replaces the default `M-r` binding.
 Choose another key to retain `move-to-window-line-top-bottom`.
 
-`Alt z` opens a zoxide picker in Yazi, moves to the selected directory, and
-explicitly retargets the tab workspace and managed editor through `yzx-open`.
-Each invocation reads the current zoxide history, including directories added
-since Yazi started. Ordinary Yazi opens keep the existing tab workspace.
+`Shift z` uses Yazi's native zoxide jump and changes only its browsing location.
+`Alt Enter` uses Yazi's current folder as the exact tab workspace, without
+opening or focusing Helix from the persistent popup. Existing panes keep their
+own cwd. In the startup picker, the same shortcut also creates the first editor
+pane to complete tab creation. Ordinary Yazi opens preserve an established tab
+workspace; they may sync Helix's own cwd to that root while opening the target.
 
 `yzx-open` writes bounded logs under:
 

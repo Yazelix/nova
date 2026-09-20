@@ -22,7 +22,8 @@ const KEY_REVEAL: &str = "Alt r";
 const KEY_SIDEBAR_SWAP: &str = "Alt Shift H";
 const KEY_YAZI_POPUP: &str = "Alt Shift Y";
 const KEY_NEW_PANE: &str = "Alt m";
-const KEY_YAZI_ZOXIDE: &str = "Alt z";
+const KEY_YAZI_JUMP: &str = "Shift z";
+const KEY_YAZI_WORKSPACE: &str = "Alt Enter";
 const KEY_TAB_LEFT: &str = "Ctrl Alt h";
 const KEY_TAB_RIGHT: &str = "Ctrl Alt l";
 const KEY_PANE_DOWN: &str = "Ctrl Alt j";
@@ -262,7 +263,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazi:** Press `{yazi_zoxide}` to choose a directory with zoxide, retarget the current tab, and open it in the editor.
+3. **Inside Yazi:** Browse to any folder or press `{yazi_jump}` to jump through zoxide history. Press `{yazi_workspace}` to use Yazi's current folder as this tab's workspace without opening the editor.
 
 ## Mental model
 
@@ -271,7 +272,8 @@ The current tab workspace root matters most. Managed panes and popups use that d
 Next lesson: `yzx tutor files`.
 "#,
         header = lesson_intro(index, lesson),
-        yazi_zoxide = key(KEY_YAZI_ZOXIDE),
+        yazi_jump = key(KEY_YAZI_JUMP),
+        yazi_workspace = key(KEY_YAZI_WORKSPACE),
     ))
 }
 
@@ -560,7 +562,7 @@ mod tests {
         for expected in [
             "yzx enter",
             "cd <dir> && yzx launch",
-            KEY_YAZI_ZOXIDE,
+            KEY_YAZI_WORKSPACE,
             "current tab workspace root matters most",
         ] {
             assert!(workspace.contains(expected), "missing {expected}");

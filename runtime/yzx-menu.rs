@@ -5,6 +5,7 @@ use std::{
 };
 
 const FZF: &str = "@fzf@";
+const ZELLIJ: &str = "@zellij@";
 
 const COMMANDS: &[(&str, &str, &str)] = &[
     ("config", "config", "Open Yazelix Nova config"),
@@ -18,6 +19,11 @@ const COMMANDS: &[(&str, &str, &str)] = &[
         "radar-setup",
         "agents",
         "Set up Radar for Codex, Claude Code, OpenCode",
+    ),
+    (
+        "workspace",
+        "workspace",
+        "Change tab workspace in Yazi (Alt+Enter)",
     ),
 ];
 
@@ -47,19 +53,64 @@ fn run() -> i32 {
         return 64;
     };
 
-    let status = Command::new(env::var_os("YZX_MENU_YZX").unwrap_or_else(|| "yzx".into()))
-        .arg(id)
-        .status();
-    let code = match status {
-        Ok(status) => status.code().unwrap_or(1),
-        Err(error) => {
-            eprintln!("Failed to run `yzx {id}`: {error}");
-            127
+    let code = if id == "workspace" {
+        open_workspace_popup()
+    } else {
+        let status = Command::new(env::var_os("YZX_MENU_YZX").unwrap_or_else(|| "yzx".into()))
+            .arg(id)
+            .status();
+        match status {
+            Ok(status) => status.code().unwrap_or(1),
+            Err(error) => {
+                eprintln!("Failed to run `yzx {id}`: {error}");
+                127
+            }
         }
     };
 
-    pause_if_tty(interactive);
+    if id != "workspace" || code != 0 {
+        pause_if_tty(interactive);
+    }
     code
+}
+
+fn open_workspace_popup() -> i32 {
+    let output = Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()))
+        .args([
+            "action",
+            "pipe",
+            "--plugin",
+            "yazelix_pane_orchestrator",
+            "--name",
+            "toggle_workspace_popup",
+            "--",
+            "yazi",
+        ])
+        .output();
+    match output {
+        Ok(output)
+            if output.status.success()
+                && String::from_utf8_lossy(&output.stdout).trim() == "ok" =>
+        {
+            0
+        }
+        Ok(output) => {
+            eprintln!(
+                "Could not open Yazi: {}",
+                String::from_utf8_lossy(if output.stderr.is_empty() {
+                    &output.stdout
+                } else {
+                    &output.stderr
+                })
+                .trim()
+            );
+            1
+        }
+        Err(error) => {
+            eprintln!("Could not open Yazi: {error}");
+            127
+        }
+    }
 }
 
 fn select_with_fzf() -> Option<String> {

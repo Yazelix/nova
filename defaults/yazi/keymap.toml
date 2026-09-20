@@ -1,7 +1,7 @@
 [[mgr.append_keymap]]
-on = ["<A-z>"]
-run = "plugin zoxide-editor"
-desc = "Retarget tab workspace with zoxide"
+on = ["<A-Enter>"]
+run = "plugin tab-workspace"
+desc = "Use current folder as tab workspace"
 
 [[mgr.append_keymap]]
 on = ["<A-r>"]

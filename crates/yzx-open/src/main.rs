@@ -87,6 +87,7 @@ struct BridgeResponseError {
 enum OpenIntent {
     Ordinary,
     Retarget,
+    WorkspaceOnly,
 }
 
 #[derive(Debug)]
@@ -163,26 +164,31 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
         if target.to_str().is_none() {
             bail!("target path is not valid UTF-8: {}", target.display());
         }
-        fs::metadata(target).with_context(|| {
+        let metadata = fs::metadata(target).with_context(|| {
             format!(
                 "target does not exist or cannot be inspected: {}",
                 target.display()
             )
         })?;
+        if request.intent == OpenIntent::WorkspaceOnly && !metadata.is_dir() {
+            bail!("tab workspace must be a directory: {}", target.display());
+        }
     }
 
     let current_state = active_tab_workspace(config)?;
-    let intent = if config.yazi_role.as_deref() == Some("startup-picker") {
+    let intent = if config.yazi_role.as_deref() == Some("startup-picker")
+        && request.intent == OpenIntent::Ordinary
+    {
         OpenIntent::Retarget
     } else {
         request.intent
     };
-    let candidate = if intent == OpenIntent::Ordinary
-        && current_state.workspace.source == WorkspaceSource::Explicit
-    {
-        current_state.workspace.root.clone()
-    } else {
-        target_workspace_root(config, &targets)
+    let candidate = match intent {
+        OpenIntent::Ordinary if current_state.workspace.source == WorkspaceSource::Explicit => {
+            current_state.workspace.root.clone()
+        }
+        OpenIntent::Ordinary => target_workspace_root(config, &targets),
+        OpenIntent::Retarget | OpenIntent::WorkspaceOnly => target_directory(&targets),
     };
     let decision = decide_workspace(intent, &current_state.workspace, &candidate);
     log_debug(
@@ -201,6 +207,10 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
     if decision.mutate {
         set_workspace(config, &decision.root, WorkspaceSource::Explicit)
             .context("could not update the canonical tab workspace")?;
+    }
+    if intent == OpenIntent::WorkspaceOnly {
+        println!("{}", decision.root.display());
+        return Ok(());
     }
 
     let open_result = if uses_helix_bridge(&config.editor) {
@@ -247,6 +257,7 @@ impl OpenIntent {
         match self {
             Self::Ordinary => "open",
             Self::Retarget => "retarget",
+            Self::WorkspaceOnly => "set-workspace",
         }
     }
 }
@@ -713,29 +724,33 @@ fn complete_startup_picker_handoff(config: &Config) -> Result<()> {
 }
 
 fn target_workspace_root(config: &Config, targets: &[PathBuf]) -> PathBuf {
-    let target_dir = directory_target(targets).cloned().unwrap_or_else(|| {
+    workspace_root(config, &target_directory(targets))
+}
+
+fn target_directory(targets: &[PathBuf]) -> PathBuf {
+    directory_target(targets).cloned().unwrap_or_else(|| {
         targets[0]
             .parent()
             .unwrap_or_else(|| Path::new("/"))
             .to_path_buf()
-    });
-    workspace_root(config, &target_dir)
+    })
 }
 
 fn parse_open_request(raw_targets: impl IntoIterator<Item = OsString>) -> Result<OpenRequest> {
     let mut targets = raw_targets.into_iter().collect::<Vec<_>>();
-    let intent =
-        if targets.first().map(OsString::as_os_str) == Some(OsStr::new("--retarget-workspace")) {
-            targets.remove(0);
-            OpenIntent::Retarget
-        } else {
-            OpenIntent::Ordinary
-        };
+    let intent = match targets.first().map(OsString::as_os_str) {
+        Some(flag) if flag == "--retarget-workspace" => OpenIntent::Retarget,
+        Some(flag) if flag == "--set-workspace" => OpenIntent::WorkspaceOnly,
+        _ => OpenIntent::Ordinary,
+    };
+    if intent != OpenIntent::Ordinary {
+        targets.remove(0);
+    }
     if targets.is_empty() {
         bail!("no target paths passed");
     }
-    if intent == OpenIntent::Retarget && targets.len() != 1 {
-        bail!("--retarget-workspace requires exactly one target path");
+    if intent != OpenIntent::Ordinary && targets.len() != 1 {
+        bail!("{} requires exactly one target path", intent.as_str());
     }
     Ok(OpenRequest { intent, targets })
 }
@@ -1319,6 +1334,61 @@ fi
     }
 
     #[test]
+    fn workspace_only_retarget_uses_exact_directory_without_opening_editor() {
+        let runtime = TestRuntime::new();
+        let old = runtime.root.join("old");
+        let repo = runtime.root.join("repo");
+        let target = repo.join("nested");
+        fs::create_dir_all(&target).unwrap();
+        runtime.write_zellij_with_workspace(false, None, &old, WorkspaceSource::Explicit, false, 2);
+        write_executable(
+            &runtime.root.join("git"),
+            format!("#!/bin/sh\nprintf '%s\\n' '{}'\n", repo.display()),
+        );
+
+        run(
+            &Config {
+                git: runtime.root.join("git").into_os_string(),
+                yazi_role: Some("workspace-popup".into()),
+                ..runtime.config("test-session")
+            },
+            [
+                OsString::from("--set-workspace"),
+                target.clone().into_os_string(),
+            ],
+        )
+        .unwrap();
+
+        let log = runtime.zellij_log();
+        assert!(log.contains("--name retarget_workspace"), "{log}");
+        assert!(
+            log.contains(&format!(r#""workspace_root":"{}""#, target.display())),
+            "{log}"
+        );
+        assert!(!log.contains("args=run --name editor"), "{log}");
+        assert!(!log.contains("focus-pane-id"), "{log}");
+        assert!(!log.contains("complete_startup_picker_handoff"), "{log}");
+    }
+
+    #[test]
+    fn workspace_only_retarget_rejects_files_without_mutation() {
+        let runtime = TestRuntime::new();
+        let file = runtime.root.join("file");
+        fs::write(&file, "").unwrap();
+        let result = run(
+            &runtime.config("test-session"),
+            [OsString::from("--set-workspace"), file.into_os_string()],
+        );
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("must be a directory")
+        );
+        assert!(!runtime.zellij_log.exists());
+    }
+
+    #[test]
     fn builds_file_and_directory_open_payloads() {
         let runtime = TestRuntime::new();
         let config = runtime.config("session");
@@ -1460,6 +1530,12 @@ fi
     #[test]
     fn startup_picker_opens_the_editor_before_closing_its_own_pane() {
         let runtime = TestRuntime::new();
+        let repo = runtime.root.join("project");
+        let git = runtime.root.join("git");
+        write_executable(
+            &git,
+            format!("#!/bin/sh\nprintf '%s\\n' '{}'\n", repo.display()),
+        );
         runtime.write_zellij_with_workspace(
             false,
             None,
@@ -1469,6 +1545,7 @@ fi
             2,
         );
         open_main_rs(&Config {
+            git: git.into_os_string(),
             zellij_pane_id: Some("terminal:9".into()),
             yazi_role: Some("startup-picker".into()),
             ..runtime.config("test-session")
@@ -1477,6 +1554,13 @@ fi
 
         let log = runtime.zellij_log();
         assert!(log.contains("--name retarget_workspace"), "{log}");
+        assert!(
+            log.contains(&format!(
+                r#""workspace_root":"{}""#,
+                repo.join("src").display()
+            )),
+            "{log}"
+        );
         let editor = log.find("args=run --name editor").unwrap();
         let close = log
             .find("--name complete_startup_picker_handoff -- 9")

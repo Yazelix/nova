@@ -181,7 +181,7 @@ custom popup entry.
 | `defaults/zellij/config.kdl` | Zellij keys, plugin loads, popup wiring, Kitty protocol; leaves application-local `Alt r` routing to Helix and Yazi |
 | `defaults/zellij/layout*.kdl` | Radar + stacked panes, open/closed swap |
 | `defaults/nu/` | Packaged Nu: carapace, zoxide, and Starship invocation |
-| `defaults/yazi/` | Popup initialization, opens via `yzx-open`, plugins, `Alt z` workspace retarget, and `Alt r` popup hide |
+| `defaults/yazi/` | Picker and popup initialization, opens via `yzx-open`, `Alt Enter` tab-workspace selection, and `Alt r` popup hide |
 | `defaults/helix/config.toml` | Packaged defaults; `Alt r` reveal and `Ctrl r` reload; runtime composition adds the Forest binding |
 
 ### Packaged components (not owned here)

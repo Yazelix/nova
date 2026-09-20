@@ -344,6 +344,7 @@
       '';
       yzxMenuSrc = pkgs.replaceVars ./runtime/yzx-menu.rs {
         fzf = "${pkgs.fzf}/bin/fzf";
+        zellij = "${yazelixZellijPackage}/bin/zellij";
       };
       yzxMenu = rustBin "yzx-menu" yzxMenuSrc;
       yazelixZellijPopupPackage = yazelixZellijPopup.packages.${system}.yzpp;
@@ -562,7 +563,7 @@
         install -D -m 644 ${yaziSchemas}/schemas/theme.json "$out/theme-schema.json"
         install -D -m 644 ${yaziSchemas}/LICENSE "$out/share/licenses/yazi-schemas/LICENSE"
         mkdir -p "$out/plugins"
-        install -D -m 644 ${./defaults/yazi/plugins/zoxide-editor.yazi/main.lua} "$out/plugins/zoxide-editor.yazi/main.lua"
+        install -D -m 644 ${./defaults/yazi/plugins/tab-workspace.yazi/main.lua} "$out/plugins/tab-workspace.yazi/main.lua"
         ln -s ${autoLayoutYazi} "$out/plugins/auto-layout.yazi"
         ln -s ${gitYazi}/git.yazi "$out/plugins/git.yazi"
         ln -s ${starshipYazi} "$out/plugins/starship.yazi"
@@ -1311,7 +1312,7 @@
         ./yzx-yazi-materialization-check
         grep -Fq 'run = "quit --code=10"' ${./defaults/yazi/startup-keymap.toml}
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
-        grep -Fq 'Tab Quick search' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Alt+Enter Use this folder' ${yzx}/share/yazelix/yazi/init.lua
         if grep -Fq 'quit --code=10' ${yzx}/share/yazelix/yazi/keymap.toml; then
           printf '%s\n' 'ordinary managed Yazi unexpectedly owns the startup Tab binding' >&2
           exit 1
@@ -1430,7 +1431,7 @@
       '';
       contracts = pkgs.runCommand "yzx-contracts" {} ''
         ${yzxContractsCheck}/bin/yzx-contracts-check ${yzx} ${pkgs.git}/bin/git ${pkgs.jq}/bin/jq "$out"
-        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-zoxide-refresh.lua} ${yzx}/share/yazelix/yazi/plugins/zoxide-editor.yazi/main.lua
+        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-workspace.lua} ${yzx}/share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua
         yzx_shell="$(${pkgs.gnused}/bin/sed -n 's/.*default_shell "\([^"]*\)".*/\1/p' ${yzx}/share/yazelix/config.kdl)"
         test -x "$yzx_shell"
         export HOME="$TMPDIR/home"

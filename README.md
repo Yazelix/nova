@@ -238,7 +238,8 @@ bindings are:
 | Radar provider | `Ctrl Tab` / `Ctrl Shift Tab` | Cycle sessions forward / backward |
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
-| Yazi | `Alt z` | Retarget the tab workspace with zoxide |
+| Yazi | `Shift z` | Jump with zoxide without changing the tab workspace |
+| Yazi | `Alt Enter` | Use Yazi's current folder as the tab workspace |
 
 Every new tab starts with the configured sidebar and a focused quick zoxide
 search. `Enter` opens the selected directory; `Tab` switches to full Yazi, and
@@ -253,7 +254,14 @@ then removes that exact picker. Exiting the picker without a successful handoff
 closes its exact tab; a surviving editor tab remains focused, while cancelling
 the only picker ends the session. Choosing a folder leaves Forest visible while
 focusing the native Helix picker. `Alt Shift Y` opens the separate persistent
-Yazi popup later.
+Yazi popup later. In the startup Yazi, `Alt Enter` chooses its current folder
+and completes the first-editor handoff. In the persistent popup, `Alt Enter`
+changes only the active tab's workspace: it does not open or focus Helix or
+move existing shell panes. Explicitly chosen folders stay exact even inside a
+Git repository. `Enter` keeps its ordinary open behavior, `Shift z` jumps
+within Yazi, and the persistent popup retains Yazi's native `Tab` Spot action.
+The command menu's **Change tab workspace** entry opens this same popup; the
+direct Yazi shortcut avoids the menu.
 
 The sidebar starts at 32 columns in the Zellij pane named `sidebar`, following
 the configured pane-frame and rounded-corner appearance. Radar is the default.
@@ -612,15 +620,15 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,201 code/configuration lines** and **5,272 documentation/text
+Yazelix owns **26,321 code/configuration lines** and **5,291 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,626 code/configuration lines and 1,342 documentation/text lines above
+This is 2,746 code/configuration lines and 1,361 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
-crops, Sixel preview cleanup and Rio GPU lifetimes, live zoxide refresh, its one-use picker, optional Forest and the configurable Radar-default sidebar,
+crops, Sixel preview cleanup and Rio GPU lifetimes, Yazi workspace selection, its one-use picker, optional Forest and the configurable Radar-default sidebar,
 portable Codex hook onboarding, the
 public Radar setup command, menu entry, recovery guidance and delegation checks,
 isolated Codex hook-health transitions, pinned Radar CLI proof, and a

@@ -1051,7 +1051,7 @@ mod tests {
         ] {
             assert_write_config_error(&path, field_path, value, expected);
         }
-        for value in ["Alt Shift f", "Alt Shift Y", "Alt z"] {
+        for value in ["Alt Shift f", "Alt Shift Y", "Alt Enter"] {
             assert_write_config_error(
                 &path,
                 KEYBINDINGS_AGENT_PATH,
@@ -2035,10 +2035,10 @@ mod tests {
             &json!("Yazelix / helix/config.toml + yazi/keymap.toml"),
         );
 
-        let yazi_zoxide = key_field(&model, "Alt z");
-        assert!(yazi_zoxide.display_label.contains("Alt z"));
-        assert!(yazi_zoxide.description.contains("Owner: Yazi"));
-        assert_explicit(yazi_zoxide, &json!("Yazi / yazi/keymap.toml"));
+        let yazi_workspace = key_field(&model, "Alt Enter");
+        assert!(yazi_workspace.display_label.contains("Alt Enter"));
+        assert!(yazi_workspace.description.contains("Owner: Yazi"));
+        assert_explicit(yazi_workspace, &json!("Yazi / yazi/keymap.toml"));
 
         let yazi_popup = key_field(&model, "Alt Shift Y");
         assert_eq!(

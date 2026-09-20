@@ -260,7 +260,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "launch",
             "help",
             "tutor",
-            "radar-setup"
+            "radar-setup",
+            "workspace"
         ],
         "yzx menu command allowlist changed\n{menu}"
     );
@@ -1402,7 +1403,11 @@ fn expect_pinned_radar_health_contract(yzx: &Path) {
     ] {
         expect_contains(&report, status, "pinned Radar healthy report");
     }
-    fs::write(temp.path.join("codex/config.toml"), "[features]\nhooks = false\n").unwrap();
+    fs::write(
+        temp.path.join("codex/config.toml"),
+        "[features]\nhooks = false\n",
+    )
+    .unwrap();
     let disabled = radar("--check");
     assert!(disabled.status.success(), "Radar warnings exit zero");
     expect_contains(
@@ -1413,7 +1418,19 @@ fn expect_pinned_radar_health_contract(yzx: &Path) {
 }
 
 fn expect_menu_dispatch(menu: &Path) {
-    expect_contains(&binary_text(menu), "/bin/fzf", "yzx-menu packaged fzf path");
+    let binary = binary_text(menu);
+    expect_contains(&binary, "/bin/fzf", "yzx-menu packaged fzf path");
+    expect_contains(&binary, "/bin/zellij", "yzx-menu packaged Zellij path");
+    expect_contains(
+        &binary,
+        "toggle_workspace_popup",
+        "Yazi workspace menu route",
+    );
+    expect_contains(
+        &binary,
+        "Change tab workspace in Yazi",
+        "workspace menu entry",
+    );
 
     let temp = TempDir::new();
     let fake_yzx = temp.path.join("fake-yzx");
@@ -1439,6 +1456,29 @@ fn expect_menu_dispatch(menu: &Path) {
         String::from_utf8_lossy(&output.stderr)
     );
     assert_eq!(fs::read_to_string(output_file).unwrap(), "status\n");
+
+    let fake_zellij = temp.path.join("fake-zellij");
+    let pipe_args = temp.path.join("pipe-args");
+    write_executable(
+        &fake_zellij,
+        "#!/bin/sh\nprintf '%s\\n' \"$*\" >\"$YZX_MENU_TEST_OUT\"\nprintf 'ok\\n'\n",
+    );
+    let output = Command::new(menu)
+        .env("YZX_ZELLIJ", &fake_zellij)
+        .env("YZX_MENU_TEST_OUT", &pipe_args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            child.stdin.as_mut().unwrap().write_all(b"workspace\n")?;
+            child.wait_with_output()
+        })
+        .unwrap();
+    assert!(output.status.success());
+    assert_eq!(
+        fs::read_to_string(pipe_args).unwrap(),
+        "action pipe --plugin yazelix_pane_orchestrator --name toggle_workspace_popup -- yazi\n"
+    );
 }
 
 fn expect_command_error(yzx_bin: &Path, args: &[&str], expected: &str, context: &str) {
@@ -1794,6 +1834,9 @@ fn expect_startup_diagnostics(yzx: &Path) {
 
 fn expect_menu_descriptions_match_help(help: &str, menu: &str) {
     for (id, label) in menu.lines().filter_map(menu_command_line) {
+        if id == "workspace" {
+            continue; // The workspace entry opens a pane; it is not a yzx subcommand.
+        }
         assert!(
             help.lines().any(|line| {
                 line.trim_start()
@@ -2233,11 +2276,12 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     let keymap = fs::read_to_string(yzx.join("share/yazelix/yazi/keymap.toml")).unwrap();
     expect_contains_all! {
         &keymap, "Yazi managed keymap fragment";
-        r#"on = ["<A-z>"]"#,
-        r#"run = "plugin zoxide-editor""#,
+        r#"on = ["<A-Enter>"]"#,
+        r#"run = "plugin tab-workspace""#,
         r#"on = ["<A-r>"]"#,
         r#"run = 'shell "$YZX_YAZI_RETURN"'"#,
     }
+    assert!(!keymap.contains("<A-z>"));
 
     let yazi_toml = fs::read_to_string(yzx.join("share/yazelix/yazi/yazi.toml")).unwrap();
     expect_contains_all! {
@@ -2253,6 +2297,8 @@ fn expect_yazi_managed_keys(yzx: &Path) {
 
     let init = fs::read_to_string(yzx.join("share/yazelix/yazi/init.lua")).unwrap();
     assert!(!init.contains("sidebar-state") && !init.contains("sidebar-status"));
+    assert!(init.contains("Alt+Enter Use this folder"));
+    assert!(init.contains("Alt+Enter Set tab workspace"));
     assert!(
         !yzx.join("share/yazelix/yazi/plugins/sidebar-state.yazi")
             .exists()
@@ -2267,15 +2313,19 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     );
 
     let plugin =
-        fs::read_to_string(yzx.join("share/yazelix/yazi/plugins/zoxide-editor.yazi/main.lua"))
+        fs::read_to_string(yzx.join("share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua"))
             .unwrap();
     expect_contains_all! {
-        &plugin, "Yazi zoxide editor plugin fragment";
-        r#":arg({ "--retarget-workspace", target_dir })"#,
-        r#"Command("zoxide")"#,
-        r#"emit("cd", { target_dir, raw = true })"#,
+        &plugin, "Yazi tab workspace plugin fragment";
+        "--set-workspace",
+        "--retarget-workspace",
+        "current_dir()",
         "YZX_OPEN is not set",
     }
+    assert!(
+        !yzx.join("share/yazelix/yazi/plugins/zoxide-editor.yazi")
+            .exists()
+    );
 
     let layout = fs::read_to_string(yzx.join("share/yazelix/layout.kdl")).unwrap();
     expect_contains_all! {

@@ -294,7 +294,7 @@ arguments in `agent.args`, not in `agent.command`.
 ## Yazi Picker and Popup
 
 Every new managed tab starts with the configured sidebar provider and one
-focused tiled `yazi_picker`. A successful file, directory, or `Alt z` workspace
+focused tiled `yazi_picker`. A successful file, directory, or `Alt Enter` workspace
 choice owns the tab's initial retarget, creates the managed editor, and only
 then closes that exact picker by id. There is no hidden starter shell or
 prestarted editor whose cwd can become stale.
@@ -416,8 +416,14 @@ root. After success, only the originating managed Yazi follows the primary
 target's directory; the canonical workspace, shell panes, and hidden agent stay
 unchanged.
 
-Yazi `Alt z` is the explicit retarget operation. It updates the orchestrator
-and managed editor together; an editor failure restores the prior root and its
+Yazi `Shift z` changes only its browsing directory through native zoxide.
+`Alt Enter` in the persistent popup sets the exact current directory as the
+canonical root without opening or focusing Helix. The orchestrator updates the
+tab label; existing shells and editor processes keep their own cwd. The
+startup picker uses the same key to choose its current folder, then launches
+the first editor and closes that picker. Explicit choices inside Git keep the
+chosen subdirectory; ordinary implicit file-open bootstrap may still use the
+containing worktree. A failed editor handoff restores the prior root and its
 bootstrap or explicit provenance. Git and agent popup requests carry the
 canonical root explicitly. A hidden agent is reused across pane focus and
 local navigation changes, and is replaced only after the canonical root
