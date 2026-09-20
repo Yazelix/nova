@@ -527,7 +527,8 @@ session environment. The Emacs example replaces the default `M-r` binding.
 Choose another key to retain `move-to-window-line-top-bottom`.
 
 `Shift z` uses Yazi's native zoxide jump and changes only its browsing location.
-`Alt Enter` uses Yazi's current folder as the exact tab workspace, without
+`Alt Enter` uses the hovered folder, or Yazi's current folder when hovering a
+file or nothing, as the exact tab workspace, without
 opening or focusing Helix from the persistent popup. Existing panes keep their
 own cwd. In the startup picker, the same shortcut also creates the first editor
 pane to complete tab creation. Ordinary Yazi opens preserve an established tab

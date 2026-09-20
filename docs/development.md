@@ -309,5 +309,5 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current | Pre-Rio | Difference |
 | --- | ---: | ---: | ---: |
 | Code and configuration | 26,339 | 23,575 | +2,764 |
-| Documentation and text | 5,300 | 3,930 | +1,370 |
-| Total | 31,639 | 27,505 | +4,134 |
+| Documentation and text | 5,301 | 3,930 | +1,371 |
+| Total | 31,640 | 27,505 | +4,135 |
