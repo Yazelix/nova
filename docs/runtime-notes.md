@@ -420,9 +420,9 @@ Yazi `Shift z` changes only its browsing directory through native zoxide.
 `Alt Enter` in the persistent popup sets the hovered directory as the exact
 canonical root, or the current directory when hovering a file or nothing,
 without opening or focusing Helix. The orchestrator updates the tab label;
-existing shells and editor processes keep their own cwd. The startup picker
-uses the same selection rule, then launches the first editor and closes that
-picker. Explicit choices inside Git keep the
+existing shells and editor processes keep their own cwd. Startup Yazi uses
+the same selection rule outside its fast search, then launches the first
+editor and closes that picker. Explicit choices inside Git keep the
 chosen subdirectory; ordinary implicit file-open bootstrap may still use the
 containing worktree. A failed editor handoff restores the prior root and its
 bootstrap or explicit provenance. Git and agent popup requests carry the

@@ -239,13 +239,16 @@ bindings are:
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Shift z` | Jump with zoxide without changing the tab workspace |
+| Startup Yazi | `Alt z` | Search recent folders and open one in Helix |
 | Yazi | `Alt Enter` | Use the hovered folder, or current folder when on a file, as the tab workspace |
 
-Every new tab starts with the configured sidebar and a focused quick zoxide
-search. `Enter` opens the selected directory; `Tab` switches to full Yazi, and
-`Tab` in that startup Yazi returns to quick search at the directory you reached.
-Quick search and both managed Yazi views show their controls in clean local
-footers. New tabs start at home: use `Alt Shift T`, or `Ctrl Alt t` then `n`.
+Every new tab starts in Yazi with a fast zoxide search already open. `Enter`
+opens the selected folder as the exact tab workspace in the first Helix editor;
+`Esc` dismisses only the search and leaves Yazi ready to browse. `Alt z` in
+startup Yazi reopens the search. If zoxide has no other folders yet, Yazi opens
+without a search. `Tab` keeps Yazi's native Spot action in both views. The
+search and both managed Yazi views show their controls in clean local footers.
+New tabs start at home: use `Alt Shift T`, or `Ctrl Alt t` then `n`.
 In tab mode, `x` also closes a tab.
 The direct shortcuts pass through in locked mode.
 A session exits when its final terminal pane closes, so UI plugins cannot leave
@@ -261,7 +264,8 @@ In the persistent popup, `Alt Enter` changes only the active tab's workspace:
 it does not open or focus Helix or
 move existing shell panes. Explicitly chosen folders stay exact even inside a
 Git repository. `Enter` keeps its ordinary open behavior, `Shift z` jumps
-within Yazi, and the persistent popup retains Yazi's native `Tab` Spot action.
+within Yazi, and the persistent popup does not bind `Alt z`. Fast search uses
+`Enter` for selection; `Alt Enter` is available after returning to Yazi.
 The command menu's **Change tab workspace** entry opens this same popup; the
 direct Yazi shortcut avoids the menu. On macOS, Rio needs Option-as-Alt enabled
 for that shortcut; see [configuration](docs/configuration.md).
@@ -623,11 +627,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,339 code/configuration lines** and **5,301 documentation/text
+Yazelix owns **26,243 code/configuration lines** and **5,308 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,764 code/configuration lines and 1,371 documentation/text lines above
+This is 2,668 code/configuration lines and 1,378 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
@@ -675,9 +679,9 @@ throttling stay in zjstatus and Nova Bar; Nova composes and pins them.
 The Anima update adds 30 lines to expose its current styles, document navigation,
 and check that every advertised style is accepted by Nova's welcome config.
 The tab-mode chord change adds 15 lines to document and check `Ctrl t` passthrough.
-Fast startup keeps zoxide search and Yazi browsing in one wrapper; most of its
-added Rust extends the existing isolated lifecycle check across both views,
-location retention, handoff, and cancellation.
+Fast startup runs a startup-only zoxide-to-editor search inside Yazi, removing
+the separate Rust fzf picker and Tab shuttle while retaining the exact-tab
+handoff and cancellation check.
 Direct tab shortcuts reuse native Zellij actions; the added lines document them
 and check managed layouts and shortcut collision rejection.
 Circular vertical focus and work-pane movement reuse the pane orchestrator's
@@ -694,9 +698,9 @@ and pins the correction without adding a renderer or changing welcome policy.
 Chladni and Physarum add welcome choices and delivery checks; their engines
 remain in Anima without adding runtime dependencies.
 The Anima pane title and custom-popup collision checks use its product name.
-The startup picker adds one isolated lifecycle check for quick-search handoff,
-the Yazi toggle with retained browsing location, exact later-tab removal, and
-sole-tab exit while reusing Anima's existing Kinestra pin.
+The startup picker adds one isolated lifecycle check for empty-history Yazi,
+automatic and reopened search, first-editor handoff, exact later-tab removal,
+and sole-tab exit while reusing Anima's existing Kinestra pin.
 Anima 0.2.0 uses its named executable; Plasma adds one welcome choice and a parity
 check, while animation rendering and fading cards remain in the child.
 The card-corner correction stays in Anima; Nova only pins and documents it.

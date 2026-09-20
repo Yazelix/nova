@@ -186,9 +186,11 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     let picker_dir = recorder.work().join("picker");
     let nested_dir = picker_dir.join("nested");
     let quick_dir = recorder.work().join("quick-target");
+    let vanished_dir = recorder.work().join("vanished-target");
     fs::create_dir_all(home.join(".config/yazelix"))?;
     fs::create_dir_all(&nested_dir)?;
     fs::create_dir(&quick_dir)?;
+    fs::create_dir(&vanished_dir)?;
     fs::write(
         home.join(".config/yazelix/config.toml"),
         "[welcome]\nenabled = false\n",
@@ -209,13 +211,23 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
-    send_key(zellij, sessions[0], "Enter")?;
-    recorder.sleep(Duration::from_millis(250))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
-    send_key(zellij, sessions[0], "Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "target.txt")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Alt+Enter Use this folder")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Z Search")?;
+    send_key(zellij, sessions[0], "Tab")?;
+    send_key(zellij, sessions[0], "Esc")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Z Search")?;
+    send_key(zellij, sessions[0], "Home")?;
+    send_key(zellij, sessions[0], "Right")?;
+    wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
+    send_key(zellij, sessions[0], "Alt Enter")?;
+    wait_for_panes(
+        recorder,
+        zellij,
+        sessions[0],
+        r#"any(.[]; .title == "editor" and .is_focused)"#,
+    )?;
+    wait_for_screen(recorder, zellij, sessions[0], "nested picker proof")?;
+
     let zoxide_status = Command::new("zoxide")
         .env("_ZO_DATA_DIR", home.join(".local/share/zoxide"))
         .args(["add", "--score", "100"])
@@ -224,21 +236,6 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     if !zoxide_status.success() {
         return Err(io::Error::other("could not seed isolated zoxide history").into());
     }
-    send_key(zellij, sessions[0], "Home")?;
-    send_key(zellij, sessions[0], "Right")?;
-    wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
-    send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
-    send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
-    send_key(zellij, sessions[0], "Enter")?;
-    wait_for_panes(
-        recorder,
-        zellij,
-        sessions[0],
-        r#"any(.[]; .title == "editor" and .is_focused)"#,
-    )?;
-    wait_for_screen(recorder, zellij, sessions[0], "nested picker proof")?;
 
     let layout = yzx
         .parent()
@@ -252,7 +249,10 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    send_key(zellij, sessions[0], "Alt Enter")?;
+    recorder.sleep(Duration::from_millis(250))?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
     write_chars(zellij, sessions[0], "quick-target")?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_panes(
@@ -270,9 +270,41 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse with Yazi")?;
-    send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Alt+Enter Use this folder")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    send_key(zellij, sessions[0], "Esc")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Z Search")?;
+    send_key(zellij, sessions[0], "Alt z")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    send_key(zellij, sessions[0], "Esc")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Z Search")?;
+    send_key(zellij, sessions[0], "q")?;
+    wait_for_panes(
+        recorder,
+        zellij,
+        sessions[0],
+        r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "editor" and .is_focused)"#,
+    )?;
+
+    let zoxide_status = Command::new("zoxide")
+        .env("_ZO_DATA_DIR", home.join(".local/share/zoxide"))
+        .args(["add", "--score", "100"])
+        .arg(&vanished_dir)
+        .status()?;
+    if !zoxide_status.success() {
+        return Err(io::Error::other("could not seed vanished zoxide target").into());
+    }
+    new_tab(zellij, sessions[0], &layout, &picker_dir)?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    fs::remove_dir(&vanished_dir)?;
+    write_chars(zellij, sessions[0], "vanished-target")?;
+    send_key(zellij, sessions[0], "Enter")?;
+    wait_for_panes(
+        recorder,
+        zellij,
+        sessions[0],
+        r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
+    )?;
+    wait_for_screen(recorder, zellij, sessions[0], "Alt+Z Search")?;
     send_key(zellij, sessions[0], "q")?;
     wait_for_panes(
         recorder,
@@ -293,7 +325,9 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[1],
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[1], "Tab Browse with Yazi")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Enter Open in Helix")?;
+    send_key(zellij, sessions[1], "Esc")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Alt+Z Search")?;
     send_key(zellij, sessions[1], "Esc")?;
     wait_for_session_exit(zellij, sessions[1])?;
     recorder.stop_app()

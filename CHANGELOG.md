@@ -10,7 +10,8 @@ User-visible runtime changes for Yazelix Nova live here.
   key footers. The persistent popup changes workspace without opening Helix;
   the startup picker still creates its first editor pane.
   The command menu provides a discoverable route to the persistent popup.
-  Nova's combined `Alt z` action is removed.
+  Nova's former global `Alt z` action is removed; startup Yazi alone uses it
+  to reopen its search.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.
@@ -54,9 +55,11 @@ User-visible runtime changes for Yazelix Nova live here.
   Rounded corners take precedence, and the fork-only value exists only in
   generated runtime configuration.
 
-- New tabs open a fast zoxide search first. `Enter` opens only a selected
-  directory, while `Tab` toggles into full Yazi and back without losing Yazi's
-  current directory; both views show their active keys in a local footer.
+- New tabs start in Yazi with a fast zoxide-to-editor search ready. `Enter`
+  opens a selected directory in Helix; `Esc` returns to Yazi without canceling
+  the tab, and startup-only `Alt z` reopens the search. Empty history leaves
+  Yazi ready to browse. `Tab` stays native Yazi Spot in both Yazi views, and
+  `Alt Enter` is not bound in the search.
 
 - Cancelling a startup Yazi picker closes its exact tab. A surviving editor tab
   remains usable, and cancelling the sole picker exits Nova instead of leaving

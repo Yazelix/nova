@@ -2315,6 +2315,11 @@ fn expect_yazi_managed_keys(yzx: &Path) {
         !yzx.join("share/yazelix/yazi/plugins/zoxide-editor.yazi")
             .exists()
     );
+    assert!(
+        yzx.join("share/yazelix/yazi/plugins/startup-search.yazi/main.lua")
+            .exists()
+    );
+    assert!(init.contains("ya.emit(\"plugin\", { \"startup-search\" })"));
 
     let layout = fs::read_to_string(yzx.join("share/yazelix/layout.kdl")).unwrap();
     expect_contains_all! {

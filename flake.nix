@@ -564,6 +564,7 @@
         install -D -m 644 ${yaziSchemas}/LICENSE "$out/share/licenses/yazi-schemas/LICENSE"
         mkdir -p "$out/plugins"
         install -D -m 644 ${./defaults/yazi/plugins/tab-workspace.yazi/main.lua} "$out/plugins/tab-workspace.yazi/main.lua"
+        install -D -m 644 ${./defaults/yazi/plugins/startup-search.yazi/main.lua} "$out/plugins/startup-search.yazi/main.lua"
         ln -s ${autoLayoutYazi} "$out/plugins/auto-layout.yazi"
         ln -s ${gitYazi}/git.yazi "$out/plugins/git.yazi"
         ln -s ${starshipYazi} "$out/plugins/starship.yazi"
@@ -750,8 +751,6 @@
           yzxHelix = "${managedEditor}/bin/yzx-hx";
           yzxEditor = "${editor}/bin/yzx-editor";
           yzxConfig = "${yzxConfig}/bin/yzx-config";
-          fzf = "${pkgs.fzf}/bin/fzf";
-          zoxide = "${pkgs.zoxide}/bin/zoxide";
           pathPrefix = pkgs.lib.makeBinPath [pkgs.fzf pkgs.git pkgs.starship pkgs.zoxide];
         });
         layout = let
@@ -1310,11 +1309,13 @@
       yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
-        grep -Fq 'run = "quit --code=10"' ${./defaults/yazi/startup-keymap.toml}
+        grep -Fq 'run = "plugin startup-search"' ${./defaults/yazi/startup-keymap.toml}
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
         grep -Fq 'Alt+Enter Use this folder' ${yzx}/share/yazelix/yazi/init.lua
-        if grep -Fq 'quit --code=10' ${yzx}/share/yazelix/yazi/keymap.toml; then
-          printf '%s\n' 'ordinary managed Yazi unexpectedly owns the startup Tab binding' >&2
+        grep -Fq 'ya.emit("plugin", { "startup-search" })' ${yzx}/share/yazelix/yazi/init.lua
+        test -f ${yzx}/share/yazelix/yazi/plugins/startup-search.yazi/main.lua
+        if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then
+          printf '%s\n' 'ordinary managed Yazi unexpectedly owns the startup search binding' >&2
           exit 1
         fi
 

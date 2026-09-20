@@ -3,12 +3,14 @@ local cwd = "/current"
 local child_dir = "/current/child dir"
 local notifications = {}
 local calls = {}
+local emitted = {}
 local succeeds = true
 
 cx = { active = { current = { cwd = cwd, hovered = { url = child_dir, cha = { is_dir = true } } } } }
 ya = {
 	sync = function(fn) return fn end,
 	notify = function(message) notifications[#notifications + 1] = message end,
+	emit = function(name, args) emitted[#emitted + 1] = { name, args } end,
 }
 os.getenv = function(name)
 	if name == "YZX_OPEN" then return "/yzx-open" end
@@ -70,6 +72,8 @@ local function footer(name)
 	return Status.render()
 end
 assert(footer("startup-picker"):find("Alt+Enter Use this folder", 1, true))
+assert(emitted[1][1] == "plugin" and emitted[1][2][1] == "startup-search")
 assert(footer("workspace-popup") == " Alt+Enter Workspace · Shift+Z Jump")
+assert(#emitted == 1)
 cx.layer = "input"
 assert(Status.render() == "")

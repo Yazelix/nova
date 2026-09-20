@@ -1,7 +1,7 @@
 [[mgr.prepend_keymap]]
-on = ["<Tab>"]
-run = "quit --code=10"
-desc = "Return to quick search"
+on = ["<A-z>"]
+run = "plugin startup-search"
+desc = "Search recent folders and open in Helix"
 
 [[mgr.prepend_keymap]]
 on = ["q"]

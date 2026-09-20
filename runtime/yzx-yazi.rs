@@ -1,10 +1,10 @@
 use std::{
     env,
     ffi::{OsStr, OsString},
-    io::{self, Write},
-    os::unix::{ffi::OsStringExt, process::CommandExt},
+    io,
+    os::unix::process::CommandExt,
     path::{Path, PathBuf},
-    process::{Command, ExitCode, Stdio},
+    process::{Command, ExitCode},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -17,23 +17,8 @@ const YZX_ZELLIJ: &str = "@zellij@";
 const YZX_HELIX: &str = "@yzxHelix@";
 const YZX_EDITOR_LAUNCHER: &str = "@yzxEditor@";
 const YZX_CONFIG: &str = "@yzxConfig@";
-const FZF: &str = "@fzf@";
-const ZOXIDE: &str = "@zoxide@";
 const PATH_PREFIX: &str = "@pathPrefix@";
 const PANE_ORCHESTRATOR: &str = "yazelix_pane_orchestrator";
-
-#[derive(Debug, PartialEq, Eq)]
-enum QuickAction {
-    Open(OsString),
-    Browse,
-    Cancel,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-enum YaziAction {
-    QuickSearch(PathBuf),
-    Cancel,
-}
 
 struct ManagedEnv {
     state_dir: PathBuf,
@@ -141,114 +126,23 @@ fn run() -> io::Result<()> {
 }
 
 fn run_startup_picker(yazi: &OsStr, args: &[OsString]) -> io::Result<()> {
-    let mut browse_from = env::current_dir()?;
-    let mut action = quick_picker()?;
-    if action == QuickAction::Cancel {
-        return Ok(());
-    }
     let managed = ManagedEnv::load()?;
-    let mut yazi_config = None;
-    loop {
-        match action {
-            QuickAction::Cancel => return Ok(()),
-            QuickAction::Open(directory) => {
-                let status = managed
-                    .command(YZX_OPEN, Some("startup-picker"))
-                    .arg("--retarget-workspace")
-                    .arg(directory)
-                    .status()?;
-                return if status.success() {
-                    Ok(())
-                } else {
-                    Err(io::Error::other(format!(
-                        "could not open quick-search selection: {status}"
-                    )))
-                };
-            }
-            QuickAction::Browse => {}
-        }
-
-        let config = match &yazi_config {
-            Some(config) => config,
-            None => yazi_config.insert(yazi_config_home(
-                Path::new(YZX_YAZI_STARTUP_CONFIG),
-                &managed.state_dir.join("startup-picker"),
-                &managed.appearance_mode,
-            )?),
-        };
-        match browse_yazi(&managed, yazi, args, config, &browse_from)? {
-            YaziAction::QuickSearch(directory) => browse_from = directory,
-            YaziAction::Cancel => return Ok(()),
-        }
-        action = quick_picker()?;
-    }
-}
-
-fn quick_picker() -> io::Result<QuickAction> {
-    let history = Command::new(ZOXIDE).args(["query", "--list"]).output()?;
-    if !history.status.success() {
-        return Err(io::Error::other(format!(
-            "zoxide query failed: {}",
-            trim_output(&[history.stdout, history.stderr].concat())
-        )));
-    }
-    let enter_binding = if history.stdout.is_empty() {
-        "--bind=enter:ignore,ctrl-z:ignore,btab:up"
-    } else {
-        "--bind=enter:accept-non-empty,ctrl-z:ignore,btab:up"
-    };
-    let mut child = Command::new(FZF)
-        .args([
-            "--exact",
-            "--no-sort",
-            enter_binding,
-            "--cycle",
-            "--keep-right",
-            "--info=inline",
-            "--layout=reverse",
-            "--tabstop=1",
-            "--border=none",
-            "--expect=tab",
-            "--print0",
-            "--prompt=Quick search > ",
-            "--footer=Enter Open · Tab Browse with Yazi · Esc/Ctrl+C Cancel",
-            "--footer-border=none",
-            "--color=footer:-1",
-        ])
-        .env_remove("FZF_DEFAULT_OPTS")
-        .env_remove("FZF_DEFAULT_OPTS_FILE")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .spawn()?;
-    if let Err(error) = child.stdin.take().unwrap().write_all(&history.stdout)
-        && error.kind() != io::ErrorKind::BrokenPipe
-    {
-        let _ = child.kill();
-        let _ = child.wait();
-        return Err(error);
-    }
-    let output = child.wait_with_output()?;
-    parse_quick_picker(output.status.code(), &output.stdout)
-}
-
-fn browse_yazi(
-    managed: &ManagedEnv,
-    yazi: &OsStr,
-    args: &[OsString],
-    config: &Path,
-    browse_from: &Path,
-) -> io::Result<YaziAction> {
-    let output = managed
-        .yazi_command(yazi, Some("startup-picker"), config)
-        .args(["--cwd-file", "/dev/stdout", "--"])
-        .arg(browse_from)
+    let config = yazi_config_home(
+        Path::new(YZX_YAZI_STARTUP_CONFIG),
+        &managed.state_dir.join("startup-picker"),
+        &managed.appearance_mode,
+    )?;
+    let status = managed
+        .yazi_command(yazi, Some("startup-picker"), &config)
         .args(args)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .output()?;
-    parse_yazi_result(output.status.code(), &output.stdout)
+        .status()?;
+    if status.success() || status.code() == Some(130) {
+        Ok(())
+    } else {
+        Err(io::Error::other(format!(
+            "Yazi exited with status {status}"
+        )))
+    }
 }
 
 fn close_cancelled_startup_picker_tab() -> io::Result<()> {
@@ -402,46 +296,6 @@ fn trim_output(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).trim().to_owned()
 }
 
-fn parse_quick_picker(status: Option<i32>, output: &[u8]) -> io::Result<QuickAction> {
-    if status == Some(130) {
-        return Ok(QuickAction::Cancel);
-    }
-    let fields = output.split(|byte| *byte == 0).collect::<Vec<_>>();
-    match (status, fields.as_slice()) {
-        (Some(0 | 1), [b"tab", b""] | [b"tab", _, b""]) => Ok(QuickAction::Browse),
-        (Some(0), [b"", directory, b""]) if !directory.is_empty() => {
-            Ok(QuickAction::Open(OsString::from_vec(directory.to_vec())))
-        }
-        (Some(0), _) => Err(io::Error::other(
-            "quick search returned an invalid selection",
-        )),
-        _ => Err(io::Error::other(format!(
-            "quick search exited with status {}",
-            status
-                .map(|code| code.to_string())
-                .unwrap_or_else(|| "signal".into())
-        ))),
-    }
-}
-
-fn parse_yazi_result(status: Option<i32>, output: &[u8]) -> io::Result<YaziAction> {
-    match status {
-        Some(10) if !output.is_empty() => Ok(YaziAction::QuickSearch(PathBuf::from(
-            OsString::from_vec(output.to_vec()),
-        ))),
-        Some(10) => Err(io::Error::other(
-            "Yazi returned to quick search without a directory",
-        )),
-        Some(0 | 130) => Ok(YaziAction::Cancel),
-        _ => Err(io::Error::other(format!(
-            "Yazi exited with status {}",
-            status
-                .map(|code| code.to_string())
-                .unwrap_or_else(|| "signal".into())
-        ))),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -487,43 +341,5 @@ mod tests {
             select_appearance_mode("light".into(), Some(OsStr::new("dark")), true),
             "light"
         );
-    }
-
-    #[test]
-    fn startup_quick_picker_distinguishes_selection_browse_cancel_and_invalid_output() {
-        assert_eq!(
-            parse_quick_picker(Some(0), b"\0/workspace\xff\0").unwrap(),
-            QuickAction::Open(OsString::from_vec(b"/workspace\xff".to_vec()))
-        );
-        assert_eq!(
-            parse_quick_picker(Some(0), b"tab\0/workspace\0").unwrap(),
-            QuickAction::Browse
-        );
-        assert_eq!(
-            parse_quick_picker(Some(1), b"tab\0").unwrap(),
-            QuickAction::Browse
-        );
-        assert_eq!(
-            parse_quick_picker(Some(130), b"").unwrap(),
-            QuickAction::Cancel
-        );
-        assert!(parse_quick_picker(Some(0), b"").is_err());
-    }
-
-    #[test]
-    fn startup_yazi_distinguishes_return_cancel_and_failure() {
-        assert_eq!(
-            parse_yazi_result(Some(10), b"/workspace\xff").unwrap(),
-            YaziAction::QuickSearch(PathBuf::from(OsString::from_vec(
-                b"/workspace\xff".to_vec()
-            )))
-        );
-        assert_eq!(parse_yazi_result(Some(0), b"").unwrap(), YaziAction::Cancel);
-        assert_eq!(
-            parse_yazi_result(Some(130), b"").unwrap(),
-            YaziAction::Cancel
-        );
-        assert!(parse_yazi_result(Some(10), b"").is_err());
-        assert!(parse_yazi_result(Some(2), b"").is_err());
     }
 }
