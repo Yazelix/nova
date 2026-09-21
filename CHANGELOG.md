@@ -9,13 +9,17 @@ User-visible runtime changes for Yazelix Nova live here.
   original target to Helix. Existing numeric-colon filenames remain literal;
   workspace changes continue to use exact paths.
 
-- Managed Yazi uses `Tab` to switch between browsing and recent-folder search,
-  with `Shift Tab` for Spot. Persistent-popup search moves Yazi to the selected
-  folder for inspection; `Alt Enter` alone commits the hovered or current folder
-  as the tab workspace without opening Helix. Startup search still creates its
-  first editor pane. Both managed views use clean, pill-free key footers.
-  The command menu provides a discoverable route to the persistent popup.
-  Nova's former global `Alt z` action is removed.
+- New tabs start in Yazi's fast zoxide-backed recent-folder search. `Enter` opens
+  the selected directory in Helix, while `Esc` or `Tab` returns to browsing
+  without canceling the tab. Empty history leaves Yazi ready to browse, and
+  `Alt Enter` is unbound in search. In either managed Yazi browser, `Tab` reopens
+  search and `Shift Tab` spots the hovered file. Persistent-popup search moves
+  Yazi to the selected folder for inspection without changing the workspace;
+  `Alt Enter` alone commits the hovered or current folder as the tab workspace
+  without opening Helix. Startup search still creates its first editor pane.
+  Both managed views use clean, pill-free key footers. The command menu provides
+  a discoverable route to the persistent popup. Nova's former global `Alt z`
+  action is removed.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.
@@ -58,13 +62,6 @@ User-visible runtime changes for Yazelix Nova live here.
   new sessions while preserving Zellij's native `rounded_corners` setting.
   Rounded corners take precedence, and the fork-only value exists only in
   generated runtime configuration.
-
-- New tabs start in Yazi with a fast zoxide-to-editor search ready. `Enter`
-  opens a selected directory in Helix; `Esc` or `Tab` returns to Yazi without
-  canceling the tab. `Tab` reopens search in either managed Yazi view, with
-  `Shift Tab` for Spot. Persistent-popup search returns to Yazi at the selected
-  folder without changing the workspace. Empty history leaves Yazi ready to
-  browse, and `Alt Enter` is not bound in the search.
 
 - Cancelling a startup Yazi picker closes its exact tab. A surviving editor tab
   remains usable, and cancelling the sole picker exits Nova instead of leaving
