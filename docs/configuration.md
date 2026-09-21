@@ -531,9 +531,11 @@ These bindings expect the editor process to inherit the managed Yazelix
 session environment. The Emacs example replaces the default `M-r` binding.
 Choose another key to retain `move-to-window-line-top-bottom`.
 
-`Shift z` uses Yazi's native zoxide jump and changes only its browsing location.
-`Alt Enter` uses the hovered folder, or Yazi's current folder when hovering a
-file or nothing, as the exact tab workspace, without
+`Tab` switches between Yazi browsing and recent-folder search. In the persistent
+popup, selecting a search result moves Yazi to that folder without changing the
+tab workspace, so it can be inspected first. `Shift Tab` spots the hovered file.
+`Alt Enter` then uses the hovered folder, or Yazi's current folder when hovering
+a file or nothing, as the exact tab workspace, without
 opening or focusing Helix from the persistent popup. Existing panes keep their
 own cwd. In startup Yazi outside fast search, the shortcut creates the first
 editor pane to complete tab creation. Ordinary Yazi opens preserve an established

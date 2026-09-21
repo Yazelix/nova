@@ -8,7 +8,7 @@ require("zoxide"):setup({
 })
 
 local role = os.getenv("YZX_YAZI_ROLE")
-if role == "startup-picker" then ya.emit("plugin", { "startup-search" }) end
+if role == "startup-picker" then ya.emit("plugin", { "quick-search" }) end
 if role == "startup-picker" or role == "workspace-popup" then
 	for id = 1, 6 do
 		Status:children_remove(id, id <= 3 and Status.LEFT or Status.RIGHT)
@@ -18,6 +18,6 @@ if role == "startup-picker" or role == "workspace-popup" then
 		if role == "startup-picker" then
 			return " Alt+Enter Start here · Tab Search · Shift+Tab Spot"
 		end
-		return " Alt+Enter Workspace · Tab/Shift+Tab Spot · Shift+Z Jump"
+		return " Alt+Enter Workspace · Tab Search · Shift+Tab Spot"
 	end, 1000, Status.LEFT)
 end

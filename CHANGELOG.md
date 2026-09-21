@@ -9,15 +9,13 @@ User-visible runtime changes for Yazelix Nova live here.
   original target to Helix. Existing numeric-colon filenames remain literal;
   workspace changes continue to use exact paths.
 
-- Managed Yazi uses `Shift z` for a browse-only zoxide jump and `Alt Enter` to
-  set the tab workspace to the hovered folder, falling back to the current
-  folder when on a file or nothing. Both managed Yazi views use clean, pill-free
-  key footers. The persistent popup changes workspace without opening Helix;
-  the startup picker still creates its first editor pane.
+- Managed Yazi uses `Tab` to switch between browsing and recent-folder search,
+  with `Shift Tab` for Spot. Persistent-popup search moves Yazi to the selected
+  folder for inspection; `Alt Enter` alone commits the hovered or current folder
+  as the tab workspace without opening Helix. Startup search still creates its
+  first editor pane. Both managed views use clean, pill-free key footers.
   The command menu provides a discoverable route to the persistent popup.
-  Nova's former global `Alt z` action is removed. Startup Yazi uses `Tab` to
-  switch to its search and `Shift Tab` for Spot. The persistent popup uses
-  both `Tab` and `Shift Tab` for Spot.
+  Nova's former global `Alt z` action is removed.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.
@@ -63,9 +61,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - New tabs start in Yazi with a fast zoxide-to-editor search ready. `Enter`
   opens a selected directory in Helix; `Esc` or `Tab` returns to Yazi without
-  canceling the tab. Startup-only `Tab` reopens the search, with `Shift Tab`
-  for Spot; the persistent popup spots with `Tab` or `Shift Tab`. Empty history leaves
-  Yazi ready to browse, and `Alt Enter` is not bound in the search.
+  canceling the tab. `Tab` reopens search in either managed Yazi view, with
+  `Shift Tab` for Spot. Persistent-popup search returns to Yazi at the selected
+  folder without changing the workspace. Empty history leaves Yazi ready to
+  browse, and `Alt Enter` is not bound in the search.
 
 - Cancelling a startup Yazi picker closes its exact tab. A surviving editor tab
   remains usable, and cancelling the sole picker exits Nova instead of leaving

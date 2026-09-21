@@ -2276,6 +2276,10 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     let keymap = fs::read_to_string(yzx.join("share/yazelix/yazi/keymap.toml")).unwrap();
     expect_contains_all! {
         &keymap, "Yazi managed keymap fragment";
+        r#"on = ["<Tab>"]"#,
+        r#"run = "plugin quick-search""#,
+        r#"on = ["<BackTab>"]"#,
+        r#"run = "spot""#,
         r#"on = ["<A-Enter>"]"#,
         r#"run = "plugin tab-workspace""#,
         r#"on = ["<A-r>"]"#,
@@ -2316,10 +2320,10 @@ fn expect_yazi_managed_keys(yzx: &Path) {
             .exists()
     );
     assert!(
-        yzx.join("share/yazelix/yazi/plugins/startup-search.yazi/main.lua")
+        yzx.join("share/yazelix/yazi/plugins/quick-search.yazi/main.lua")
             .exists()
     );
-    assert!(init.contains("ya.emit(\"plugin\", { \"startup-search\" })"));
+    assert!(init.contains("ya.emit(\"plugin\", { \"quick-search\" })"));
 
     let layout = fs::read_to_string(yzx.join("share/yazelix/layout.kdl")).unwrap();
     expect_contains_all! {

@@ -1,9 +1,4 @@
 [[mgr.prepend_keymap]]
-on = ["<Tab>"]
-run = "plugin startup-search"
-desc = "Search recent folders and open in Helix"
-
-[[mgr.prepend_keymap]]
 on = ["q"]
 run = "quit --no-cwd-file --code=130"
 desc = "Cancel startup picker"

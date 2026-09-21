@@ -564,7 +564,7 @@
         install -D -m 644 ${yaziSchemas}/LICENSE "$out/share/licenses/yazi-schemas/LICENSE"
         mkdir -p "$out/plugins"
         install -D -m 644 ${./defaults/yazi/plugins/tab-workspace.yazi/main.lua} "$out/plugins/tab-workspace.yazi/main.lua"
-        install -D -m 644 ${./defaults/yazi/plugins/startup-search.yazi/main.lua} "$out/plugins/startup-search.yazi/main.lua"
+        install -D -m 644 ${./defaults/yazi/plugins/quick-search.yazi/main.lua} "$out/plugins/quick-search.yazi/main.lua"
         ln -s ${autoLayoutYazi} "$out/plugins/auto-layout.yazi"
         ln -s ${gitYazi}/git.yazi "$out/plugins/git.yazi"
         ln -s ${starshipYazi} "$out/plugins/starship.yazi"
@@ -1309,8 +1309,8 @@
       yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
-        grep -Fq 'run = "plugin startup-search"' ${./defaults/yazi/startup-keymap.toml}
-        grep -Fq 'on = ["<Tab>"]' ${./defaults/yazi/startup-keymap.toml}
+        grep -Fq 'run = "plugin quick-search"' ${yzx}/share/yazelix/yazi/keymap.toml
+        grep -Fq 'on = ["<Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<BackTab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<S-Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
         if grep -Fq '<A-z>' ${./defaults/yazi/startup-keymap.toml}; then
@@ -1319,11 +1319,11 @@
         fi
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
         grep -Fq 'Alt+Enter Start here' ${yzx}/share/yazelix/yazi/init.lua
-        grep -Fq 'Tab/Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
-        grep -Fq 'ya.emit("plugin", { "startup-search" })' ${yzx}/share/yazelix/yazi/init.lua
-        test -f ${yzx}/share/yazelix/yazi/plugins/startup-search.yazi/main.lua
+        grep -Fq 'Tab Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'ya.emit("plugin", { "quick-search" })' ${yzx}/share/yazelix/yazi/init.lua
+        test -f ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then
-          printf '%s\n' 'ordinary managed Yazi unexpectedly owns the startup search binding' >&2
+          printf '%s\n' 'managed Yazi kept the retired Alt+Z search binding' >&2
           exit 1
         fi
 
@@ -1440,7 +1440,7 @@
       '';
       contracts = pkgs.runCommand "yzx-contracts" {} ''
         ${yzxContractsCheck}/bin/yzx-contracts-check ${yzx} ${pkgs.git}/bin/git ${pkgs.jq}/bin/jq "$out"
-        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-workspace.lua} ${yzx}/share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua ${yzx}/share/yazelix/yazi/init.lua
+        ${pkgs.lua5_4}/bin/lua ${./checks/yazi-workspace.lua} ${yzx}/share/yazelix/yazi/plugins/tab-workspace.yazi/main.lua ${yzx}/share/yazelix/yazi/init.lua ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         yzx_shell="$(${pkgs.gnused}/bin/sed -n 's/.*default_shell "\([^"]*\)".*/\1/p' ${yzx}/share/yazelix/config.kdl)"
         test -x "$yzx_shell"
         export HOME="$TMPDIR/home"

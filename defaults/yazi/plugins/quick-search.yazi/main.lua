@@ -3,14 +3,18 @@ local M = {}
 local cwd = ya.sync(function() return tostring(cx.active.current.cwd) end)
 
 function M:entry()
+	local role = os.getenv("YZX_YAZI_ROLE")
+	if role ~= "startup-picker" and role ~= "workspace-popup" then return ya.emit("spot", {}) end
+
 	local zoxide = require("zoxide")
 	local current = cwd()
 	if zoxide.is_empty(current) then return end
 
 	local permit = ui.hide()
+	local enter = role == "workspace-popup" and "Enter Browse here" or "Enter Open in Helix"
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
 		.. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Open folder > ' "
-		.. "--footer='Enter Open in Helix · Tab/Esc Browse Yazi' --footer-border=none --color=footer:-1"
+		.. "--footer='" .. enter .. " · Tab/Esc Browse Yazi' --footer-border=none --color=footer:-1"
 	local child, err = Command("zoxide")
 		:arg({ "query", "-i", "--exclude", current })
 		:env("SHELL", "sh")
@@ -34,7 +38,12 @@ function M:entry()
 	end
 
 	local target = output.stdout:gsub("\n$", "")
-	if target ~= "" then require("tab-workspace").open(target) end
+	if target == "" then return end
+	if role == "workspace-popup" then
+		ya.emit("cd", { target, raw = true })
+	else
+		require("tab-workspace").open(target)
+	end
 end
 
 return M
