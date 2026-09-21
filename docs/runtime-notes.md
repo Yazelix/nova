@@ -416,14 +416,14 @@ root. After success, only the originating managed Yazi follows the primary
 target's directory; the canonical workspace, shell panes, and hidden agent stay
 unchanged.
 
-Yazi `Tab` opens recent-folder search. A persistent-popup selection emits Yazi's
-native `cd` action and leaves the canonical root unchanged; startup search keeps
-the initial editor handoff. `Shift Tab` spots the hovered file. `Alt Enter` in
-the persistent popup sets the hovered directory as the exact canonical root, or
-the current directory when hovering a file or nothing, without opening or
-focusing Helix. The orchestrator updates the tab label;
-existing shells and editor processes keep their own cwd. Startup Yazi uses
-the same selection rule outside its fast search, then launches the first
+`Tab` opens recent-folder search in startup and persistent-popup Yazi. A popup
+selection emits native `cd` and leaves the canonical root unchanged; startup
+search keeps the initial editor handoff. `Shift Tab` spots the hovered file
+while browsing. `Alt Enter` in the persistent popup sets the hovered directory
+as the exact canonical root, or the current directory when hovering a file or
+nothing, without opening or focusing an editor. The orchestrator updates the
+tab label; existing shells and editor processes keep their own cwd. Startup Yazi
+uses the same selection rule outside its fast search, then launches the first
 editor and closes that picker. Explicit choices inside Git keep the
 chosen subdirectory; ordinary implicit file-open bootstrap may still use the
 containing worktree. A failed editor handoff restores the prior root and its

@@ -263,7 +263,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazi:** Browse to any folder or press `{yazi_search}` to search recent folders. Search selection returns to Yazi so you can inspect it; press `{yazi_workspace}` on the desired folder, or on one of its files to use the current folder, without opening the editor.
+3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` to search recent folders. In search, `Enter` moves the popup to the result for inspection; press `{yazi_workspace}` on the desired folder, or on one of its files to use the current folder, without opening the editor.
 
 ## Mental model
 
@@ -272,6 +272,7 @@ The current tab workspace root matters most. Managed panes and popups use that d
 Next lesson: `yzx tutor files`.
 "#,
         header = lesson_intro(index, lesson),
+        yazi_popup = key(KEY_YAZI_POPUP),
         yazi_search = key(KEY_YAZI_SEARCH),
         yazi_workspace = key(KEY_YAZI_WORKSPACE),
     ))
@@ -562,6 +563,7 @@ mod tests {
         for expected in [
             "yzx enter",
             "cd <dir> && yzx launch",
+            KEY_YAZI_POPUP,
             KEY_YAZI_SEARCH,
             KEY_YAZI_WORKSPACE,
             "current tab workspace root matters most",

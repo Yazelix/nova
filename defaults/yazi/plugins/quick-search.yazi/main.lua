@@ -11,7 +11,7 @@ function M:entry()
 	if zoxide.is_empty(current) then return end
 
 	local permit = ui.hide()
-	local enter = role == "workspace-popup" and "Enter Browse here" or "Enter Open in Helix"
+	local enter = role == "workspace-popup" and "Enter Browse here" or "Enter Start here"
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
 		.. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Open folder > ' "
 		.. "--footer='" .. enter .. " · Tab/Esc Browse Yazi' --footer-border=none --color=footer:-1"

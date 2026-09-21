@@ -2037,8 +2037,8 @@ mod tests {
 
         let yazi_workspace = key_field(&model, "Alt Enter");
         assert!(yazi_workspace.display_label.contains("Alt Enter"));
-        assert!(yazi_workspace.description.contains("Owner: Yazi"));
-        assert_explicit(yazi_workspace, &json!("Yazi / yazi/keymap.toml"));
+        assert!(yazi_workspace.description.contains("Owner: Yazelix"));
+        assert_explicit(yazi_workspace, &json!("Yazelix / yazi/keymap.toml"));
 
         let yazi_popup = key_field(&model, "Alt Shift Y");
         assert_eq!(

@@ -262,10 +262,10 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
     send_key(zellij, sessions[0], "Alt Enter")?;
     recorder.sleep(Duration::from_millis(250))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
     write_chars(zellij, sessions[0], "quick-target")?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_panes(
@@ -283,11 +283,11 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
     send_key(zellij, sessions[0], "Esc")?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
     send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
     send_key(zellij, sessions[0], "Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
     send_key(zellij, sessions[0], "q")?;
@@ -307,7 +307,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         return Err(io::Error::other("could not seed vanished zoxide target").into());
     }
     new_tab(zellij, sessions[0], &layout, &picker_dir)?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
     fs::remove_dir(&vanished_dir)?;
     write_chars(zellij, sessions[0], "vanished-target")?;
     send_key(zellij, sessions[0], "Enter")?;
@@ -338,7 +338,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[1],
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[1], "Enter Open in Helix")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Enter Start here")?;
     send_key(zellij, sessions[1], "Esc")?;
     wait_for_screen(recorder, zellij, sessions[1], "Tab Search")?;
     send_key(zellij, sessions[1], "Esc")?;
