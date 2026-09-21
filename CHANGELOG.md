@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `yzx-open` accepts Helix file targets with `:line` or `:line:column`, validates
+  and derives workspace state from the underlying file, and forwards the
+  original target to Helix. Existing numeric-colon filenames remain literal;
+  workspace changes continue to use exact paths.
+
 - Managed Yazi uses `Shift z` for a browse-only zoxide jump and `Alt Enter` to
   set the tab workspace to the hovered folder, falling back to the current
   folder when on a file or nothing. Both managed Yazi views use clean, pill-free

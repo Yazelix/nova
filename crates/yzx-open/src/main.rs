@@ -155,6 +155,13 @@ fn main() -> ExitCode {
 
 fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Result<()> {
     let request = parse_open_request(raw_targets)?;
+    let intent = if config.yazi_role.as_deref() == Some("startup-picker")
+        && request.intent == OpenIntent::Ordinary
+    {
+        OpenIntent::Retarget
+    } else {
+        request.intent
+    };
     let targets = request
         .targets
         .into_iter()
@@ -164,31 +171,30 @@ fn run(config: &Config, raw_targets: impl IntoIterator<Item = OsString>) -> Resu
         if target.to_str().is_none() {
             bail!("target path is not valid UTF-8: {}", target.display());
         }
+    }
+    let filesystem_targets = targets
+        .iter()
+        .map(|target| filesystem_target(intent, target).to_path_buf())
+        .collect::<Vec<_>>();
+    for target in &filesystem_targets {
         let metadata = fs::metadata(target).with_context(|| {
             format!(
                 "target does not exist or cannot be inspected: {}",
                 target.display()
             )
         })?;
-        if request.intent == OpenIntent::WorkspaceOnly && !metadata.is_dir() {
+        if intent == OpenIntent::WorkspaceOnly && !metadata.is_dir() {
             bail!("tab workspace must be a directory: {}", target.display());
         }
     }
 
     let current_state = active_tab_workspace(config)?;
-    let intent = if config.yazi_role.as_deref() == Some("startup-picker")
-        && request.intent == OpenIntent::Ordinary
-    {
-        OpenIntent::Retarget
-    } else {
-        request.intent
-    };
     let candidate = match intent {
         OpenIntent::Ordinary if current_state.workspace.source == WorkspaceSource::Explicit => {
             current_state.workspace.root.clone()
         }
-        OpenIntent::Ordinary => target_workspace_root(config, &targets),
-        OpenIntent::Retarget | OpenIntent::WorkspaceOnly => target_directory(&targets),
+        OpenIntent::Ordinary => target_workspace_root(config, &filesystem_targets),
+        OpenIntent::Retarget | OpenIntent::WorkspaceOnly => target_directory(&filesystem_targets),
     };
     let decision = decide_workspace(intent, &current_state.workspace, &candidate);
     log_debug(
@@ -736,6 +742,28 @@ fn target_directory(targets: &[PathBuf]) -> PathBuf {
     })
 }
 
+fn filesystem_target(intent: OpenIntent, target: &Path) -> &Path {
+    if intent != OpenIntent::Ordinary || target.exists() {
+        return target;
+    }
+    let Some((path, row_or_column)) = target
+        .to_str()
+        .map(|raw| raw.trim_end_matches(':'))
+        .and_then(|raw| raw.rsplit_once(':'))
+    else {
+        return target;
+    };
+    if row_or_column.parse::<usize>().is_err() {
+        return target;
+    }
+    if let Some((path, row)) = path.rsplit_once(':')
+        && row.parse::<usize>().is_ok()
+    {
+        return Path::new(path);
+    }
+    Path::new(path)
+}
+
 fn parse_open_request(raw_targets: impl IntoIterator<Item = OsString>) -> Result<OpenRequest> {
     let mut targets = raw_targets.into_iter().collect::<Vec<_>>();
     let intent = match targets.first().map(OsString::as_os_str) {
@@ -1273,6 +1301,31 @@ fi
     }
 
     #[test]
+    fn filesystem_target_preserves_literal_files_and_workspace_paths() {
+        let runtime = TestRuntime::new();
+        let literal = runtime.root.join("report:10");
+        fs::write(&literal, "").unwrap();
+        assert_eq!(filesystem_target(OpenIntent::Ordinary, &literal), literal);
+
+        let file = runtime.root.join("main.rs");
+        fs::write(&file, "").unwrap();
+        for suffix in [":10", ":10:2", ":10:", ":10:2:"] {
+            let target = PathBuf::from(format!("{}{suffix}", file.display()));
+            assert_eq!(
+                filesystem_target(OpenIntent::Ordinary, &target),
+                file,
+                "target={}",
+                target.display()
+            );
+        }
+
+        let positioned = PathBuf::from(format!("{}:10", file.display()));
+        for intent in [OpenIntent::Retarget, OpenIntent::WorkspaceOnly] {
+            assert_eq!(filesystem_target(intent, &positioned), positioned);
+        }
+    }
+
+    #[test]
     fn open_intent_and_workspace_source_define_the_only_retarget_paths() {
         let explicit = CanonicalWorkspace {
             root: "/repo".into(),
@@ -1603,7 +1656,7 @@ fi
     }
 
     #[test]
-    fn sends_file_open_to_live_bridge() {
+    fn sends_file_targets_to_live_bridge_unchanged() {
         let runtime = TestRuntime::new();
         let session_id = "test-session";
         let (other_listener, _) =
@@ -1636,11 +1689,12 @@ fi
         };
         let primary_dir = workspace.join("docs/personal files");
         let primary = primary_dir.join("transcription.md");
-        let secondary = workspace.join("src/other.rs");
-        for target in [&primary, &secondary] {
+        let secondary_file = workspace.join("src/other.rs");
+        for target in [&primary, &secondary_file] {
             fs::create_dir_all(target.parent().unwrap()).unwrap();
             fs::write(target, "").unwrap();
         }
+        let secondary = PathBuf::from(format!("{}:10:2", secondary_file.display()));
         run(
             &config,
             [

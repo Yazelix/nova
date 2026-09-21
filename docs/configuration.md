@@ -482,6 +482,11 @@ Zellij tab or opens packaged Helix in the managed `editor` pane when the
 selected package includes it. The no-Helix package requires another terminal
 editor command. In a managed-Helix package, typing `hx` invokes the same wrapper
 
+Ordinary opens accept Helix targets ending in `:line` or `:line:column`.
+Nova validates and derives workspace state from the underlying file while
+forwarding the original target to Helix. An existing literal path wins over
+suffix parsing, and workspace-changing actions continue to require exact paths.
+
 Git editing stays in the client terminal. Managed LazyGit overlays only its
 file-edit commands and keeps user configuration, while it and other terminal
 Git clients use `yzx-editor` through the standard editor variables. On return,

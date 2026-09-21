@@ -630,11 +630,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,277 code/configuration lines** and **5,314 documentation/text
+Yazelix owns **26,331 code/configuration lines** and **5,327 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,702 code/configuration lines and 1,384 documentation/text lines above
+This is 2,756 code/configuration lines and 1,397 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty
@@ -704,6 +704,8 @@ The Anima pane title and custom-popup collision checks use its product name.
 The startup picker adds one isolated lifecycle check for empty-history Yazi,
 automatic and reopened search, first-editor handoff, exact later-tab removal,
 and sole-tab exit while reusing Anima's existing Kinestra pin.
+Positioned Helix targets match Helix's line-and-column grammar while keeping
+filesystem validation and workspace selection exact.
 Anima 0.2.0 uses its named executable; Plasma adds one welcome choice and a parity
 check, while animation rendering and fading cards remain in the child.
 The card-corner correction stays in Anima; Nova only pins and documents it.
