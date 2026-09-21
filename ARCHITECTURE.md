@@ -20,16 +20,16 @@ Bare `yzx` prints help. `launch` is the only Rio route.
 a display server. `yazelix-no-helix` retains the Rio route and delegates
 editing to an installed host command.
 `no-yazi` variants keep the managed Yazi launcher and integration while
-resolving a matching host `yazi`/`ya` pair. The two omission suffixes compose
-into four explicit package and app outputs.
+resolving a matching host `yazi`/`ya` pair. The three omission suffixes compose
+into eight explicit package and app outputs.
 
 ## Platforms
 
 | Surface | Support |
 | --- | --- |
-| Four Rio/managed-Helix/managed-Yazi package and app combinations | `x86_64` / `aarch64` × Linux / Darwin |
+| Eight Rio/managed-Helix/managed-Yazi package and app combinations | `x86_64` / `aarch64` × Linux / Darwin |
 | Headless / SSH floor | `enter` in a capable interactive host terminal; managed TUI only |
-| macOS build evidence | Real `aarch64-darwin` runner builds all four packages and the Home Manager closure; no desktop entry |
+| macOS build evidence | Real `aarch64-darwin` runner builds the four Rio variants and the Home Manager closure; no desktop entry |
 | macOS interactive floor | `help`, `status`, `doctor`, `enter`, managed workspace, and host-editor delegation remain unverified |
 | macOS full-package `launch` | Rio is packaged; GUI behavior remains unverified |
 | Out of repo | App bundles, Homebrew, Ghostty packaging, broad terminal matrices |
@@ -43,6 +43,7 @@ into four explicit package and app outputs.
 | `launch` | Rio then managed session |
 | `enter` | Managed session in current terminal |
 | `run` | Structured command in the prepared runtime environment |
+| `yzx-zellij` | Exact packaged Zellij CLI; not managed workspace startup |
 | `config` | Ratconfig UI |
 | `yazi-config materialize` | Explicit-path Yazi config materialization for automation |
 | `menu` | Curated command palette |
@@ -64,7 +65,7 @@ One owner per concern. Paths are the durable map.
 
 | Path | Owns |
 | --- | --- |
-| `flake.nix` | Four fixed Rio/managed-Helix/managed-Yazi compositions, inputs, helpers, desktop entry, HM export |
+| `flake.nix` | Eight fixed Rio/managed-Helix/managed-Yazi compositions, inputs, helpers, desktop entry, HM export |
 | `home-manager/module.nix` | `programs.yazelix.enable` / package; optional config files; no default generation |
 
 ### Front door and helpers
@@ -454,7 +455,7 @@ Detail lives in Owners, checks, and the notes below.
 
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
-| C13 | Four fixed Rio/managed-Helix/managed-Yazi package combinations + narrow Home Manager enable/package/optional files | `home-manager/`, flake, `yzx-config` | Rio/no-Helix/host-Yazi contracts + `checks.home_manager` | Full HM switch |
+| C13 | Eight fixed Rio/managed-Helix/managed-Yazi package combinations + narrow Home Manager enable/package/optional files | `home-manager/`, flake, `yzx-config` | Rio/no-Helix/host-Yazi contracts + `checks.home_manager` | Full HM switch |
 
 ### Notes
 
