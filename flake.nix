@@ -1310,8 +1310,16 @@
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
         grep -Fq 'run = "plugin startup-search"' ${./defaults/yazi/startup-keymap.toml}
+        grep -Fq 'on = ["<Tab>"]' ${./defaults/yazi/startup-keymap.toml}
+        grep -Fq 'on = ["<BackTab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
+        grep -Fq 'on = ["<S-Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
+        if grep -Fq '<A-z>' ${./defaults/yazi/startup-keymap.toml}; then
+          printf '%s\n' 'startup Yazi kept duplicate Alt+Z search binding' >&2
+          exit 1
+        fi
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
-        grep -Fq 'Alt+Enter Use this folder' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Alt+Enter Start here' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Tab/Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
         grep -Fq 'ya.emit("plugin", { "startup-search" })' ${yzx}/share/yazelix/yazi/init.lua
         test -f ${yzx}/share/yazelix/yazi/plugins/startup-search.yazi/main.lua
         if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then

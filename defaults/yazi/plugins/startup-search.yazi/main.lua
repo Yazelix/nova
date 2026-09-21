@@ -9,8 +9,8 @@ function M:entry()
 
 	local permit = ui.hide()
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
-		.. "--bind=enter:accept-non-empty,ctrl-z:ignore,btab:up,tab:down --prompt='Open folder > ' "
-		.. "--footer='Enter Open in Helix · Esc Browse Yazi' --footer-border=none --color=footer:-1"
+		.. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Open folder > ' "
+		.. "--footer='Enter Open in Helix · Tab/Esc Browse Yazi' --footer-border=none --color=footer:-1"
 	local child, err = Command("zoxide")
 		:arg({ "query", "-i", "--exclude", current })
 		:env("SHELL", "sh")

@@ -239,15 +239,18 @@ bindings are:
 | Workspace | `Alt 1-9` | Go directly to tab 1-9 |
 | Editor / Yazi | `Alt r` | Reveal in Yazi or return unchanged |
 | Yazi | `Shift z` | Jump with zoxide without changing the tab workspace |
-| Startup Yazi | `Alt z` | Search recent folders and open one in Helix |
+| Startup Yazi | `Tab` | Switch between Yazi and recent-folder search |
+| Startup Yazi | `Shift Tab` | Spot the hovered file |
+| Persistent Yazi | `Tab` / `Shift Tab` | Spot the hovered file |
 | Yazi | `Alt Enter` | Use the hovered folder, or current folder when on a file, as the tab workspace |
 
 Every new tab starts in Yazi with a fast zoxide search already open. `Enter`
 opens the selected folder as the exact tab workspace in the first Helix editor;
-`Esc` dismisses only the search and leaves Yazi ready to browse. `Alt z` in
-startup Yazi reopens the search. If zoxide has no other folders yet, Yazi opens
-without a search. `Tab` keeps Yazi's native Spot action in both views. The
-search and both managed Yazi views show their controls in clean local footers.
+`Esc` or `Tab` dismisses only the search and leaves Yazi ready to browse. `Tab`
+in startup Yazi reopens the search; `Shift Tab` invokes Spot. If zoxide has no
+other folders yet, Yazi opens without a search. The persistent popup spots
+with either `Tab` or `Shift Tab`. The search and both managed Yazi views show
+their controls in clean local footers.
 New tabs start at home: use `Alt Shift T`, or `Ctrl Alt t` then `n`.
 In tab mode, `x` also closes a tab.
 The direct shortcuts pass through in locked mode.
@@ -264,7 +267,7 @@ In the persistent popup, `Alt Enter` changes only the active tab's workspace:
 it does not open or focus Helix or
 move existing shell panes. Explicitly chosen folders stay exact even inside a
 Git repository. `Enter` keeps its ordinary open behavior, `Shift z` jumps
-within Yazi, and the persistent popup does not bind `Alt z`. Fast search uses
+within Yazi, and the persistent popup does not bind fast search. Fast search uses
 `Enter` for selection; `Alt Enter` is available after returning to Yazi.
 The command menu's **Change tab workspace** entry opens this same popup; the
 direct Yazi shortcut avoids the menu. On macOS, Rio needs Option-as-Alt enabled
@@ -627,11 +630,11 @@ runtime-tool sourcing, and bundled KGP package behavior.
 
 ## LOC Scorecard
 
-Yazelix owns **26,243 code/configuration lines** and **5,308 documentation/text
+Yazelix owns **26,277 code/configuration lines** and **5,314 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.
 The README displays the project motto beneath its logo.
-This is 2,668 code/configuration lines and 1,378 documentation/text lines above
+This is 2,702 code/configuration lines and 1,384 documentation/text lines above
 the pre-Rio fork surface. The current surface
 also records terminal-free packages, the exact Zellij v0.46.0 fork boundary
 and bounded session probes, Yazi 26.9.1 with paired schemas, corrected Kitty

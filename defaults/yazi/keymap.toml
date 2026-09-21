@@ -1,3 +1,13 @@
+[[mgr.prepend_keymap]]
+on = ["<BackTab>"]
+run = "spot"
+desc = "Spot hovered file"
+
+[[mgr.prepend_keymap]]
+on = ["<S-Tab>"]
+run = "spot"
+desc = "Spot hovered file"
+
 [[mgr.append_keymap]]
 on = ["<A-Enter>"]
 run = "plugin tab-workspace"

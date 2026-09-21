@@ -67,10 +67,13 @@ Linux CI and Darwin Package Smoke build `helix_grammar_sources`, Nova Helix's
 evaluation and compiles the pinned Codeberg grammars from bundled, hash-verified
 sources. Grammar revisions and snapshot maintenance belong to Nova Helix.
 The Linux-only `startup_picker_cancellation` check reuses Anima's pinned Kinestra
-input to exercise empty-history Yazi, automatic and reopened search, native Tab,
-successful handoff, exact later-tab cancellation, and sole-tab session exit on a
+input to exercise empty-history Yazi, automatic and reopened search, startup
+Tab/Shift-Tab search and Spot keys, successful handoff, exact later-tab
+cancellation, and sole-tab session exit on a
 private X display. Shared acceptance still requires Darwin Package Smoke on the
 exact revision; macOS interaction remains unverified.
+The shared managed-Yazi keymap gives the persistent popup both Shift-Tab
+encodings for Spot while retaining its native Tab binding.
 The Linux-only `pane_move_ordering` check uses the same private display to verify
 circular work-pane movement, rapid opposite moves and fixed UI panes through
 packaged Rio and Zellij.
@@ -308,6 +311,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current | Pre-Rio | Difference |
 | --- | ---: | ---: | ---: |
-| Code and configuration | 26,243 | 23,575 | +2,668 |
-| Documentation and text | 5,308 | 3,930 | +1,378 |
-| Total | 31,551 | 27,505 | +4,046 |
+| Code and configuration | 26,277 | 23,575 | +2,702 |
+| Documentation and text | 5,314 | 3,930 | +1,384 |
+| Total | 31,591 | 27,505 | +4,086 |

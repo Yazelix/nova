@@ -16,8 +16,8 @@ if role == "startup-picker" or role == "workspace-popup" then
 	Status:children_add(function()
 		if tostring(cx.layer) ~= "mgr" then return "" end
 		if role == "startup-picker" then
-			return " Enter Open · Alt+Enter Use this folder · Alt+Z Search · Esc Cancel · F1 Help"
+			return " Alt+Enter Start here · Tab Search · Shift+Tab Spot"
 		end
-		return " Alt+Enter Workspace · Shift+Z Jump"
+		return " Alt+Enter Workspace · Tab/Shift+Tab Spot · Shift+Z Jump"
 	end, 1000, Status.LEFT)
 end

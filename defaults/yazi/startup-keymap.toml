@@ -1,5 +1,5 @@
 [[mgr.prepend_keymap]]
-on = ["<A-z>"]
+on = ["<Tab>"]
 run = "plugin startup-search"
 desc = "Search recent folders and open in Helix"
 
