@@ -119,6 +119,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **26,432 code/configuration lines** and **5,029 documentation/text
+Yazelix owns **26,421 code/configuration lines** and **5,029 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard) excludes
 Beads, lockfiles, and binary assets.

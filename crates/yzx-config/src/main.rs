@@ -574,21 +574,10 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn external_text_editor_round_trips_staged_input() {
-        use std::os::unix::fs::PermissionsExt;
-
-        let temp = TempHome::new();
-        let editor = temp.path.join("editor.sh");
-        fs::write(
-            &editor,
-            "#!/bin/sh\n[ \"${YAZELIX_HELIX_BRIDGE:-}\" = 0 ] || exit 20\ncase \"${1##*/}\" in *ui.title*) ;; *) exit 21 ;; esac\ncat > \"$1\" <<'EOF'\nline one\nline two\nEOF\n",
-        )
-        .unwrap();
-        let mut permissions = fs::metadata(&editor).unwrap().permissions();
-        permissions.set_mode(0o755);
-        fs::set_permissions(&editor, permissions).unwrap();
+        let fake_editor = "[ \"${YAZELIX_HELIX_BRIDGE:-}\" = 0 ] || exit 20\ncase \"${0##*/}\" in *ui.title*) ;; *) exit 21 ;; esac\ncat > \"$0.edited\" <<'EOF'\nline one\nline two\nEOF\nmv \"$0.edited\" \"$0\"\n";
 
         assert_eq!(
-            edit_text_with_editor("ui.title", "original", &editor).unwrap(),
+            edit_text_with_editor("ui.title", fake_editor, Path::new("/bin/sh")).unwrap(),
             "line one\nline two"
         );
     }
