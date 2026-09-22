@@ -6,7 +6,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - Mouse and trackpad scrolling through pane history no longer enters or exits
   Zellij Scroll mode automatically. `Ctrl Alt s` enters and leaves Scroll mode
-  explicitly in new sessions.
+  explicitly in new sessions. Set `scroll_mode_sync true` in
+  `~/.config/yazelix/zellij/config.kdl` to restore automatic mode switching;
+  the same sidecar also overrides packaged `pane_frame_style` and
+  `stacked_pane_list` values.
 
 - `yzx-open` accepts Helix file targets with `:line` or `:line:column`, validates
   and derives workspace state from the underlying file, and forwards the

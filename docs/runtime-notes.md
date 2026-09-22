@@ -90,6 +90,10 @@ continuity contract. Yazelix adds no registry or second session owner.
 `zellij/config.kdl` is a guarded sidecar for scalar preferences such as paired
 dark/light themes, pane frames, mouse mode, scrollback size, copy behavior,
 styled underlines, startup tips, and `ui.pane_frames.rounded_corners`.
+An explicit top-level `scroll_mode_sync true` restores Zellij's automatic
+Scroll mode entry in new sessions. Explicit `pane_frame_style` and
+`stacked_pane_list` values also replace the corresponding packaged defaults;
+omitting them inherits Nova's values.
 Nova's root `appearance.straight_border_style` setting independently selects
 single or double glyphs when those native rounded corners are disabled. Only
 the generated runtime KDL receives the fork extension.

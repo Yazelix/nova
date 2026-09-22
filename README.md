@@ -119,7 +119,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **26,454 code/configuration lines** and **5,058 documentation/text
-lines**. The Scroll mode default and its installed-config check account for the
-code increase. The [reproducible scorecard](docs/development.md#loc-scorecard)
+Yazelix owns **26,468 code/configuration lines** and **5,065 documentation/text
+lines**. The sidecar precedence fix and its installed-config check account for
+the code increase. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

@@ -43,11 +43,18 @@ fn run() -> io::Result<()> {
     let sidecar_config = fs::read_to_string(&sidecar)?;
     validate_sidecar(&sidecar, &sidecar_config)?;
     let applied_sidecar = without_top_level_nodes(&sidecar_config, &["theme"]);
-    let pair_overrides = ["theme_dark", "theme_light"]
-        .into_iter()
-        .filter(|token| has_top_level_node(&applied_sidecar, token))
-        .collect::<Vec<_>>();
-    let packaged_config = without_top_level_nodes(&fs::read_to_string(packaged)?, &pair_overrides);
+    let scalar_overrides = [
+        "theme_dark",
+        "theme_light",
+        "pane_frame_style",
+        "stacked_pane_list",
+        "scroll_mode_sync",
+    ]
+    .into_iter()
+    .filter(|token| has_top_level_node(&applied_sidecar, token))
+    .collect::<Vec<_>>();
+    let packaged_config =
+        without_top_level_nodes(&fs::read_to_string(packaged)?, &scalar_overrides);
 
     print!(
         "{}\n{}{}",
