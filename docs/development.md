@@ -302,15 +302,15 @@ Counts raw physical lines in tracked project files. **Code and configuration**
 includes every counted file except Markdown, plain-text inventories, and the
 license; those form **documentation and text**. Beads state (`.beads/`),
 lockfiles (`*.lock`), and binary assets are excluded. New owned files count
-automatically once committed. The pre-Rio baseline is `446d2e25`.
+automatically once committed.
 
 ```sh
 git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -Ev '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
 git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
 ```
 
-| Category | Current | Pre-Rio | Difference |
-| --- | ---: | ---: | ---: |
-| Code and configuration | 26,432 | 23,575 | +2,857 |
-| Documentation and text | 5,031 | 3,930 | +1,101 |
-| Total | 31,463 | 27,505 | +3,958 |
+| Category | Current |
+| --- | ---: |
+| Code and configuration | 26,432 |
+| Documentation and text | 5,029 |
+| Total | 31,461 |
