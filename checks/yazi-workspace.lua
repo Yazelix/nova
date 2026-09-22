@@ -52,10 +52,7 @@ Command = setmetatable({ PIPED = "piped" }, {
 			end
 			if program == "fzf" then
 				fzf_calls = fzf_calls + 1
-				local stdout = fzf_options:find("--expect=", 1, true)
-					and zoxide_key .. "\n" .. zoxide_target .. "\n"
-					or zoxide_target .. "\n"
-				return { status = { success = true }, stdout = stdout, stderr = "" }
+				return { status = { success = true }, stdout = zoxide_key .. "\n" .. zoxide_target .. "\n", stderr = "" }
 			end
 			return { status = { success = succeeds }, stderr = "failed" }
 		end

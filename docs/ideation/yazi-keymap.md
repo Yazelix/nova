@@ -243,7 +243,7 @@ role difference tied to startup lifecycle, not a second search mode.
 
 ## Accepted Option F+: direct startup open
 
-Option F+ retains Option F's search and adds one explicit acceptance shortcut
+Option F+ retains Option F's search and adds one direct-open shortcut
 for the common case where zoxide already knows the intended project.
 
 | Key | Startup search | Popup search |

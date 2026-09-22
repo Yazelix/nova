@@ -355,7 +355,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     for (lesson, expected) in [
         ("begin", "Start in the right directory"),
-        ("workspace", "current tab workspace root matters most"),
+        ("workspace", "tab folder supplies the starting directory"),
         ("files", "full Yazi popup"),
         ("panes", "move the current tab"),
         ("modes", "quit the session"),

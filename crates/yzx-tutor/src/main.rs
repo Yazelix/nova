@@ -269,7 +269,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 ## Mental model
 
-The current tab workspace root matters most. Managed panes and popups use that directory until you deliberately choose another one.
+The tab folder supplies the starting directory for managed panes and popups until you change it.
 
 Next lesson: `yzx tutor files`.
 "#,
@@ -572,7 +572,7 @@ mod tests {
             KEY_YAZI_ZOXIDE,
             KEY_YAZI_OPEN,
             KEY_YAZI_WORKSPACE,
-            "current tab workspace root matters most",
+            "tab folder supplies the starting directory",
         ] {
             assert!(workspace.contains(expected), "missing {expected}");
         }
