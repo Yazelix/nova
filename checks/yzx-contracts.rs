@@ -2419,6 +2419,19 @@ fn default_shell(config: &str) -> PathBuf {
 }
 
 fn expect_session_config(config: &str) {
+    let scroll_mode_sync = config
+        .lines()
+        .filter(|line| line.trim_start().starts_with("scroll_mode_sync"))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        scroll_mode_sync,
+        ["scroll_mode_sync false"],
+        "config.kdl must disable implicit Scroll mode exactly once",
+    );
+    assert!(
+        config.find("scroll_mode_sync false").unwrap() < config.find('{').unwrap(),
+        "scroll_mode_sync must be a top-level option before any KDL block",
+    );
     assert_eq!(
         config
             .lines()

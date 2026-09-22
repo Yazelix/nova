@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Mouse and trackpad scrolling through pane history no longer enters or exits
+  Zellij Scroll mode automatically. `Ctrl Alt s` enters and leaves Scroll mode
+  explicitly in new sessions.
+
 - `yzx-open` accepts Helix file targets with `:line` or `:line:column`, validates
   and derives workspace state from the underlying file, and forwards the
   original target to Helix. Existing numeric-colon filenames remain literal;
