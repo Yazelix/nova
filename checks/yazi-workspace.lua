@@ -45,6 +45,7 @@ Command = setmetatable({ INHERIT = "inherit", PIPED = "piped" }, {
 		function command:spawn() return self end
 		function command:write_all(input) assert(input == zoxide_target .. "\n") end
 		function command:flush() end
+		function command:output() return self:wait_with_output() end
 		function command:wait_with_output()
 			if program == "zoxide" then
 				return { status = { success = true }, stdout = zoxide_target .. "\n", stderr = "" }

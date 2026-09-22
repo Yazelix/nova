@@ -10,14 +10,11 @@ function M:entry(job)
 	end
 
 	local current = cwd()
-	local history_child, history_err = Command("zoxide")
+	local history, history_err = Command("zoxide")
 		:arg({ "query", "--list", "--exclude", current })
-		:stdout(Command.PIPED)
-		:stderr(Command.PIPED)
-		:spawn()
-	local history, history_wait_err = history_child and history_child:wait_with_output()
+		:output()
 	if not history then
-		return ya.notify({ title = "Quick search", content = tostring(history_err or history_wait_err), timeout = 5, level = "error" })
+		return ya.notify({ title = "Quick search", content = tostring(history_err), timeout = 5, level = "error" })
 	end
 	if not history.status.success then
 		return ya.notify({ title = "Quick search", content = history.stderr, timeout = 5, level = "error" })

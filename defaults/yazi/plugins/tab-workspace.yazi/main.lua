@@ -12,18 +12,11 @@ function M.open(dir)
 		return ya.notify({ title = "Tab folder", content = "YZX_OPEN is not set", timeout = 5, level = "error" })
 	end
 
-	local child, err = Command(yzx_open)
+	local output, err = Command(yzx_open)
 		:arg({ "--set-workspace", dir })
-		:stdout(Command.PIPED)
-		:stderr(Command.PIPED)
-		:spawn()
-	if not child then
-		return ya.notify({ title = "Tab folder", content = tostring(err), timeout = 5, level = "error" })
-	end
-
-	local output, wait_err = child:wait_with_output()
+		:output()
 	if not output then
-		return ya.notify({ title = "Tab folder", content = tostring(wait_err), timeout = 5, level = "error" })
+		return ya.notify({ title = "Tab folder", content = tostring(err), timeout = 5, level = "error" })
 	end
 	if not output.status.success then
 		return ya.notify({ title = "Tab folder", content = output.stderr, timeout = 5, level = "error" })
