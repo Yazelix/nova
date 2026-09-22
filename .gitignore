@@ -12,6 +12,7 @@ crates/*/target/
 /result-*
 /rust_core/
 /rust_plugins/
+/prototypes/zellij-distribution/target/
 
 # br local state
 /.beads/.local_version

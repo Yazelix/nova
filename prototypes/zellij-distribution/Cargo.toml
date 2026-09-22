@@ -1,0 +1,12 @@
+[package]
+name = "yzx-zellij-distribution-prototype"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "yzx-zellij-prototype"
+path = "src/main.rs"
+
+[dependencies]
+zellij = { git = "https://github.com/zellij-org/zellij", rev = "252454d2c53b56e18aea06da3cf79b174ce1d7c0" }

@@ -258,6 +258,9 @@ checks, and every dogfood profile refresh. The profile does not retain overrides
 Publish matching child revisions and lock them before verifying without overrides.
 Check popup open/hide and sidebar toggle together in a fresh installed session.
 
+The isolated [Zellij distribution prototype](../prototypes/zellij-distribution/README.md)
+tests upstream PR #5630 with Nova's packaged plugins without changing `yzx`.
+
 Useful local checks:
 
 ```sh
@@ -311,6 +314,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 26,468 |
-| Documentation and text | 5,065 |
-| Total | 31,533 |
+| Code and configuration | 26,582 |
+| Documentation and text | 5,091 |
+| Total | 31,673 |
