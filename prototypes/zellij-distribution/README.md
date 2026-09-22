@@ -18,6 +18,9 @@ under the prototype's ignored `target/`, compiles the pinned Zellij distribution
 copies the binary into that runtime, checks its version, and runs `setup --check`
 against the translated config. It removes Nova's generated plugin permission
 grants so terminal testing exercises the distribution's embedded-plugin policy.
-It prints the installed binary and config paths for further testing. The
-prototype does not replace Nova's dynamically generated Zellij config or
-reproduce the fork's status-bar modifier hints behavior.
+It prints the installed binary and config paths for further testing. The builder
+clears inherited XDG and Zellij path overrides for its checks. Manual sessions
+need the same isolated environment; the printed paths alone do not isolate a
+separately launched process. The prototype does not replace Nova's dynamically
+generated Zellij config; some packaged helpers still invoke the fork, and the
+fork's status-bar modifier hints behavior is not reproduced.

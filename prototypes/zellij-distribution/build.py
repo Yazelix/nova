@@ -30,8 +30,21 @@ def main():
     state = work / "state"
     runtime_env = os.environ.copy()
     runtime_env.update(HOME=str(work), YAZELIX_CONFIG_HOME=str(config_home), YAZELIX_STATE_DIR=str(state))
-    runtime_env.pop("ZELLIJ_SESSION_NAME", None)
-    runtime_env.pop("YAZELIX_ZELLIJ_SESSION_NAME", None)
+    for key in (
+        "XDG_CONFIG_HOME",
+        "XDG_CACHE_HOME",
+        "XDG_DATA_HOME",
+        "XDG_RUNTIME_DIR",
+        "ZELLIJ",
+        "ZELLIJ_CONFIG_DIR",
+        "ZELLIJ_CONFIG_FILE",
+        "ZELLIJ_LAYOUT_DIR",
+        "ZELLIJ_SESSION_NAME",
+        "ZELLIJ_SOCKET_DIR",
+        "YAZELIX_ZELLIJ_SESSION_NAME",
+        "YZX_ZELLIJ",
+    ):
+        runtime_env.pop(key, None)
     subprocess.run([str(package / "bin/yzx"), "run", "true"], env=runtime_env, check=True)
     config = (state / "zellij/config.kdl").read_text()
 
