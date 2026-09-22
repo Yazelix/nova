@@ -574,7 +574,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn external_text_editor_round_trips_staged_input() {
-        let fake_editor = "[ \"${YAZELIX_HELIX_BRIDGE:-}\" = 0 ] || exit 20\ncase \"${0##*/}\" in *ui.title*) ;; *) exit 21 ;; esac\ncat > \"$0.edited\" <<'EOF'\nline one\nline two\nEOF\nmv \"$0.edited\" \"$0\"\n";
+        let fake_editor = "[ \"${YAZELIX_HELIX_BRIDGE:-}\" = 0 ] || exit 20\ncase \"${0##*/}\" in *ui.title*) ;; *) exit 21 ;; esac\nprintf 'line one\\nline two\\n' > \"$0.edited\"\nmv \"$0.edited\" \"$0\"\n";
 
         assert_eq!(
             edit_text_with_editor("ui.title", fake_editor, Path::new("/bin/sh")).unwrap(),
