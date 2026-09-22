@@ -539,13 +539,13 @@ existing editor process.
 and popup Yazi. `Tab` is two-way: inside search it returns to browsing, as does
 `Esc`. Search `Enter` moves Yazi to the selected folder without changing the tab
 folder or opening an editor. `Shift Tab` spots the hovered file while browsing.
-Search `Alt Enter` sets the selected result as the exact tab folder without
-moving Yazi or opening an editor. In browse mode, `Alt Enter` uses the hovered
-folder, or Yazi's current folder when hovering a file or nothing. Existing panes
-keep their own cwd. The startup browser's ordinary open action creates the first
-editor pane and completes tab creation. Ordinary popup opens preserve an
-established tab folder; they may sync Helix's own cwd to that root while opening
-the target.
+Startup ignores `Alt Enter`; its ordinary open action sets the initial tab
+folder, creates the first editor pane, and completes tab creation. In the
+persistent popup, search `Alt Enter` sets the selected result as the exact tab
+folder without moving Yazi or opening an editor. In popup browse mode, it uses
+the hovered folder, or Yazi's current folder when hovering a file or nothing.
+Existing panes keep their own cwd. Ordinary popup opens preserve an established
+tab folder; they may sync Helix's own cwd to that root while opening the target.
 On macOS, Rio defaults to treating Option as text input, so set top-level
 `option-as-alt = "Left"` (or `"Both"`) in managed `rio/config.toml` for this
 shortcut. The selected Option key then acts as Alt instead of entering symbols.

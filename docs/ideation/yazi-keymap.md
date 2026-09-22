@@ -1,7 +1,8 @@
 # Managed Yazi key model
 
-Status: Option F selected for Nova. This record preserves the alternatives and
-the reasoning that led to the decision.
+Status: Option F selected for Nova, then refined to keep `Alt Enter` only in the
+persistent popup. This record preserves the alternatives and the reasoning that
+led to the decision.
 
 ## Terms
 
@@ -13,9 +14,10 @@ the reasoning that led to the decision.
 - **Open editor** opens or focuses the editor selected by `editor.command`.
   Helix is the default.
 
-Across all options, `Alt Enter` sets the hovered directory, or the current
-directory when no directory is hovered, as the tab folder without opening or
-focusing an editor.
+Across the six options originally analyzed, `Alt Enter` sets the hovered
+directory, or the current directory when no directory is hovered, as the tab
+folder without opening or focusing an editor. The accepted refinement below
+removes that action from startup.
 
 ## Option A: Tab switches browse and search
 
@@ -176,8 +178,9 @@ Costs:
 
 ## Option F: Option D with vanilla-compatible Z
 
-This is the selected model. It keeps Option D and retains capital `Z`, Yazi's
-standard zoxide motion key, as a second way to enter the same search.
+This was the selected model before the popup-only `Alt Enter` refinement below.
+It keeps Option D and retains capital `Z`, Yazi's standard zoxide motion key,
+as a second way to enter the same search.
 
 | Key | Browse view | Search view |
 | --- | --- | --- |
@@ -219,10 +222,25 @@ Costs:
 | Startup speed | One step | One step | At least two steps | At least two steps | At least two steps | At least two steps |
 | Main risk | Hidden role changes meaning | Modifier mistake | Search discoverability | View confusion | Non-vanilla browse keys | Alias redundancy |
 
-Option F wins because the shared move-only search is consistent, Tab teaches the
-feature, `Z` preserves useful vanilla compatibility, and `Alt Enter` has one
-non-editor meaning everywhere. The redundant browse-mode alias is cheaper than
-separate search modes or contextual acceptance.
+Option F initially won because the shared move-only search is consistent, Tab
+teaches the feature, `Z` preserves useful vanilla compatibility, and `Alt Enter`
+had one non-editor meaning everywhere. The redundant browse-mode alias was
+cheaper than separate search modes or contextual acceptance.
+
+## Accepted refinement: popup-only Alt Enter
+
+Startup ordinary open always sets the initial tab folder, opens the editor, and
+closes the picker. A prior workspace-only `Alt Enter` selection was therefore
+normally overwritten; its only distinct use was setting the tab folder before
+creating another pane from the unfinished picker. That niche did not justify a
+prominent startup shortcut or footer entry.
+
+The accepted model keeps Option F's shared move-only search and vanilla `Z`
+alias. Startup browse and search ignore `Alt Enter`; ordinary open is the only
+initial tab-folder handoff. The persistent popup retains `Alt Enter` in browse
+and search because changing an established tab folder without opening or moving
+anything is useful there. This is a deliberate role difference tied to startup
+lifecycle, not a second search mode.
 
 ## Separate architecture question: replace startup Yazi with the popup
 
@@ -240,7 +258,9 @@ it is not required for Option F and is not selected here.
 ## Implementation constraints
 
 - Keep one quick-search implementation for both `Tab` and `Z`.
-- Keep `Alt Enter` tab-folder-only in every managed Yazi role.
+- Ignore `Alt Enter` in startup browse and search, and omit it from both startup
+  footers.
+- Keep `Alt Enter` tab-folder-only in persistent-popup browse and search.
 - Let the startup lifecycle own the initial tab-folder/editor handoff.
 - Keep tab-folder mutation in the existing workspace boundary and Yazi movement
   in Yazi's native `cd` mechanism.
@@ -253,7 +273,8 @@ it is not required for Option F and is not selected here.
   packaged Yazi configuration are shared surfaces.
 
 The implementation uses `zoxide query --list` as the recent-folder source and
-feeds its output to packaged `fzf`. Passing `--expect=alt-enter` through zoxide
-0.9.9's interactive helper is rejected: that helper strips the first seven
-bytes of fzf output, corrupting the expected-key marker. Direct fzf ownership
-keeps Enter and Alt Enter distinguishable without duplicating search behavior.
+feeds its output to packaged `fzf`. Startup binds `Alt Enter` to ignore; the
+popup uses `--expect=alt-enter`. Passing that expectation through zoxide 0.9.9's
+interactive helper is rejected: the helper strips the first seven bytes of fzf
+output, corrupting the expected-key marker. Direct fzf ownership keeps popup
+Enter and Alt Enter distinguishable without duplicating search behavior.

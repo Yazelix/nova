@@ -264,7 +264,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` or `{yazi_zoxide}` to search recent folders. In search, `Enter` moves Yazi to the result for inspection; `{yazi_workspace}` sets the selected result as the tab folder without moving Yazi or opening the editor. In browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered.
+3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` or `{yazi_zoxide}` to search recent folders. In popup search, `Enter` moves Yazi to the result for inspection; `{yazi_workspace}` sets the selected result as the tab folder without moving Yazi or opening the editor. In popup browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered. Startup Yazi leaves this shortcut unused because its ordinary open sets the initial tab folder.
 
 ## Mental model
 

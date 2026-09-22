@@ -218,7 +218,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("File manager"; "Tab"; "Open or leave startup/popup search; else Spot"; "Yazelix"; "yazi/keymap.toml"),
     key!("File manager"; "Z"; "Open startup/popup search; else native zoxide jump"; "Yazelix"; "yazi/keymap.toml"),
     key!("File manager"; "Shift Tab"; "Spot the hovered file while browsing"; "Yazelix"; "yazi/keymap.toml"),
-    key!("File manager"; "Alt Enter"; "Set selected, hovered, or current tab folder"; "Yazelix"; "yazi/keymap.toml"),
+    key!("File manager"; "Alt Enter"; "Set popup selection or location as tab folder"; "Yazelix"; "yazi/keymap.toml"),
 ];
 
 pub(crate) const KEY_COLUMNS: &[(&str, usize)] =

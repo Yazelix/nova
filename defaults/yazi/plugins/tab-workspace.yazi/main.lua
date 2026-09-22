@@ -7,6 +7,7 @@ local target_dir = ya.sync(function()
 end)
 
 function M.open(dir)
+	if os.getenv("YZX_YAZI_ROLE") == "startup-picker" then return end
 	local yzx_open = os.getenv("YZX_OPEN")
 	if not yzx_open or yzx_open == "" then
 		return ya.notify({ title = "Tab folder", content = "YZX_OPEN is not set", timeout = 5, level = "error" })

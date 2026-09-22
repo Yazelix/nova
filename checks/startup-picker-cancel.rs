@@ -232,14 +232,6 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     send_key(zellij, sessions[0], "Home")?;
     send_key(zellij, sessions[0], "Right")?;
     wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
-    send_key(zellij, sessions[0], "Alt Enter")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Set to ")?;
-    wait_for_panes(
-        recorder,
-        zellij,
-        sessions[0],
-        r#"any(.[]; .title == "yazi_picker" and .is_focused) and all(.[]; .title != "editor")"#,
-    )?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_panes(
         recorder,
@@ -273,16 +265,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
     write_chars(zellij, sessions[0], "quick-target")?;
     send_key(zellij, sessions[0], "Alt Enter")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Set to ")?;
-    wait_for_panes(
-        recorder,
-        zellij,
-        sessions[0],
-        r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
-    )?;
-    send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
-    write_chars(zellij, sessions[0], "quick-target")?;
+    recorder.sleep(Duration::from_millis(200))?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
     send_key(zellij, sessions[0], "Enter")?;

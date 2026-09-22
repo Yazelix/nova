@@ -21,7 +21,7 @@ desc = "Spot hovered file"
 [[mgr.append_keymap]]
 on = ["<A-Enter>"]
 run = "plugin tab-workspace"
-desc = "Set hovered folder or current folder as tab folder"
+desc = "Set popup selection or location as tab folder"
 
 [[mgr.append_keymap]]
 on = ["<A-r>"]

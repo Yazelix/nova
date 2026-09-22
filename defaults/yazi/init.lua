@@ -10,11 +10,14 @@ require("zoxide"):setup({
 local role = os.getenv("YZX_YAZI_ROLE")
 if role == "startup-picker" then ya.emit("plugin", { "quick-search" }) end
 if role == "startup-picker" or role == "workspace-popup" then
+	local footer = role == "workspace-popup"
+		and " Alt+Enter Set tab folder · Tab/Z Search · Shift+Tab Spot"
+		or " Tab/Z Search · Shift+Tab Spot"
 	for id = 1, 6 do
 		Status:children_remove(id, id <= 3 and Status.LEFT or Status.RIGHT)
 	end
 	Status:children_add(function()
 		if tostring(cx.layer) ~= "mgr" then return "" end
-		return " Alt+Enter Set tab folder · Tab/Z Search · Shift+Tab Spot"
+		return footer
 	end, 1000, Status.LEFT)
 end

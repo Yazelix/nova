@@ -22,9 +22,14 @@ function M:entry(job)
 	if history.stdout == "" then return end
 
 	local permit = ui.hide()
+	local popup = role == "workspace-popup"
+	local accept = popup and "--expect=alt-enter " or "--bind=alt-enter:ignore "
+	local footer = popup
+		and "Enter Browse here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi"
+		or "Enter Browse here · Tab/Esc Browse Yazi"
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
-		.. "--expect=alt-enter --bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Go to folder > ' "
-		.. "--footer='Enter Browse here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi' --footer-border=none --color=footer:-1"
+		.. accept .. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Go to folder > ' "
+		.. "--footer='" .. footer .. "' --footer-border=none --color=footer:-1"
 	local child, err = Command("fzf")
 		:env("FZF_DEFAULT_OPTS", options)
 		:env("FZF_DEFAULT_OPTS_FILE", "")
@@ -46,7 +51,12 @@ function M:entry(job)
 		return ya.notify({ title = "Quick search", content = output.stderr, timeout = 5, level = "error" })
 	end
 
-	local key, target = output.stdout:match("^([^\n]*)\n(.*)")
+	local key, target
+	if popup then
+		key, target = output.stdout:match("^([^\n]*)\n(.*)")
+	else
+		target = output.stdout
+	end
 	target = target and target:gsub("\n$", "")
 	if not target or target == "" then return end
 	if key == "alt-enter" then return require("tab-workspace").open(target) end
