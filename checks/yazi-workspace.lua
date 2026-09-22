@@ -52,7 +52,7 @@ Command = setmetatable({ PIPED = "piped" }, {
 			end
 			if program == "fzf" then
 				fzf_calls = fzf_calls + 1
-				local stdout = fzf_options:find("--expect=alt-enter", 1, true)
+				local stdout = fzf_options:find("--expect=", 1, true)
 					and zoxide_key .. "\n" .. zoxide_target .. "\n"
 					or zoxide_target .. "\n"
 				return { status = { success = true }, stdout = stdout, stderr = "" }
@@ -97,24 +97,34 @@ assert(fzf_calls == 1)
 assert(emitted[#emitted][1] == "cd" and emitted[#emitted][2][1] == zoxide_target)
 assert(emitted[#emitted][2].raw == true)
 assert(fzf_options:find("--expect=alt-enter", 1, true))
-assert(fzf_options:find("Enter Browse here · Alt+Enter Set tab folder", 1, true))
+assert(fzf_options:find("Enter Go here · Alt+Enter Set tab folder", 1, true))
+assert(not fzf_options:find("Ctrl+O", 1, true))
 
 role = "startup-picker"
 search:entry({ args = { source = "tab" } })
 assert(zoxide_calls == 2 and fzf_calls == 2 and #calls == workspace_calls)
 assert(emitted[#emitted][1] == "cd" and emitted[#emitted][2][1] == zoxide_target)
+assert(fzf_options:find("--expect=ctrl-o", 1, true))
 assert(fzf_options:find("--bind=alt-enter:ignore", 1, true))
 assert(not fzf_options:find("--expect=alt-enter", 1, true))
 assert(not fzf_options:find("Alt+Enter", 1, true))
+assert(fzf_options:find("Enter Go here · Ctrl+O Open in editor · Tab/Esc Browse Yazi", 1, true))
+
+zoxide_key = "ctrl-o"
+local moves = #emitted
+search:entry({ args = { source = "tab" } })
+assert(zoxide_calls == 3 and fzf_calls == 3 and #calls == workspace_calls + 1)
+assert(#calls[#calls] == 1 and calls[#calls][1] == zoxide_target)
+assert(#emitted == moves)
 
 zoxide_key = "alt-enter"
 role = "workspace-popup"
 search:entry({ args = { source = "zoxide" } })
-assert(zoxide_calls == 3 and fzf_calls == 3 and calls[#calls][1] == "--set-workspace" and calls[#calls][2] == zoxide_target)
+assert(zoxide_calls == 4 and fzf_calls == 4 and calls[#calls][1] == "--set-workspace" and calls[#calls][2] == zoxide_target)
 
 role = nil
 search:entry({ args = { source = "tab" } })
-assert(zoxide_calls == 3 and emitted[#emitted][1] == "spot" and type(emitted[#emitted][2]) == "table")
+assert(zoxide_calls == 4 and emitted[#emitted][1] == "spot" and type(emitted[#emitted][2]) == "table")
 search:entry({ args = { source = "zoxide" } })
 assert(emitted[#emitted][1] == "plugin" and emitted[#emitted][2][1] == "zoxide")
 

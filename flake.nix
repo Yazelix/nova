@@ -1324,6 +1324,7 @@
         grep -Fq 'Tab/Z Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
         grep -Fq 'ya.emit("plugin", { "quick-search" })' ${yzx}/share/yazelix/yazi/init.lua
         grep -Fq -- '--expect=alt-enter' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
+        grep -Fq -- '--expect=ctrl-o' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         grep -Fq -- '--bind=alt-enter:ignore' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         test -f ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then

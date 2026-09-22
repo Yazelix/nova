@@ -538,12 +538,14 @@ existing editor process.
 `Tab` and vanilla-compatible `Z` open the same recent-folder search in startup
 and popup Yazi. `Tab` is two-way: inside search it returns to browsing, as does
 `Esc`. Search `Enter` moves Yazi to the selected folder without changing the tab
-folder or opening an editor. `Shift Tab` spots the hovered file while browsing.
-Startup ignores `Alt Enter`; its ordinary open action sets the initial tab
-folder, creates the first editor pane, and completes tab creation. In the
-persistent popup, search `Alt Enter` sets the selected result as the exact tab
-folder without moving Yazi or opening an editor. In popup browse mode, it uses
-the hovered folder, or Yazi's current folder when hovering a file or nothing.
+folder or opening an editor. Startup search `Ctrl O` instead uses the selected
+folder as the initial tab folder, opens it in the configured editor, and
+completes tab creation. `Shift Tab` spots the hovered file while browsing.
+Startup ignores `Alt Enter`; its ordinary open action retains the same initial
+tab-folder/editor handoff. In the persistent popup, search `Alt Enter` sets the
+selected result as the exact tab folder without moving Yazi or opening an
+editor. In popup browse mode, it uses the hovered folder, or Yazi's current
+folder when hovering a file or nothing.
 Existing panes keep their own cwd. Ordinary popup opens preserve an established
 tab folder; they may sync Helix's own cwd to that root while opening the target.
 On macOS, Rio defaults to treating Option as text input, so set top-level

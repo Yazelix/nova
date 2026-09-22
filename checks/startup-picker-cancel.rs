@@ -262,13 +262,11 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
     write_chars(zellij, sessions[0], "quick-target")?;
     send_key(zellij, sessions[0], "Alt Enter")?;
     recorder.sleep(Duration::from_millis(200))?;
-    send_key(zellij, sessions[0], "Enter")?;
-    wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
-    send_key(zellij, sessions[0], "Enter")?;
+    send_key(zellij, sessions[0], "Ctrl o")?;
     wait_for_panes(
         recorder,
         zellij,
@@ -284,11 +282,12 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
-    send_key(zellij, sessions[0], "Esc")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
+    write_chars(zellij, sessions[0], "quick-target")?;
+    send_key(zellij, sessions[0], "Enter")?;
+    wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
     send_key(zellij, sessions[0], "Z")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
     send_key(zellij, sessions[0], "Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     send_key(zellij, sessions[0], "q")?;
@@ -308,10 +307,10 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         return Err(io::Error::other("could not seed vanished zoxide target").into());
     }
     new_tab(zellij, sessions[0], &layout, &picker_dir)?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
     fs::remove_dir(&vanished_dir)?;
     write_chars(zellij, sessions[0], "vanished-target")?;
-    send_key(zellij, sessions[0], "Enter")?;
+    send_key(zellij, sessions[0], "Ctrl o")?;
     wait_for_panes(
         recorder,
         zellij,
@@ -339,7 +338,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[1],
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[1], "Enter Browse here")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Enter Go here")?;
     send_key(zellij, sessions[1], "Esc")?;
     wait_for_screen(recorder, zellij, sessions[1], "Tab/Z Search")?;
     send_key(zellij, sessions[1], "Esc")?;

@@ -24,6 +24,7 @@ const KEY_YAZI_POPUP: &str = "Alt Shift Y";
 const KEY_NEW_PANE: &str = "Alt m";
 const KEY_YAZI_SEARCH: &str = "Tab";
 const KEY_YAZI_ZOXIDE: &str = "Z";
+const KEY_YAZI_OPEN: &str = "Ctrl O";
 const KEY_YAZI_WORKSPACE: &str = "Alt Enter";
 const KEY_TAB_LEFT: &str = "Ctrl Alt h";
 const KEY_TAB_RIGHT: &str = "Ctrl Alt l";
@@ -264,7 +265,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` or `{yazi_zoxide}` to search recent folders. In popup search, `Enter` moves Yazi to the result for inspection; `{yazi_workspace}` sets the selected result as the tab folder without moving Yazi or opening the editor. In popup browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered. Startup Yazi leaves this shortcut unused because its ordinary open sets the initial tab folder.
+3. **Inside Yazelix:** New tabs open in recent-folder search. Press `{yazi_open}` to use the selected folder as the tab folder and open it in the editor, or `Enter` to move Yazi there for browsing. Press `{yazi_popup}` to open the persistent Yazi popup. In popup search, `Enter` moves Yazi to the result; `{yazi_workspace}` sets it as the tab folder without moving Yazi or opening the editor. In popup browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered. Press `{yazi_search}` or `{yazi_zoxide}` to reopen search from either managed Yazi browser.
 
 ## Mental model
 
@@ -276,6 +277,7 @@ Next lesson: `yzx tutor files`.
         yazi_popup = key(KEY_YAZI_POPUP),
         yazi_search = key(KEY_YAZI_SEARCH),
         yazi_zoxide = key(KEY_YAZI_ZOXIDE),
+        yazi_open = key(KEY_YAZI_OPEN),
         yazi_workspace = key(KEY_YAZI_WORKSPACE),
     ))
 }
@@ -568,6 +570,7 @@ mod tests {
             KEY_YAZI_POPUP,
             KEY_YAZI_SEARCH,
             KEY_YAZI_ZOXIDE,
+            KEY_YAZI_OPEN,
             KEY_YAZI_WORKSPACE,
             "current tab workspace root matters most",
         ] {

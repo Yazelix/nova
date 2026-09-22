@@ -294,12 +294,12 @@ arguments in `agent.args`, not in `agent.command`.
 ## Yazi Picker and Popup
 
 Every new managed tab starts with the configured sidebar provider and one
-focused tiled `yazi_picker`. A successful ordinary file or directory open owns
-the tab's initial retarget, creates the managed editor, and only then closes
-that exact picker by id. `Alt Enter` is unavailable in this startup picker;
-there is no separate workspace-only step for the ordinary open to overwrite.
-There is no hidden starter shell or prestarted editor whose cwd can become
-stale.
+focused tiled `yazi_picker`. A successful ordinary open or startup-search
+`Ctrl O` owns the tab's initial retarget, creates the managed editor, and only
+then closes that exact picker by id. `Alt Enter` is unavailable in this startup
+picker; there is no separate workspace-only step for an editor handoff to
+overwrite. There is no hidden starter shell or prestarted editor whose cwd can
+become stale.
 
 Exiting before a successful handoff closes the picker's stable tab. A surviving
 editor tab remains focused; cancelling the only picker ends the session.
@@ -421,14 +421,16 @@ unchanged.
 `Tab` and `Z` open the same recent-folder search in startup and
 persistent-popup Yazi. `Tab` or `Esc` returns to browse mode. Search `Enter`
 emits native `cd` in both roles and leaves the canonical root unchanged.
-Startup search ignores `Alt Enter`, as does startup browse mode. In the
-persistent popup, search `Alt Enter` sets the selected directory as the exact
-canonical root without moving Yazi or opening an editor; browse `Alt Enter`
-uses the hovered directory, or the current directory when hovering a file or
-nothing, with the same workspace-only result. `Shift Tab` spots the hovered
-file while browsing. The orchestrator updates the tab label; existing shells,
-Yazi, and editor processes keep their own cwd. A later ordinary startup open
-launches the first editor and closes that picker. Explicit popup workspace
+Startup search `Ctrl O` sends the selected directory through the existing
+retarget/editor transaction and closes the picker only after success. Startup
+search ignores `Alt Enter`, as does startup browse mode. In the persistent
+popup, search `Alt Enter` sets the selected directory as the exact canonical
+root without moving Yazi or opening an editor; browse `Alt Enter` uses the
+hovered directory, or the current directory when hovering a file or nothing,
+with the same workspace-only result. `Shift Tab` spots the hovered file while
+browsing. The orchestrator updates the tab label; existing shells, Yazi, and
+editor processes keep their own cwd. A later ordinary startup open provides the
+same first-editor handoff. Explicit popup workspace
 choices inside Git keep the chosen subdirectory; ordinary implicit file-open
 bootstrap may still use the containing worktree. A failed editor handoff
 restores the prior root and its bootstrap or explicit provenance. Git and agent

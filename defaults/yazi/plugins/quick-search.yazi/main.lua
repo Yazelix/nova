@@ -2,6 +2,21 @@ local M = {}
 
 local cwd = ya.sync(function() return tostring(cx.active.current.cwd) end)
 
+local function open_editor(target)
+	local yzx_open = os.getenv("YZX_OPEN")
+	if not yzx_open or yzx_open == "" then
+		return ya.notify({ title = "Open in editor", content = "YZX_OPEN is not set", timeout = 5, level = "error" })
+	end
+
+	local output, err = Command(yzx_open):arg({ target }):output()
+	if not output then
+		return ya.notify({ title = "Open in editor", content = tostring(err), timeout = 5, level = "error" })
+	end
+	if not output.status.success then
+		return ya.notify({ title = "Open in editor", content = output.stderr, timeout = 5, level = "error" })
+	end
+end
+
 function M:entry(job)
 	local role = os.getenv("YZX_YAZI_ROLE")
 	if role ~= "startup-picker" and role ~= "workspace-popup" then
@@ -23,10 +38,10 @@ function M:entry(job)
 
 	local permit = ui.hide()
 	local popup = role == "workspace-popup"
-	local accept = popup and "--expect=alt-enter " or "--bind=alt-enter:ignore "
+	local accept = popup and "--expect=alt-enter " or "--expect=ctrl-o --bind=alt-enter:ignore "
 	local footer = popup
-		and "Enter Browse here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi"
-		or "Enter Browse here · Tab/Esc Browse Yazi"
+		and "Enter Go here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi"
+		or "Enter Go here · Ctrl+O Open in editor · Tab/Esc Browse Yazi"
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
 		.. accept .. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Go to folder > ' "
 		.. "--footer='" .. footer .. "' --footer-border=none --color=footer:-1"
@@ -51,15 +66,11 @@ function M:entry(job)
 		return ya.notify({ title = "Quick search", content = output.stderr, timeout = 5, level = "error" })
 	end
 
-	local key, target
-	if popup then
-		key, target = output.stdout:match("^([^\n]*)\n(.*)")
-	else
-		target = output.stdout
-	end
+	local key, target = output.stdout:match("^([^\n]*)\n(.*)")
 	target = target and target:gsub("\n$", "")
 	if not target or target == "" then return end
 	if key == "alt-enter" then return require("tab-workspace").open(target) end
+	if key == "ctrl-o" then return open_editor(target) end
 	ya.emit("cd", { target, raw = true })
 end
 

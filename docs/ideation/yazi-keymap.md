@@ -1,8 +1,8 @@
 # Managed Yazi key model
 
-Status: Option F selected for Nova, then refined to keep `Alt Enter` only in the
-persistent popup. This record preserves the alternatives and the reasoning that
-led to the decision.
+Status: Option F+ selected for Nova. It retains Option F, keeps `Alt Enter` only
+in the persistent popup, and adds a direct startup-search editor path. This
+record preserves the alternatives and the reasoning that led to the decision.
 
 ## Terms
 
@@ -235,12 +235,28 @@ normally overwritten; its only distinct use was setting the tab folder before
 creating another pane from the unfinished picker. That niche did not justify a
 prominent startup shortcut or footer entry.
 
-The accepted model keeps Option F's shared move-only search and vanilla `Z`
-alias. Startup browse and search ignore `Alt Enter`; ordinary open is the only
-initial tab-folder handoff. The persistent popup retains `Alt Enter` in browse
-and search because changing an established tab folder without opening or moving
-anything is useful there. This is a deliberate role difference tied to startup
-lifecycle, not a second search mode.
+The accepted model keeps Option F's shared move-first search and vanilla `Z`
+alias. Startup browse and search ignore `Alt Enter`. The persistent popup
+retains `Alt Enter` in browse and search because changing an established tab
+folder without opening or moving anything is useful there. This is a deliberate
+role difference tied to startup lifecycle, not a second search mode.
+
+## Accepted Option F+: direct startup open
+
+Option F+ retains Option F's search and adds one explicit acceptance shortcut
+for the common case where zoxide already knows the intended project.
+
+| Key | Startup search | Popup search |
+| --- | --- | --- |
+| `Enter` | Move Yazi to the selected directory and return to browsing. | Move Yazi to the selected directory and return to browsing. |
+| `Ctrl O` | Set the selected directory as the initial tab folder, open it in the configured editor, and complete startup. | No managed action. |
+| `Alt Enter` | No managed action. | Set the selected directory as the tab folder without moving Yazi or opening an editor. |
+
+This restores a one-action startup path without making ordinary `Enter`
+role-dependent or adding a second search mode. `Ctrl O` is mnemonic and remains
+distinguishable in legacy terminals and over SSH; modified Enter variants would
+depend more heavily on enhanced keyboard-protocol support. The cost is one
+startup-only shortcut, kept visible in the startup search footer.
 
 ## Separate architecture question: replace startup Yazi with the popup
 
@@ -260,6 +276,8 @@ it is not required for Option F and is not selected here.
 - Keep one quick-search implementation for both `Tab` and `Z`.
 - Ignore `Alt Enter` in startup browse and search, and omit it from both startup
   footers.
+- Let startup search `Ctrl O` pass the selected directory to the existing
+  editor-open boundary and advertise it only in the startup search footer.
 - Keep `Alt Enter` tab-folder-only in persistent-popup browse and search.
 - Let the startup lifecycle own the initial tab-folder/editor handoff.
 - Keep tab-folder mutation in the existing workspace boundary and Yazi movement
@@ -273,8 +291,9 @@ it is not required for Option F and is not selected here.
   packaged Yazi configuration are shared surfaces.
 
 The implementation uses `zoxide query --list` as the recent-folder source and
-feeds its output to packaged `fzf`. Startup binds `Alt Enter` to ignore; the
-popup uses `--expect=alt-enter`. Passing that expectation through zoxide 0.9.9's
-interactive helper is rejected: the helper strips the first seven bytes of fzf
-output, corrupting the expected-key marker. Direct fzf ownership keeps popup
-Enter and Alt Enter distinguishable without duplicating search behavior.
+feeds its output to packaged `fzf`. Startup uses `--expect=ctrl-o` and binds
+`Alt Enter` to ignore; the popup uses `--expect=alt-enter`. Passing expectations
+through zoxide 0.9.9's interactive helper is rejected: the helper strips the
+first seven bytes of fzf output, corrupting the expected-key marker. Direct fzf
+ownership keeps the acceptance keys distinguishable without duplicating search
+behavior.

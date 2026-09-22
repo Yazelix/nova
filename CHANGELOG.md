@@ -12,16 +12,17 @@ User-visible runtime changes for Yazelix Nova live here.
 - New tabs start in Yazi's fast zoxide-backed recent-folder search. `Tab` and
   vanilla-compatible `Z` open the same search from either managed Yazi browser;
   `Tab` or `Esc` returns to browsing. Search `Enter` moves Yazi to the selected
-  folder without changing the tab folder or opening the editor. In the
-  persistent popup, search `Alt Enter` sets the selected result as the tab
-  folder without moving Yazi or opening the editor; in browse mode it uses the
-  hovered folder, or the current folder when a file or nothing is hovered.
-  Startup ignores `Alt Enter`; its ordinary open action owns the initial tab
-  folder and creates the first editor pane. Popup opens preserve the existing
-  tab folder. `Shift Tab` spots the hovered file, empty history leaves Yazi
-  ready to browse, and the former global `Alt z` action remains absent. Both
-  managed views use clean, pill-free key footers, and the command menu provides
-  a discoverable route to the persistent popup.
+  folder without changing the tab folder or opening the editor. Startup search
+  `Ctrl O` uses the selected folder as the initial tab folder, opens it in the
+  configured editor, and completes startup. In the persistent popup, search
+  `Alt Enter` sets the selected result as the tab folder without moving Yazi or
+  opening the editor; in browse mode it uses the hovered folder, or the current
+  folder when a file or nothing is hovered. Startup ignores `Alt Enter`; its
+  ordinary open action provides the same initial tab-folder/editor handoff.
+  Popup opens preserve the existing tab folder. `Shift Tab` spots the hovered
+  file, empty history leaves Yazi ready to browse, and the former global `Alt z`
+  action remains absent. Both managed views use clean, pill-free key footers,
+  and the command menu provides a discoverable route to the persistent popup.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.
