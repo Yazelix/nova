@@ -67,6 +67,19 @@ def main():
         config = config.replace(f"file:{path}", f"zellij:{name}")
         build_env[key] = path
 
+    layout_dirs = re.findall(r'^layout_dir "([^"]+)"$', config, re.MULTILINE)
+    if len(layout_dirs) != 1:
+        raise RuntimeError("Nova's managed layout directory changed")
+    layout_dir = Path(layout_dirs[0])
+    isolated_layout = work / "layout"
+    isolated_layout.mkdir()
+    layout = (layout_dir / "layout.kdl").read_text()
+    if f"file:{bar[0]}" not in layout:
+        raise RuntimeError("Nova's packaged bar view changed")
+    (isolated_layout / "layout.kdl").write_text(layout.replace(f"file:{bar[0]}", "zellij:nova-bar"))
+    shutil.copy2(layout_dir / "layout.swap.kdl", isolated_layout / "layout.swap.kdl")
+    config = config.replace(str(layout_dir), str(isolated_layout))
+
     rendered = state / "zellij/config.prototype.kdl"
     rendered.write_text(config)
     (state / "zellij/permissions.kdl").unlink(missing_ok=True)
@@ -76,7 +89,7 @@ def main():
     binary = install / "yzx-zellij-prototype"
     shutil.copy2(target / "release/yzx-zellij-prototype", binary)
     version = subprocess.check_output([str(binary), "--version"], text=True).strip()
-    if "0.1.0 (zellij " not in version:
+    if not version.startswith("yzx-zellij-prototype 0.1.0 (zellij "):
         raise RuntimeError(f"unexpected prototype identity: {version}")
     subprocess.run([str(binary), "--config", str(rendered), "setup", "--check"], env=runtime_env, check=True)
     print(f"binary: {binary}\nconfig: {rendered}\nversion: {version}")
