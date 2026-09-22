@@ -22,16 +22,16 @@ os.getenv = function(name)
 	if name == "YZX_YAZI_ROLE" then return role end
 end
 
-Command = setmetatable({ INHERIT = "inherit", PIPED = "piped" }, {
+Command = setmetatable({ PIPED = "piped" }, {
 	__call = function(_, program)
 		assert(program == "/yzx-open" or program == "zoxide" or program == "fzf")
 		local command = {}
 		function command:arg(args)
 			if program == "zoxide" then
 				zoxide_calls = zoxide_calls + 1
-				assert(args[1] == "query" and args[2] == "--list")
-			else
-				if program == "/yzx-open" then calls[#calls + 1] = args end
+				assert(args[1] == "query" and args[2] == "--list" and args[3] == "--exclude" and args[4] == cwd)
+			elseif program == "/yzx-open" then
+				calls[#calls + 1] = args
 			end
 			return self
 		end
@@ -84,15 +84,6 @@ plugin:entry()
 assert(notifications[5].level == "error" and notifications[5].content == "failed")
 
 package.preload["tab-workspace"] = function() return plugin end
-package.preload.zoxide = function()
-	return {
-		setup = function() end,
-		is_empty = function(current)
-			assert(current == cwd)
-			return false
-		end,
-	}
-end
 ui = { hide = function() return { drop = function() end } end }
 succeeds = true
 local search = assert(dofile(assert(arg[3])))
