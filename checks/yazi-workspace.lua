@@ -6,7 +6,10 @@ local calls = {}
 local emitted = {}
 local succeeds = true
 local zoxide_calls = 0
+local fzf_calls = 0
 local zoxide_target = "/recent folder"
+local zoxide_key = ""
+local fzf_options
 
 cx = { active = { current = { cwd = cwd, hovered = { url = child_dir, cha = { is_dir = true } } } } }
 ya = {
@@ -21,25 +24,34 @@ end
 
 Command = setmetatable({ INHERIT = "inherit", PIPED = "piped" }, {
 	__call = function(_, program)
-		assert(program == "/yzx-open" or program == "zoxide")
+		assert(program == "/yzx-open" or program == "zoxide" or program == "fzf")
 		local command = {}
 		function command:arg(args)
 			if program == "zoxide" then
 				zoxide_calls = zoxide_calls + 1
-				assert(args[1] == "query" and args[2] == "-i")
+				assert(args[1] == "query" and args[2] == "--list")
 			else
-				calls[#calls + 1] = args
+				if program == "/yzx-open" then calls[#calls + 1] = args end
 			end
 			return self
 		end
-		function command:env() return self end
+		function command:env(name, value)
+			if program == "fzf" and name == "FZF_DEFAULT_OPTS" then fzf_options = value end
+			return self
+		end
 		function command:stdin() return self end
 		function command:stdout() return self end
 		function command:stderr() return self end
 		function command:spawn() return self end
+		function command:write_all(input) assert(input == zoxide_target .. "\n") end
+		function command:flush() end
 		function command:wait_with_output()
 			if program == "zoxide" then
 				return { status = { success = true }, stdout = zoxide_target .. "\n", stderr = "" }
+			end
+			if program == "fzf" then
+				fzf_calls = fzf_calls + 1
+				return { status = { success = true }, stdout = zoxide_key .. "\n" .. zoxide_target .. "\n", stderr = "" }
 			end
 			return { status = { success = succeeds }, stderr = "failed" }
 		end
@@ -54,8 +66,8 @@ assert(notifications[1].content == "Set to " .. child_dir)
 
 role = "startup-picker"
 plugin:entry()
-assert(calls[2][1] == "--retarget-workspace" and calls[2][2] == child_dir)
-assert(#notifications == 1)
+assert(calls[2][1] == "--set-workspace" and calls[2][2] == child_dir)
+assert(notifications[2].content == "Set to " .. child_dir)
 
 role = "workspace-popup"
 cx.active.current.hovered = { url = "/current/file", cha = { is_dir = false } }
@@ -68,7 +80,7 @@ assert(calls[4][2] == cwd)
 
 succeeds = false
 plugin:entry()
-assert(notifications[4].level == "error" and notifications[4].content == "failed")
+assert(notifications[5].level == "error" and notifications[5].content == "failed")
 
 package.preload["tab-workspace"] = function() return plugin end
 package.preload.zoxide = function()
@@ -85,18 +97,32 @@ succeeds = true
 local search = assert(dofile(assert(arg[3])))
 local workspace_calls = #calls
 role = "workspace-popup"
-search:entry()
+search:entry({ args = { source = "tab" } })
 assert(zoxide_calls == 1 and #calls == workspace_calls)
+assert(fzf_calls == 1)
 assert(emitted[#emitted][1] == "cd" and emitted[#emitted][2][1] == zoxide_target)
 assert(emitted[#emitted][2].raw == true)
+assert(fzf_options:find("--expect=alt-enter", 1, true))
+assert(fzf_options:find("Enter Browse here · Alt+Enter Set tab folder", 1, true))
 
 role = "startup-picker"
-search:entry()
-assert(zoxide_calls == 2 and calls[#calls][1] == "--retarget-workspace" and calls[#calls][2] == zoxide_target)
+search:entry({ args = { source = "tab" } })
+assert(zoxide_calls == 2 and fzf_calls == 2 and #calls == workspace_calls)
+assert(emitted[#emitted][1] == "cd" and emitted[#emitted][2][1] == zoxide_target)
+
+zoxide_key = "alt-enter"
+search:entry({ args = { source = "tab" } })
+assert(zoxide_calls == 3 and fzf_calls == 3 and calls[#calls][1] == "--set-workspace" and calls[#calls][2] == zoxide_target)
+
+role = "workspace-popup"
+search:entry({ args = { source = "zoxide" } })
+assert(zoxide_calls == 4 and fzf_calls == 4 and calls[#calls][1] == "--set-workspace" and calls[#calls][2] == zoxide_target)
 
 role = nil
-search:entry()
-assert(zoxide_calls == 2 and emitted[#emitted][1] == "spot" and type(emitted[#emitted][2]) == "table")
+search:entry({ args = { source = "tab" } })
+assert(zoxide_calls == 4 and emitted[#emitted][1] == "spot" and type(emitted[#emitted][2]) == "table")
+search:entry({ args = { source = "zoxide" } })
+assert(emitted[#emitted][1] == "plugin" and emitted[#emitted][2][1] == "zoxide")
 
 for _, name in ipairs({ "auto-layout", "git", "starship", "zoxide" }) do
 	package.preload[name] = function() return { setup = function() end } end
@@ -113,11 +139,9 @@ local function footer(name)
 	return Status.render()
 end
 local startup_footer = footer("startup-picker")
-assert(startup_footer:find("Alt+Enter Start here", 1, true))
-assert(startup_footer:find("Tab Search", 1, true))
-assert(startup_footer:find("Shift+Tab Spot", 1, true))
+assert(startup_footer == " Alt+Enter Set tab folder · Tab/Z Search · Shift+Tab Spot")
 assert(emitted[1][1] == "plugin" and emitted[1][2][1] == "quick-search")
-assert(footer("workspace-popup") == " Alt+Enter Workspace · Tab Search · Shift+Tab Spot")
+assert(footer("workspace-popup") == " Alt+Enter Set tab folder · Tab/Z Search · Shift+Tab Spot")
 assert(#emitted == 1)
 cx.layer = "input"
 assert(Status.render() == "")

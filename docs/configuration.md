@@ -531,16 +531,21 @@ These bindings expect the editor process to inherit the managed Yazelix
 session environment. The Emacs example replaces the default `M-r` binding.
 Choose another key to retain `move-to-window-line-top-bottom`.
 
-`Tab` switches between browsing and recent-folder search in startup and popup
-Yazi. A popup search result moves Yazi to that folder without changing the tab
-workspace, so it can be inspected first. `Shift Tab` spots the hovered file
-while browsing.
-`Alt Enter` then uses the hovered folder, or Yazi's current folder when hovering
-a file or nothing, as the exact tab workspace, without opening or focusing an
-editor from the persistent popup. Existing panes keep their
-own cwd. In startup Yazi outside fast search, the shortcut creates the first
-editor pane to complete tab creation. Ordinary Yazi opens preserve an established
-tab workspace; they may sync Helix's own cwd to that root while opening the target.
+The user-facing tab folder is the orchestrator's canonical workspace root. It
+does not change `pwd` in existing shells, Yazi's current directory, or an
+existing editor process.
+
+`Tab` and vanilla-compatible `Z` open the same recent-folder search in startup
+and popup Yazi. `Tab` is two-way: inside search it returns to browsing, as does
+`Esc`. Search `Enter` moves Yazi to the selected folder without changing the tab
+folder or opening an editor. `Shift Tab` spots the hovered file while browsing.
+Search `Alt Enter` sets the selected result as the exact tab folder without
+moving Yazi or opening an editor. In browse mode, `Alt Enter` uses the hovered
+folder, or Yazi's current folder when hovering a file or nothing. Existing panes
+keep their own cwd. The startup browser's ordinary open action creates the first
+editor pane and completes tab creation. Ordinary popup opens preserve an
+established tab folder; they may sync Helix's own cwd to that root while opening
+the target.
 On macOS, Rio defaults to treating Option as text input, so set top-level
 `option-as-alt = "Left"` (or `"Both"`) in managed `rio/config.toml` for this
 shortcut. The selected Option key then acts as Alt instead of entering symbols.

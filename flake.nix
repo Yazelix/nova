@@ -1309,8 +1309,10 @@
       yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
-        grep -Fq 'run = "plugin quick-search"' ${yzx}/share/yazelix/yazi/keymap.toml
+        grep -Fq 'run = "plugin quick-search -- --source=tab"' ${yzx}/share/yazelix/yazi/keymap.toml
+        grep -Fq 'run = "plugin quick-search -- --source=zoxide"' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
+        grep -Fq 'on = ["Z"]' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<BackTab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<S-Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml
         if grep -Fq '<A-z>' ${./defaults/yazi/startup-keymap.toml}; then
@@ -1318,8 +1320,8 @@
           exit 1
         fi
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
-        grep -Fq 'Alt+Enter Start here' ${yzx}/share/yazelix/yazi/init.lua
-        grep -Fq 'Tab Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Alt+Enter Set tab folder' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Tab/Z Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
         grep -Fq 'ya.emit("plugin", { "quick-search" })' ${yzx}/share/yazelix/yazi/init.lua
         test -f ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then

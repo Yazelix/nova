@@ -23,6 +23,7 @@ const KEY_SIDEBAR_SWAP: &str = "Alt Shift H";
 const KEY_YAZI_POPUP: &str = "Alt Shift Y";
 const KEY_NEW_PANE: &str = "Alt m";
 const KEY_YAZI_SEARCH: &str = "Tab";
+const KEY_YAZI_ZOXIDE: &str = "Z";
 const KEY_YAZI_WORKSPACE: &str = "Alt Enter";
 const KEY_TAB_LEFT: &str = "Ctrl Alt h";
 const KEY_TAB_RIGHT: &str = "Ctrl Alt l";
@@ -263,7 +264,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` to search recent folders. In search, `Enter` moves the popup to the result for inspection; press `{yazi_workspace}` on the desired folder, or on one of its files to use the current folder, without opening the editor.
+3. **Inside Yazelix:** Press `{yazi_popup}` to open the persistent Yazi popup. Browse to any folder or press `{yazi_search}` or `{yazi_zoxide}` to search recent folders. In search, `Enter` moves Yazi to the result for inspection; `{yazi_workspace}` sets the selected result as the tab folder without moving Yazi or opening the editor. In browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered.
 
 ## Mental model
 
@@ -274,6 +275,7 @@ Next lesson: `yzx tutor files`.
         header = lesson_intro(index, lesson),
         yazi_popup = key(KEY_YAZI_POPUP),
         yazi_search = key(KEY_YAZI_SEARCH),
+        yazi_zoxide = key(KEY_YAZI_ZOXIDE),
         yazi_workspace = key(KEY_YAZI_WORKSPACE),
     ))
 }
@@ -565,6 +567,7 @@ mod tests {
             "cd <dir> && yzx launch",
             KEY_YAZI_POPUP,
             KEY_YAZI_SEARCH,
+            KEY_YAZI_ZOXIDE,
             KEY_YAZI_WORKSPACE,
             "current tab workspace root matters most",
         ] {

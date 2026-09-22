@@ -1428,7 +1428,7 @@ fn expect_menu_dispatch(menu: &Path) {
     );
     expect_contains(
         &binary,
-        "Change tab workspace in Yazi",
+        "Set the tab folder in Yazi",
         "workspace menu entry",
     );
 
@@ -2277,7 +2277,9 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     expect_contains_all! {
         &keymap, "Yazi managed keymap fragment";
         r#"on = ["<Tab>"]"#,
-        r#"run = "plugin quick-search""#,
+        r#"run = "plugin quick-search -- --source=tab""#,
+        r#"on = ["Z"]"#,
+        r#"run = "plugin quick-search -- --source=zoxide""#,
         r#"on = ["<BackTab>"]"#,
         r#"run = "spot""#,
         r#"on = ["<A-Enter>"]"#,
@@ -2301,7 +2303,8 @@ fn expect_yazi_managed_keys(yzx: &Path) {
 
     let init = fs::read_to_string(yzx.join("share/yazelix/yazi/init.lua")).unwrap();
     assert!(!init.contains("sidebar-state") && !init.contains("sidebar-status"));
-    assert!(init.contains("Alt+Enter Start here"));
+    assert!(init.contains("Alt+Enter Set tab folder"));
+    assert!(init.contains("Tab/Z Search"));
     assert!(
         !yzx.join("share/yazelix/yazi/plugins/sidebar-state.yazi")
             .exists()

@@ -212,7 +212,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "target.txt")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     wait_for_screen(recorder, zellij, sessions[0], "Shift+Tab Spot")?;
     // Rio's Kitty keyboard path sends physical Shift+Tab as CSI 9;2u.
     let status = Command::new(zellij)
@@ -224,15 +224,23 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     }
     wait_for_screen(recorder, zellij, sessions[0], "Size:")?;
     send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     send_key(zellij, sessions[0], "Shift Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "Size:")?;
     send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     send_key(zellij, sessions[0], "Home")?;
     send_key(zellij, sessions[0], "Right")?;
     wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
     send_key(zellij, sessions[0], "Alt Enter")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Set to ")?;
+    wait_for_panes(
+        recorder,
+        zellij,
+        sessions[0],
+        r#"any(.[]; .title == "yazi_picker" and .is_focused) and all(.[]; .title != "editor")"#,
+    )?;
+    send_key(zellij, sessions[0], "Enter")?;
     wait_for_panes(
         recorder,
         zellij,
@@ -262,11 +270,21 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
-    send_key(zellij, sessions[0], "Alt Enter")?;
-    recorder.sleep(Duration::from_millis(250))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
     write_chars(zellij, sessions[0], "quick-target")?;
+    send_key(zellij, sessions[0], "Alt Enter")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Set to ")?;
+    wait_for_panes(
+        recorder,
+        zellij,
+        sessions[0],
+        r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
+    )?;
+    send_key(zellij, sessions[0], "Tab")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
+    write_chars(zellij, sessions[0], "quick-target")?;
+    send_key(zellij, sessions[0], "Enter")?;
+    wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_panes(
         recorder,
@@ -283,13 +301,13 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
     send_key(zellij, sessions[0], "Esc")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
+    send_key(zellij, sessions[0], "Z")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
     send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
-    send_key(zellij, sessions[0], "Tab")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     send_key(zellij, sessions[0], "q")?;
     wait_for_panes(
         recorder,
@@ -307,7 +325,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         return Err(io::Error::other("could not seed vanished zoxide target").into());
     }
     new_tab(zellij, sessions[0], &layout, &picker_dir)?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Start here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Browse here")?;
     fs::remove_dir(&vanished_dir)?;
     write_chars(zellij, sessions[0], "vanished-target")?;
     send_key(zellij, sessions[0], "Enter")?;
@@ -317,7 +335,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
     send_key(zellij, sessions[0], "q")?;
     wait_for_panes(
         recorder,
@@ -338,9 +356,9 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[1],
         r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[1], "Enter Start here")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Enter Browse here")?;
     send_key(zellij, sessions[1], "Esc")?;
-    wait_for_screen(recorder, zellij, sessions[1], "Tab Search")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Tab/Z Search")?;
     send_key(zellij, sessions[1], "Esc")?;
     wait_for_session_exit(zellij, sessions[1])?;
     recorder.stop_app()

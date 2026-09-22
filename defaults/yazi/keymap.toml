@@ -1,7 +1,12 @@
 [[mgr.prepend_keymap]]
 on = ["<Tab>"]
-run = "plugin quick-search"
+run = "plugin quick-search -- --source=tab"
 desc = "Search recent folders"
+
+[[mgr.prepend_keymap]]
+on = ["Z"]
+run = "plugin quick-search -- --source=zoxide"
+desc = "Jump to a recent folder"
 
 [[mgr.prepend_keymap]]
 on = ["<BackTab>"]
@@ -16,7 +21,7 @@ desc = "Spot hovered file"
 [[mgr.append_keymap]]
 on = ["<A-Enter>"]
 run = "plugin tab-workspace"
-desc = "Use hovered folder or current folder as tab workspace"
+desc = "Set hovered folder or current folder as tab folder"
 
 [[mgr.append_keymap]]
 on = ["<A-r>"]

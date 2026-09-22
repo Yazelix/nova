@@ -9,17 +9,18 @@ User-visible runtime changes for Yazelix Nova live here.
   original target to Helix. Existing numeric-colon filenames remain literal;
   workspace changes continue to use exact paths.
 
-- New tabs start in Yazi's fast zoxide-backed recent-folder search. `Enter` opens
-  the selected directory in the configured editor; `Esc` or `Tab` returns to
-  browsing without canceling the tab. Empty history leaves Yazi ready to
-  browse, and `Alt Enter` is unbound in search. In either managed Yazi browser,
-  `Tab` reopens search and `Shift Tab` spots the hovered file. Persistent-popup
-  search moves Yazi to the selected folder for inspection without changing the
-  workspace; `Alt Enter` alone commits the hovered or current folder as the tab
-  workspace without opening an editor. Startup search still creates its first
-  editor pane. Both managed views use clean, pill-free key footers. The command
-  menu provides a discoverable route to the persistent popup. Nova's former
-  global `Alt z` action is removed.
+- New tabs start in Yazi's fast zoxide-backed recent-folder search. `Tab` and
+  vanilla-compatible `Z` open the same search from either managed Yazi browser;
+  `Tab` or `Esc` returns to browsing. Search `Enter` moves Yazi to the selected
+  folder without changing the tab folder or opening the editor. Search
+  `Alt Enter` sets the selected result as the tab folder without moving Yazi or
+  opening the editor; in browse mode it uses the hovered folder, or the current
+  folder when a file or nothing is hovered. The startup browser's ordinary open
+  action creates its first editor pane, while popup opens preserve the existing
+  tab folder. `Shift Tab` spots the hovered file, empty history leaves Yazi ready
+  to browse, and the former global `Alt z` action remains absent. Both managed
+  views use clean, pill-free key footers, and the command menu provides a
+  discoverable route to the persistent popup.
 
 - Codex Radar warnings, setup offers, and doctor guidance name the Codex-only
   repair command. The command menu labels its separate three-agent setup scope.

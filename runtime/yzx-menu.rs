@@ -23,7 +23,7 @@ const COMMANDS: &[(&str, &str, &str)] = &[
     (
         "workspace",
         "workspace",
-        "Change tab workspace in Yazi (Alt+Enter)",
+        "Set the tab folder in Yazi (Alt+Enter)",
     ),
 ];
 
