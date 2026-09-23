@@ -119,8 +119,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **26,877 code/configuration lines** and **5,118 documentation/text
-lines**. The increase builds the pinned Zellij PR distribution and the isolated
-`nova-zjhints` grouped-hints patch that powers Edge's default bottom bar. The
-[reproducible scorecard](docs/development.md#loc-scorecard)
+Yazelix owns **27,003 code/configuration lines** and **5,119 documentation/text
+lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

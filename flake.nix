@@ -1755,6 +1755,12 @@
         touch "$out"
       '';
     } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+      attached_tab_focus = pkgs.runCommand "nova-attached-tab-focus-check" {
+        nativeBuildInputs = [pkgs.python3 pkgs.tmux pkgs.coreutils];
+      } ''
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 50s ${pkgs.python3}/bin/python ${./checks/attached-tab-focus.py} ${yzx} ${pkgs.bash}/bin/bash
+        touch "$out"
+      '';
       startup_picker_cancellation = let
         proof = kinestra.lib.${system}.mkRecorder {
           name = "nova-startup-picker-cancellation-check";

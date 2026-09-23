@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- In sessions with multiple attached clients, the top bar keeps each client's
+  own active tab highlighted while switching tabs.
+
 - Edge uses `yzx-zellij` built from pinned Zellij PR #5630 with Nova's plugins
   embedded. Its default bottom bar is the `nova-zjhints` fork with grouped
   modifier hints, cream-on-charcoal keys, and no mode badge. Built-in plugins
