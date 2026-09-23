@@ -12,11 +12,14 @@ at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
 `group_modifiers true` option joins hints with the same modifier chord. The
 modifier tile is Zellij green and ends in `+`; each key sits on charcoal with
 cream text. Adjacent bindings touch, the modifier has a one-column gap before
-its keys, and groups have a wider gap. Consecutive numbered keys display as
-`1–9`. The default layout omits the mode badge.
+its keys, and three groups share the available row width through balanced gaps.
+The first and last groups align with the surrounding pane frames. Consecutive
+numbered keys display as `1–9`. The default layout omits the mode badge.
 
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
 standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
+The zjhints toolchain pins Fenix separately because it requires Rust 1.96;
+Nova Bar's older toolchain remains independent.
 The grouped-modifier patch can be dropped once upstream zjhints supplies the
 same behavior. The distribution wrapper can switch to released Zellij once
 PR #5630 is merged and packaged. Until then, test both the patched plugin and

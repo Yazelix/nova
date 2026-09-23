@@ -49,7 +49,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zjstatus.follows = "zjstatus";
     };
-    fenix.follows = "novaBar/fenix";
+    fenix = {
+      url = "github:nix-community/fenix/864c8bb629a4b6cdfd2ac0fc0e8c407529514aed";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zjhintsUpstream = {
       url = "github:myah-mitchell/zjhints/709d56292217920a5b7e2702302cd66b60ed6477";
       flake = false;
@@ -607,18 +610,10 @@
         src = zjhintsUpstream;
         patches = [./prototypes/zellij-distribution/zjhints-group-modifiers.patch];
       };
-      novaZjhintsRust96 = fenix.packages.${system}.toolchainOf {
-        channel = "1.96.0";
-        sha256 = "sha256-mvUGEOHYJpn3ikC5hckneuGixaC+yGrkMM/liDIDgoU=";
-      };
-      novaZjhintsWasmRust96 = fenix.packages.${system}.targets.wasm32-wasip1.toolchainOf {
-        channel = "1.96.0";
-        sha256 = "sha256-mvUGEOHYJpn3ikC5hckneuGixaC+yGrkMM/liDIDgoU=";
-      };
       novaZjhintsToolchain = fenix.packages.${system}.combine [
-        novaZjhintsRust96.cargo
-        novaZjhintsRust96.rustc
-        novaZjhintsWasmRust96.rust-std
+        fenix.packages.${system}.stable.cargo
+        fenix.packages.${system}.stable.rustc
+        fenix.packages.${system}.targets.wasm32-wasip1.stable.rust-std
       ];
       novaZjhintsRust = pkgs.makeRustPlatform {
         cargo = novaZjhintsToolchain;
@@ -664,7 +659,7 @@
         YZX_HINTS_WASM = "${novaZjhintsPackage}/bin/nova-zjhints.wasm";
         OPENSSL_NO_VENDOR = "1";
         nativeBuildInputs = [pkgs.pkg-config];
-        buildInputs = [pkgs.openssl];
+        buildInputs = [pkgs.openssl] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.curl];
         doCheck = false;
         installPhase = ''
           install -Dm755 target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/yzx-zellij "$out/bin/yzx-zellij"

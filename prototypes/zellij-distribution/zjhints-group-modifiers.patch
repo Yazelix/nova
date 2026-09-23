@@ -1,5 +1,5 @@
 diff --git a/src/main.rs b/src/main.rs
-index 7e670a3..0ecf055 100644
+index 7e670a37..c788c906 100644
 --- a/src/main.rs
 +++ b/src/main.rs
 @@ -745,9 +745,8 @@ fn dim_style_declaration(decl: &StyleDeclaration, strength: f32) -> StyleDeclara
@@ -23,7 +23,20 @@ index 7e670a3..0ecf055 100644
      ANSIStrings(&parts).to_string()
  }
  
-@@ -1540,6 +1539,24 @@ fn group_keys(
+@@ -943,7 +942,11 @@ impl State {
+         // styled background, so an unstyled space in front of it would
+         // just show up as a gap of default terminal background before
+         // the pill starts.
+-        let leading_space: usize = if mode_prefix_len > 0 { 0 } else { 1 };
++        let grouped = self
++            .config
++            .get("group_modifiers")
++            .is_some_and(|v| v == "true");
++        let leading_space: usize = if mode_prefix_len > 0 || grouped { 0 } else { 1 };
+         let ctx = HintStyle {
+             colors,
+             dim,
+@@ -1540,6 +1543,24 @@ fn group_keys(
              });
          }
      }
@@ -48,7 +61,7 @@ index 7e670a3..0ecf055 100644
      groups
  }
  
-@@ -1682,6 +1699,7 @@ fn style_key_with_modifier(
+@@ -1682,6 +1703,7 @@ fn style_key_with_modifier(
      key_bindings: &[KeyWithModifier],
      palette: &Styling,
      config: &BTreeMap<String, String>,
@@ -56,7 +69,7 @@ index 7e670a3..0ecf055 100644
  ) -> Vec<ANSIString<'static>> {
      if key_bindings.is_empty() {
          return vec![];
-@@ -1691,7 +1709,11 @@ fn style_key_with_modifier(
+@@ -1691,7 +1713,11 @@ fn style_key_with_modifier(
      let contrasting_fg = palette_match!(palette.ribbon_unselected.base);
      let ribbon = || Style::new().fg(contrasting_fg).on(saturated_bg);
  
@@ -69,7 +82,7 @@ index 7e670a3..0ecf055 100644
  
      for (group_idx, group) in group_keys(key_bindings, config).iter().enumerate() {
          if group_idx > 0 {
-@@ -2069,10 +2091,20 @@ fn merge_hint(hints: &mut Vec<Hint>, id: &str, label: &str, keys: &[KeyWithModif
+@@ -2069,10 +2095,20 @@ fn merge_hint(hints: &mut Vec<Hint>, id: &str, label: &str, keys: &[KeyWithModif
  }
  
  /// Render a hint's styled segments, without tracking consumed keys.
@@ -91,7 +104,7 @@ index 7e670a3..0ecf055 100644
      let keys = keys.as_slice();
  
      // A per-hint format overrides the global one; either overrides the theme
-@@ -2105,7 +2137,12 @@ fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintSt
+@@ -2105,7 +2141,12 @@ fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintSt
          // Real keys keep the modifier grouping the palette styling does;
          // a replacement is already a finished string.
          None if replacement.is_some() => parts.extend(style_key_text(&key_text, style.colors)),
@@ -105,7 +118,7 @@ index 7e670a3..0ecf055 100644
      }
  
      // Description part, resolved the same way.
-@@ -2537,18 +2574,42 @@ fn render_hints_for_mode(
+@@ -2537,18 +2578,42 @@ fn render_hints_for_mode(
          hints.sort_by_key(|hint| style.hint_order.rank(hint));
      }
  
@@ -156,7 +169,7 @@ index 7e670a3..0ecf055 100644
          })
          .collect();
  
-@@ -2562,15 +2623,24 @@ fn render_hints_for_mode(
+@@ -2562,15 +2627,54 @@ fn render_hints_for_mode(
          .map(|indicator| format::render_template(indicator, &[], style.config, style.dim))
          .unwrap_or_default();
  
@@ -169,6 +182,8 @@ index 7e670a3..0ecf055 100644
 -            style.precedence,
 -        )
 -    });
++    let spacer_width = visible_width(&spacer, style.wide_ambiguous);
++    let indicator_width = visible_width(&indicator, style.wide_ambiguous);
 +    let mut gap = None;
 +    loop {
 +        render_pieces(&mut pieces, &hints, style, group_modifiers);
@@ -176,9 +191,9 @@ index 7e670a3..0ecf055 100644
 +        if let Some(limit) = style.limit {
 +            gap = drop_to_fit(
 +                &mut pieces,
-+                visible_width(&spacer, style.wide_ambiguous),
++                spacer_width,
 +                limit,
-+                visible_width(&indicator, style.wide_ambiguous),
++                indicator_width,
 +                style.precedence,
 +                gap,
 +            );
@@ -187,10 +202,38 @@ index 7e670a3..0ecf055 100644
 +            break;
 +        }
 +    }
++
++    if group_modifiers && (gap.is_none() || indicator.is_empty()) {
++        if let Some(limit) = style.limit {
++            let mut starts = Vec::new();
++            let mut previous = None;
++            for (index, piece) in pieces.iter().enumerate() {
++                let modifiers = shared_modifiers(&hints[piece.hint_index], style);
++                if modifiers.is_none() {
++                    starts.clear();
++                    break;
++                }
++                if previous != modifiers {
++                    starts.push(index);
++                }
++                previous = modifiers;
++            }
++            if starts.len() == 3 {
++                let used = pieces.iter().map(|piece| piece.width).sum::<usize>()
++                    + spacer_width * pieces.len().saturating_sub(1);
++                let slack = limit.saturating_sub(used);
++                for (index, extra) in [(starts[1], slack / 2), (starts[2], slack - slack / 2)] {
++                    pieces[index]
++                        .parts
++                        .insert(0, Style::new().paint(" ".repeat(extra)));
++                }
++            }
++        }
++    }
  
      // The indicator stands in for the dropped run, spaced like a hint so it
      // reads as one.
-@@ -2603,11 +2673,65 @@ enum HintGroup {
+@@ -2603,11 +2707,67 @@ enum HintGroup {
  
  /// One rendered hint, kept separate so it can be dropped whole.
  struct HintPiece {
@@ -226,7 +269,9 @@ index 7e670a3..0ecf055 100644
 +        let mut parts = vec![];
 +        if let Some(modifiers) = &modifiers {
 +            if previous.as_ref() != Some(modifiers) {
-+                parts.push(Style::new().paint(if index == 0 { " " } else { "   " }));
++                if index > 0 {
++                    parts.push(Style::new().paint("   "));
++                }
 +                let title = chord_alias(modifiers, style.config).unwrap_or_else(|| {
 +                    modifiers
 +                        .iter()
@@ -256,7 +301,7 @@ index 7e670a3..0ecf055 100644
  fn visible_width(parts: &[ANSIString<'static>], wide_ambiguous: bool) -> usize {
      calculate_visible_length(&format!("{}", ANSIStrings(parts)), wide_ambiguous)
  }
-@@ -2630,6 +2754,7 @@ fn drop_to_fit(
+@@ -2630,6 +2790,7 @@ fn drop_to_fit(
      limit: usize,
      indicator_width: usize,
      precedence: HintPrecedence,
@@ -264,7 +309,7 @@ index 7e670a3..0ecf055 100644
  ) -> Option<usize> {
      let width = |pieces: &Vec<HintPiece>, extra: usize| {
          let hints: usize = pieces.iter().map(|piece| piece.width).sum();
-@@ -2637,7 +2762,6 @@ fn drop_to_fit(
+@@ -2637,7 +2798,6 @@ fn drop_to_fit(
          hints + extra + spacer_width * count.saturating_sub(1)
      };
  
@@ -272,7 +317,7 @@ index 7e670a3..0ecf055 100644
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -3729,6 +3853,78 @@ mod tests {
+@@ -3729,6 +3889,110 @@ mod tests {
          ]
      }
  
@@ -314,7 +359,7 @@ index 7e670a3..0ecf055 100644
 +        ];
 +        assert_eq!(
 +            rendered(InputMode::Pane, &keymap, &[("group_modifiers", "true")]),
-+            "  Ctrl +  a close|b fullscreen|    Alt +  c frames|d pin"
++            " Ctrl +  a close|b fullscreen|    Alt +  c frames|d pin"
 +        );
 +
 +        let mut moved_header = false;
@@ -344,8 +389,40 @@ index 7e670a3..0ecf055 100644
 +                &[(chord, vec![Action::CloseFocus])],
 +                &[("group_modifiers", "true")]
 +            ),
-+            "  Ctrl-Alt +  p close"
++            " Ctrl-Alt +  p close"
 +        );
++    }
++
++    #[test]
++    fn three_modifier_islands_fill_the_row_with_balanced_gaps() {
++        let keymap = vec![
++            (ctrl('a'), vec![Action::CloseFocus]),
++            (
++                ctrl('b').with_alt_modifier(),
++                vec![Action::ToggleFocusFullscreen],
++            ),
++            (
++                KeyWithModifier::new(BareKey::Char('c')).with_alt_modifier(),
++                vec![Action::TogglePaneFrames],
++            ),
++        ];
++        for limit in [90, 120, 160, 240] {
++            let output = rendered(
++                InputMode::Pane,
++                &keymap,
++                &[("group_modifiers", "true"), ("limit", &limit.to_string())],
++            );
++            let islands = output.split('|').collect::<Vec<_>>();
++            assert_eq!(islands.len(), 3, "{output:?}");
++            assert!(islands[0].starts_with(" Ctrl +"), "{output:?}");
++            assert!(islands[2].ends_with("frames"), "{output:?}");
++            assert_eq!(output.len(), limit, "{output:?}");
++            let gaps = islands[1..]
++                .iter()
++                .map(|island| island.chars().take_while(|ch| *ch == ' ').count())
++                .collect::<Vec<_>>();
++            assert!(gaps[0].abs_diff(gaps[1]) <= 1, "{output:?}");
++        }
 +    }
 +
      #[test]

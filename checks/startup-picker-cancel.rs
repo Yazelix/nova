@@ -291,7 +291,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
     send_key(zellij, sessions[0], "Tab")?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
-    send_key(zellij, sessions[0], "q")?;
+    recorder.key("q", Duration::from_millis(200))?;
     wait_for_panes(
         recorder,
         zellij,
