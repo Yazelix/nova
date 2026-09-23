@@ -8,6 +8,7 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
+                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }
@@ -25,6 +26,7 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
+                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }
@@ -50,6 +52,7 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
+                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }

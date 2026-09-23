@@ -1,5 +1,5 @@
 diff --git a/src/main.rs b/src/main.rs
-index 7e670a37..a080e12e 100644
+index 7e670a3..7afb062 100644
 --- a/src/main.rs
 +++ b/src/main.rs
 @@ -745,9 +745,8 @@ fn dim_style_declaration(decl: &StyleDeclaration, strength: f32) -> StyleDeclara
@@ -220,7 +220,7 @@ index 7e670a37..a080e12e 100644
  
      // The indicator stands in for the dropped run, spaced like a hint so it
      // reads as one.
-@@ -2603,11 +2703,67 @@ enum HintGroup {
+@@ -2603,11 +2703,80 @@ enum HintGroup {
  
  /// One rendered hint, kept separate so it can be dropped whole.
  struct HintPiece {
@@ -266,15 +266,28 @@ index 7e670a37..a080e12e 100644
 +                        .collect::<Vec<_>>()
 +                        .join("-")
 +                });
-+                let fg = palette_match!(style.colors.ribbon_selected.base);
-+                let bg = palette_match!(style.colors.ribbon_selected.background);
-+                parts.push(
-+                    Style::new()
-+                        .fg(fg)
-+                        .on(bg)
-+                        .bold()
-+                        .paint(format!(" {} + ", title)),
-+                );
++                if let Some(template) = style
++                    .config
++                    .get("modifier_format")
++                    .filter(|s| !s.is_empty())
++                {
++                    parts.extend(format::render_template(
++                        template,
++                        &[("modifier", &title)],
++                        style.config,
++                        style.dim,
++                    ));
++                } else {
++                    let fg = palette_match!(style.colors.ribbon_selected.base);
++                    let bg = palette_match!(style.colors.ribbon_selected.background);
++                    parts.push(
++                        Style::new()
++                            .fg(fg)
++                            .on(bg)
++                            .bold()
++                            .paint(format!(" {} + ", title)),
++                    );
++                }
 +                parts.push(Style::new().paint(" "));
 +            }
 +        }
@@ -288,7 +301,7 @@ index 7e670a37..a080e12e 100644
  fn visible_width(parts: &[ANSIString<'static>], wide_ambiguous: bool) -> usize {
      calculate_visible_length(&format!("{}", ANSIStrings(parts)), wide_ambiguous)
  }
-@@ -2630,6 +2786,7 @@ fn drop_to_fit(
+@@ -2630,6 +2799,7 @@ fn drop_to_fit(
      limit: usize,
      indicator_width: usize,
      precedence: HintPrecedence,
@@ -296,7 +309,7 @@ index 7e670a37..a080e12e 100644
  ) -> Option<usize> {
      let width = |pieces: &Vec<HintPiece>, extra: usize| {
          let hints: usize = pieces.iter().map(|piece| piece.width).sum();
-@@ -2637,7 +2794,6 @@ fn drop_to_fit(
+@@ -2637,7 +2807,6 @@ fn drop_to_fit(
          hints + extra + spacer_width * count.saturating_sub(1)
      };
  
@@ -304,7 +317,7 @@ index 7e670a37..a080e12e 100644
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -3729,6 +3885,110 @@ mod tests {
+@@ -3729,6 +3898,148 @@ mod tests {
          ]
      }
  
@@ -381,6 +394,29 @@ index 7e670a37..a080e12e 100644
 +    }
 +
 +    #[test]
++    fn grouped_modifier_format_changes_only_the_header() {
++        let keymap = [(ctrl('a'), vec![Action::CloseFocus])];
++        assert_eq!(
++            rendered(InputMode::Pane, &keymap, &[("group_modifiers", "true")]),
++            " Ctrl +  a close"
++        );
++        assert_eq!(
++            rendered(
++                InputMode::Pane,
++                &keymap,
++                &[
++                    ("group_modifiers", "true"),
++                    (
++                        "modifier_format",
++                        "#[fg=black,bg=#4ca630,bold] {modifier} * "
++                    ),
++                ]
++            ),
++            " Ctrl *  a close"
++        );
++    }
++
++    #[test]
 +    fn three_modifier_islands_fill_the_row_with_balanced_gaps() {
 +        let keymap = vec![
 +            (ctrl('a'), vec![Action::CloseFocus]),
@@ -409,6 +445,21 @@ index 7e670a37..a080e12e 100644
 +                .map(|island| island.chars().take_while(|ch| *ch == ' ').count())
 +                .collect::<Vec<_>>();
 +            assert!(gaps[0].abs_diff(gaps[1]) <= 1, "{output:?}");
++            assert_eq!(
++                rendered(
++                    InputMode::Pane,
++                    &keymap,
++                    &[
++                        ("group_modifiers", "true"),
++                        ("limit", &limit.to_string()),
++                        (
++                            "modifier_format",
++                            "#[fg=black,bg=#4ca630,bold] {modifier} + "
++                        ),
++                    ],
++                ),
++                output
++            );
 +        }
 +    }
 +

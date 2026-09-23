@@ -10,9 +10,11 @@ The plugins use `zellij:` URLs and need no user permission cache entries.
 at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
 [`grouped modifiers patch`](zjhints-group-modifiers.patch). Its opt-in
 `group_modifiers true` option joins hints with the same modifier chord. The
-modifier tile is Zellij green and ends in `+`; each key sits on charcoal with
-cream text. Adjacent bindings touch, the modifier has a one-column gap before
-its keys, and three groups share the available row width through balanced gaps.
+default layout sets `modifier_format` to a deeper green (`#4ca630`); layouts
+without that option use the Zellij theme color. Each modifier ends in `+`;
+each key sits on charcoal with cream text. Adjacent bindings touch within a
+group; one column separates its modifier from the keys. Three groups share
+the available row width through balanced gaps.
 The row has a one-column leading inset and fills the plugin width. Consecutive
 numbered keys display as `1–9`. The default layout omits the mode badge.
 
