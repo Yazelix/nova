@@ -9,10 +9,9 @@ use std::{
 
 use crate::{
     AGENT_AUTO_COMMAND, HELIX_REVEAL_COMMAND, LAYOUT, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE,
-    MANAGED_HELIX, NOVA_BAR_WASM, PACKAGE_VARIANT, RIO, YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
-    YAZELIX_ZELLIJ_POPUP_WASM, YAZI_SOURCE, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_CONFIG,
-    YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU, YZX_REVEAL, YZX_SCREEN, YZX_TUTOR,
-    YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
+    MANAGED_HELIX, PACKAGE_VARIANT, RIO, YAZI_SOURCE, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST,
+    YZX_CONFIG, YZX_CONFIG_KDL, YZX_CONFIG_UI, YZX_HELIX, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
+    YZX_TUTOR, YZX_WELCOME, YZX_YAZI, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::executable_file,
     error::{AppError, path_error, startup},
     paths::{runtime_path, zellij_session_label},
@@ -146,13 +145,6 @@ fn check_doctor_inputs() -> Result<(), AppError> {
         ("bar renderer", Path::new(YZX_BAR_RENDER)),
         ("managed editor", Path::new(YZX_HELIX)),
         ("Yazi opener", Path::new(YZX_YAZI)),
-        ("popup plugin", Path::new(YAZELIX_ZELLIJ_POPUP_WASM)),
-        ("bar plugin", Path::new(NOVA_BAR_WASM)),
-        ("Radar plugin", Path::new(ZJ_RADAR_WASM)),
-        (
-            "pane orchestrator plugin",
-            Path::new(YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM),
-        ),
     ] {
         require_file(label, path)?;
     }

@@ -243,7 +243,6 @@ Use local sibling repositories while hacking runtime inputs:
 
 ```sh
 nix run --override-input rio ../nova-rio
-nix run --override-input yazelixZellij ../nova-zellij
 nix run --override-input yazelixHelix ../nova-helix
 nix run --override-input yazelixForest ../yazelix-forest
 nix run --override-input zjRadar ../zj-radar
@@ -258,8 +257,11 @@ checks, and every dogfood profile refresh. The profile does not retain overrides
 Publish matching child revisions and lock them before verifying without overrides.
 Check popup open/hide and sidebar toggle together in a fresh installed session.
 
-The isolated [Zellij distribution prototype](../prototypes/zellij-distribution/README.md)
-tests upstream PR #5630 with Nova's packaged plugins without changing `yzx`.
+The [Nova Zellij distribution](../prototypes/zellij-distribution/README.md)
+embeds the packaged plugins through the pinned PR #5630 API. Edge uses it by
+default; Main and Stable retain their own revisions until promoted.
+The Zellij API revision is pinned in its `Cargo.toml` and `Cargo.lock`;
+`zellijPr` supplies the matching theme inventory for a flake check.
 
 Useful local checks:
 
@@ -314,6 +316,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 26,621 |
-| Documentation and text | 5,101 |
-| Total | 31,722 |
+| Code and configuration | 26,818 |
+| Documentation and text | 5,113 |
+| Total | 31,931 |

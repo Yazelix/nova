@@ -96,7 +96,7 @@ fn main() -> ExitCode {
     }
     if !bar_layout_is_valid(&layout) {
         eprintln!(
-            "{layout_path}: top bars must use the rendered yzx Yazelix bar widgets and bottom bars must keep native status-bar"
+            "{layout_path}: top bars must use the rendered Nova bar and bottom bars must use nova-zjhints"
         );
         ok = false;
     }
@@ -204,11 +204,15 @@ fn layout_order_is_valid(layout: &str) -> bool {
 }
 
 fn bar_layout_is_valid(layout: &str) -> bool {
-    let bars = layout.matches("share/nova_bar/zjstatus.wasm").count();
-    let native_status_bars = layout.matches(r#"plugin location="status-bar""#).count();
+    let bars = layout
+        .matches(r#"plugin location="zellij:nova-bar""#)
+        .count();
+    let hint_bars = layout
+        .matches(r#"plugin location="zellij:nova-zjhints""#)
+        .count();
     let views = layout.matches(r#"role "view""#).count();
     bars == 3
-        && native_status_bars == 3
+        && hint_bars == 3
         && views == bars
         && !layout.contains("format_right")
         && !layout.contains("command_cpu")

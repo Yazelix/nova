@@ -8,7 +8,7 @@
   widgetTray,
   shellLabel,
 }: {
-  zjstatus_plugin_url = "file:${novaBar}/${novaBar.wasmPath}";
+  zjstatus_plugin_url = "zellij:nova-bar";
   widget_tray = widgetTray;
   widget_frame = "none";
   widget_separator = "dot";

@@ -56,7 +56,7 @@ fn panes(
         Command::new(program("JQ_BIN"))
             .args([
                 "-r",
-                ".[] | select(.is_plugin and ((.title == \"sidebar\") or (.title == \"status-bar\") or ((.pane_y == 0) and (.pane_rows == 1)))) | [.title,.pane_x,.pane_y,.pane_columns,.pane_rows] | @tsv",
+                ".[] | select(.is_plugin and ((.title == \"sidebar\") or (.pane_rows == 1))) | [.title,.pane_x,.pane_y,.pane_columns,.pane_rows] | @tsv",
             ])
             .arg(&path),
     )?;
@@ -140,10 +140,35 @@ fn wait_for_session(recorder: &mut Recorder, zellij: &std::ffi::OsStr) -> Result
     }
 }
 
+fn wait_for_orchestrator(recorder: &mut Recorder, zellij: &std::ffi::OsStr) -> Result<()> {
+    let deadline = Instant::now() + TIMEOUT;
+    loop {
+        let state = recorder.output(Command::new(zellij).args([
+            "-s",
+            SESSION,
+            "action",
+            "pipe",
+            "--name",
+            "maintainer_debug_editor_state",
+            "--",
+            "debug",
+        ]))?;
+        if state.contains("\"active_tab_position\":0") {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            return Err(std::io::Error::other(format!(
+                "pane orchestrator did not observe the active tab: {state}"
+            ))
+            .into());
+        }
+        recorder.sleep(Duration::from_millis(100))?;
+    }
+}
+
 fn record(recorder: &mut Recorder) -> Result<()> {
     let yzx = program("YZX_BIN");
     let zellij = program("ZELLIJ_BIN");
-    let rio = program("RIO_BIN");
     let home = recorder.work().join("home");
     let config = recorder.work().join("config");
     let state = recorder.work().join("state");
@@ -165,17 +190,17 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     recorder.display(Size::new(1600, 900)?, None)?;
     recorder.launch(
         "yzx",
-        Command::new(&rio)
-            .args(["--app-id", "yzx", "-e"])
-            .arg(&yzx)
-            .args(["enter", "--session", SESSION])
+        Command::new(&yzx)
+            .args(["launch", "--session", SESSION])
             .env("HOME", &home)
             .env("YAZELIX_CONFIG_HOME", &config)
             .env("YAZELIX_STATE_DIR", &state)
             .env("XDG_DATA_HOME", &data)
             .env("VK_ADD_DRIVER_FILES", program("VK_ADD_DRIVER_FILES")),
     )?;
+    recorder.sleep(Duration::from_secs(1))?;
     wait_for_session(recorder, &zellij)?;
+    wait_for_orchestrator(recorder, &zellij)?;
     for _ in 0..2 {
         recorder.key("alt+m", Duration::from_millis(350))?;
     }
@@ -192,7 +217,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     assert_eq!(initial, [0, 1, 2]);
     assert_eq!(focused, 0);
     assert!(focused_expanded, "focused pane must start expanded");
-    assert_eq!(ui.len(), 3, "expected top bar, sidebar and status bar");
+    assert_eq!(ui.len(), 3, "expected top bar, sidebar and key hints");
     let open_sidebar_width = sidebar_width(&ui).expect("sidebar geometry");
     assert!(open_sidebar_width > 2, "sidebar must begin expanded");
     recorder.key("alt+shift+h", Duration::from_millis(300))?;

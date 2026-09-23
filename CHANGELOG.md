@@ -4,6 +4,17 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Edge uses `yzx-zellij` built from pinned Zellij PR #5630 with Nova's plugins
+  embedded. Its default bottom bar is the `nova-zjhints` fork with grouped
+  modifier hints, cream-on-charcoal keys, and no mode badge. Built-in plugins
+  no longer need pre-seeded permission cache entries. Existing sessions from
+  the earlier Zellij binary remain separate from new `yzx-zellij` sessions.
+
+- Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
+  `Ctrl b` Tmux-mode entry and `Alt [`/`Alt ]` layout cycling. `Alt m` remains
+  the new-pane shortcut; named layout changes used by the pane orchestrator
+  remain available.
+
 - Managed Yazi preserves an explicit `YZX_ZELLIJ` binary for its child process
   and editor opener, so `Ctrl O` in an isolated Zellij distribution reaches that
   distribution's active session.

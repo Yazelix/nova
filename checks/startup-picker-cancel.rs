@@ -163,7 +163,8 @@ fn launch(
             .args(["-class", "nova-picker-cancel", "-e"])
             .arg(yzx)
             .args(["enter", "--session", session]),
-    )
+    )?;
+    recorder.sleep(Duration::from_secs(1))
 }
 
 fn record(recorder: &mut Recorder) -> Result<()> {

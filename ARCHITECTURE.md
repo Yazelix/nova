@@ -190,7 +190,7 @@ custom popup entry.
 | Child | Domain |
 | --- | --- |
 | Nova Rio | Terminal and native configuration schema |
-| Nova Zellij | Multiplexer fork |
+| Nova Zellij distribution | Pinned Zellij PR #5630 with embedded plugins |
 | Nova Helix | Editor fork |
 | Yazelix Forest | Managed Helix file tree and its native interaction behavior |
 | zj-radar | Session and agent-attention rail, command pipe, and producer CLI |
@@ -317,7 +317,7 @@ Inside a managed session, `yzx config` Zellij scalar saves and resets also patch
 launch patches. Pane frames, rounded corners, copy-on-select, and clipboard
 target reconfigure the active session; mouse mode, scrollback size, styled
 underlines, and startup tips need a new session. Live-capable root appearance
-uses the fork's native dark/light action for the addressed session. The fork
+uses Zellij's native dark/light action for the addressed session. Zellij
 sends the resulting mode event to the bar, which chooses its internal palette.
 
 ### Helix
@@ -374,14 +374,14 @@ Owned by `runtime/yzx/` (Nix substitutes paths; Rust owns wiring and `exec`).
 3. Config home: `YAZELIX_CONFIG_HOME` → `XDG_CONFIG_HOME/yazelix` → `~/.config/yazelix`
 4. Root settings → env and launch args (`YZX_OPEN_LOG`, welcome, Zellij theme mode, popup chords/custom KDL, bar tray)
 5. Rio native config home
-6. Zellij materialize (sidecar + patches) + status-bar cache path + isolated
-   permission seeds for the exact bundled plugin artifacts, including Radar
+6. Zellij materialize (sidecar + patches) + status-bar cache path. Bundled
+   plugins resolve through `zellij:` URLs.
 
 Pre-`exec` failures → Yazelix diagnostics.  
 After `exec` → Rio / Zellij / child tool.
 
 `status` and `doctor` reuse configuration resolution and validation without
-materializing runtime files, initializing Rio or seeding plugin permissions
+materializing runtime files or initializing Rio
 (`DIAGNOSTICS-READ-ONLY-001`). The scalar Zellij helper returns merged text;
 runtime preparation owns its final write. Existing launch/run commands retain
 initialization. `doctor` reports missing runtime files and warns if managed
@@ -493,7 +493,7 @@ Helix merge/Steel/`Alt r` (c), Keys/Advanced (d).
 **Pros:** small public surface; concrete semantic config; one Nix-composed
 runtime; Rio isolated; Rust where process/files matter; layout checks in build.
 
-**Cons:** `flake.nix` is heavy; fork deps; Yazi
+**Cons:** `flake.nix` is heavy; unmerged Zellij PR dependency; Yazi
 integration surface; user layering is intentionally incomplete.
 
 **Current bet:** one owner per contract beats minimal file count. Nix is the

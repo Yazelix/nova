@@ -1,11 +1,11 @@
 [package]
-name = "yzx-zellij-distribution-prototype"
+name = "nova-zellij-distribution"
 version = "0.1.0"
 edition = "2021"
 publish = false
 
 [[bin]]
-name = "yzx-zellij-prototype"
+name = "yzx-zellij"
 path = "src/main.rs"
 
 [dependencies]

@@ -5,7 +5,11 @@ layout {
         }
         children
         pane size=1 borderless=true {
-            plugin location="status-bar"
+            plugin location="zellij:nova-zjhints" {
+                show_mode false
+                group_modifiers true
+                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
+            }
         }
     }
 
@@ -18,7 +22,11 @@ layout {
             children
         }
         pane size=1 borderless=true {
-            plugin location="status-bar"
+            plugin location="zellij:nova-zjhints" {
+                show_mode false
+                group_modifiers true
+                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
+            }
         }
     }
 
@@ -39,7 +47,11 @@ layout {
             }
         }
         pane size=1 borderless=true {
-            plugin location="status-bar"
+            plugin location="zellij:nova-zjhints" {
+                show_mode false
+                group_modifiers true
+                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
+            }
         }
     }
 }

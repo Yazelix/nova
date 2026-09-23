@@ -387,19 +387,13 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
 
     let yzx_launcher = binary_text(&yzx_bin);
     let menu_helper = embedded_store_path(&yzx_launcher, "/bin/yzx-menu");
-    let zellij = embedded_store_path(&yzx_launcher, "/bin/zellij");
-    let popup_wasm = embedded_store_path(&yzx_launcher, "share/yazelix_zellij_popup/yzpp.wasm");
+    let zellij = embedded_store_path(&yzx_launcher, "/bin/yzx-zellij");
     let packaged_zellij_config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
-    let radar_wasm = packaged_zellij_config
-        .lines()
-        .find_map(|line| {
-            line.trim()
-                .strip_prefix(r#"radar location="file:"#)?
-                .strip_suffix(r#"" {"#)
-                .map(PathBuf::from)
-        })
-        .expect("packaged Zellij config is missing the Radar alias");
-    assert!(radar_wasm.is_file(), "packaged Radar WASM is missing");
+    expect_contains(
+        &packaged_zellij_config,
+        r#"radar location="zellij:radar""#,
+        "packaged Radar alias",
+    );
     assert!(
         yzx.join("bin/zj-radar").is_file(),
         "packaged Radar CLI is missing"
@@ -465,9 +459,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "yzx-shell",
         "yzx-reveal",
         "/bin/anima",
-        "yazelix_pane_orchestrator.wasm",
         "/bin/ya",
-        "/bin/zellij",
+        "/bin/yzx-zellij",
         "/bin/rio",
         "tokenusage",
         "--theme-mode",
@@ -488,12 +481,11 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let status_case = RuntimeCase::new(&temp.path, "status");
     let doctor_case = RuntimeCase::new(&temp.path, "doctor");
     fs::create_dir_all(status_case.zellij_path("permissions.kdl").parent().unwrap()).unwrap();
+    let existing_permissions =
+        "\"preexisting.wasm\" {\n    ReadCliPipes\n}\n\"third-party.wasm\" {\n    WebAccess\n}\n";
     fs::write(
         status_case.zellij_path("permissions.kdl"),
-        format!(
-            "\"{0}\" {{\n    ReadApplicationState\n    ChangeApplicationState\n    OpenTerminalsOrPlugins\n    RunCommands\n    ReadCliPipes\n}}\n\"{0}\" {{\n}}\n\"third-party.wasm\" {{\n    WebAccess\n}}\n",
-            popup_wasm.display()
-        ),
+        existing_permissions,
     )
     .unwrap();
     let status = status_case.prepared_status(&yzx_bin, "yzx status");
@@ -615,35 +607,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         r#"role "controller""#,
         "// END NOVA BAR CONTROLLER",
     }
-    let permissions = status_case.zellij_file("permissions.kdl");
-    expect_contains_all! {
-        &permissions, "runtime plugin permissions";
-        "\"third-party.wasm\" {\n    WebAccess\n}",
-        "share/yazelix_zellij_popup/yzpp.wasm\" {",
-        "share/nova_bar/zjstatus.wasm\" {",
-        &format!(
-            "\"{}\" {{\n    ReadApplicationState\n    ChangeApplicationState\n    RunCommands\n    ReadCliPipes\n    MessageAndLaunchOtherPlugins\n}}",
-            radar_wasm.display()
-        ),
-        "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm\" {",
-        "WriteToStdin",
-        "ReadSessionEnvironmentVariables",
-        "MessageAndLaunchOtherPlugins",
-    }
-    for (permission, count) in [
-        ("ReadApplicationState", 5),
-        ("ChangeApplicationState", 5),
-        ("RunCommands", 5),
-        ("OpenTerminalsOrPlugins", 3),
-        ("ReadCliPipes", 4),
-        ("MessageAndLaunchOtherPlugins", 3),
-    ] {
-        assert_eq!(
-            permissions.matches(permission).count(),
-            count,
-            "runtime plugin permissions have the wrong {permission} grants\n{permissions}"
-        );
-    }
+    assert_eq!(
+        status_case.zellij_file("permissions.kdl"),
+        existing_permissions
+    );
 
     let custom_sidebar = RuntimeCase::new(&temp.path, "custom-sidebar");
     custom_sidebar.write_default_config(
@@ -692,17 +659,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             .args(["setup", "--check"]),
         "custom sidebar Zellij config check",
     );
-    let custom_sidebar_permissions = custom_sidebar.zellij_file("permissions.kdl");
-    assert!(
-        !custom_sidebar_permissions.contains(&radar_wasm.display().to_string()),
-        "custom sidebar permissions kept the Radar grant"
-    );
-    expect_contains_all! {
-        &custom_sidebar_permissions, "custom sidebar permissions";
-        "share/yazelix_zellij_popup/yzpp.wasm\" {",
-        "share/nova_bar/zjstatus.wasm\" {",
-        "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm\" {",
-    }
+    assert!(!custom_sidebar.zellij_path("permissions.kdl").exists());
     let doctor = custom_sidebar.run_yzx(&yzx_bin, "doctor", "custom sidebar doctor");
     assert!(
         !doctor.contains("Radar"),
@@ -1191,7 +1148,7 @@ fn expect_headless_enter(yzx: &Path) {
         "headless yzx enter --version",
     );
     assert!(
-        output.starts_with("zellij "),
+        output.starts_with("yzx-zellij "),
         "headless yzx enter did not reach Zellij: {output:?}"
     );
 }
@@ -1420,7 +1377,7 @@ fn expect_pinned_radar_health_contract(yzx: &Path) {
 fn expect_menu_dispatch(menu: &Path) {
     let binary = binary_text(menu);
     expect_contains(&binary, "/bin/fzf", "yzx-menu packaged fzf path");
-    expect_contains(&binary, "/bin/zellij", "yzx-menu packaged Zellij path");
+    expect_contains(&binary, "/bin/yzx-zellij", "yzx-menu packaged Zellij path");
     expect_contains(
         &binary,
         "toggle_workspace_popup",
@@ -2203,7 +2160,11 @@ fn expect_read_only_diagnostics(yzx: &Path) {
                 "runtime preparation after diagnostics",
             );
             assert!(case.zellij_path("config.kdl").is_file());
-            assert!(case.zellij_file("permissions.kdl").contains("ReadCliPipes"));
+            if state == "fresh" {
+                assert!(!case.zellij_path("permissions.kdl").exists());
+            } else {
+                assert_eq!(case.zellij_file("permissions.kdl"), "\"foreign.wasm\" {}\n");
+            }
             if state == "configured" {
                 assert!(
                     case.zellij_file("config.kdl")
@@ -2474,7 +2435,9 @@ fn expect_session_config(config: &str) {
 
 fn expect_keybinds(config: &str) {
     for expected in [
-        r#"unbind "Alt i" "Alt o" "Ctrl g""#,
+        r#"unbind "Alt i" "Alt o" "Alt n" "Alt [" "Alt ]" "Ctrl g""#,
+        r#"shared_except "tmux" "locked" "scroll" "search" {"#,
+        r#"unbind "Ctrl b""#,
         r#"bind "Alt m" { NewPane; }"#,
         r#"bind "Alt Shift W" { CloseTab; SwitchToMode "Normal"; }"#,
         r#"bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }"#,
@@ -2550,10 +2513,10 @@ fn expect_keybinds(config: &str) {
 fn expect_first_party_plugins(git_bin: &Path, config: &str) {
     expect_contains_all! {
         config, "config.kdl first-party plugin fragment";
-        "share/yazelix_zellij_popup/yzpp.wasm",
-        "share/yazelix_zellij_pane_orchestrator/yazelix_pane_orchestrator.wasm",
-        r#"yazelix_pane_orchestrator location="file:/nix/store/"#,
-        r#"radar_controller location="file:/nix/store/"#,
+        r#"yzpp location="zellij:yzpp""#,
+        r#"yazelix_pane_orchestrator location="zellij:yazelix_pane_orchestrator""#,
+        r#"radar_controller location="zellij:radar""#,
+        r#""zellij:nova-bar""#,
         "role \"view\"",
         "role \"controller\"",
         "load_plugins {\n    yzpp\n    radar_controller",

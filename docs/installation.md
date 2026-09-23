@@ -316,7 +316,7 @@ input name. Renaming an input alone does not change its packages. Two inputs
 with the same branch URL can have different locked commits; `follows` selects
 the referenced input's locked revision. See [Nix's input reference](https://nix.dev/manual/nix/2.35/command-ref/new-cli/nix3-flake.html#flake-inputs).
 
-Nova still pins its own Zellij fork, but changing nixpkgs can change build
+Edge pins an unmerged Zellij PR distribution, and changing nixpkgs can change build
 dependencies and require source builds. Overriding child inputs such as
 `fenix` or `rust-overlay` can also change toolchains and cached output paths,
 even when nixpkgs stays fixed. Leave Nova's internal inputs at their locked

@@ -40,11 +40,6 @@ pub(crate) const YA_COMMAND: &str = "@yaCommand@";
 pub(crate) const YAZI_TESTED_VERSION: &str = "@yaziTestedVersion@";
 pub(crate) const YZX_BAR_RENDER_REQUEST: &str = "@yzxBarRenderRequest@";
 pub(crate) const YZX_BAR_RENDER: &str = "@yzxBarRender@";
-pub(crate) const YAZELIX_ZELLIJ_POPUP_WASM: &str = "@yazelixZellijPopupWasm@";
-pub(crate) const NOVA_BAR_WASM: &str = "@novaBarWasm@";
-pub(crate) const ZJ_RADAR_WASM: &str = "@zjRadarWasm@";
-pub(crate) const YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM: &str =
-    "@yazelixZellijPaneOrchestratorWasm@";
 pub(crate) const DEFAULT_BAR_WIDGETS_JSON: &str = r#"@defaultBarWidgetsJson@"#;
 pub(crate) const DEFAULT_SHELL_PROGRAM: &str = "@defaultShellProgram@";
 pub(crate) const DEFAULT_POPUP_SIDE_MARGIN: &str = "@defaultPopupSideMargin@";

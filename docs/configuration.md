@@ -470,7 +470,7 @@ scrollback size, styled underlines, and startup tips need a new session.
 
 Root `appearance.straight_border_style` selects `single` or `double` for new
 sessions when Zellij's native `ui.pane_frames.rounded_corners` value is false.
-Rounded corners take precedence when enabled. Nova adds the fork-only setting
+Rounded corners take precedence when enabled. Nova adds the Zellij extension
 to generated runtime KDL only for `double`; the editable Zellij sidecar retains
 stock Zellij syntax and remains portable.
 

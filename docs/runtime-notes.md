@@ -96,7 +96,7 @@ Scroll mode entry in new sessions. Explicit `pane_frame_style` and
 omitting them inherits Nova's values.
 Nova's root `appearance.straight_border_style` setting independently selects
 single or double glyphs when those native rounded corners are disabled. Only
-the generated runtime KDL receives the fork extension.
+the generated runtime KDL receives the Zellij extension.
 Ratconfig uses the same 41 identities from the pinned Zellij assets for both
 theme fields, with a flake check keeping the inventory aligned. The inherited
 pair is `theme_dark "ansi"` and `theme_light "gruvbox-light"`; resetting a

@@ -1,0 +1,353 @@
+diff --git a/src/main.rs b/src/main.rs
+index 7e670a3..0ecf055 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -745,9 +745,8 @@ fn dim_style_declaration(decl: &StyleDeclaration, strength: f32) -> StyleDeclara
+ 
+ /// A dimmed copy of `colors`. Only the `Styling` groups this plugin's own
+ /// rendering actually reads are touched, so dimming the rest would be dead
+-/// work: `ribbon_unselected`/`text_unselected` for hints
+-/// (`style_key_with_modifier`/`style_key_text`/`style_description`), and
+-/// `ribbon_selected` for the optional mode prefix (`style_mode`).
++/// work: `ribbon_unselected`/`text_unselected` for hints, and
++/// `ribbon_selected` for shared modifier headers and the optional mode prefix.
+ fn dim_styling(colors: &Styling, strength: f32) -> Styling {
+     Styling {
+         ribbon_unselected: dim_style_declaration(&colors.ribbon_unselected, strength),
+@@ -785,7 +784,7 @@ fn render_descended_indicator(mode_info: &ModeInfo, style: &HintStyle) -> String
+         keys: mode_info.nested_ascend_keys.clone(),
+     };
+     let mut parts = vec![];
+-    render_hint(&mut parts, &hint, style);
++    render_hint(&mut parts, &hint, style, false);
+     ANSIStrings(&parts).to_string()
+ }
+ 
+@@ -1540,6 +1539,24 @@ fn group_keys(
+             });
+         }
+     }
++    for group in &mut groups {
++        if group.keys.len() >= 3
++            && group
++                .keys
++                .iter()
++                .all(|key| key.len() == 1 && key.as_bytes()[0].is_ascii_digit())
++            && group
++                .keys
++                .windows(2)
++                .all(|pair| pair[1].as_bytes()[0] == pair[0].as_bytes()[0] + 1)
++        {
++            group.keys = vec![format!(
++                "{}–{}",
++                group.keys[0],
++                group.keys[group.keys.len() - 1]
++            )];
++        }
++    }
+     groups
+ }
+ 
+@@ -1682,6 +1699,7 @@ fn style_key_with_modifier(
+     key_bindings: &[KeyWithModifier],
+     palette: &Styling,
+     config: &BTreeMap<String, String>,
++    grouped: bool,
+ ) -> Vec<ANSIString<'static>> {
+     if key_bindings.is_empty() {
+         return vec![];
+@@ -1691,7 +1709,11 @@ fn style_key_with_modifier(
+     let contrasting_fg = palette_match!(palette.ribbon_unselected.base);
+     let ribbon = || Style::new().fg(contrasting_fg).on(saturated_bg);
+ 
+-    let mut styled_parts = vec![Style::new().paint(" "), ribbon().paint(" ")];
++    let mut styled_parts = vec![];
++    if !grouped {
++        styled_parts.push(Style::new().paint(" "));
++    }
++    styled_parts.push(ribbon().paint(" "));
+ 
+     for (group_idx, group) in group_keys(key_bindings, config).iter().enumerate() {
+         if group_idx > 0 {
+@@ -2069,10 +2091,20 @@ fn merge_hint(hints: &mut Vec<Hint>, id: &str, label: &str, keys: &[KeyWithModif
+ }
+ 
+ /// Render a hint's styled segments, without tracking consumed keys.
+-fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintStyle) {
++fn render_hint(
++    parts: &mut Vec<ANSIString<'static>>,
++    hint: &Hint,
++    style: &HintStyle,
++    grouped: bool,
++) {
+     // Optionally collapse hjkl/arrow duplicates down to a single family.
+     let mut keys = filter_direction_keys(&hint.keys, style.direction_keys);
+     sort_keys(&mut keys, style.key_order);
++    if grouped {
++        for key in &mut keys {
++            key.key_modifiers.clear();
++        }
++    }
+     let keys = keys.as_slice();
+ 
+     // A per-hint format overrides the global one; either overrides the theme
+@@ -2105,7 +2137,12 @@ fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintSt
+         // Real keys keep the modifier grouping the palette styling does;
+         // a replacement is already a finished string.
+         None if replacement.is_some() => parts.extend(style_key_text(&key_text, style.colors)),
+-        None => parts.extend(style_key_with_modifier(keys, style.colors, style.config)),
++        None => parts.extend(style_key_with_modifier(
++            keys,
++            style.colors,
++            style.config,
++            grouped,
++        )),
+     }
+ 
+     // Description part, resolved the same way.
+@@ -2537,18 +2574,42 @@ fn render_hints_for_mode(
+         hints.sort_by_key(|hint| style.hint_order.rank(hint));
+     }
+ 
++    let group_modifiers = style
++        .config
++        .get("group_modifiers")
++        .is_some_and(|v| v == "true");
++    if group_modifiers {
++        let mut groups = Vec::new();
++        for hint in &hints {
++            if let Some(modifiers) = shared_modifiers(hint, style) {
++                if !groups.contains(&modifiers) {
++                    groups.push(modifiers);
++                }
++            }
++        }
++        hints.sort_by_key(|hint| {
++            let section = match style.hint_order.group(hint) {
++                HintGroup::Leading => 0,
++                HintGroup::Middle => 1,
++                HintGroup::Trailing => 2,
++            };
++            let group = shared_modifiers(hint, style)
++                .and_then(|modifiers| groups.iter().position(|group| *group == modifiers))
++                .unwrap_or(groups.len());
++            (section, group)
++        });
++    }
++
+     // Render each hint on its own, so whole hints can be dropped to fit rather
+     // than the line being cut mid-hint.
+     let mut pieces: Vec<HintPiece> = hints
+         .iter()
+-        .map(|hint| {
+-            let mut parts = vec![];
+-            render_hint(&mut parts, hint, style);
+-            HintPiece {
+-                width: visible_width(&parts, style.wide_ambiguous),
+-                group: style.hint_order.group(hint),
+-                parts,
+-            }
++        .enumerate()
++        .map(|(hint_index, hint)| HintPiece {
++            hint_index,
++            width: 0,
++            group: style.hint_order.group(hint),
++            parts: vec![],
+         })
+         .collect();
+ 
+@@ -2562,15 +2623,24 @@ fn render_hints_for_mode(
+         .map(|indicator| format::render_template(indicator, &[], style.config, style.dim))
+         .unwrap_or_default();
+ 
+-    let gap = style.limit.and_then(|limit| {
+-        drop_to_fit(
+-            &mut pieces,
+-            visible_width(&spacer, style.wide_ambiguous),
+-            limit,
+-            visible_width(&indicator, style.wide_ambiguous),
+-            style.precedence,
+-        )
+-    });
++    let mut gap = None;
++    loop {
++        render_pieces(&mut pieces, &hints, style, group_modifiers);
++        let before = pieces.len();
++        if let Some(limit) = style.limit {
++            gap = drop_to_fit(
++                &mut pieces,
++                visible_width(&spacer, style.wide_ambiguous),
++                limit,
++                visible_width(&indicator, style.wide_ambiguous),
++                style.precedence,
++                gap,
++            );
++        }
++        if pieces.len() == before {
++            break;
++        }
++    }
+ 
+     // The indicator stands in for the dropped run, spaced like a hint so it
+     // reads as one.
+@@ -2603,11 +2673,65 @@ enum HintGroup {
+ 
+ /// One rendered hint, kept separate so it can be dropped whole.
+ struct HintPiece {
++    hint_index: usize,
+     parts: Vec<ANSIString<'static>>,
+     width: usize,
+     group: HintGroup,
+ }
+ 
++fn shared_modifiers(hint: &Hint, style: &HintStyle) -> Option<Vec<KeyModifier>> {
++    if hint_override(CONFIG_KEYS_PREFIX, hint, style.mode, style.config).is_some() {
++        return None;
++    }
++    let keys = filter_direction_keys(&hint.keys, style.direction_keys);
++    let modifiers = keys
++        .first()?
++        .key_modifiers
++        .iter()
++        .copied()
++        .collect::<Vec<_>>();
++    (!modifiers.is_empty()
++        && keys
++            .iter()
++            .all(|key| key.key_modifiers == keys[0].key_modifiers))
++    .then_some(modifiers)
++}
++
++fn render_pieces(pieces: &mut [HintPiece], hints: &[Hint], style: &HintStyle, grouped: bool) {
++    let mut previous = None;
++    for (index, piece) in pieces.iter_mut().enumerate() {
++        let hint = &hints[piece.hint_index];
++        let modifiers = grouped.then(|| shared_modifiers(hint, style)).flatten();
++        let mut parts = vec![];
++        if let Some(modifiers) = &modifiers {
++            if previous.as_ref() != Some(modifiers) {
++                parts.push(Style::new().paint(if index == 0 { " " } else { "   " }));
++                let title = chord_alias(modifiers, style.config).unwrap_or_else(|| {
++                    modifiers
++                        .iter()
++                        .map(|modifier| modifier_display(*modifier, style.config))
++                        .collect::<Vec<_>>()
++                        .join("-")
++                });
++                let fg = palette_match!(style.colors.ribbon_selected.base);
++                let bg = palette_match!(style.colors.ribbon_selected.background);
++                parts.push(
++                    Style::new()
++                        .fg(fg)
++                        .on(bg)
++                        .bold()
++                        .paint(format!(" {} + ", title)),
++                );
++                parts.push(Style::new().paint(" "));
++            }
++        }
++        render_hint(&mut parts, hint, style, modifiers.is_some());
++        piece.width = visible_width(&parts, style.wide_ambiguous);
++        piece.parts = parts;
++        previous = modifiers;
++    }
++}
++
+ fn visible_width(parts: &[ANSIString<'static>], wide_ambiguous: bool) -> usize {
+     calculate_visible_length(&format!("{}", ANSIStrings(parts)), wide_ambiguous)
+ }
+@@ -2630,6 +2754,7 @@ fn drop_to_fit(
+     limit: usize,
+     indicator_width: usize,
+     precedence: HintPrecedence,
++    mut gap: Option<usize>,
+ ) -> Option<usize> {
+     let width = |pieces: &Vec<HintPiece>, extra: usize| {
+         let hints: usize = pieces.iter().map(|piece| piece.width).sum();
+@@ -2637,7 +2762,6 @@ fn drop_to_fit(
+         hints + extra + spacer_width * count.saturating_sub(1)
+     };
+ 
+-    let mut gap = None;
+     while pieces.len() > 1 {
+         // Once a hint has been dropped the indicator is part of the line, so it
+         // has to be paid for out of the same budget.
+@@ -3729,6 +3853,78 @@ mod tests {
+         ]
+     }
+ 
++    #[test]
++    fn numeric_keys_compact_only_when_the_displayed_run_is_contiguous() {
++        let keys = ('1'..='9')
++            .map(|digit| KeyWithModifier::new(BareKey::Char(digit)).with_alt_modifier())
++            .collect::<Vec<_>>();
++        let config = BTreeMap::new();
++        assert_eq!(group_keys(&keys, &config)[0].keys, ["1–9"]);
++        assert_eq!(
++            group_keys(
++                &[keys[0].clone(), keys[2].clone(), keys[3].clone()],
++                &config
++            )[0]
++            .keys,
++            ["1", "3", "4"]
++        );
++
++        let mut aliased = config;
++        aliased.insert("key_alias_2".to_string(), "two".to_string());
++        assert_eq!(group_keys(&keys, &aliased)[0].keys[1], "two");
++        assert_eq!(group_keys(&keys, &aliased)[0].keys.len(), 9);
++    }
++
++    #[test]
++    fn shared_modifiers_are_shown_once_per_hint_group() {
++        let keymap = vec![
++            (ctrl('a'), vec![Action::CloseFocus]),
++            (ctrl('b'), vec![Action::ToggleFocusFullscreen]),
++            (
++                KeyWithModifier::new(BareKey::Char('c')).with_alt_modifier(),
++                vec![Action::TogglePaneFrames],
++            ),
++            (
++                KeyWithModifier::new(BareKey::Char('d')).with_alt_modifier(),
++                vec![Action::TogglePanePinned],
++            ),
++        ];
++        assert_eq!(
++            rendered(InputMode::Pane, &keymap, &[("group_modifiers", "true")]),
++            "  Ctrl +  a close|b fullscreen|    Alt +  c frames|d pin"
++        );
++
++        let mut moved_header = false;
++        for limit in 6..40 {
++            let output = rendered(
++                InputMode::Pane,
++                &keymap,
++                &[
++                    ("group_modifiers", "true"),
++                    ("hint_order", "close, *, pin"),
++                    ("limit", &limit.to_string()),
++                ],
++            );
++            if output.contains("d pin") && !output.contains("c frames") {
++                assert!(output.contains("Alt +  d pin"), "{output}");
++                moved_header = true;
++            }
++        }
++        assert!(moved_header);
++
++        let chord = KeyWithModifier::new(BareKey::Char('p'))
++            .with_ctrl_modifier()
++            .with_alt_modifier();
++        assert_eq!(
++            rendered(
++                InputMode::Pane,
++                &[(chord, vec![Action::CloseFocus])],
++                &[("group_modifiers", "true")]
++            ),
++            "  Ctrl-Alt +  p close"
++        );
++    }
++
+     #[test]
+     fn a_per_hint_format_overrides_the_global_one() {
+         let keymap = four_hints();

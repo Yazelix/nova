@@ -1,28 +1,27 @@
-# Zellij distribution prototype
+# Nova Zellij distribution
 
-This isolated executable tests [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
-at commit `252454d2c53b56e18aea06da3cf79b174ce1d7c0`. It embeds Nova's four
-packaged Wasm modules and renders isolated copies of Nova's config and layouts
-with `zellij:` plugin locations. It uses the `yzx-zellij-prototype` distribution
-name so its config, cache, and sessions do not collide with installed Nova.
-The production `yzx` launcher and user config are unchanged.
+Edge builds this small distribution on [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
+at commit `252454d2c53b56e18aea06da3cf79b174ce1d7c0`. The PR is still
+unmerged, so Nova relies on its pinned upstream branch. The distribution embeds
+Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
+The plugins use `zellij:` URLs and need no user permission cache entries.
 
-From the Nova repository root, with Nix and Cargo available:
+`nova-zjhints` is [zjhints v0.5.0](https://github.com/myah-mitchell/zjhints/releases/tag/v0.5.0)
+at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
+[`grouped modifiers patch`](zjhints-group-modifiers.patch). Its opt-in
+`group_modifiers true` option joins hints with the same modifier chord. The
+modifier tile is Zellij green and ends in `+`; each key sits on charcoal with
+cream text. Adjacent bindings touch, the modifier has a one-column gap before
+its keys, and groups have a wider gap. Consecutive numbered keys display as
+`1–9`. The default layout omits the mode badge.
 
-```text
-python3 prototypes/zellij-distribution/build.py
-```
+Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
+standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
+The grouped-modifier patch can be dropped once upstream zjhints supplies the
+same behavior. The distribution wrapper can switch to released Zellij once
+PR #5630 is merged and packaged. Until then, test both the patched plugin and
+the pinned Zellij API when updating either source.
 
-The command builds the current Nova package, prepares a throwaway Nova runtime
-under the prototype's ignored `target/`, compiles the pinned Zellij distribution,
-copies the binary into that runtime, checks its version, and runs `setup --check`
-against the translated config. It removes Nova's generated plugin permission
-grants so terminal testing exercises the distribution's embedded-plugin policy.
-It prints the installed binary and config paths for further testing. The builder
-clears inherited XDG and Zellij path overrides for its checks. For interactive
-sessions, keep the normal `HOME` so shell tools retain their trust settings. Set
-`YAZELIX_CONFIG_HOME` and `YAZELIX_STATE_DIR` to the printed runtime's `config`
-and `state` directories, set `YZX_ZELLIJ` to the printed prototype binary, and
-clear inherited XDG and Zellij path overrides. The prototype does not replace
-Nova's dynamically generated Zellij config. Other packaged helpers may still
-invoke the fork, and its status-bar modifier hints behavior is not reproduced.
+zjhints omits bindings backed by Zellij's `KeybindPipe` action, including
+Nova's `MessagePlugin` shortcuts. It also omits the stock status bar's mouse
+controls and clipboard feedback.

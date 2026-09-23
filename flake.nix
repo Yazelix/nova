@@ -18,8 +18,8 @@
       url = "github:Yazelix/nova-rio/2ad2987d0580855393667651ce1d22f094901a23";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    yazelixZellij = {
-      url = "github:Yazelix/nova-zellij/5bcbddd45ae65220f047caacace9f7fc25df7513";
+    zellijPr = {
+      url = "github:zellij-org/zellij/252454d2c53b56e18aea06da3cf79b174ce1d7c0";
       flake = false;
     };
     yazelixHelix = {
@@ -48,6 +48,11 @@
       url = "github:Yazelix/nova-bar/edge";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zjstatus.follows = "zjstatus";
+    };
+    fenix.follows = "novaBar/fenix";
+    zjhintsUpstream = {
+      url = "github:myah-mitchell/zjhints/709d56292217920a5b7e2702302cd66b60ed6477";
+      flake = false;
     };
     yazelixZellijPaneOrchestrator = {
       url = "github:Yazelix/zellij-pane-orchestrator";
@@ -97,13 +102,15 @@
     nixpkgs,
     home-manager,
     rio,
-    yazelixZellij,
+    zellijPr,
     yazelixHelix,
     yazelixForest,
     notifyHx,
     glyphHx,
     yazelixZellijPopup,
     novaBar,
+    fenix,
+    zjhintsUpstream,
     yazelixZellijPaneOrchestrator,
     zjRadar,
     yazelixScreen,
@@ -344,7 +351,7 @@
       '';
       yzxMenuSrc = pkgs.replaceVars ./runtime/yzx-menu.rs {
         fzf = "${pkgs.fzf}/bin/fzf";
-        zellij = "${yazelixZellijPackage}/bin/zellij";
+        zellij = "${yzxZellij}/bin/yzx-zellij";
       };
       yzxMenu = rustBin "yzx-menu" yzxMenuSrc;
       yazelixZellijPopupPackage = yazelixZellijPopup.packages.${system}.yzpp;
@@ -392,7 +399,7 @@
           else
             cwd="$(${pkgs.coreutils}/bin/dirname -- "$target")"
           fi
-          exec ${yazelixZellijPackage}/bin/zellij action new-pane --cwd "$cwd"
+          exec ${yzxZellij}/bin/yzx-zellij action new-pane --cwd "$cwd"
         '';
       };
       yzxHelixBridgeRegister = pkgs.writeShellApplication {
@@ -595,43 +602,78 @@
         '';
       };
       yzxLayoutCheck = rustBin "yzx-layout-check" ./checks/zellij-layout.rs;
-      zellijBuildBase =
-        if pkgs ? "zellij-unwrapped"
-        then pkgs."zellij-unwrapped"
-        else if pkgs.zellij ? unwrapped
-        then pkgs.zellij.unwrapped
-        else throw "Yazelix Nova requires an unwrapped nixpkgs Zellij build recipe";
-      yazelixZellijPackage = zellijBuildBase.overrideAttrs (_old: {
-        pname = "zellij";
-        version = "0.46.0";
-        src = yazelixZellij;
-        patches = [];
-        prePatch = "";
-        postPatch = "";
-        postInstall = pkgs.lib.optionalString (pkgs.stdenv.buildPlatform.canExecute pkgs.stdenv.hostPlatform) ''
-          installShellCompletion --cmd zellij \
-            --bash <($out/bin/zellij setup --generate-completion bash) \
-            --fish <($out/bin/zellij setup --generate-completion fish) \
-            --zsh <($out/bin/zellij setup --generate-completion zsh)
-        '';
-        installCheckPhase = ''
-          runHook preInstallCheck
-          runHook postInstallCheck
-        '';
-        cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-          pname = "zellij";
-          version = "0.46.0";
-          src = yazelixZellij;
-          hash = "sha256-lOwmzZZPjit1Hh7/TFZEuUcqBKdZGtvoKT6u6nNxm+Y=";
-        };
-        doCheck = false;
-      });
-      yzxZellij = pkgs.linkFarm "yzx-zellij" [
-        {
-          name = "bin/yzx-zellij";
-          path = "${yazelixZellijPackage}/bin/zellij";
-        }
+      novaZjhintsSource = pkgs.applyPatches {
+        name = "nova-zjhints-source";
+        src = zjhintsUpstream;
+        patches = [./prototypes/zellij-distribution/zjhints-group-modifiers.patch];
+      };
+      novaZjhintsRust96 = fenix.packages.${system}.toolchainOf {
+        channel = "1.96.0";
+        sha256 = "sha256-mvUGEOHYJpn3ikC5hckneuGixaC+yGrkMM/liDIDgoU=";
+      };
+      novaZjhintsWasmRust96 = fenix.packages.${system}.targets.wasm32-wasip1.toolchainOf {
+        channel = "1.96.0";
+        sha256 = "sha256-mvUGEOHYJpn3ikC5hckneuGixaC+yGrkMM/liDIDgoU=";
+      };
+      novaZjhintsToolchain = fenix.packages.${system}.combine [
+        novaZjhintsRust96.cargo
+        novaZjhintsRust96.rustc
+        novaZjhintsWasmRust96.rust-std
       ];
+      novaZjhintsRust = pkgs.makeRustPlatform {
+        cargo = novaZjhintsToolchain;
+        rustc = novaZjhintsToolchain;
+      };
+      novaZjhintsPackage = novaZjhintsRust.buildRustPackage {
+        pname = "nova-zjhints";
+        version = "0.5.0";
+        src = novaZjhintsSource;
+        cargoDeps = novaZjhintsRust.fetchCargoVendor {
+          pname = "nova-zjhints";
+          version = "0.5.0";
+          src = novaZjhintsSource;
+          hash = "sha256-YEmHPpMRZDa+G28jidMhxLH7u9Yx3OgHj/ShLPSpv6Y=";
+        };
+        nativeBuildInputs = [pkgs.pkg-config];
+        buildInputs = [pkgs.openssl];
+        doCheck = false;
+        buildPhase = ''
+          runHook preBuild
+          cargo build --frozen --release --target wasm32-wasip1
+          runHook postBuild
+        '';
+        installPhase = ''
+          install -Dm644 target/wasm32-wasip1/release/zjhints.wasm "$out/bin/nova-zjhints.wasm"
+        '';
+        meta.license = pkgs.lib.licenses.mit;
+      };
+      yazelixDistributionPackage = novaZjhintsRust.buildRustPackage {
+        pname = "nova-zellij-distribution";
+        version = "0.1.0";
+        src = ./prototypes/zellij-distribution;
+        cargoDeps = novaZjhintsRust.fetchCargoVendor {
+          pname = "nova-zellij-distribution";
+          version = "0.1.0";
+          src = ./prototypes/zellij-distribution;
+          hash = "sha256-AUWdipBtvj8z8UgZPUMV04zFgtRcZ8C6J3qVdGkr4LI=";
+        };
+        YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
+        YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
+        YZX_RADAR_WASM = "${zjRadarPackage}/bin/zj_radar.wasm";
+        YZX_BAR_WASM = "${novaBarPackage}/share/nova_bar/zjstatus.wasm";
+        YZX_HINTS_WASM = "${novaZjhintsPackage}/bin/nova-zjhints.wasm";
+        OPENSSL_NO_VENDOR = "1";
+        nativeBuildInputs = [pkgs.pkg-config];
+        buildInputs = [pkgs.openssl];
+        doCheck = false;
+        installPhase = ''
+          install -Dm755 target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/yzx-zellij "$out/bin/yzx-zellij"
+        '';
+        postFixup = pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+          ${pkgs.patchelf}/bin/patchelf --add-rpath ${pkgs.lib.makeLibraryPath [pkgs.openssl]} "$out/bin/yzx-zellij"
+        '';
+      };
+      yzxZellij = yazelixDistributionPackage;
       mkYzx = {
         channel ? "stable",
         withRio,
@@ -737,7 +779,7 @@
             export YZX_RIO_INCLUDED=${if withRio then "1" else "0"}
             export YZX_RIO=${if withRio then "${rioPackage}/bin/rio" else "''"}
             export YZX_HELIX_INCLUDED=${if withManagedHelix then "1" else "0"}
-            export YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij
+            export YZX_ZELLIJ=${yzxZellij}/bin/yzx-zellij
             exec ${yzxConfig}/bin/yzx-config "$@"
           '';
         };
@@ -747,7 +789,7 @@
           yzxYaziMaterializer = "${yzxYaziMaterializer}/bin/yzx-yazi-config";
           yzxOpen = "${yzxOpenCore}/bin/yzx-open";
           yzxYaziReturn = "${yzxOpenCore}/bin/yzx-yazi-return";
-          zellij = "${yazelixZellijPackage}/bin/zellij";
+          zellij = "${yzxZellij}/bin/yzx-zellij";
           yzxHelix = "${managedEditor}/bin/yzx-hx";
           yzxEditor = "${editor}/bin/yzx-editor";
           yzxConfig = "${yzxConfig}/bin/yzx-config";
@@ -801,9 +843,9 @@
         configKdl = let
           base = pkgs.replaceVars ./defaults/zellij/config.kdl {
             yzxShell = "${yzxShell}/bin/yzx-shell";
-            yzpp = "file:${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
-            yzxPaneOrchestrator = "file:${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
-            zjRadar = "file:${zjRadarPackage}/bin/zj_radar.wasm";
+            yzpp = "zellij:yzpp";
+            yzxPaneOrchestrator = "zellij:yazelix_pane_orchestrator";
+            zjRadar = "zellij:radar";
             yzxAgent = "${yzxAgent}/bin/yzx-agent";
             configKey = defaultConfig.keybindings.config;
             agentKey = defaultConfig.keybindings.agent;
@@ -835,7 +877,7 @@
           yzxWelcome = "${yzxWelcome}/bin/yzx-welcome";
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzxEnvSupervisor = "${yzxEnvSupervisor}/bin/yzx-env-supervisor";
-          zellij = "${yazelixZellijPackage}/bin/zellij";
+          zellij = "${yzxZellij}/bin/yzx-zellij";
           rio = if withRio then "${rioPackage}/bin/rio" else "";
           layout = "${layout}/layout.kdl";
           layoutTemplate = "${./defaults/zellij/layout.kdl}";
@@ -856,10 +898,6 @@
           yaziTestedVersion = pkgs.yazi.version;
           yzxBarRenderRequest = "${yzxBarRenderRequestTemplate}";
           yzxBarRender = "${yzxBarRender}/bin/yzx-bar-render";
-          yazelixZellijPopupWasm = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
-          novaBarWasm = "${novaBarPackage}/share/nova_bar/zjstatus.wasm";
-          zjRadarWasm = "${zjRadarPackage}/bin/zj_radar.wasm";
-          yazelixZellijPaneOrchestratorWasm = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
           defaultBarWidgetsJson = builtins.toJSON defaultBarWidgets;
           inherit defaultShellProgram;
           defaultConfigKeybinding = defaultConfig.keybindings.config;
@@ -946,6 +984,8 @@
           withManagedYazi = true;
         };
     in rec {
+      nova-zjhints = novaZjhintsPackage;
+      nova-zellij-distribution = yazelixDistributionPackage;
       yazelix = mkFullYzx "stable";
       yazelix-main = mkFullYzx "main";
       yazelix-edge = mkFullYzx "edge";
@@ -1410,7 +1450,7 @@
         touch "$out"
       '';
       zellij_theme_inventory_parity = pkgs.runCommand "zellij-theme-inventory-parity-check" {} ''
-        for file in ${yazelixZellij}/zellij-utils/assets/themes/*.kdl; do
+        for file in ${zellijPr}/zellij-utils/assets/themes/*.kdl; do
           awk '
             /^[[:space:]]*themes[[:space:]]*\{/ {
               in_themes = 1
@@ -1563,7 +1603,7 @@
           test "$status" -eq 64
           grep -Fq 'this package omits Rio; use yzx enter' "$root/launch-error"
           "$package/bin/yzx" enter --version > "$root/enter-version"
-          grep -q '^zellij ' "$root/enter-version"
+          grep -q '^yzx-zellij ' "$root/enter-version"
           "$package/bin/yzx" run yzx-zellij --version > "$root/alias-version"
           test "$(cat "$root/enter-version")" = "$(cat "$root/alias-version")"
           test ! -e "$YAZELIX_CONFIG_HOME/rio"
@@ -1743,7 +1783,6 @@
           environment = {
             YZX_BIN = "${yzx}/bin/yzx";
             ZELLIJ_BIN = "${yzx}/bin/yzx-zellij";
-            RIO_BIN = "${rioPackage}/bin/rio";
             JQ_BIN = "${pkgs.jq}/bin/jq";
             VK_ADD_DRIVER_FILES = "${pkgs.mesa}/share/vulkan/icd.d";
           };

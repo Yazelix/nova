@@ -1,8 +1,7 @@
 use std::{
     env,
     ffi::{OsStr, OsString},
-    fs::{self, OpenOptions},
-    io::Write,
+    fs,
     path::{Path, PathBuf},
     process::{self, Command},
     time::{SystemTime, UNIX_EPOCH},
@@ -10,9 +9,8 @@ use std::{
 
 use crate::{
     AGENT_POPUP_KDL_CONFIG_PATH, CUSTOM_POPUP_KEYBINDINGS_KDL_CONFIG_PATH,
-    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS, NOVA_BAR_WASM, RIO,
-    YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM, YAZELIX_ZELLIJ_POPUP_WASM, YZX_CONFIG, YZX_CONFIG_KDL,
-    YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ, ZJ_RADAR_WASM,
+    CUSTOM_POPUPS_KDL_CONFIG_PATH, MANAGED_HELIX, MANAGED_KEYBINDING_SPECS, RIO, YZX_CONFIG,
+    YZX_CONFIG_KDL, YZX_EDITOR, YZX_HELIX, YZX_ZELLIJ_CONFIG, ZELLIJ,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error, startup},
     paths::{config_home, home_dir, nonempty_env, parent, runtime_path, state_dir},
@@ -92,82 +90,6 @@ fn read_managed_keybindings(
             })
         })
         .collect()
-}
-
-fn seed_plugin_permissions(path: &Path, radar_enabled: bool) -> Result<(), AppError> {
-    create_dir_all_checked(parent(path), path)?;
-    let current = match fs::read_to_string(path) {
-        Ok(current) => current,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
-        Err(error) => return Err(path_error("read", path, path, error)),
-    };
-    let grants = [
-        (
-            YAZELIX_ZELLIJ_POPUP_WASM,
-            concat!(
-                "ReadApplicationState ChangeApplicationState OpenTerminalsOrPlugins ",
-                "RunCommands ReadCliPipes",
-            ),
-        ),
-        (
-            NOVA_BAR_WASM,
-            concat!(
-                "ReadApplicationState ChangeApplicationState RunCommands ",
-                "MessageAndLaunchOtherPlugins",
-            ),
-        ),
-        (
-            ZJ_RADAR_WASM,
-            if radar_enabled {
-                concat!(
-                    "ReadApplicationState ChangeApplicationState RunCommands ReadCliPipes ",
-                    "MessageAndLaunchOtherPlugins",
-                )
-            } else {
-                ""
-            },
-        ),
-        (
-            YAZELIX_ZELLIJ_PANE_ORCHESTRATOR_WASM,
-            concat!(
-                "ReadApplicationState ChangeApplicationState OpenTerminalsOrPlugins ",
-                "RunCommands WriteToStdin ReadCliPipes MessageAndLaunchOtherPlugins ",
-                "ReadSessionEnvironmentVariables",
-            ),
-        ),
-    ];
-    let mut additions = String::new();
-    for (plugin, permissions) in grants {
-        if permissions.is_empty() {
-            continue;
-        }
-        let header = format!("\"{plugin}\" {{");
-        let complete = current.rsplit_once(&header).is_some_and(|(_, tail)| {
-            tail.split_once('}').is_some_and(|(body, _)| {
-                permissions
-                    .split_ascii_whitespace()
-                    .all(|permission| body.lines().any(|line| line.trim() == permission))
-            })
-        });
-        if !complete {
-            additions.push_str(&format!(
-                "{header}\n    {}\n}}\n",
-                permissions.replace(' ', "\n    ")
-            ));
-        }
-    }
-    if additions.is_empty() {
-        return Ok(());
-    }
-    if !current.is_empty() && !current.ends_with('\n') {
-        additions.insert(0, '\n');
-    }
-    OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-        .and_then(|mut file| file.write_all(additions.as_bytes()))
-        .map_err(|error| path_error("write", path, path, error))
 }
 
 impl Runtime {
@@ -325,7 +247,6 @@ impl Runtime {
         let zellij_status_cache = state_dir.join("zellij/session/status_bar_cache.json");
         if materialize {
             create_dir_all_checked(parent(&zellij_status_cache), &zellij_status_cache)?;
-            seed_plugin_permissions(&state_dir.join(ZELLIJ_PERMISSIONS_FILE), radar_enabled)?;
         }
 
         Ok(Self {

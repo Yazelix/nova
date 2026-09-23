@@ -4283,7 +4283,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "yzx-zellij-distribution-prototype"
+name = "nova-zellij-distribution"
 version = "0.1.0"
 dependencies = [
  "zellij",
