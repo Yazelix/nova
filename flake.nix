@@ -547,7 +547,7 @@
         cargoLock.lockFile = ./crates/yzx-open/Cargo.lock;
       };
       yzxYaziToml = pkgs.replaceVars ./defaults/yazi/yazi.toml {
-        opener = "YZX_ZELLIJ=${yazelixZellijPackage}/bin/zellij ${yzxOpenCore}/bin/yzx-open";
+        opener = "${yzxOpenCore}/bin/yzx-open";
       };
       yzxYaziConfig =
         assert pkgs.yazi-unwrapped.version == "26.9.1";
@@ -1309,6 +1309,11 @@
       yzx_yazi_materialization = pkgs.runCommand "yzx-yazi-materialization-check" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
         rustc --edition=2024 --test ${./runtime/yzx-yazi.rs} -o yzx-yazi-materialization-check
         ./yzx-yazi-materialization-check
+        printf '#!/bin/sh\nprintf "%%s\\n" "$YZX_ZELLIJ"\n' > fake-yazi
+        chmod +x fake-yazi
+        mkdir -p "$TMPDIR/override-config" "$TMPDIR/override-state"
+        YAZELIX_CONFIG_HOME="$TMPDIR/override-config" YAZELIX_STATE_DIR="$TMPDIR/override-state" YZX_YAZI_BIN="$PWD/fake-yazi" YZX_ZELLIJ=/tmp/prototype-zellij ${yzx}/bin/yzx-yazi > override
+        test "$(cat override)" = /tmp/prototype-zellij
         grep -Fq 'run = "plugin quick-search -- --source=tab"' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'run = "plugin quick-search -- --source=zoxide"' ${yzx}/share/yazelix/yazi/keymap.toml
         grep -Fq 'on = ["<Tab>"]' ${yzx}/share/yazelix/yazi/keymap.toml

@@ -49,7 +49,7 @@ impl ManagedEnv {
             .env("YAZELIX_STATE_DIR", &self.state_dir)
             .env("YZX_OPEN", YZX_OPEN)
             .env("YZX_YAZI_RETURN", YZX_YAZI_RETURN)
-            .env("YZX_ZELLIJ", YZX_ZELLIJ)
+            .env("YZX_ZELLIJ", zellij_binary())
             .env("YAZELIX_EDITOR", &self.editor)
             .env("EDITOR", YZX_EDITOR_LAUNCHER)
             .env("VISUAL", YZX_EDITOR_LAUNCHER)
@@ -149,7 +149,7 @@ fn close_cancelled_startup_picker_tab() -> io::Result<()> {
     let Some(pane_id) = nonempty_env("ZELLIJ_PANE_ID") else {
         return Ok(());
     };
-    let mut command = Command::new(YZX_ZELLIJ);
+    let mut command = Command::new(zellij_binary());
     if let Some(session) =
         nonempty_env("ZELLIJ_SESSION_NAME").or_else(|| nonempty_env("YAZELIX_ZELLIJ_SESSION_NAME"))
     {
@@ -290,6 +290,10 @@ fn runtime_path() -> OsString {
 
 fn nonempty_env(name: &str) -> Option<OsString> {
     env::var_os(name).filter(|value| !value.is_empty())
+}
+
+fn zellij_binary() -> OsString {
+    nonempty_env("YZX_ZELLIJ").unwrap_or_else(|| YZX_ZELLIJ.into())
 }
 
 fn trim_output(bytes: &[u8]) -> String {

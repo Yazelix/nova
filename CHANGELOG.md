@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Managed Yazi preserves an explicit `YZX_ZELLIJ` binary for its child process
+  and editor opener, so `Ctrl O` in an isolated Zellij distribution reaches that
+  distribution's active session.
+
 - Mouse and trackpad scrolling through pane history no longer enters or exits
   Zellij Scroll mode automatically. `Ctrl Alt s` enters and leaves Scroll mode
   explicitly in new sessions. Set `scroll_mode_sync true` in

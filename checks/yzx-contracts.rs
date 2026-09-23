@@ -2299,10 +2299,14 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     let yazi_toml = fs::read_to_string(yzx.join("share/yazelix/yazi/yazi.toml")).unwrap();
     expect_contains_all! {
         &yazi_toml, "Yazi config fragment";
-        "YZX_ZELLIJ=",
+        "yzx-open %s",
         "url = \"*\"\nrun = \"git\"\ngroup = \"git\"",
         "url = \"*/\"\nrun = \"git\"\ngroup = \"git\"",
     }
+    assert!(
+        !yazi_toml.contains("YZX_ZELLIJ="),
+        "packaged Yazi opener should inherit YZX_ZELLIJ from yzx-yazi"
+    );
     assert!(
         !yazi_toml.contains("YZX_EDITOR="),
         "packaged Yazi opener should inherit YZX_EDITOR from yzx-yazi"

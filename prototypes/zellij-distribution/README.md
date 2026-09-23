@@ -22,7 +22,7 @@ It prints the installed binary and config paths for further testing. The builder
 clears inherited XDG and Zellij path overrides for its checks. For interactive
 sessions, keep the normal `HOME` so shell tools retain their trust settings. Set
 `YAZELIX_CONFIG_HOME` and `YAZELIX_STATE_DIR` to the printed runtime's `config`
-and `state` directories, and clear inherited XDG and Zellij path overrides. The
-prototype does not replace Nova's dynamically
-generated Zellij config; some packaged helpers still invoke the fork, and the
-fork's status-bar modifier hints behavior is not reproduced.
+and `state` directories, set `YZX_ZELLIJ` to the printed prototype binary, and
+clear inherited XDG and Zellij path overrides. The prototype does not replace
+Nova's dynamically generated Zellij config. Other packaged helpers may still
+invoke the fork, and its status-bar modifier hints behavior is not reproduced.
