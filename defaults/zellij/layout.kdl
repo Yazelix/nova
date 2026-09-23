@@ -8,7 +8,6 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
-                reserve_columns 1
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }
@@ -26,7 +25,6 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
-                reserve_columns 1
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }
@@ -52,7 +50,6 @@ layout {
             plugin location="zellij:nova-zjhints" {
                 show_mode false
                 group_modifiers true
-                reserve_columns 1
                 key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
             }
         }

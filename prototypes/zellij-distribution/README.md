@@ -13,7 +13,7 @@ at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
 modifier tile is Zellij green and ends in `+`; each key sits on charcoal with
 cream text. Adjacent bindings touch, the modifier has a one-column gap before
 its keys, and three groups share the available row width through balanced gaps.
-The first and last groups align with the surrounding pane frames. Consecutive
+The row has a one-column leading inset and fills the plugin width. Consecutive
 numbered keys display as `1–9`. The default layout omits the mode badge.
 
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The

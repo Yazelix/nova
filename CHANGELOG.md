@@ -9,8 +9,8 @@ User-visible runtime changes for Yazelix Nova live here.
   modifier hints, cream-on-charcoal keys, and no mode badge. Built-in plugins
   no longer need pre-seeded permission cache entries. Existing sessions from
   the earlier Zellij binary remain separate from new `yzx-zellij` sessions.
-  The three modifier islands fill the row: the first and last align with the
-  pane frames, and spare width is divided evenly between the two gaps.
+  The three modifier islands fill the row with a one-column leading inset,
+  and spare width is divided evenly between the two gaps.
 
 - Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
   `Ctrl b` Tmux-mode entry and `Alt [`/`Alt ]` layout cycling. `Alt m` remains
