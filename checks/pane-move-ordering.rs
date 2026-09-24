@@ -95,6 +95,34 @@ fn sidebar_width(ui: &[String]) -> Option<usize> {
         .and_then(|columns| columns.parse().ok())
 }
 
+fn expect_content_split(
+    recorder: &mut Recorder,
+    zellij: &std::ffi::OsStr,
+    split: bool,
+    expected_sidebar_width: usize,
+) -> Result<()> {
+    let deadline = Instant::now() + MOVE_TIMEOUT;
+    loop {
+        let json = recorder.output(Command::new(zellij).args([
+            "-s", SESSION, "action", "list-panes", "--all", "--json",
+        ]))?;
+        let path = recorder.work().join("layout-panes.json");
+        fs::write(&path, json)?;
+        let xs = recorder.output(
+            Command::new(program("JQ_BIN"))
+                .args(["-r", ".[] | select(.is_plugin | not) | .pane_x"])
+                .arg(&path),
+        )?;
+        let unique_xs = xs.lines().collect::<std::collections::HashSet<_>>().len();
+        let (_, _, _, ui) = panes(recorder, zellij)?;
+        if (unique_xs > 1) == split && sidebar_width(&ui) == Some(expected_sidebar_width) {
+            return Ok(());
+        }
+        assert!(Instant::now() < deadline, "split={split}, x={xs:?}, ui={ui:?}");
+        recorder.sleep(Duration::from_millis(50))?;
+    }
+}
+
 fn expect_sidebar_width(
     recorder: &mut Recorder,
     zellij: &std::ffi::OsStr,
@@ -220,8 +248,16 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     assert_eq!(ui.len(), 3, "expected top bar, sidebar and key hints");
     let open_sidebar_width = sidebar_width(&ui).expect("sidebar geometry");
     assert!(open_sidebar_width > 2, "sidebar must begin expanded");
+    recorder.key("alt+bracketright", Duration::from_millis(300))?;
+    expect_content_split(recorder, &zellij, true, open_sidebar_width)?;
+    recorder.key("alt+bracketleft", Duration::from_millis(300))?;
+    expect_content_split(recorder, &zellij, false, open_sidebar_width)?;
     recorder.key("alt+shift+h", Duration::from_millis(300))?;
     expect_sidebar_width(recorder, &zellij, &[0, 1, 2], 0, 1)?;
+    recorder.key("alt+bracketright", Duration::from_millis(300))?;
+    expect_content_split(recorder, &zellij, true, 1)?;
+    recorder.key("alt+bracketleft", Duration::from_millis(300))?;
+    expect_content_split(recorder, &zellij, false, 1)?;
     recorder.key("alt+shift+h", Duration::from_millis(300))?;
     expect(recorder, &zellij, &[0, 1, 2], 0, &ui)?;
 

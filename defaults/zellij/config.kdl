@@ -118,8 +118,14 @@ keybinds {
         bind "Ctrl Alt o" { SwitchToMode "Normal"; }
     }
     shared_except "locked" {
-        unbind "Alt i" "Alt o" "Alt n" "Alt [" "Alt ]" "Ctrl g"
+        unbind "Alt i" "Alt o" "Alt n" "Ctrl g"
         bind "Alt m" { NewPane; }
+        bind "Alt [" "Alt ]" {
+            MessagePlugin "yazelix_pane_orchestrator" {
+                name "content_layout_target"
+                payload "toggle"
+            }
+        }
         bind "Alt Shift T" { NewTab { layout "@layout@"; cwd "__YZX_HOME__"; }; SwitchToMode "Normal"; }
         bind "Alt Shift W" { CloseTab; SwitchToMode "Normal"; }
         bind "Alt Shift Y" {

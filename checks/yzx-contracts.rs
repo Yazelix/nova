@@ -2463,7 +2463,9 @@ fn expect_session_config(config: &str) {
 
 fn expect_keybinds(config: &str) {
     for expected in [
-        r#"unbind "Alt i" "Alt o" "Alt n" "Alt [" "Alt ]" "Ctrl g""#,
+        r#"unbind "Alt i" "Alt o" "Alt n" "Ctrl g""#,
+        r#"bind "Alt [" "Alt ]" {"#,
+        r#"name "content_layout_target""#,
         r#"shared_except "tmux" "locked" "scroll" "search" {"#,
         r#"unbind "Ctrl b""#,
         r#"bind "Alt m" { NewPane; }"#,

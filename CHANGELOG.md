@@ -8,6 +8,8 @@ User-visible runtime changes for Yazelix Nova live here.
   stacked work area and a vertical split with one existing work pane beside the
   remaining stack. It requires two work panes; `Alt m` opens another. Sidebar
   open/collapsed state survives the switch. Layout selection starts no process.
+  `Alt [` and `Alt ]` also switch between the two content arrangements without
+  cycling the sidebar variants.
 
 - In sessions with multiple attached clients, the top bar keeps each client's
   own active tab highlighted while switching tabs.
@@ -22,9 +24,7 @@ User-visible runtime changes for Yazelix Nova live here.
   deeper green in the default layout.
 
 - Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
-  `Ctrl b` Tmux-mode entry and `Alt [`/`Alt ]` layout cycling. `Alt m` remains
-  the new-pane shortcut; named layout changes used by the pane orchestrator
-  remain available.
+  `Ctrl b` Tmux-mode entry. `Alt m` remains the new-pane shortcut.
 
 - Managed Yazi preserves an explicit `YZX_ZELLIJ` binary for its child process
   and editor opener, so `Ctrl O` in an isolated Zellij distribution reaches that
