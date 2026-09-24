@@ -1,5 +1,5 @@
 diff --git a/src/main.rs b/src/main.rs
-index 7e670a3..7afb062 100644
+index 7e670a3..3b1a8b6 100644
 --- a/src/main.rs
 +++ b/src/main.rs
 @@ -745,9 +745,8 @@ fn dim_style_declaration(decl: &StyleDeclaration, strength: f32) -> StyleDeclara
@@ -317,7 +317,85 @@ index 7e670a3..7afb062 100644
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -3729,6 +3898,148 @@ mod tests {
+@@ -2706,10 +2875,36 @@ fn add_discovered_hints(
+     used: &[KeyWithModifier],
+     style: &HintStyle,
+ ) {
++    // Zellij's plugin ModeInfo omits KeybindPipe metadata. Only advertise
++    // Nova's default layout pair while both chords still carry pipe actions.
++    let layout_keys =
++        ['[', ']'].map(|ch| KeyWithModifier::new(BareKey::Char(ch)).with_alt_modifier());
++    let layout_bound = style.mode == "normal"
++        && layout_keys.iter().all(|candidate| {
++            keymap.iter().any(|(key, actions)| {
++                key == candidate && matches!(actions.as_slice(), [Action::KeybindPipe { .. }])
++            })
++        });
+     for (key, actions) in keymap {
+         if used.contains(key) {
+             continue;
+         }
++        if layout_bound && layout_keys.contains(key) {
++            if !is_shared_binding(key, &actions[0], style.shared) {
++                let (id, label) = match label_override(
++                    "content_layout",
++                    "keybind_pipe",
++                    style.mode,
++                    style.config,
++                ) {
++                    Some(Some(label)) => (merged_label_id(&label), label),
++                    Some(None) => continue,
++                    None => ("content_layout".to_string(), "layout".to_string()),
++                };
++                merge_hint(hints, &id, &label, std::slice::from_ref(key));
++            }
++            continue;
++        }
+         // A binding's first action is often plumbing — a pipe to a plugin, a
+         // rename input — with the part worth advertising coming after it. Judge
+         // the binding by its first action that is worth a hint, so a key like
+@@ -3519,6 +3714,39 @@ mod tests {
+         assert_eq!(rendered(InputMode::Locked, &keymap, &[]), "");
+     }
+-
++
++    #[test]
++    fn nova_content_layout_pipe_shows_one_hint_for_both_alt_brackets() {
++        let mut layout = message_plugin();
++        if let Action::KeybindPipe {
++            payload, plugin, ..
++        } = &mut layout
++        {
++            *payload = None;
++            *plugin = None;
++        }
++        let keymap = vec![
++            (
++                key(BareKey::Char('[')).with_alt_modifier(),
++                vec![layout.clone()],
++            ),
++            (key(BareKey::Char(']')).with_alt_modifier(), vec![layout]),
++            (
++                key(BareKey::Char('p')).with_alt_modifier(),
++                vec![message_plugin()],
++            ),
++        ];
++        let bar = rendered(InputMode::Normal, &keymap, &[("group_modifiers", "true")]);
++        assert_eq!(bar, " Alt +  [] layout");
++        assert_eq!(
++            rendered(
++                InputMode::Normal,
++                &keymap[..1],
++                &[("group_modifiers", "true")]
++            ),
++            ""
++        );
++    }
++
+     /// Tab navigation as Zellij binds it by default: both families, both ways.
+     fn tab_nav_keymap() -> Vec<(KeyWithModifier, Vec<Action>)> {
+         vec![
+@@ -3729,6 +3957,148 @@ mod tests {
          ]
      }
  

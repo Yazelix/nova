@@ -9,7 +9,7 @@ User-visible runtime changes for Yazelix Nova live here.
   remaining stack. It requires two work panes; `Alt m` opens another. Sidebar
   open/collapsed state survives the switch. Layout selection starts no process.
   `Alt [` and `Alt ]` also switch between the two content arrangements without
-  cycling the sidebar variants.
+  cycling the sidebar variants. The bottom bar groups them as `[] layout`.
 
 - In sessions with multiple attached clients, the top bar keeps each client's
   own active tab highlighted while switching tabs.

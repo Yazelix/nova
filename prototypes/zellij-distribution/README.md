@@ -16,7 +16,8 @@ each key sits on charcoal with cream text. Adjacent bindings touch within a
 group; one column separates its modifier from the keys. Three groups share
 the available row width through balanced gaps.
 The row has a one-column leading inset and fills the plugin width. Consecutive
-numbered keys display as `1–9`. The default layout omits the mode badge.
+numbered keys display as `1–9`. The default layout omits the mode badge. Nova's
+two `Alt [` and `Alt ]` content bindings share one `[] layout` hint.
 
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
 standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
@@ -27,6 +28,8 @@ same behavior. The distribution wrapper can switch to released Zellij once
 PR #5630 is merged and packaged. Until then, test both the patched plugin and
 the pinned Zellij API when updating either source.
 
-zjhints omits bindings backed by Zellij's `KeybindPipe` action, including
-Nova's `MessagePlugin` shortcuts. It also omits the stock status bar's mouse
-controls and clipboard feedback.
+Zellij's plugin keymap event strips `KeybindPipe` targets. `nova-zjhints`
+shows `[] layout` while both default Alt bracket chords still carry pipe
+actions; it cannot distinguish another plugin target on that same pair. Other
+plugin messages, stock status bar mouse controls, and clipboard feedback are
+omitted.
