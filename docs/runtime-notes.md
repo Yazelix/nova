@@ -209,6 +209,13 @@ exact named tiled swap layout underneath the visible floating layer. Zellij
 applies it in one render, so the popup is never hidden, restarted, or
 refocused.
 
+The command palette's `layout` action asks the pane orchestrator for the next
+named variant, then applies it through Zellij's CLI. Nova has
+one stacked startup layout and four swap variants: stacked or split content,
+each with the sidebar open or collapsed. The split places one existing work
+pane beside a stack of the others. It requires at least two visible tiled work
+panes, starts no new shell, and leaves the current tab folder unchanged.
+
 ## Agent Popup
 
 Radar owns agent activity. The top bar does not track execution state; its tabs

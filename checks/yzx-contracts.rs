@@ -261,7 +261,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "help",
             "tutor",
             "radar-setup",
-            "workspace"
+            "workspace",
+            "layout"
         ],
         "yzx menu command allowlist changed\n{menu}"
     );
@@ -626,13 +627,13 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     let custom_sidebar_layout = custom_sidebar.zellij_file("layout.kdl");
     let custom_sidebar_swap = custom_sidebar.zellij_file("layout.swap.kdl");
-    for (text, context) in [
-        (&custom_sidebar_layout, "custom sidebar layout"),
-        (&custom_sidebar_swap, "custom sidebar swap layout"),
+    for (text, context, expected_count) in [
+        (&custom_sidebar_layout, "custom sidebar layout", 2),
+        (&custom_sidebar_swap, "custom sidebar swap layout", 4),
     ] {
-        assert_eq!(text.matches(r#"pane name="sidebar" size="#).count(), 2);
-        assert_eq!(text.matches(r#"command="true""#).count(), 2);
-        assert_eq!(text.matches(r#"args "two words" "--basic""#).count(), 2);
+        assert_eq!(text.matches(r#"pane name="sidebar" size="#).count(), expected_count);
+        assert_eq!(text.matches(r#"command="true""#).count(), expected_count);
+        assert_eq!(text.matches(r#"args "two words" "--basic""#).count(), expected_count);
         assert!(
             !text.contains(r#"plugin location="radar""#) && !text.contains("@sidebar@"),
             "{context} kept Radar or an unresolved sidebar placeholder"
@@ -1383,6 +1384,7 @@ fn expect_menu_dispatch(menu: &Path) {
         "toggle_workspace_popup",
         "Yazi workspace menu route",
     );
+    expect_contains(&binary, "content_layout_target", "content layout menu route");
     expect_contains(
         &binary,
         "Set the tab folder in Yazi",
@@ -1418,23 +1420,49 @@ fn expect_menu_dispatch(menu: &Path) {
     let pipe_args = temp.path.join("pipe-args");
     write_executable(
         &fake_zellij,
-        "#!/bin/sh\nprintf '%s\\n' \"$*\" >\"$YZX_MENU_TEST_OUT\"\nprintf 'ok\\n'\n",
+        "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$YZX_MENU_TEST_OUT\"\nif [ \"$6\" = content_layout_target ]; then printf '%s\\n' \"${YZX_MENU_TEST_RESPONSE:-columns_open}\"; else printf 'ok\\n'; fi\n",
     );
-    let output = Command::new(menu)
-        .env("YZX_ZELLIJ", &fake_zellij)
-        .env("YZX_MENU_TEST_OUT", &pipe_args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .and_then(|mut child| {
-            child.stdin.as_mut().unwrap().write_all(b"workspace\n")?;
-            child.wait_with_output()
-        })
-        .unwrap();
+    let pipe_menu = |selection: &[u8], response: Option<&str>| {
+        fs::write(&pipe_args, "").unwrap();
+        let mut command = Command::new(menu);
+        command
+            .env("YZX_ZELLIJ", &fake_zellij)
+            .env("YZX_MENU_TEST_OUT", &pipe_args)
+            .env_remove("YZX_MENU_TEST_RESPONSE")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        if let Some(response) = response {
+            command.env("YZX_MENU_TEST_RESPONSE", response);
+        }
+        let mut child = command.spawn().unwrap();
+        child.stdin.as_mut().unwrap().write_all(selection).unwrap();
+        child.wait_with_output().unwrap()
+    };
+    let output = pipe_menu(b"workspace\n", None);
     assert!(output.status.success());
     assert_eq!(
-        fs::read_to_string(pipe_args).unwrap(),
+        fs::read_to_string(&pipe_args).unwrap(),
         "action pipe --plugin yazelix_pane_orchestrator --name toggle_workspace_popup -- yazi\n"
+    );
+
+    let output = pipe_menu(b"layout\n", None);
+    assert!(output.status.success());
+    assert_eq!(
+        fs::read_to_string(&pipe_args).unwrap(),
+        "action pipe --plugin yazelix_pane_orchestrator --name content_layout_target -- toggle\naction apply-tiled-swap-layout columns_open\n"
+    );
+
+    let output = pipe_menu(b"layout\n", Some("needs_second_pane"));
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        fs::read_to_string(&pipe_args).unwrap(),
+        "action pipe --plugin yazelix_pane_orchestrator --name content_layout_target -- toggle\n"
+    );
+    expect_contains(
+        &String::from_utf8_lossy(&output.stderr),
+        "Open another work pane with Alt m",
+        "layout requires two work panes",
     );
 }
 
@@ -1791,8 +1819,8 @@ fn expect_startup_diagnostics(yzx: &Path) {
 
 fn expect_menu_descriptions_match_help(help: &str, menu: &str) {
     for (id, label) in menu.lines().filter_map(menu_command_line) {
-        if id == "workspace" {
-            continue; // The workspace entry opens a pane; it is not a yzx subcommand.
+        if matches!(id, "workspace" | "layout") {
+            continue; // These entries pipe actions to the pane orchestrator.
         }
         assert!(
             help.lines().any(|line| {

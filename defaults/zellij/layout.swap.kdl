@@ -19,3 +19,31 @@ swap_tiled_layout name="single_closed" {
         }
     }
 }
+
+swap_tiled_layout name="columns_open" {
+    ui min_panes=5 {
+        pane split_direction="vertical" {
+            pane name="sidebar" size=32 borderless=false @sidebar@
+            pane split_direction="vertical" {
+                pane
+                pane stacked=true {
+                    children;
+                }
+            }
+        }
+    }
+}
+
+swap_tiled_layout name="columns_closed" {
+    ui min_panes=5 {
+        pane split_direction="vertical" {
+            pane name="sidebar" size=1 borderless=false @sidebar@
+            pane split_direction="vertical" {
+                pane
+                pane stacked=true {
+                    children;
+                }
+            }
+        }
+    }
+}

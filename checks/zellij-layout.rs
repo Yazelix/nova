@@ -102,22 +102,32 @@ fn main() -> ExitCode {
     }
 
     let swap = read(swap_path);
-    if swap.matches(r#"plugin location="radar""#).count() != 2
-        || !swap.contains(r#"pane name="sidebar" size=32 borderless=false {"#)
-        || !swap.contains(r#"pane name="sidebar" size=1 borderless=false {"#)
+    if swap.matches(r#"plugin location="radar""#).count() != 4
+        || swap
+            .matches(r#"pane name="sidebar" size=32 borderless=false {"#)
+            .count()
+            != 2
+        || swap
+            .matches(r#"pane name="sidebar" size=1 borderless=false {"#)
+            .count()
+            != 2
     {
         eprintln!("{swap_path}: the open and collapsed Radar sidebar states must use pane frames");
         ok = false;
     }
-    if !matches!(
-        (
-            swap.find(r#"swap_tiled_layout name="single_open""#),
-            swap.find(r#"swap_tiled_layout name="single_closed""#),
-        ),
-        (Some(open), Some(closed)) if open < closed
-    ) {
+    let variants = [
+        "single_open",
+        "single_closed",
+        "columns_open",
+        "columns_closed",
+    ];
+    let positions = variants
+        .iter()
+        .map(|name| swap.find(&format!("swap_tiled_layout name=\"{name}\"")))
+        .collect::<Option<Vec<_>>>();
+    if !positions.is_some_and(|positions| positions.windows(2).all(|pair| pair[0] < pair[1])) {
         eprintln!(
-            "{swap_path}: open layout must precede collapsed layout so the startup picker preserves the visible sidebar"
+            "{swap_path}: stacked and columns modes must each provide open and collapsed sidebar variants, with stacked open first"
         );
         ok = false;
     }

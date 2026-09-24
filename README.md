@@ -54,6 +54,10 @@ Learn the core workspace keys inside Nova:
 yzx tutor begin
 ```
 
+To try the split work area, open a second work pane with `Alt m`, then open
+the command palette with `Alt Shift M` and choose `layout`. The same entry
+returns to the stacked work area. The Radar sidebar works in both arrangements.
+
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
 
 ```sh
@@ -119,6 +123,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **27,057 code/configuration lines** and **5,122 documentation/text
+Yazelix owns **27,182 code/configuration lines** and **5,138 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

@@ -1,7 +1,7 @@
 use std::{
     env, io,
     io::{IsTerminal, Write},
-    process::{Command, Stdio, exit},
+    process::{exit, Command, Output, Stdio},
 };
 
 const FZF: &str = "@fzf@";
@@ -24,6 +24,11 @@ const COMMANDS: &[(&str, &str, &str)] = &[
         "workspace",
         "workspace",
         "Set the tab folder in Yazi (Alt+Enter)",
+    ),
+    (
+        "layout",
+        "workspace",
+        "Switch between stacked and split panes",
     ),
 ];
 
@@ -55,6 +60,8 @@ fn run() -> i32 {
 
     let code = if id == "workspace" {
         open_workspace_popup()
+    } else if id == "layout" {
+        toggle_layout()
     } else {
         let status = Command::new(env::var_os("YZX_MENU_YZX").unwrap_or_else(|| "yzx".into()))
             .arg(id)
@@ -68,25 +75,14 @@ fn run() -> i32 {
         }
     };
 
-    if id != "workspace" || code != 0 {
+    if !matches!(id, "workspace" | "layout") || code != 0 {
         pause_if_tty(interactive);
     }
     code
 }
 
 fn open_workspace_popup() -> i32 {
-    let output = Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()))
-        .args([
-            "action",
-            "pipe",
-            "--plugin",
-            "yazelix_pane_orchestrator",
-            "--name",
-            "toggle_workspace_popup",
-            "--",
-            "yazi",
-        ])
-        .output();
+    let output = orchestrator_pipe("toggle_workspace_popup", Some("yazi"));
     match output {
         Ok(output)
             if output.status.success()
@@ -111,6 +107,69 @@ fn open_workspace_popup() -> i32 {
             127
         }
     }
+}
+
+fn toggle_layout() -> i32 {
+    match orchestrator_pipe("content_layout_target", Some("toggle")) {
+        Ok(output) if output.status.success() => {
+            match String::from_utf8_lossy(&output.stdout).trim() {
+                layout @ ("single_open" | "single_closed" | "columns_open" | "columns_closed") => {
+                    match Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()))
+                        .args(["action", "apply-tiled-swap-layout", layout])
+                        .output()
+                    {
+                        Ok(result) if result.status.success() => 0,
+                        Ok(result) => {
+                            eprintln!(
+                                "Could not switch layout: {}",
+                                String::from_utf8_lossy(&result.stderr).trim()
+                            );
+                            1
+                        }
+                        Err(error) => {
+                            eprintln!("Could not switch layout: {error}");
+                            127
+                        }
+                    }
+                }
+                "needs_second_pane" => {
+                    eprintln!("Open another work pane with Alt m, then switch layouts.");
+                    1
+                }
+                status => {
+                    eprintln!("Could not switch layout: {status}");
+                    1
+                }
+            }
+        }
+        Ok(output) => {
+            eprintln!(
+                "Could not switch layout: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            );
+            1
+        }
+        Err(error) => {
+            eprintln!("Could not switch layout: {error}");
+            127
+        }
+    }
+}
+
+fn orchestrator_pipe(name: &str, payload: Option<&str>) -> io::Result<Output> {
+    let mut command = Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()));
+    command.args([
+        "action",
+        "pipe",
+        "--plugin",
+        "yazelix_pane_orchestrator",
+        "--name",
+        name,
+    ]);
+    if let Some(payload) = payload {
+        command.args(["--", payload]);
+    }
+    command.output()
 }
 
 fn select_with_fzf() -> Option<String> {

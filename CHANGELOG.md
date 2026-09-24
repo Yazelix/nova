@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The command palette's `layout` entry switches the current tab between the
+  stacked work area and a vertical split with one existing work pane beside the
+  remaining stack. It requires two work panes; `Alt m` opens another. Sidebar
+  open/collapsed state survives the switch. Layout selection starts no process.
+
 - In sessions with multiple attached clients, the top bar keeps each client's
   own active tab highlighted while switching tabs.
 
