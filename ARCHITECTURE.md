@@ -190,7 +190,7 @@ custom popup entry.
 | Child | Domain |
 | --- | --- |
 | Nova Rio | Terminal and native configuration schema |
-| Nova Zellij distribution | Pinned Zellij PR #5630 with embedded plugins |
+| Nova Zellij distribution | Merged upstream Zellij PR #5630 with embedded plugins |
 | Nova Helix | Editor fork |
 | Yazelix Forest | Managed Helix file tree and its native interaction behavior |
 | zj-radar | Session and agent-attention rail, command pipe, and producer CLI |

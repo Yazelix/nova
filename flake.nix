@@ -18,8 +18,8 @@
       url = "github:Yazelix/nova-rio/2ad2987d0580855393667651ce1d22f094901a23";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    zellijPr = {
-      url = "github:zellij-org/zellij/252454d2c53b56e18aea06da3cf79b174ce1d7c0";
+    zellijSource = {
+      url = "github:zellij-org/zellij/81f56e1aed4e17b822af5cb382a8f524e35f3eae";
       flake = false;
     };
     yazelixHelix = {
@@ -105,7 +105,7 @@
     nixpkgs,
     home-manager,
     rio,
-    zellijPr,
+    zellijSource,
     yazelixHelix,
     yazelixForest,
     notifyHx,
@@ -650,7 +650,7 @@
           pname = "nova-zellij-distribution";
           version = "0.1.0";
           src = ./prototypes/zellij-distribution;
-          hash = "sha256-AUWdipBtvj8z8UgZPUMV04zFgtRcZ8C6J3qVdGkr4LI=";
+          hash = "sha256-umTpH0bQZ4qMFMLCDUOdQYFsxdCyz8NtScbHANx3/sE=";
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
@@ -1445,7 +1445,7 @@
         touch "$out"
       '';
       zellij_theme_inventory_parity = pkgs.runCommand "zellij-theme-inventory-parity-check" {} ''
-        for file in ${zellijPr}/zellij-utils/assets/themes/*.kdl; do
+        for file in ${zellijSource}/zellij-utils/assets/themes/*.kdl; do
           awk '
             /^[[:space:]]*themes[[:space:]]*\{/ {
               in_themes = 1

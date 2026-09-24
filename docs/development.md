@@ -258,10 +258,10 @@ Publish matching child revisions and lock them before verifying without override
 Check popup open/hide and sidebar toggle together in a fresh installed session.
 
 The [Nova Zellij distribution](../prototypes/zellij-distribution/README.md)
-embeds the packaged plugins through the pinned PR #5630 API. Edge uses it by
+embeds the packaged plugins through the merged PR #5630 API. Edge uses it by
 default; Main and Stable retain their own revisions until promoted.
 The Zellij API revision is pinned in its `Cargo.toml` and `Cargo.lock`;
-`zellijPr` supplies the matching theme inventory for a flake check.
+`zellijSource` supplies the matching theme inventory for a flake check.
 
 Useful local checks:
 
@@ -316,6 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 27,304 |
-| Documentation and text | 5,143 |
-| Total | 32,447 |
+| Code and configuration | 27,321 |
+| Documentation and text | 5,148 |
+| Total | 32,469 |
+
+The 17 added code lines extend the headless Zellij check through a client
+quit and reattach, covering the upstream plugin-connection boundary.

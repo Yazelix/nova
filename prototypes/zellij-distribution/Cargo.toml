@@ -9,4 +9,4 @@ name = "yzx-zellij"
 path = "src/main.rs"
 
 [dependencies]
-zellij = { git = "https://github.com/zellij-org/zellij", rev = "252454d2c53b56e18aea06da3cf79b174ce1d7c0" }
+zellij = { git = "https://github.com/zellij-org/zellij", rev = "81f56e1aed4e17b822af5cb382a8f524e35f3eae" }

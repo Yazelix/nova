@@ -1,8 +1,7 @@
 # Nova Zellij distribution
 
-Edge builds this small distribution on [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
-at commit `252454d2c53b56e18aea06da3cf79b174ce1d7c0`. The PR merged into
-Zellij main; Nova keeps this tested pin until a release. The distribution embeds
+Edge builds this small distribution from the merged [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
+at upstream commit `81f56e1aed4e17b822af5cb382a8f524e35f3eae`. It embeds
 Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 
@@ -24,9 +23,9 @@ standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
 The zjhints toolchain pins Fenix separately because it requires Rust 1.96;
 Nova Bar's older toolchain remains independent.
 The grouped-modifier patch can be dropped once upstream zjhints supplies the
-same behavior. The distribution wrapper can switch to released Zellij once an
-official release includes PR #5630. Until then, test both the patched plugin
-and the pinned Zellij API when updating either source.
+same behavior. When a Zellij release includes PR #5630, Nova can evaluate
+replacing this merged-main pin with that release. Until then, test both the
+patched plugin and the pinned Zellij API when updating either source.
 
 Zellij's plugin keymap event strips `KeybindPipe` targets. `nova-zjhints`
 shows `[] layout` while both default Alt bracket chords still carry pipe

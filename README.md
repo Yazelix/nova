@@ -7,7 +7,7 @@
 
 Yazelix Nova is a Nix-packaged terminal workspace built around
 [Nova Rio](https://github.com/Yazelix/nova-rio), a minimal
-[Zellij PR #5630 distribution](https://github.com/zellij-org/zellij/pull/5630), Yazi, Nushell,
+[upstream Zellij distribution](https://github.com/zellij-org/zellij/pull/5630), Yazi, Nushell,
 Bash, Zsh, and Fish with Atuin history. It includes a lazygit popup with support
 for other Git clients and an optional coding-agent popup.
 
@@ -124,6 +124,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **27,304 code/configuration lines** and **5,143 documentation/text
+Yazelix owns **27,321 code/configuration lines** and **5,148 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

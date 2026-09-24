@@ -428,7 +428,7 @@
         "yazelixZellijPopup": "yazelixZellijPopup",
         "yaziBistro": "yaziBistro",
         "yaziSchemas": "yaziSchemas",
-        "zellijPr": "zellijPr",
+        "zellijSource": "zellijSource",
         "zjRadar": "zjRadar",
         "zjhintsUpstream": "zjhintsUpstream",
         "zjstatus": "zjstatus"
@@ -787,20 +787,20 @@
         "type": "github"
       }
     },
-    "zellijPr": {
+    "zellijSource": {
       "flake": false,
       "locked": {
-        "lastModified": 1790093129,
-        "narHash": "sha256-2NcWhyVnJe4sJTDT/ezGiLYGen+ABSpo+N/llC5dgiY=",
+        "lastModified": 1790234780,
+        "narHash": "sha256-w5huFL7qAZ15zzoKlntJpp8m+PV+q7CJ5O4JRLJ65uU=",
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "252454d2c53b56e18aea06da3cf79b174ce1d7c0",
+        "rev": "81f56e1aed4e17b822af5cb382a8f524e35f3eae",
         "type": "github"
       },
       "original": {
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "252454d2c53b56e18aea06da3cf79b174ce1d7c0",
+        "rev": "81f56e1aed4e17b822af5cb382a8f524e35f3eae",
         "type": "github"
       }
     },

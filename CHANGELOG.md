@@ -14,11 +14,14 @@ User-visible runtime changes for Yazelix Nova live here.
 - In sessions with multiple attached clients, the top bar keeps each client's
   own active tab highlighted while switching tabs.
 
-- Edge uses `yzx-zellij` built from pinned Zellij PR #5630 with Nova's plugins
-  embedded. Its default bottom bar is the `nova-zjhints` fork with grouped
-  modifier hints, cream-on-charcoal keys, and no mode badge. Built-in plugins
-  no longer need pre-seeded permission cache entries. Existing sessions from
-  the earlier Zellij binary remain separate from new `yzx-zellij` sessions.
+- Edge uses `yzx-zellij` built from merged upstream Zellij PR #5630 at
+  `81f56e1`, with Nova's plugins embedded. The merged source adds an upstream
+  client-attachment plugin race fix and a per-socket session probe timeout;
+  Nova's attach-only report remains unverified. Its default bottom bar is the
+  `nova-zjhints` fork with grouped modifier hints, cream-on-charcoal keys, and
+  no mode badge. Built-in plugins need no pre-seeded permission cache entries.
+  Existing sessions from the earlier Zellij binary remain separate from new
+  `yzx-zellij` sessions.
   The three modifier islands fill the row with a one-column leading inset,
   and spare width is divided evenly between the two gaps. Modifier tiles use a
   deeper green in the default layout.

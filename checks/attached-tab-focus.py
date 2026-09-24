@@ -114,7 +114,24 @@ try:
         samples.append((highlighted(0), "ONE" in pane_text(0)))
     assert all(selected == [1] and pane_one for selected, pane_one in samples), samples
     assert highlighted(1) == [2] and "TWO" in pane_text(1)
-    print("two attached clients kept independent tab highlights across the 2→1 switch")
+    tmux("send-keys", "-t", "clients:1", "C-q")
+    for _ in range(100):
+        if "EXIT:0" in pane_text(1):
+            break
+        time.sleep(0.1)
+    else:
+        raise RuntimeError("second client did not exit cleanly")
+    tmux("new-window", "-t", "clients", "-n", "reattached", shlex.join([binary, "-c", str(config), "attach", session]))
+    for _ in range(100):
+        if "[1]" in top(2) and "[2]" in top(2):
+            break
+        time.sleep(0.1)
+    else:
+        raise RuntimeError("reattached client never showed both tabs")
+    tmux("send-keys", "-t", "clients:2", "M-2")
+    time.sleep(1)
+    assert highlighted(2) == [2] and "TWO" in pane_text(2)
+    print("two clients kept independent tab highlights across attach and reattach")
 finally:
     subprocess.run([binary, "kill-session", session], env=env, capture_output=True)
     subprocess.run(["tmux", "-f", "/dev/null", "-L", socket, "kill-server"], env=env, capture_output=True)

@@ -2200,6 +2200,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nova-zellij-distribution"
+version = "0.1.0"
+dependencies = [
+ "zellij",
+]
+
+[[package]]
 name = "ntapi"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4283,16 +4290,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "nova-zellij-distribution"
-version = "0.1.0"
-dependencies = [
- "zellij",
-]
-
-[[package]]
 name = "zellij"
 version = "0.46.0"
-source = "git+https://github.com/zellij-org/zellij?rev=252454d2c53b56e18aea06da3cf79b174ce1d7c0#252454d2c53b56e18aea06da3cf79b174ce1d7c0"
+source = "git+https://github.com/zellij-org/zellij?rev=81f56e1aed4e17b822af5cb382a8f524e35f3eae#81f56e1aed4e17b822af5cb382a8f524e35f3eae"
 dependencies = [
  "anyhow",
  "clap",
@@ -4314,7 +4314,7 @@ dependencies = [
 [[package]]
 name = "zellij-client"
 version = "0.46.0"
-source = "git+https://github.com/zellij-org/zellij?rev=252454d2c53b56e18aea06da3cf79b174ce1d7c0#252454d2c53b56e18aea06da3cf79b174ce1d7c0"
+source = "git+https://github.com/zellij-org/zellij?rev=81f56e1aed4e17b822af5cb382a8f524e35f3eae#81f56e1aed4e17b822af5cb382a8f524e35f3eae"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4357,7 +4357,7 @@ dependencies = [
 [[package]]
 name = "zellij-server"
 version = "0.46.0"
-source = "git+https://github.com/zellij-org/zellij?rev=252454d2c53b56e18aea06da3cf79b174ce1d7c0#252454d2c53b56e18aea06da3cf79b174ce1d7c0"
+source = "git+https://github.com/zellij-org/zellij?rev=81f56e1aed4e17b822af5cb382a8f524e35f3eae#81f56e1aed4e17b822af5cb382a8f524e35f3eae"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -4407,7 +4407,7 @@ dependencies = [
 [[package]]
 name = "zellij-utils"
 version = "0.46.0"
-source = "git+https://github.com/zellij-org/zellij?rev=252454d2c53b56e18aea06da3cf79b174ce1d7c0#252454d2c53b56e18aea06da3cf79b174ce1d7c0"
+source = "git+https://github.com/zellij-org/zellij?rev=81f56e1aed4e17b822af5cb382a8f524e35f3eae#81f56e1aed4e17b822af5cb382a8f524e35f3eae"
 dependencies = [
  "anyhow",
  "backtrace",
