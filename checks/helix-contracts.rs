@@ -38,6 +38,7 @@ fn expect_helix_wrapper(helix: &Path) {
     expect_contains(&helix_script, "export YAZELIX_FOREST_ENABLED", &context);
     expect_contains(&helix_script, "--get forest.side", &context);
     expect_contains(&helix_script, "export YAZELIX_FOREST_SIDE", &context);
+    expect_contains(&helix_script, "--get helix.file_watcher", &context);
 
     let helix_config =
         fs::read_to_string(embedded_store_path(&helix_script, "-config.toml").join("config.toml"))
@@ -102,6 +103,8 @@ fn expect_helix_wrapper(helix: &Path) {
         "YAZELIX_FOREST_SIDE",
         "YAZELIX_FOREST_TOGGLE_KEY",
         "YAZELIX_FOREST_START_UNFOCUSED",
+        "YAZELIX_HELIX_FILE_WATCHER",
+        "-yzx-helix-file-watcher-start.scm",
         "(forest-open #:focused #f)",
         "(load yzx-user-init)",
     }
@@ -113,6 +116,7 @@ fn expect_helix_wrapper(helix: &Path) {
             "(forest-set-toggle-key! yzx-forest-toggle-key)",
             "(enqueue-thread-local-callback",
             "(forest-open #:focused #f)",
+            "YAZELIX_HELIX_FILE_WATCHER",
             "(load yzx-user-init)",
         ],
         "managed Helix Forest startup",
@@ -124,6 +128,13 @@ fn expect_helix_wrapper(helix: &Path) {
         "managed Helix must not open Forest before its first view exists\n{}",
         excerpt(&helix_init)
     );
+    let watcher_start = embedded_store_path(&helix_init, "-yzx-helix-file-watcher-start.scm");
+    let watcher_start = fs::read_to_string(watcher_start).unwrap();
+    expect_contains_all! {
+        &watcher_start, "packaged Helix watcher startup";
+        "nova-helix-file-watcher/file-watcher.scm",
+        "(spawn-watcher)",
+    }
     let forest_cogs = embedded_store_path(&helix_script, "-yzx-forest-cogs");
     for module in [
         "forest/forest.scm",
@@ -273,6 +284,7 @@ fn expect_helix_wrapper_config_selection(helix_script: &str) {
 printf 'HELIX_STEEL_CONFIG=%s\\n' \"${HELIX_STEEL_CONFIG-}\" > \"$YZX_FAKE_HX_OUT\"\n\
 printf 'STEEL_SEARCH_PATHS=%s\\n' \"${STEEL_SEARCH_PATHS-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_HELIX_USER_STEEL_INIT=%s\\n' \"${YAZELIX_HELIX_USER_STEEL_INIT-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
+printf 'YAZELIX_HELIX_FILE_WATCHER=%s\\n' \"${YAZELIX_HELIX_FILE_WATCHER-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_ENABLED=%s\\n' \"${YAZELIX_FOREST_ENABLED-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_TOGGLE_KEY=%s\\n' \"${YAZELIX_FOREST_TOGGLE_KEY-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
 printf 'YAZELIX_FOREST_START_UNFOCUSED=%s\\n' \"${YAZELIX_FOREST_START_UNFOCUSED-}\" >> \"$YZX_FAKE_HX_OUT\"\n\
@@ -322,6 +334,61 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
             uses_user_steel,
         );
     }
+
+    let watcher_config = temp.path.join("watcher-config");
+    write_config_home(&watcher_config, "[helix]\nfile_watcher = true\n");
+    let watcher_state = temp.path.join("watcher-state");
+    let watcher_output = run_helix_wrapper(
+        &test_wrapper,
+        &watcher_config,
+        &watcher_state,
+        &temp.path.join("watcher-output"),
+        &[],
+    );
+    expect_contains(
+        &watcher_output,
+        "YAZELIX_HELIX_FILE_WATCHER=true\n",
+        "watcher opt-in",
+    );
+    let watcher_package = embedded_store_path(helix_script, "-nova-helix-file-watcher-0.1.0");
+    let library = format!("libnova_helix_file_watcher{}", std::env::consts::DLL_SUFFIX);
+    let native_library = watcher_package.join("lib").join(&library);
+    let managed_link = watcher_state.join("steel-home/native").join(&library);
+    assert_eq!(fs::read_link(&managed_link).unwrap(), native_library);
+    assert!(native_library.is_file());
+    assert!(
+        watcher_package
+            .join("share/steel/nova-helix-file-watcher/file-watcher.scm")
+            .is_file()
+    );
+    expect_contains(
+        &watcher_output,
+        &format!("{}/share/steel", watcher_package.display()),
+        "watcher module path",
+    );
+    assert!(!temp.path.join("packaged-state/steel-home/native").exists());
+
+    let blocked_state = temp.path.join("blocked-watcher-state");
+    let blocked_native = blocked_state.join("steel-home/native");
+    fs::create_dir_all(&blocked_native).unwrap();
+    let blocked_library = blocked_native.join(&library);
+    fs::write(&blocked_library, "user library").unwrap();
+    let blocked = Command::new(&test_wrapper)
+        .env("YAZELIX_CONFIG_HOME", &watcher_config)
+        .env("YAZELIX_STATE_DIR", &blocked_state)
+        .env("STEEL_HOME", blocked_state.join("steel-home"))
+        .output()
+        .unwrap();
+    assert!(!blocked.status.success());
+    assert_eq!(
+        fs::read_to_string(&blocked_library).unwrap(),
+        "user library"
+    );
+    expect_contains(
+        &String::from_utf8_lossy(&blocked.stderr),
+        "refusing to replace an existing Steel native library",
+        "watcher library conflict",
+    );
 
     for (name, root_config, expected_key) in [
         (
@@ -465,6 +532,12 @@ fn expect_helix_wrapper_case(
         "{name} Helix config passed the wrong default Forest enablement\n{}",
         excerpt(&output)
     );
+    expect_contains(
+        &output,
+        "YAZELIX_HELIX_FILE_WATCHER=false\n",
+        "default watcher opt-out",
+    );
+    assert!(!state.join("steel-home/native").exists());
     assert!(
         output.contains("YAZELIX_FOREST_TOGGLE_KEY=C-y\n"),
         "{name} Helix config passed the wrong default Forest toggle key\n{}",
@@ -514,6 +587,7 @@ fn run_helix_wrapper(
         .args(args)
         .env("YAZELIX_CONFIG_HOME", config_home)
         .env("YAZELIX_STATE_DIR", state_dir)
+        .env("STEEL_HOME", state_dir.join("steel-home"))
         .env("YZX_FAKE_HX_OUT", output_path)
         .env("YAZELIX_HELIX_USER_STEEL_INIT", "/ambient/init.scm")
         .env("YAZELIX_FOREST_TOGGLE_KEY", "A-x")

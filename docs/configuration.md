@@ -60,6 +60,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
+| `helix.file_watcher` | `false` | Overview | Reload clean files changed outside managed Nova Helix; warn and keep unsaved buffers |
 | `forest.enabled` | `true` | Overview | Show Nova's managed Forest file tree in Helix |
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
@@ -255,6 +256,16 @@ Yazelix always resolves `keys.normal.A-r` to its reveal command, even when the
 user document contains another value; Ratconfig shows both that explicit intent
 and the integration-owned effective value. `helix.scm` and `init.scm` stay a
 paired Steel source action rather than inferred settings.
+
+Set `helix.file_watcher = true` in the root Yazelix config to watch open files
+in newly launched managed Nova Helix editors. Clean files reload after an
+external write; unsaved edits stay in the buffer and receive a warning. Nova
+loads the packaged watcher before the user's Steel init. The wrapper links its
+native library into the effective `$STEEL_HOME/native` directory (normally
+`~/.local/share/steel/native`) and refuses to replace another file at that
+name. Turning the setting off stops loading the watcher on the next launch;
+the passive link remains. Atomic replacement saves and watch cleanup after a
+document closes are still under development.
 
 The managed Yazi merge restores Yazelix's edit opener and its two managed Git
 fetchers exactly once. Other user fetchers and previewers remain in the merged

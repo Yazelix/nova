@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `helix.file_watcher = true` enables Nova's packaged Helix file watcher in newly
+  launched managed editors. Clean open files reload after external writes;
+  unsaved buffers stay intact and show a warning. It is off by default.
+
 - Freshly seeded Rio configs use the installed `Noto Sans Symbols 2` family
   name for U+1F5B0–U+1F5C0, avoiding the missing-font warning. Package updates
   leave existing user-owned Rio configs unchanged.

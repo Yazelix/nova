@@ -40,5 +40,8 @@
        (lambda () (forest-open #:focused #f))
        forest-open)))
 
+(when (equal? (yzx-env-or-false "YAZELIX_HELIX_FILE_WATCHER") "true")
+  (load "@fileWatcherStart@"))
+
 (define yzx-user-init (yzx-env-or-false "YAZELIX_HELIX_USER_STEEL_INIT"))
 (if (string? yzx-user-init) (load yzx-user-init) #f)

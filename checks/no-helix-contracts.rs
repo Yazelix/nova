@@ -22,6 +22,7 @@ fn main() {
         "-helix-runtime",
         "-consolidated-helix-grammars",
         "-yzx-helix-steel-config",
+        "-nova-helix-file-watcher-",
         "-yzx-forest-cogs",
         "-helix-tree-sitter-",
         "-steel-core-",

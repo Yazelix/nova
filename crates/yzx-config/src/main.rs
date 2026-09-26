@@ -1373,6 +1373,7 @@ mod tests {
             }
         ));
         assert_config_field(&model, FOREST_ENABLED_PATH, "boolean", "next launch");
+        assert_config_field(&model, HELIX_FILE_WATCHER_PATH, "boolean", "next launch");
         let forest_side = model_field(&model, FOREST_SIDE_PATH);
         assert_config_field(&model, FOREST_SIDE_PATH, "string", "next launch");
         assert_eq!(
@@ -1475,6 +1476,7 @@ mod tests {
                 SHELL_PROGRAM_PATH,
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
+                HELIX_FILE_WATCHER_PATH,
                 FOREST_ENABLED_PATH,
                 FOREST_SIDE_PATH,
                 SIDEBAR_COMMAND_PATH,

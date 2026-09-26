@@ -26,6 +26,10 @@
       url = "github:Yazelix/nova-helix/c664557d933edcddac73e3d1a0d80730ea93efa1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    novaHelixFileWatcher = {
+      url = "github:Yazelix/nova-helix-file-watcher/ffe02646ec291f869025d55cb9f01ee9bd061f94";
+      flake = false;
+    };
     yazelixForest = {
       url = "github:luccahuguet/yazelix-forest/4c7826af01efe8b7328baa1c7e480e7a539e4eda";
       flake = false;
@@ -107,6 +111,7 @@
     rio,
     zellijSource,
     yazelixHelix,
+    novaHelixFileWatcher,
     yazelixForest,
     notifyHx,
     glyphHx,
@@ -382,6 +387,24 @@
       yzxZellijConfig = rustBin "yzx-zellij-config" ./runtime/yzx-zellij-config.rs;
       yazelixHelixPackage = yazelixHelix.packages.${system}.yazelix_helix;
       yazelixHelixSteelPackage = yazelixHelix.packages.${system}.yazelix_helix_steel;
+      watcherLibrarySuffix = if pkgs.stdenv.isDarwin then ".dylib" else ".so";
+      novaHelixFileWatcherPackage = pkgs.rustPlatform.buildRustPackage {
+        pname = "nova-helix-file-watcher";
+        version = "0.1.0";
+        src = novaHelixFileWatcher;
+        cargoHash = "sha256-DpCzhEzaY4fEv1+o+3uUnL5S+F8Fo+kMkcwnae4ypKA=";
+        cargoBuildFlags = ["--lib"];
+        installPhase = ''
+          runHook preInstall
+          install -D -m 0444 target/*/release/libnova_helix_file_watcher${watcherLibrarySuffix} \
+            "$out/lib/libnova_helix_file_watcher${watcherLibrarySuffix}"
+          install -D -m 0444 file-watcher.scm "$out/share/steel/nova-helix-file-watcher/file-watcher.scm"
+          install -D -m 0444 helix-file-watcher.scm "$out/share/steel/nova-helix-file-watcher/helix-file-watcher.scm"
+          install -D -m 0444 LICENSE-MIT "$out/share/licenses/nova-helix-file-watcher/LICENSE-MIT"
+          runHook postInstall
+        '';
+        meta.license = pkgs.lib.licenses.mit;
+      };
       yzxForestCogs = pkgs.runCommand "yzx-forest-cogs" {} ''
         install -D -m 444 ${yazelixForest}/forest.scm "$out/forest/forest.scm"
         install -D -m 444 ${yazelixForest}/forest/core.scm "$out/forest/core.scm"
@@ -484,6 +507,10 @@
       yzxHelixInit = pkgs.replaceVars ./runtime/yzx-helix-init.scm {
         bridgeModule = "${yazelixHelixSteelPackage}/share/yazelix-helix/steel/yazelix/bridge.scm";
         bridgeRegister = "${yzxHelixBridgeRegister}/bin/yzx-helix-register";
+        fileWatcherStart = pkgs.writeText "yzx-helix-file-watcher-start.scm" ''
+          (require (only-in "nova-helix-file-watcher/file-watcher.scm" spawn-watcher))
+          (spawn-watcher)
+        '';
       };
       yzxHelixSteelConfig = pkgs.runCommand "yzx-helix-steel-config" {} ''
         mkdir -p "$out"
@@ -533,6 +560,11 @@
         yzxHelixConfig = "${yzxHelixConfig}";
         yzxHelixSteelConfig = "${yzxHelixSteelConfig}";
         yzxForestCogs = "${yzxForestCogs}";
+        fileWatcherNative = "${novaHelixFileWatcherPackage}/lib/libnova_helix_file_watcher${watcherLibrarySuffix}";
+        fileWatcherLibrary = "libnova_helix_file_watcher${watcherLibrarySuffix}";
+        fileWatcherModules = "${novaHelixFileWatcherPackage}/share/steel";
+        readlink = "${pkgs.coreutils}/bin/readlink";
+        nixStoreDir = builtins.storeDir;
       };
       yzxHelix = pkgs.runCommand "yzx-hx" {} ''
         install -D -m 755 ${yzxHelixSrc} "$out/bin/yzx-hx"

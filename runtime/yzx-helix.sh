@@ -31,6 +31,25 @@ HELIX_STEEL_CONFIG="$steel_config_dir"
 export HELIX_STEEL_CONFIG
 STEEL_SEARCH_PATHS="@yzxForestCogs@${STEEL_SEARCH_PATHS:+:$STEEL_SEARCH_PATHS}"
 export STEEL_SEARCH_PATHS
+YAZELIX_HELIX_FILE_WATCHER="$(@yzxConfig@ --get helix.file_watcher)"
+export YAZELIX_HELIX_FILE_WATCHER
+if [ "$YAZELIX_HELIX_FILE_WATCHER" = true ]; then
+  STEEL_HOME="${STEEL_HOME:-${XDG_DATA_HOME:-${HOME:-/tmp}/.local/share}/steel}"
+  export STEEL_HOME
+  native_dir="$STEEL_HOME/native"
+  watcher_link="$native_dir/@fileWatcherLibrary@"
+  @mkdir@ -p "$native_dir"
+  if [ -e "$watcher_link" ] || [ -L "$watcher_link" ]; then
+    existing_target="$(@readlink@ "$watcher_link" 2>/dev/null || true)"
+    case "$existing_target" in
+      @nixStoreDir@/*-nova-helix-file-watcher-*/lib/@fileWatcherLibrary@) ;;
+      *) printf 'yzx-hx: refusing to replace an existing Steel native library: %s\n' "$watcher_link" >&2; exit 1 ;;
+    esac
+  fi
+  @ln@ -sfnT "@fileWatcherNative@" "$watcher_link"
+  STEEL_SEARCH_PATHS="@fileWatcherModules@:$STEEL_SEARCH_PATHS"
+  export STEEL_SEARCH_PATHS
+fi
 
 if [ "${YAZELIX_HELIX_BRIDGE:-1}" != 0 ]; then
   if [ -z "${YAZELIX_HELIX_BRIDGE_SESSION_ID:-}" ]; then

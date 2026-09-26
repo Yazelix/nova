@@ -21,6 +21,10 @@ atuin = true
 # Editor command for managed opens. hx and yzx-hx use Nova Helix when included.
 command = "yzx-hx"
 
+[helix]
+# Reload clean open files after external changes in managed Nova Helix.
+file_watcher = false
+
 [forest]
 # Show Nova's managed Forest file tree in Helix.
 enabled = true
