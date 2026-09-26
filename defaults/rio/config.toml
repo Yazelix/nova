@@ -38,7 +38,7 @@ additional-dirs = [
 symbol-map = [
   { start = "E000", end = "F900", font-family = "Symbols Nerd Font Mono" },
   { start = "F0000", end = "F3000", font-family = "Symbols Nerd Font Mono" },
-  { start = "1F5B0", end = "1F5C0", font-family = "Noto Sans Symbols2" },
+  { start = "1F5B0", end = "1F5C0", font-family = "Noto Sans Symbols 2" },
   { start = "2600", end = "276F", font-family = "Noto Color Emoji" },
   { start = "1F000", end = "1F5B0", font-family = "Noto Color Emoji" },
   { start = "1F5C0", end = "1FB00", font-family = "Noto Color Emoji" },

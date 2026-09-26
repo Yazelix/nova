@@ -317,8 +317,8 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 27,321 |
-| Documentation and text | 5,148 |
-| Total | 32,469 |
+| Documentation and text | 5,152 |
+| Total | 32,473 |
 
 The 17 added code lines extend the headless Zellij check through a client
 quit and reattach, covering the upstream plugin-connection boundary.

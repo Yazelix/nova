@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Freshly seeded Rio configs use the installed `Noto Sans Symbols 2` family
+  name for U+1F5B0–U+1F5C0, avoiding the missing-font warning. Package updates
+  leave existing user-owned Rio configs unchanged.
+
 - The command palette's `layout` entry switches the current tab between the
   stacked work area and a vertical split with one existing work pane beside the
   remaining stack. It requires two work panes; `Alt m` opens another. Sidebar
