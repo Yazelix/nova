@@ -1187,7 +1187,8 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
                 .args(args)
                 .env("PATH", "/private/tmp")
                 .env("YAZELIX_CONFIG_HOME", case.config_home)
-                .env("YAZELIX_STATE_DIR", case.state_dir)
+                .env("YAZELIX_STATE_DIR", &case.state_dir)
+                .env("STEEL_HOME", case.state_dir.join("steel-home"))
                 .env_remove("ZELLIJ_SESSION_NAME"),
             context,
         );

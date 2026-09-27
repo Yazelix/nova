@@ -3,8 +3,8 @@ use std::{env, fs, os::unix::fs::PermissionsExt, path::Path, process::Command};
 mod support;
 
 use support::{
-    RuntimeCase, TempDir, binary_text, embedded_store_path, excerpt, expect_contains, expect_order,
-    write_config_home, write_executable,
+    binary_text, embedded_store_path, excerpt, expect_contains, expect_order, write_config_home,
+    write_executable, RuntimeCase, TempDir,
 };
 
 macro_rules! expect_contains_all {
@@ -340,20 +340,13 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
         );
     }
 
-    let watcher_config = temp.path.join("watcher-config");
-    write_config_home(&watcher_config, "[helix]\nfile_watcher = true\n");
-    let watcher_state = temp.path.join("watcher-state");
-    let watcher_output = run_helix_wrapper(
-        &test_wrapper,
-        &watcher_config,
-        &watcher_state,
-        &temp.path.join("watcher-output"),
-        &[],
-    );
+    let watcher_config = temp.path.join("packaged-config");
+    let watcher_state = temp.path.join("packaged-state");
+    let watcher_output = fs::read_to_string(temp.path.join("packaged-output")).unwrap();
     expect_contains(
         &watcher_output,
         "YAZELIX_HELIX_FILE_WATCHER=true\n",
-        "watcher opt-in",
+        "watcher default",
     );
     let watcher_package = embedded_store_path(helix_script, "-nova-helix-file-watcher-0.1.0");
     let library = format!("libnova_helix_file_watcher{}", std::env::consts::DLL_SUFFIX);
@@ -361,17 +354,30 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
     let managed_link = watcher_state.join("steel-home/native").join(&library);
     assert_eq!(fs::read_link(&managed_link).unwrap(), native_library);
     assert!(native_library.is_file());
-    assert!(
-        watcher_package
-            .join("share/steel/nova-helix-file-watcher/file-watcher.scm")
-            .is_file()
-    );
+    assert!(watcher_package
+        .join("share/steel/nova-helix-file-watcher/file-watcher.scm")
+        .is_file());
     expect_contains(
         &watcher_output,
         &format!("{}/share/steel", watcher_package.display()),
         "watcher module path",
     );
-    assert!(!temp.path.join("packaged-state/steel-home/native").exists());
+    let opt_out_config = temp.path.join("watcher-opt-out-config");
+    write_config_home(&opt_out_config, "[helix]\nfile_watcher = false\n");
+    let opt_out_state = temp.path.join("watcher-opt-out-state");
+    let opt_out_output = run_helix_wrapper(
+        &test_wrapper,
+        &opt_out_config,
+        &opt_out_state,
+        &temp.path.join("watcher-opt-out-output"),
+        &[],
+    );
+    expect_contains(
+        &opt_out_output,
+        "YAZELIX_HELIX_FILE_WATCHER=false\n",
+        "watcher opt-out",
+    );
+    assert!(!opt_out_state.join("steel-home/native").exists());
 
     let blocked_state = temp.path.join("blocked-watcher-state");
     let blocked_native = blocked_state.join("steel-home/native");
@@ -539,10 +545,10 @@ fn expect_helix_wrapper_case(
     );
     expect_contains(
         &output,
-        "YAZELIX_HELIX_FILE_WATCHER=false\n",
-        "default watcher opt-out",
+        "YAZELIX_HELIX_FILE_WATCHER=true\n",
+        "default watcher enablement",
     );
-    assert!(!state.join("steel-home/native").exists());
+    assert!(state.join("steel-home/native").is_dir());
     assert!(
         output.contains("YAZELIX_FOREST_TOGGLE_KEY=C-y\n"),
         "{name} Helix config passed the wrong default Forest toggle key\n{}",

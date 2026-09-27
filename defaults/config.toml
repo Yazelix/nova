@@ -23,7 +23,8 @@ command = "yzx-hx"
 
 [helix]
 # Reload clean open files after external changes in managed Nova Helix.
-file_watcher = false
+# Set to false to disable the watcher on the next launch.
+file_watcher = true
 
 [forest]
 # Show Nova's managed Forest file tree in Helix.

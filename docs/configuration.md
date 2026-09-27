@@ -60,7 +60,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
-| `helix.file_watcher` | `false` | Overview | Reload clean files changed outside managed Nova Helix; warn and keep unsaved buffers |
+| `helix.file_watcher` | `true` | Overview | Reload clean files changed outside managed Nova Helix; warn and keep unsaved buffers |
 | `forest.enabled` | `true` | Overview | Show Nova's managed Forest file tree in Helix |
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
@@ -258,15 +258,15 @@ and the integration-owned effective value. The Steel files remain native source
 actions rather than inferred settings: opening `init.scm` creates only that file,
 while opening `helix.scm` also creates `init.scm`.
 
-Set `helix.file_watcher = true` in the root Yazelix config to watch open files
-in newly launched managed Nova Helix editors. Clean files reload after an
+Managed Nova Helix watches open files by default. Clean files reload after an
 external write; unsaved edits stay in the buffer and receive a warning. Nova
 loads the packaged watcher before the user's Steel init. The wrapper links its
 native library into the effective `$STEEL_HOME/native` directory (normally
 `~/.local/share/steel/native`) and refuses to replace another file at that
-name. Turning the setting off stops loading the watcher on the next launch;
-the passive link remains. Atomic replacement saves and watch cleanup after a
-document closes are still under development.
+name. Set `helix.file_watcher = false` in the root Yazelix config to stop
+loading the watcher on the next launch. The passive link remains. Atomic
+replacement saves and watch cleanup after a document closes are still under
+development.
 
 The managed Yazi merge restores Yazelix's edit opener and its two managed Git
 fetchers exactly once. Other user fetchers and previewers remain in the merged
