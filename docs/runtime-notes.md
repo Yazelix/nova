@@ -24,8 +24,8 @@ The UI leaves these sparse sources absent until you save a field:
 Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
 
 The Helix and advanced native files stay lazy. Opening a file-action row creates
-its starter file. Activating either Steel row creates both
-`helix/helix.scm` and `helix/init.scm`.
+its starter file. The `helix/init.scm` row creates only that file; the
+`helix/helix.scm` row also creates `init.scm` for an explicit Steel module.
 
 While editing a text field, `Ctrl+e` opens the staged value in the configured
 editor environment and returns the edited text to the row. `Enter` saves.
@@ -412,10 +412,10 @@ one directory, Forest stays visible but unfocused so Helix's native directory
 picker owns input.
 
 `helix/languages.toml` is loaded by the managed Helix config dir when present.
-`helix/helix.scm` and `helix/init.scm` load through a private
-`HELIX_STEEL_CONFIG` overlay once both files exist. The overlay keeps the user
-command module and init while retaining the packaged bridge startup. Without a
-user Steel pair, the packaged module provides `:yzx-new-shell`, which opens a
+When `helix/init.scm` exists, a private `HELIX_STEEL_CONFIG` overlay loads it
+after Nova's managed startup. The overlay uses the packaged `helix.scm` module
+unless the user also provides `helix/helix.scm`; that explicit module replaces
+the packaged one. The packaged module provides `:yzx-new-shell`, which opens a
 new Yazelix terminal pane at the current file directory or workspace.
 
 ## Tab Workspace

@@ -225,8 +225,8 @@ ids that do not exist are not invented; open `config.toml` to add them
 | `starship.toml` | Starship | Sparse native prompt overrides. Ratconfig consumes the generated schema and default output from packaged Starship 1.26.0. Overview recommends `format`, `right_format`, `add_newline`, and `character.format`; All exposes 832 finite owner fields. Schema-backed strings and booleans are editable. Numeric, structured, union, and dynamic values remain read-only with this exact file action |
 | `helix/config.toml` | Helix | Sparse user TOML merged over packaged Nova Helix defaults. Ratconfig renders all packaged and explicit leaves as read-only native rows, recommends eight common or integration-owned values, and opens this exact file for edits. It does not claim a complete Helix schema |
 | `helix/languages.toml` | Helix | Dynamic language config. Ratconfig renders entries actually present in the file as read-only rows with this exact file action; it does not invent a finite language registry |
-| `helix/helix.scm` | Helix Steel | Loaded with `helix/init.scm` when the pair exists |
-| `helix/init.scm` | Helix Steel | Loaded with `helix/helix.scm` when the pair exists |
+| `helix/helix.scm` | Helix Steel | Optional replacement for Nova's packaged command module when `helix/init.scm` exists |
+| `helix/init.scm` | Helix Steel | Loaded after Nova's managed Steel startup; works without a user `helix.scm` |
 | `nu/env.nu` | Nushell | Executable source loaded after packaged Yazelix `env.nu` |
 | `nu/config.nu` | Nushell | Executable source loaded after packaged Yazelix `config.nu` and any successful host `mise activate nu` output, before the optional managed Atuin default |
 | `yazi/yazi.toml` | Yazi | Native tables merge recursively, while user scalars and arrays replace packaged values. Ratconfig joins the pinned official schema to the packaged Yazi preset and the sparse user file. Overview recommends eight manager and preview controls; All exposes 95 finite or preset-observed base rows |
@@ -254,8 +254,9 @@ action.
 
 Yazelix always resolves `keys.normal.A-r` to its reveal command, even when the
 user document contains another value; Ratconfig shows both that explicit intent
-and the integration-owned effective value. `helix.scm` and `init.scm` stay a
-paired Steel source action rather than inferred settings.
+and the integration-owned effective value. The Steel files remain native source
+actions rather than inferred settings: opening `init.scm` creates only that file,
+while opening `helix.scm` also creates `init.scm`.
 
 Set `helix.file_watcher = true` in the root Yazelix config to watch open files
 in newly launched managed Nova Helix editors. Clean files reload after an

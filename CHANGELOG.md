@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- A user `helix/init.scm` loads after Nova's managed Steel startup without
+  requiring a user `helix.scm`, so plugins can be added while retaining the
+  packaged `:yzx-new-shell` command. Ratconfig creates only `init.scm` when
+  that row is opened; an explicit user `helix.scm` still replaces the packaged
+  command module.
+
 - `helix.file_watcher = true` enables Nova's packaged Helix file watcher in newly
   launched managed editors. Clean open files reload after external writes;
   unsaved buffers stay intact and show a warning. It is off by default.

@@ -412,10 +412,10 @@ pub(crate) fn prepare_file_action(
 ) -> Result<()> {
     let spec = file_action_spec(paths, source_id, action_id, path)?;
     paths.reject_mutation(&spec.path, source_id)?;
-    let is_helix_steel_action = spec.source_id == SOURCE_HELIX
-        && matches!(spec.action_id, ACTION_HELIX_MODULE | ACTION_HELIX_INIT);
+    let is_helix_module_action =
+        spec.source_id == SOURCE_HELIX && spec.action_id == ACTION_HELIX_MODULE;
     if path_entry_exists(&spec.path)? {
-        if is_helix_steel_action {
+        if is_helix_module_action {
             ensure_helix_steel_pair(paths)?;
         }
         return Ok(());
@@ -424,7 +424,7 @@ pub(crate) fn prepare_file_action(
         return Err(error(format!("config file is missing: {}", path.display())));
     }
     atomic_write(&spec.path, spec.starter)?;
-    if is_helix_steel_action {
+    if is_helix_module_action {
         ensure_helix_steel_pair(paths)?;
     }
     Ok(())

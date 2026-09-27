@@ -18,9 +18,9 @@ unset YAZELIX_HELIX_USER_STEEL_INIT
 
 if [ -f "$user_helix_config" ] ||
   [ -f "$user_helix_dir/languages.toml" ] ||
-  { [ -f "$user_helix_dir/helix.scm" ] && [ -f "$user_helix_dir/init.scm" ]; }; then
+  [ -f "$user_helix_dir/init.scm" ]; then
   helix_config_dir="$user_helix_dir"
-  if [ -f "$user_helix_dir/helix.scm" ] && [ -f "$user_helix_dir/init.scm" ]; then
+  if [ -f "$user_helix_dir/init.scm" ]; then
     steel_config_dir="$YAZELIX_STATE_DIR/helix-steel"
     user_steel_dir="$user_helix_dir"
     YAZELIX_HELIX_USER_STEEL_INIT="$user_helix_dir/init.scm"
@@ -83,7 +83,11 @@ else
 fi
 if [ -n "$user_steel_dir" ]; then
   @mkdir@ -p "$steel_config_dir"
-  @ln@ -sf "$user_steel_dir/helix.scm" "$steel_config_dir/helix.scm"
+  steel_module="$packaged_steel_dir/helix.scm"
+  if [ -f "$user_steel_dir/helix.scm" ]; then
+    steel_module="$user_steel_dir/helix.scm"
+  fi
+  @ln@ -sf "$steel_module" "$steel_config_dir/helix.scm"
   @ln@ -sf "$packaged_steel_dir/init.scm" "$steel_config_dir/init.scm"
 fi
 YAZELIX_FOREST_START_UNFOCUSED=

@@ -319,6 +319,11 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
             false,
         ),
         (
+            "init-only",
+            &[("init.scm", ";; user init\n")] as &[(&str, &str)],
+            true,
+        ),
+        (
             "steel",
             &[("helix.scm", ";; module\n"), ("init.scm", ";; init\n")] as &[(&str, &str)],
             true,
@@ -544,9 +549,14 @@ fn expect_helix_wrapper_case(
         excerpt(&output)
     );
     if uses_user_steel {
+        let expected_module = if helix.join("helix.scm").is_file() {
+            helix.join("helix.scm")
+        } else {
+            packaged_steel.join("helix.scm")
+        };
         assert_eq!(
             fs::canonicalize(expected_steel_dir.join("helix.scm")).unwrap(),
-            fs::canonicalize(helix.join("helix.scm")).unwrap()
+            fs::canonicalize(expected_module).unwrap()
         );
         assert_eq!(
             fs::canonicalize(expected_steel_dir.join("init.scm")).unwrap(),

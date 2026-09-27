@@ -2887,7 +2887,7 @@ mod tests {
     }
 
     #[test]
-    fn prepare_file_action_creates_managed_helix_steel_pair() {
+    fn prepare_file_action_creates_helix_init_without_module() {
         let (_temp, paths) = temp_sources();
 
         prepare_file_action(
@@ -2900,7 +2900,7 @@ mod tests {
         .unwrap();
 
         assert_file_text(&paths.helix_init, HELIX_INIT_STARTER);
-        assert_file_text(&paths.helix_module, HELIX_MODULE_STARTER);
+        assert_missing(&[&paths.helix_module]);
         assert_missing(&[
             &paths.helix_config,
             &paths.helix_languages,
@@ -2910,23 +2910,20 @@ mod tests {
     }
 
     #[test]
-    fn prepare_existing_managed_helix_steel_row_creates_missing_pair_file() {
+    fn prepare_helix_module_action_keeps_explicit_pair() {
         let (_temp, paths) = temp_sources();
-        atomic_write(&paths.helix_init, HELIX_INIT_STARTER).unwrap();
 
         prepare_file_action(
             &paths,
             SOURCE_HELIX,
-            ACTION_HELIX_INIT,
-            &paths.helix_init,
+            ACTION_HELIX_MODULE,
+            &paths.helix_module,
             true,
         )
         .unwrap();
 
-        assert_eq!(
-            fs::read_to_string(&paths.helix_module).unwrap(),
-            HELIX_MODULE_STARTER
-        );
+        assert_file_text(&paths.helix_module, HELIX_MODULE_STARTER);
+        assert_file_text(&paths.helix_init, HELIX_INIT_STARTER);
     }
 
     #[test]
