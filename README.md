@@ -5,8 +5,8 @@
   <p><strong>Delight is the only option.</strong></p>
 </div>
 
-> **The [Nova website](https://nova.yazelix.com) is the canonical user guide for
-> the current Stable release.** Start there for installation, configuration,
+> **The [Nova docs](https://nova.yazelix.com/docs/) are the canonical user guide
+> for the current Stable release.** Start there for installation, configuration,
 > keybindings, updates, and recovery.
 
 Yazelix Nova is a Nix-packaged terminal workspace built around
