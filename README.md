@@ -5,6 +5,10 @@
   <p><strong>Delight is the only option.</strong></p>
 </div>
 
+> **The [Nova website](https://nova.yazelix.com) is the canonical user guide for
+> the current Stable release.** Start there for installation, configuration,
+> keybindings, updates, and recovery.
+
 Yazelix Nova is a Nix-packaged terminal workspace built around
 [Nova Rio](https://github.com/Yazelix/nova-rio), a minimal
 [upstream Zellij distribution](https://github.com/zellij-org/zellij/pull/5630), Yazi, Nushell,
@@ -21,10 +25,6 @@ terminal emulator or over SSH. Great defaults out of the box!
 
 If Yazelix is useful to you,
 [support its development on GitHub Sponsors](https://github.com/sponsors/luccahuguet).
-
-**[nova.yazelix.com](https://nova.yazelix.com) is the canonical user guide.**
-This README keeps the install and recovery doorway usable when the website is
-unavailable; repository documents own source contracts and maintainer detail.
 
 ![Yazelix Nova workspace](assets/screenshots/nova_workspace.png)
 
@@ -67,14 +67,15 @@ yzx doctor
 
 Linux is the dogfooded platform. Native `aarch64-darwin` builds cover the Rio
 packages and Home Manager closure; interactive macOS behavior and the Rio GUI
-do not yet have complete release evidence. See the
-[installation guide](docs/installation.md) for Main and Edge channels, all
-eight package variants, platform evidence, Home Manager, updates, and the
-binary cache.
+do not yet have complete release evidence. Use the
+[website install guide](https://nova.yazelix.com/docs/#start) for Stable setup.
+The [repository installation reference](docs/installation.md) covers Main and
+Edge channels, all eight package variants, platform evidence, Home Manager,
+updates, and the binary cache.
 
 ## Documentation
 
-Start with the website:
+The website holds the user guides:
 
 - [Install and first launch](https://nova.yazelix.com/docs/#start)
 - [Features](https://nova.yazelix.com/features/)
@@ -83,7 +84,7 @@ Start with the website:
 - [Updates](https://nova.yazelix.com/update/)
 - [Recovery](https://nova.yazelix.com/recover/)
 
-Source and maintainer references stay with the code:
+Source, Edge, and maintainer references stay with the code:
 
 - [Architecture](ARCHITECTURE.md)
 - [Runtime contracts](docs/runtime-notes.md)
@@ -125,6 +126,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **27,474 code/configuration lines** and **5,187 documentation/text
+Yazelix owns **27,474 code/configuration lines** and **5,188 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.
