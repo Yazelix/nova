@@ -316,9 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,246 |
-| Documentation and text | 5,319 |
-| Total | 33,565 |
+| Code and configuration | 28,253 |
+| Documentation and text | 5,378 |
+| Total | 33,631 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -332,6 +332,7 @@ single/stacked/split work panes, focus, input mode, pane lifecycle, session visi
 closed-tab cleanup, idle-popup redraws and regular/mirrored client handoff. Darwin
 package builds remain a separate gate.
 Closed-tab and idle-popup regressions account for the interaction check’s LOC growth.
+The startup-picker check waits for rendered search queries instead of a fixed delay.
 The managed-popup check also covers bottom-bar, sidebar and viewport reflow without process or focus loss.
 
 The isolated native tiled-order patch and stronger interaction check account for

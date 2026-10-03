@@ -265,8 +265,8 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
     write_chars(zellij, sessions[0], "quick-target")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-target")?;
     send_key(zellij, sessions[0], "Alt Enter")?;
-    recorder.sleep(Duration::from_millis(200))?;
     send_key(zellij, sessions[0], "Ctrl o")?;
     wait_for_panes(
         recorder,
@@ -285,6 +285,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
     write_chars(zellij, sessions[0], "quick-target")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-target")?;
     send_key(zellij, sessions[0], "Enter")?;
     wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
     send_key(zellij, sessions[0], "Z")?;
@@ -311,6 +312,12 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
     fs::remove_dir(&vanished_dir)?;
     write_chars(zellij, sessions[0], "vanished-target")?;
+    wait_for_screen(
+        recorder,
+        zellij,
+        sessions[0],
+        "Go to folder > vanished-target",
+    )?;
     send_key(zellij, sessions[0], "Ctrl o")?;
     wait_for_panes(
         recorder,

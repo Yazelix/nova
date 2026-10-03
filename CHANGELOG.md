@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Pane orchestration uses the public upstream Zellij SDK at the packaged native
+  revision, so source builds do not require access to the private Nova fork.
+
 - Hiding and restoring bottom hints preserves work-pane order, including manual
   rearrangements, background tabs and an open floating popup.
 
