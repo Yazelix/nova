@@ -97,11 +97,16 @@ def hints(data):
     return next(p for p in data if p["title"] == "bottom_hints")
 
 
-def verify(hidden, width=120, height=40, focus=None, frameless=()):
+def verify(hidden, width=120, height=40, focus=None, frameless=(), columns=None):
     def settled(data):
+        bars = [p for p in data if p["title"] == "bottom_hints"]
+        if len(bars) != len({p["tab_position"] for p in data}):
+            return False
         bar = hints(data)
         work = [p for p in data if p["tab_position"] == 0 and not p["is_plugin"] and not p["is_floating"]]
         if not required_work.issubset(p["id"] for p in work):
+            return False
+        if columns is not None and (len({p["pane_x"] for p in work}) > 1) != columns:
             return False
         if bar["is_suppressed"] != hidden or not all(not p["is_suppressed"] and not p["exited"] and p["pane_content_columns"] == p["pane_columns"] - (0 if p["id"] in frameless else 2) for p in work):
             return False
@@ -183,26 +188,46 @@ try:
     env["YZX_ZELLIJ"] = binary
     run([menu], input="bottom-hints\n")
     verify(True)
+    # Native tab closure migrates suppressed panes; hint panes belong to their tab.
+    for _ in range(3):
+        action("new-tab", "--layout", str(layout))
+        wait_for(lambda p: any(x["title"] == "bottom_hints" and x["is_suppressed"] and x["tab_position"] == 1 for x in p))
+        action("close-tab")
+        wait_for(lambda p: all(x["tab_position"] == 0 for x in p))
+        verify(True)
+        pipe("toggle_bottom_hints")
+        verify(False)
+        pipe("toggle_bottom_hints")
+        verify(True)
     action("new-tab", "--layout", str(layout))
     data = wait_for(lambda p: any(x["title"] == "bottom_hints" and x["is_suppressed"] and x["tab_position"] == 1 for x in p))
     action("go-to-tab", "1")
     verify(True)
     tmux("resize-window", "-t", "proof:0", "-x", "80", "-y", "24")
+    action("apply-tiled-swap-layout", "columns_open_no_hints")
     action("new-pane", "--floating", "--", shell, "-c", "printf POPUP; sleep 9999")
     data = wait_for(lambda p: any(x["is_floating"] and x["is_focused"] for x in p))
     popup = next(p["id"] for p in data if p["tab_position"] == 0 and p["is_floating"] and p["is_focused"])
+    verify(True, 80, 24, popup, columns=True)
+    # An idle popup must not repeatedly force full-screen tiled-layout redraws.
+    idle_output = root / "idle-popup.output"
+    tmux("pipe-pane", "-t", "proof:0", "cat > " + shlex.quote(str(idle_output)))
+    time.sleep(.6)
+    tmux("pipe-pane", "-t", "proof:0")
+    assert idle_output.stat().st_size < 20000, "hidden hints caused an idle popup redraw loop"
     # Keep the current Zellij mode while toggling with a floating pane focused.
     tmux("send-keys", "-t", "proof:0", "C-p", "M-B")
-    verify(False, 80, 24, popup)
+    verify(False, 80, 24, popup, columns=True)
     tmux("send-keys", "-t", "proof:0", "M-B")
-    verify(True, 80, 24, popup)
+    verify(True, 80, 24, popup, columns=True)
     tmux("send-keys", "-t", "proof:0", "C-p")
     tmux("send-keys", "-t", "proof:0", "M-B")
-    verify(False, 80, 24, popup)
+    verify(False, 80, 24, popup, columns=True)
     tmux("send-keys", "-t", "proof:0", "C-p", "M-B")
-    verify(True, 80, 24, popup)
+    verify(True, 80, 24, popup, columns=True)
     tmux("send-keys", "-t", "proof:0", "C-y")
     wait_for(lambda p: all(x["is_plugin"] or x["id"] != popup for x in p))
+    verify(True, 80, 24, columns=True)
     tmux("new-window", "-t", "proof", "-n", "attach", shlex.join([binary, "-c", str(config), "attach", session]))
     for _ in range(100):
         if "WORK_" in tmux("capture-pane", "-t", "proof:1", "-p"):
@@ -271,9 +296,14 @@ try:
     required_work = {p["id"] for p in panes() if not p["is_plugin"]}
     pipe("toggle_bottom_hints")
     verify(True)
+    action("new-tab", "--layout", str(layout))
+    wait_for(lambda p: any(x["title"] == "bottom_hints" and x["is_suppressed"] and x["tab_position"] == 1 for x in p))
+    action("close-tab")
+    wait_for(lambda p: all(x["tab_position"] == 0 for x in p))
+    verify(True)
     tmux("send-keys", "-t", "proof:1", "M-B")
     verify(False)
-    print("bottom hints: repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
+    print("bottom hints: repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
 finally:
     subprocess.run([binary, "kill-session", session], env=env, capture_output=True)
     subprocess.run(["tmux", "-f", "/dev/null", "-L", socket, "kill-server"], env=env, capture_output=True)

@@ -224,7 +224,11 @@ same `toggle_bottom_hints` command. Native pane suppression reclaims the row;
 paired named layouts restore its bottom position. Sidebar and content-layout
 changes preserve the choice. New tabs inherit it, and fresh sessions start
 visible. One connected client handles broadcast toggles; each client restores
-its active tab’s layout and focus. `keybindings.bottom_hints` accepts a replacement chord or `false`.
+its active tab’s layout and focus. Closing a tab removes its hint pane while
+retaining native preservation of unrelated background panes.
+Popup reconciliation uses native pane geometry to retain work columns and settle
+the hint layout without a repeated redraw loop.
+`keybindings.bottom_hints` accepts a replacement chord or `false`.
 
 ## Agent Popup
 

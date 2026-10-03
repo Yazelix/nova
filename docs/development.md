@@ -316,9 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 27,888 |
-| Documentation and text | 5,234 |
-| Total | 33,122 |
+| Code and configuration | 27,918 |
+| Documentation and text | 5,243 |
+| Total | 33,161 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -329,5 +329,6 @@ The bottom-hint shortcut, menu dispatch, shared layout templates and packaged
 headless interaction check account for the bottom-bar feature’s LOC growth.
 The Linux check covers layout families, row reclamation, pane frames and identities,
 single/stacked/split work panes, focus, input mode, pane lifecycle, session visibility
-and regular/mirrored client handoff. Darwin
+closed-tab cleanup, idle-popup redraws and regular/mirrored client handoff. Darwin
 package builds remain a separate gate.
+Closed-tab and idle-popup regressions account for the interaction check’s LOC growth.

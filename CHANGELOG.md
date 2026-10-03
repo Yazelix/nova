@@ -12,6 +12,10 @@ User-visible runtime changes for Yazelix Nova live here.
   `keybindings.bottom_hints` remaps the shortcut or disables it with `false`.
   Repeated toggles preserve work-pane frames and stack headers, so collapsed
   panes remain visible and selectable.
+  Closing tabs while hints are hidden removes their hint panes, preventing
+  orphan bars from accumulating and disabling the session toggle.
+  Open popups preserve split work layouts and avoid repeated tiled-layout
+  redraws while hints are hidden.
 
 - A user `helix/init.scm` loads after Nova's managed Steel startup without
   requiring a user `helix.scm`, so plugins can be added while retaining the
