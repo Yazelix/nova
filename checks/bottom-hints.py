@@ -55,6 +55,7 @@ ui = '''
         pane split_direction="vertical" {
             pane name="work-one" focus=true command="__SHELL__" { args "-c" "printf WORK_ONE; sleep 9999"; }
             pane name="work-two" command="__SHELL__" { args "-c" "printf WORK_TWO; sleep 9999"; }
+            pane name="work-three" command="__SHELL__" { args "-c" "printf WORK_THREE; sleep 9999"; }
         }
     }
     bottom_hints name="bottom_hints" size=1
@@ -101,12 +102,22 @@ def wait_for(check):
 
 
 def pipe(name):
+    before = panes() if name == "toggle_bottom_hints" else []
     response = action("pipe", "--plugin", "yazelix_pane_orchestrator", "--name", name, "--", "toggle").strip()
     assert response == "ok", (name, response)
+    if before:
+        after = panes()
+        for tab in {p["tab_position"] for p in before}:
+            assert work_order(after, tab) == work_order(before, tab), f"hint toggle reordered tab {tab}"
 
 
 def hints(data):
     return next(p for p in data if p["title"] == "bottom_hints")
+
+
+def work_order(data, tab=0):
+    return [p["id"] for p in sorted(data, key=lambda p: (p["pane_x"], p["pane_y"]))
+            if p["tab_position"] == tab and not p["is_plugin"] and not p["is_floating"] and not p["is_suppressed"]]
 
 
 def verify(hidden, width=120, height=40, focus=None, frameless=(), columns=None):
@@ -177,15 +188,22 @@ try:
     data = wait_for(lambda p: any(x["title"] == "work-two" for x in p))
     required_work = {p["id"] for p in data if not p["is_plugin"]}
     second_work = next(p["id"] for p in data if p["title"] == "work-two")
+    third_work = next(p["id"] for p in data if p["title"] == "work-three")
     verify(False, focus=work)
     for family in ("single_open", "single_closed", "columns_open", "columns_closed"):
         action("apply-tiled-swap-layout", family)
         time.sleep(0.2)
+        if family.startswith("single"):
+            action("move-pane", "--pane-id", str(work), "down")
+            action("focus-pane-id", str(second_work))
+            action("focus-pane-id", str(work))
+        order = work_order(panes())
         for _ in range(6):
             pipe("toggle_bottom_hints")
-            verify(True, focus=work)
+            assert work_order(verify(True, focus=work)) == order, "hiding hints reordered work panes"
             tmux("send-keys", "-t", "proof:0", "M-B")
             shown = verify(False, focus=work)
+            assert work_order(shown) == order, "restoring hints reordered work panes"
             assert next(p["pane_columns"] for p in shown if p["title"] == "sidebar") == (1 if family.endswith("closed") else 32)
         pipe("toggle_bottom_hints")
         verify(True, focus=work)
@@ -209,10 +227,13 @@ try:
     action("focus-pane-id", "plugin_" + str(sidebar))
     pipe("toggle_bottom_hints")
     # An acknowledged toggle must leave the active layout ready for another mutation.
+    order = work_order(panes())
     action("new-pane", "--no-focus", "--name", "extra", "--", shell, "-c", "sleep 9999")
     data = wait_for(lambda p: any(x["title"] == "extra" for x in p))
     extra = next(p["id"] for p in data if p["title"] == "extra")
+    assert work_order(data) == order + [extra], "new pane displaced existing work panes"
     verify(True)
+    action("move-pane", "--pane-id", str(extra), "up")
     pipe("toggle_bottom_hints")
     verify(False, focus=sidebar)
     pipe("toggle_bottom_hints")
@@ -251,6 +272,14 @@ try:
     popup = next(p["id"] for p in data if p["tab_position"] == 0 and p["is_floating"] and p["is_focused"])
     verify(True, 80, 24, popup, columns=True)
     popup_pid = (root / "popup.pid").read_text()
+    # Preserve a manually arranged stack with a floating popup still focused.
+    action("apply-tiled-swap-layout", "single_open_no_hints")
+    verify(True, 80, 24, popup, columns=False)
+    for hidden in (False, True):
+        pipe("toggle_bottom_hints")
+        verify(hidden, 80, 24, popup, columns=False)
+    action("apply-tiled-swap-layout", "columns_open_no_hints")
+    verify(True, 80, 24, popup, columns=True)
     # Returning from a hidden floating layer must use the current hint viewport.
     for hidden in (False, True):
         action("hide-floating-panes")
@@ -327,6 +356,7 @@ try:
     assert geometry(before) == geometry(panes()), "missing hint pane changed the layout"
     action("rename-pane", "--pane-id", "plugin_" + str(bar["id"]), "bottom_hints")
     action("close-pane", "--pane-id", str(second_work))
+    action("close-pane", "--pane-id", str(third_work))
     required_work = {work}
     wait_for(lambda p: all(x["is_plugin"] or x["id"] != second_work for x in p))
     action("apply-tiled-swap-layout", "single_open_no_hints")
@@ -367,7 +397,7 @@ try:
     verify(True)
     tmux("send-keys", "-t", "proof:1", "M-B")
     verify(False)
-    print("bottom hints: compact managed-hint priorities and fitting, repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
+    print("bottom hints: compact managed-hint priorities and fitting, repeated toggles, manual pane order, new-pane placement, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
 finally:
     for name in (session, session + "-rendering"):
         subprocess.run([binary, "kill-session", name], env=env, capture_output=True)

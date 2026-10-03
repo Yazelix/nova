@@ -225,7 +225,10 @@ The bottom hint row has one session-wide visibility owner in the pane orchestrat
 `Alt Shift B` and the command palette's **Toggle bottom hints** entry send the
 same `toggle_bottom_hints` command. Native pane suppression reclaims the row;
 paired named layouts restore its bottom position. Sidebar and content-layout
-changes preserve the choice. New tabs inherit it, and fresh sessions start
+changes preserve the choice. Hint toggles preserve work-pane order, including
+manual rearrangements and background tabs. The native tiled matcher retains
+relative pane order when explicit UI slots change; new panes follow existing panes.
+New tabs inherit the hint choice, and fresh sessions start
 visible. One connected client handles broadcast toggles; each client restores
 its active tab’s layout and focus. Closing a tab removes its hint pane while
 retaining native preservation of unrelated background panes.

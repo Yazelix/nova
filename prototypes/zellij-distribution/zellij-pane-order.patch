@@ -1,0 +1,28 @@
+--- a/source-git-0/zellij-server-0.46.0/src/tab/layout_applier.rs
++++ b/source-git-0/zellij-server-0.46.0/src/tab/layout_applier.rs
+@@ -197,6 +197,25 @@
+             }
+         }
+ 
++        // Exact command/plugin matches can insert or remove slots before work panes.
++        // Keep the remaining panes in their relative order, with new panes last.
++        let mut remaining_panes = existing_tab_state
++            .existing_panes
++            .values_mut()
++            .collect::<Vec<_>>();
++        remaining_panes.sort_by_key(|pane| {
++            let position = pane.position_and_size().logical_position;
++            (position.is_none(), position)
++        });
++        for (pane, (_, position)) in remaining_panes
++            .into_iter()
++            .zip(&positions_left_without_exact_matches)
++        {
++            let mut geom = pane.position_and_size();
++            geom.logical_position = position.logical_position;
++            pane.set_geom(geom);
++        }
++
+         // look for matches according to the logical position in the layout
+         let mut positions_left = vec![];
+         for (layout, position_and_size) in positions_left_without_exact_matches {

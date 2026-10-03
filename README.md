@@ -62,7 +62,8 @@ Radar sidebar stays open or collapsed as you left it. The command palette's
 `Alt Shift B` or **Toggle bottom hints** in the command palette hides or restores
 bottom hint rows throughout the current session. Hiding them frees one row for
 work panes; sidebar and layout switches retain the choice. New tabs inherit it,
-and fresh sessions start with hints visible.
+and fresh sessions start with hints visible. Toggling preserves pane order,
+including manually rearranged stacks and splits.
 Open managed popups resize with the hint row, preserving their running process
 and keyboard focus.
 Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
@@ -139,6 +140,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,185 code/configuration lines** and **5,297 documentation/text
+Yazelix owns **28,246 code/configuration lines** and **5,319 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets. Hint reordering adds no code.
+excludes Beads, lockfiles, and binary assets. The native pane-order correction
+and stronger interaction check account for the 61-line code/configuration growth.

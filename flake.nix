@@ -678,11 +678,14 @@
         pname = "nova-zellij-distribution";
         version = "0.1.0";
         src = ./prototypes/zellij-distribution;
-        cargoDeps = novaZjhintsRust.fetchCargoVendor {
-          pname = "nova-zellij-distribution";
-          version = "0.1.0";
-          src = ./prototypes/zellij-distribution;
-          hash = "sha256-umTpH0bQZ4qMFMLCDUOdQYFsxdCyz8NtScbHANx3/sE=";
+        cargoDeps = pkgs.applyPatches {
+          src = novaZjhintsRust.fetchCargoVendor {
+            pname = "nova-zellij-distribution";
+            version = "0.1.0";
+            src = ./prototypes/zellij-distribution;
+            hash = "sha256-umTpH0bQZ4qMFMLCDUOdQYFsxdCyz8NtScbHANx3/sE=";
+          };
+          patches = [./prototypes/zellij-distribution/zellij-pane-order.patch];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";

@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Hiding and restoring bottom hints preserves work-pane order, including manual
+  rearrangements, background tabs and an open floating popup.
+
 - Acknowledged hint toggles settle the active layout before a subsequent pane
   mutation, preserving work-pane frames.
 
