@@ -70,6 +70,7 @@ The hint row uses compact `C`, `C-A`, `A` and `A-S` modifier headers. Core
 workspace and Nova shortcuts take priority as the terminal narrows; managed
 hints follow shortcut remapping and disabling. `C-A hl/jk move` groups tab
 movement with `h/l` and vertical pane movement with `j/k`.
+Alt-Shift hints keep menu first, followed by fullscreen, hints and the HJKL shortcuts.
 
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
 
@@ -138,6 +139,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,185 code/configuration lines** and **5,295 documentation/text
+Yazelix owns **28,185 code/configuration lines** and **5,297 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets. Movement hints add six config lines.
+excludes Beads, lockfiles, and binary assets. Hint reordering adds no code.

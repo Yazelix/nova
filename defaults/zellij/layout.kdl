@@ -16,7 +16,7 @@ layout {
             label_move_tab "move"
             "key_format_normal_=move" "#[fg=$key]hl/jk "
             label_fullscreen "full"
-            hint_order "mode_pane, mode_resize, mode_tab, mode_scroll, sess., =move, mode_locked, content_layout, go_to_tab, new_pane, menu, hints, sidebar, config, git, agent, full, *"
+            hint_order "mode_pane, mode_resize, mode_tab, mode_scroll, sess., =move, mode_locked, content_layout, go_to_tab, new_pane, menu, full, hints, sidebar, git, config, agent, *"
             hint_precedence "lt"
             color_key "#ef7a73"
             key_format "#[fg=$key]{key} "

@@ -10,6 +10,7 @@ User-visible runtime changes for Yazelix Nova live here.
 - Bottom hints use compact `C`, `C-A`, `A` and `A-S` modifier headers and the
   labels `sess.`, `move` and `full`. `C-A hl/jk move` combines tab reordering
   with `h/l` and vertical pane reordering with `j/k` in Normal mode.
+  Alt-Shift defaults follow `M F B H J K L`, keeping menu first and HJKL together.
   Managed menu, config, Git, agent, sidebar
   and hint-toggle shortcuts appear with their configured keys; disabled keys
   have no hint. Core workspace and Nova actions outlive secondary native hints
