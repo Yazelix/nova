@@ -17,13 +17,14 @@ binary = str(package / "bin/yzx-zellij")
 packaged_config = (package / "share/yazelix/config.kdl").read_text()
 menu = re.search(r'menu \{\s*command "([^"]+)"', packaged_config).group(1)
 plugin = re.search(r'yazelix_pane_orchestrator location="([^"]+)"', packaged_config).group(1)
+hint_plugin = re.search(r'nova_hints location="[^"]+" \{[^}]*\}', packaged_config).group(0)
 popup_plugin = re.search(r'yzpp location="([^"]+)"', packaged_config).group(1)
 env = {k: v for k, v in os.environ.items() if not k.startswith(("ZELLIJ", "YZX_", "YAZELIX_"))}
 env.update(HOME=str(root / "home"), XDG_CACHE_HOME=str(root / "cache"), XDG_DATA_HOME=str(root / "data"), ZELLIJ_SOCKET_DIR=str(root / "sockets"), TERM="xterm-256color")
 for name in ("home", "cache/yzx-zellij", "sockets"):
     (root / name).mkdir(parents=True, exist_ok=True)
 permissions = "\n".join(" " + p for p in ("ReadApplicationState", "ChangeApplicationState", "OpenTerminalsOrPlugins", "RunCommands", "WriteToStdin", "ReadCliPipes", "MessageAndLaunchOtherPlugins", "ReadSessionEnvironmentVariables"))
-(root / "cache/yzx-zellij/permissions.kdl").write_text("".join(json.dumps(url.removeprefix("file:")) + " {\n" + permissions + "\n}\n" for url in (plugin, popup_plugin)))
+(root / "cache/yzx-zellij/permissions.kdl").write_text("".join(json.dumps(url.removeprefix("file:")) + " {\n" + permissions + "\n}\n" for url in (plugin, popup_plugin, re.search(r'location="([^"]+)"', hint_plugin).group(1))))
 config = root / "config.kdl"
 config.write_text('''default_shell "__SHELL__"
 show_startup_tips false
@@ -31,6 +32,7 @@ show_release_notes false
 pane_frame_style "full"
 stacked_pane_list false
 plugins {
+    __HINT_PLUGIN__
     yazelix_pane_orchestrator location="__PLUGIN__" { screen_saver_enabled false; }
     radar location="zellij:radar" { role "view"; naming "off"; }
     yzpp location="__POPUP_PLUGIN__" {
@@ -45,7 +47,7 @@ keybinds clear-defaults=true {
     pane { bind "Ctrl p" { SwitchToMode "Normal"; }; bind "Ctrl y" { CloseFocus; }; }
     shared_except "locked" { bind "Ctrl t" { GoToTab 2; }; bind "Ctrl r" { GoToTab 1; }; bind "Alt g" { MessagePlugin "yzpp" { name "toggle"; payload "proof"; }; }; bind "Alt Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }; }
 }
-'''.replace("__SHELL__", shell).replace("__PLUGIN__", plugin).replace("__POPUP_PLUGIN__", popup_plugin).replace("__POPUP_PID__", str(root / "popup.pid")))
+'''.replace("__HINT_PLUGIN__", hint_plugin).replace("__SHELL__", shell).replace("__PLUGIN__", plugin).replace("__POPUP_PLUGIN__", popup_plugin).replace("__POPUP_PID__", str(root / "popup.pid")))
 ui = '''
     top_bar size=1
     pane split_direction="vertical" {
@@ -124,7 +126,10 @@ def verify(hidden, width=120, height=40, focus=None, frameless=(), columns=None)
             return False
         if not hidden and (bar["pane_y"], bar["pane_rows"], bar["pane_columns"]) != (height - 1, 1, width):
             return False
-        left_margin = 33 if next(p for p in data if p["tab_position"] == 0 and p["title"] == "sidebar")["pane_columns"] > 2 else 1
+        sidebar = next(p for p in data if p["tab_position"] == 0 and p["title"] == "sidebar")
+        if sidebar["pane_y"] + sidebar["pane_rows"] != height - (not hidden) or any(p["pane_x"] < sidebar["pane_columns"] for p in work):
+            return False
+        left_margin = 33 if sidebar["pane_columns"] > 2 else 1
         for pane in (p for p in data if p["tab_position"] == 0 and p["title"] == "managed-popup" and not p["is_suppressed"]):
             if pane["exited"] or (pane["pane_x"], pane["pane_y"], pane["pane_columns"], pane["pane_rows"]) != (left_margin, 1, width - left_margin - 1, height - 1 - (not hidden)):
                 return False
@@ -134,6 +139,27 @@ def verify(hidden, width=120, height=40, focus=None, frameless=(), columns=None)
 
 
 try:
+    fixture_config = config.read_text()
+    config.write_text(fixture_config.split("keybinds clear-defaults=true {", 1)[0] + packaged_config[packaged_config.index("keybinds {"):] + '\nlayout_dir ' + json.dumps(str(root)) + '\ndefault_layout ' + json.dumps(str(layout)) + '\n')
+    tmux("new-session", "-d", "-s", "rendering", "-x", "120", "-y", "40",
+         shlex.join([binary, "-c", str(config), "-n", str(layout), "-s", session + "-rendering"]) + "; sleep 30")
+    for width in (120, 180):
+        tmux("resize-window", "-t", "rendering:0", "-x", str(width), "-y", "40")
+        time.sleep(.3)
+        expected = ["M menu"] if width == 120 else ["M menu", "K config", "J git", "L agent", "H sidebar", "B hints", "F full"]
+        for _ in range(100):
+            row = tmux("capture-pane", "-t", "rendering:0", "-p", "-S", "39", "-E", "39")
+            if all(hint in row for hint in expected):
+                break
+            time.sleep(.1)
+        else:
+            raise AssertionError(f"{width} columns: managed hints missing: {row}")
+        assert "..." not in row, f"{width} columns: partial hint clipped: {row}"
+        if width == 180:
+            assert all(row.count(header) == 1 for header in (" C ", " C-A ", " A ", " A-S ")), row
+    run([binary, "kill-session", session + "-rendering"])
+    tmux("kill-session", "-t", "rendering")
+    config.write_text(fixture_config)
     tmux("new-session", "-d", "-s", "proof", "-x", "120", "-y", "40",
          shlex.join([binary, "-c", str(config), "-n", str(layout), "-s", session]) + "; sleep 30")
     # Avoid opening a CLI connection while the first interactive client is starting.
@@ -146,6 +172,7 @@ try:
     data = wait_for(lambda p: any(x["title"] == "bottom_hints" for x in p))
     work = next(p["id"] for p in data if p["title"] == "work-one")
     time.sleep(.5)
+    assert "B hints" in tmux("capture-pane", "-t", "proof:0", "-p"), "configured pipe hint missing"
     env["ZELLIJ_PANE_ID"] = str(work)
     data = wait_for(lambda p: any(x["title"] == "work-two" for x in p))
     required_work = {p["id"] for p in data if not p["is_plugin"]}
@@ -181,7 +208,7 @@ try:
     sidebar = next(p["id"] for p in panes() if p["title"] == "sidebar")
     action("focus-pane-id", "plugin_" + str(sidebar))
     pipe("toggle_bottom_hints")
-    verify(True, focus=sidebar)
+    # An acknowledged toggle must leave the active layout ready for another mutation.
     action("new-pane", "--no-focus", "--name", "extra", "--", shell, "-c", "sleep 9999")
     data = wait_for(lambda p: any(x["title"] == "extra" for x in p))
     extra = next(p["id"] for p in data if p["title"] == "extra")
@@ -340,7 +367,8 @@ try:
     verify(True)
     tmux("send-keys", "-t", "proof:1", "M-B")
     verify(False)
-    print("bottom hints: repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
+    print("bottom hints: compact managed-hint priorities and fitting, repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
 finally:
-    subprocess.run([binary, "kill-session", session], env=env, capture_output=True)
+    for name in (session, session + "-rendering"):
+        subprocess.run([binary, "kill-session", name], env=env, capture_output=True)
     subprocess.run(["tmux", "-f", "/dev/null", "-L", socket, "kill-server"], env=env, capture_output=True)

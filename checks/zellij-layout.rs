@@ -251,9 +251,7 @@ fn bar_layout_is_valid(layout: &str) -> bool {
     let bars = layout
         .matches(r#"plugin location="zellij:nova-bar""#)
         .count();
-    let hint_bars = layout
-        .matches(r#"plugin location="zellij:nova-zjhints""#)
-        .count();
+    let hint_bars = layout.matches(r#"plugin location="nova_hints""#).count();
     let views = layout.matches(r#"role "view""#).count();
     bars == 1
         && hint_bars == 1

@@ -215,6 +215,12 @@ fn patch_managed_keybindings(
         }
         let replacement = format!("        bind __YZX_MANAGED_KEY_{index}__");
         patched = patched.replace(&marker, &replacement);
+        let id = binding.path.rsplit('.').next().unwrap();
+        let hint = format!("pipe_hint_{id} {}", kdl_string(binding.default));
+        patched = patched.replace(
+            &hint,
+            &format!("pipe_hint_{id} __YZX_MANAGED_KEY_{index}__"),
+        );
     }
     for (index, binding) in managed_keybindings.iter().enumerate() {
         if binding.is_default() || binding.path == "keybindings.sidebar_focus" {
@@ -357,6 +363,7 @@ fn patch_agent_popup(
 }
 
 const OWNED_ZELLIJ_PLUGIN_IDS: &[&str] = &[
+    "nova_hints",
     "yzpp",
     "yazelix_pane_orchestrator",
     "radar",
@@ -733,6 +740,13 @@ mod tests {
     #[test]
     fn managed_key_patch_remaps_active_bindings_and_omits_unmapped_nodes() {
         let text = concat!(
+            "plugins {\n",
+            "    nova_hints location=\"zellij:nova-zjhints\" {\n",
+            "        pipe_hint_config \"Alt Shift K\"\n",
+            "        pipe_hint_screen \"Alt Shift A\"\n",
+            "        pipe_hint_sidebar \"Alt Shift H\"\n",
+            "    }\n",
+            "}\n",
             "keybinds {\n",
             "    shared {\n",
             "        unbind \"Alt Shift A\"\n",
@@ -780,6 +794,9 @@ mod tests {
             patched
                 .contains(r#"bind "Alt Shift C" { MessagePlugin "yzpp" { payload "config"; }; }"#)
         );
+        assert!(patched.contains(r#"pipe_hint_config "Alt Shift C""#));
+        assert!(!patched.contains("pipe_hint_screen"));
+        assert!(!patched.contains("pipe_hint_sidebar"));
         assert!(patched.contains(r#"unbind "Alt Shift A""#));
         assert!(patched.contains(r#"bind "Ctrl q" { Quit; }"#));
         for omitted in [

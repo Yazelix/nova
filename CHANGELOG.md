@@ -4,6 +4,15 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Acknowledged hint toggles settle the active layout before a subsequent pane
+  mutation, preserving work-pane frames.
+
+- Bottom hints use compact `C`, `C-A`, `A` and `A-S` modifier headers and the
+  labels `sess.`, `mv tab` and `full`. Managed menu, config, Git, agent, sidebar
+  and hint-toggle shortcuts appear with their configured keys; disabled keys
+  have no hint. Core workspace and Nova actions outlive secondary native hints
+  on narrow terminals, with complete hints dropped rather than clipped.
+
 - `Alt Shift B` and the command palette's **Toggle bottom hints** action hide or
   restore bottom hints throughout the current session, reclaiming their row when
   hidden. Sidebar and stacked/split layout switches retain the choice; new tabs
@@ -54,8 +63,8 @@ User-visible runtime changes for Yazelix Nova live here.
   no mode badge. Built-in plugins need no pre-seeded permission cache entries.
   Existing sessions from the earlier Zellij binary remain separate from new
   `yzx-zellij` sessions.
-  The three modifier islands fill the row with a one-column leading inset,
-  and spare width is divided evenly between the two gaps. Muted gray labels
+  The row has a one-column leading inset; when three modifier groups remain,
+  spare width is divided evenly between their gaps. Muted gray labels
   share the keys' plain background, with one-cell gaps between hints. Modifier
   headers use a dimmer red on a subtle charcoal background.
 

@@ -10,6 +10,17 @@ explicit_theme_hue "dark"
 scroll_mode_sync false
 
 plugins {
+    nova_hints location="zellij:nova-zjhints" {
+        pipe_hint_config "@configKey@"
+        pipe_hint_agent "@agentKey@"
+        pipe_hint_git "@gitKey@"
+        pipe_hint_menu "@menuKey@"
+        pipe_hint_screen "@screenKey@"
+        pipe_hint_sidebar "@sidebarKey@"
+        pipe_hint_bottom_hints "@bottomHintsKey@"
+        label_bottom_hints "hints"
+    }
+
     yzpp location="@yzpp@" {
         left_margin_pane_title "sidebar"
 

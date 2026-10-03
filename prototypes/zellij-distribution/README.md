@@ -9,14 +9,15 @@ The plugins use `zellij:` URLs and need no user permission cache entries.
 at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
 [`grouped modifiers patch`](zjhints-group-modifiers.patch). Its opt-in
 `group_modifiers true` option joins hints with the same modifier chord. The
-default layout sets `modifier_format` to a deeper green (`#4ca630`); layouts
-without that option use the Zellij theme color. Each modifier ends in `+`;
-each key sits on charcoal with cream text. Adjacent bindings touch within a
-group; one column separates its modifier from the keys. Three groups share
-the available row width through balanced gaps.
-The row has a one-column leading inset and fills the plugin width. Consecutive
-numbered keys display as `1–9`. The default layout omits the mode badge. Nova's
-two `Alt [` and `Alt ]` content bindings share one `[] layout` hint.
+default layout uses compact `C`, `C-A`, `A` and `A-S` headers with subdued red
+text on separate charcoal backgrounds. Red keys and muted gray descriptions
+share the plain background, with one-cell gaps between hints. Whole-hint
+fitting keeps core workspace and managed Nova actions ahead of secondary native
+hints. Labels include `sess.`, `mv tab` and `full`. Three groups share spare
+width through balanced gaps; four or more retain small separators.
+The row has a one-column leading inset. Consecutive numbered keys display as
+`1–9`, and the default layout omits the mode badge. Nova's two `Alt [` and
+`Alt ]` content bindings share one `[] layout` hint.
 
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
 standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
@@ -27,8 +28,21 @@ same behavior. When a Zellij release includes PR #5630, Nova can evaluate
 replacing this merged-main pin with that release. Until then, test both the
 patched plugin and the pinned Zellij API when updating either source.
 
-Zellij's plugin keymap event strips `KeybindPipe` targets. `nova-zjhints`
-shows `[] layout` while both default Alt bracket chords still carry pipe
-actions; it cannot distinguish another plugin target on that same pair. Other
-plugin messages, stock status bar mouse controls, and clipboard feedback are
-omitted.
+Zellij's plugin keymap event strips `KeybindPipe` targets. Nova's `nova_hints`
+alias supplies `pipe_hint_<id>` chords from its managed configuration; the
+existing keybinding patch remaps or omits each annotation with its binding.
+The plugin advertises an annotation only for a matching active pure-pipe key,
+and uses existing label, grouping and fitting options. This seam can disappear
+when native events expose pipe identities and upstream zjhints discovers them.
+The default `[] layout` hint still requires both Alt bracket chords to carry
+pipe actions; it cannot distinguish another plugin target on that pair.
+Other unannotated plugin messages, stock status bar mouse controls and clipboard
+feedback are omitted.
+
+Keep `collapse_when_empty false` in Nova's bottom-hints template. zjhints' tile
+fork `cb9e59fd3481b6d7becf432db5ae65559ad4dfc4` encodes `SetSelfCollapsed`
+as command 230 with payload field 173; native `81f56e1` assigns those IDs to
+`ApplyFloatingSwapLayout`. The pane orchestrator owns session-wide visibility.
+Recheck both protocol definitions before changing either pin or enabling
+collapse. This incompatibility does not establish the cause of reported pane
+loss; evidence and the workaround live in Bead `yazelix-optional-bottom-status-bar-og5l-g71`.

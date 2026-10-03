@@ -316,9 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 27,956 |
-| Documentation and text | 5,254 |
-| Total | 33,210 |
+| Code and configuration | 28,179 |
+| Documentation and text | 5,288 |
+| Total | 33,467 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -333,3 +333,5 @@ closed-tab cleanup, idle-popup redraws and regular/mirrored client handoff. Darw
 package builds remain a separate gate.
 Closed-tab and idle-popup regressions account for the interaction check’s LOC growth.
 The managed-popup check also covers bottom-bar, sidebar and viewport reflow without process or focus loss.
+
+Configured pipe annotations and remapping checks account for compact-hint LOC growth; native parsing and existing priority fitting retain one owner each.

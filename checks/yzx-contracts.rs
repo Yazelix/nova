@@ -794,6 +794,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         &custom_key_config, "custom key config";
         r#"bind "Ctrl Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
         r#"bind "Ctrl Shift U" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }"#,
+        r#"pipe_hint_sidebar "Ctrl Shift B""#,
+        r#"pipe_hint_bottom_hints "Ctrl Shift U""#,
     }
     for default in ["Alt Shift H", "Alt Shift B", "Ctrl y", "Ctrl Shift E"] {
         assert!(
@@ -826,6 +828,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             !unmapped_key_config.contains(&format!(r#"bind "{omitted}" {{"#)),
             "unmapped key config kept {omitted}"
         );
+    }
+    for id in ["config", "screen", "sidebar", "bottom_hints"] {
+        assert!(!unmapped_key_config.contains(&format!("pipe_hint_{id} ")));
     }
     assert!(
         !unmapped_key_config.contains("__YZX_MANAGED_KEY_"),
@@ -1803,6 +1808,11 @@ fn expect_startup_diagnostics(yzx: &Path) {
             "Zellij plugin sidecar supports only top-level `plugins` and `load_plugins`, found `keybinds`",
         ),
         (
+            "bad-zellij-plugin-hints-id",
+            "plugins {\n    nova_hints location=\"file:/tmp/other-hints.wasm\"\n}\n",
+            "Zellij plugin sidecar plugins entry `nova_hints` is owned by Yazelix",
+        ),
+        (
             "bad-zellij-plugin-owned-id",
             "plugins {\n    yzpp location=\"file:/tmp/owned.wasm\"\n}\n",
             "Zellij plugin sidecar plugins entry `yzpp` is owned by Yazelix",
@@ -2751,6 +2761,9 @@ fn expect_popup_binding(config: &str, key: &str, payload: &str, context: &str) {
         config.contains(&expected),
         "{context} is missing {key} popup binding\n{expected}",
     );
+    if matches!(payload, "config" | "agent" | "git" | "menu" | "screen") {
+        expect_contains(config, &format!(r#"pipe_hint_{payload} "{key}""#), context);
+    }
 }
 
 fn expect_popup_defaults(config: &str, side_margin: &str, vertical_margin: &str, context: &str) {

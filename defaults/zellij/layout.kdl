@@ -4,10 +4,19 @@ layout {
     }
 
     pane_template name="bottom_hints" borderless=true {
-        plugin location="zellij:nova-zjhints" {
+        plugin location="nova_hints" {
             show_mode false
+            collapse_when_empty false
             group_modifiers true
-            modifier_format "#[fg=#c18480,bg=#252a30] {modifier} + "
+            mod_alias_ctrl "C"
+            mod_alias_alt "A"
+            mod_alias_shift "S"
+            modifier_format "#[fg=#c18480,bg=#252a30] {modifier} "
+            label_mode_session "sess."
+            label_move_tab "mv tab"
+            label_fullscreen "full"
+            hint_order "mode_pane, mode_resize, mode_tab, mode_scroll, sess., mv tab, mode_locked, content_layout, go_to_tab, new_pane, menu, hints, sidebar, config, git, agent, full, *"
+            hint_precedence "lt"
             key_format "#[fg=#d58a85]{key} "
             desc_format "#[fg=#a0a6af]{desc}"
             hint_spacer " "

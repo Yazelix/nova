@@ -160,7 +160,7 @@ load_plugins {
 }
 ```
 
-Plugin ids owned by Yazelix, such as `yzpp` and
+Plugin ids owned by Yazelix, such as `yzpp`, `nova_hints` and
 `yazelix_pane_orchestrator`, cannot be redeclared. Plugin keybindings are not
 managed by this sidecar.
 
@@ -232,6 +232,12 @@ retaining native preservation of unrelated background panes.
 Popup reconciliation uses native pane geometry to retain work columns and settle
 the hint layout without a repeated redraw loop.
 `keybindings.bottom_hints` accepts a replacement chord or `false`.
+The `nova_hints` alias passes each managed shortcut chord to `nova-zjhints` as
+`pipe_hint_<id>` metadata because native mode events omit plugin-message
+identities. The managed keybinding patch owns both binding and hint remapping
+or omission. The plugin shows only matching active pure-pipe keys, using native
+key parsing and existing whole-hint fitting. Compact modifier headers retain
+separate backgrounds; core workspace and Nova actions receive fitting priority.
 
 ## Agent Popup
 
