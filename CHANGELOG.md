@@ -59,14 +59,14 @@ User-visible runtime changes for Yazelix Nova live here.
   `81f56e1`, with Nova's plugins embedded. The merged source adds an upstream
   client-attachment plugin race fix and a per-socket session probe timeout;
   Nova's attach-only report remains unverified. Its default bottom bar is the
-  `nova-zjhints` fork with grouped modifier hints, subdued red keys, and
+  `nova-zjhints` fork with grouped modifier hints, stronger warm-red keys, and
   no mode badge. Built-in plugins need no pre-seeded permission cache entries.
   Existing sessions from the earlier Zellij binary remain separate from new
   `yzx-zellij` sessions.
   The row has a one-column leading inset; when three modifier groups remain,
   spare width is divided evenly between their gaps. Muted gray labels
   share the keys' plain background, with one-cell gaps between hints. Modifier
-  headers use a dimmer red on a subtle charcoal background.
+  headers use a slightly dimmer warm red on a subtle charcoal background.
 
 - Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
   `Ctrl b` Tmux-mode entry. `Alt m` remains the new-pane shortcut.
