@@ -68,7 +68,8 @@ and keyboard focus.
 Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
 The hint row uses compact `C`, `C-A`, `A` and `A-S` modifier headers. Core
 workspace and Nova shortcuts take priority as the terminal narrows; managed
-hints follow shortcut remapping and disabling.
+hints follow shortcut remapping and disabling. `C-A hl/jk move` groups tab
+movement with `h/l` and vertical pane movement with `j/k`.
 
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
 
@@ -137,6 +138,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,179 code/configuration lines** and **5,288 documentation/text
+Yazelix owns **28,185 code/configuration lines** and **5,295 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets. Modifier-color adjustments preserve LOC.
+excludes Beads, lockfiles, and binary assets. Movement hints add six config lines.

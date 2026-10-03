@@ -18,7 +18,11 @@ plugins {
         pipe_hint_screen "@screenKey@"
         pipe_hint_sidebar "@sidebarKey@"
         pipe_hint_bottom_hints "@bottomHintsKey@"
+        pipe_hint_move_pane_down "Ctrl Alt j"
+        pipe_hint_move_pane_up "Ctrl Alt k"
         label_bottom_hints "hints"
+        label_normal_move_pane_down "move"
+        label_normal_move_pane_up "move"
     }
 
     yzpp location="@yzpp@" {

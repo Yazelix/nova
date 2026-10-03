@@ -316,9 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,179 |
-| Documentation and text | 5,288 |
-| Total | 33,467 |
+| Code and configuration | 28,185 |
+| Documentation and text | 5,295 |
+| Total | 33,480 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -334,4 +334,4 @@ package builds remain a separate gate.
 Closed-tab and idle-popup regressions account for the interaction check’s LOC growth.
 The managed-popup check also covers bottom-bar, sidebar and viewport reflow without process or focus loss.
 
-Configured pipe annotations and remapping checks account for compact-hint LOC growth; modifier-red changes add no code. Native parsing and existing priority fitting retain one owner each.
+Configured pipe annotations and remapping checks account for compact-hint LOC growth; the combined movement hint adds six config lines. Native parsing and existing priority fitting retain one owner each.

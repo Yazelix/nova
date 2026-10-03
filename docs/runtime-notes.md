@@ -238,6 +238,10 @@ identities. The managed keybinding patch owns both binding and hint remapping
 or omission. The plugin shows only matching active pure-pipe keys, using native
 key parsing and existing whole-hint fitting. Compact modifier headers retain
 separate backgrounds; core workspace and Nova actions receive fitting priority.
+In Normal mode, `C-A hl/jk move` combines tab reordering (`h/l`) and vertical
+pane reordering (`j/k`). Existing pipe annotations and explicit-label merging
+provide the shared hint; its fixed key display is scoped to the merged Normal
+hint, keeping the native Move-mode entry and other input modes distinct.
 
 ## Agent Popup
 
