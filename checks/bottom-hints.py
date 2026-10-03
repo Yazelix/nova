@@ -86,6 +86,7 @@ def panes():
 
 
 def wait_for(check):
+    data = None
     for _ in range(100):
         try:
             data = panes()
