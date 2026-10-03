@@ -51,6 +51,7 @@ pub(crate) const KEYBINDINGS_GIT_PATH: &str = "keybindings.git";
 pub(crate) const KEYBINDINGS_MENU_PATH: &str = "keybindings.menu";
 pub(crate) const KEYBINDINGS_SCREEN_PATH: &str = "keybindings.screen";
 pub(crate) const KEYBINDINGS_SIDEBAR_PATH: &str = "keybindings.sidebar";
+pub(crate) const KEYBINDINGS_BOTTOM_HINTS_PATH: &str = "keybindings.bottom_hints";
 pub(crate) const KEYBINDINGS_SIDEBAR_FOCUS_PATH: &str = "keybindings.sidebar_focus";
 pub(crate) const BAR_WIDGETS_PATH: &str = "bar.widgets";
 pub(crate) const BAR_WIDGET_VALUES: &[&str] = &[
@@ -174,6 +175,7 @@ pub(crate) const MANAGED_KEYBINDINGS: &[(&str, &str)] = &[
     (KEYBINDINGS_MENU_PATH, "Alt Shift M"),
     (KEYBINDINGS_SCREEN_PATH, "Alt Shift A"),
     (KEYBINDINGS_SIDEBAR_PATH, "Alt Shift H"),
+    (KEYBINDINGS_BOTTOM_HINTS_PATH, "Alt Shift B"),
     (KEYBINDINGS_SIDEBAR_FOCUS_PATH, "Ctrl y"),
 ];
 
@@ -213,6 +215,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Popups"; "Alt Shift A"; "Show a random full-screen visual"; "Yazelix"; "config.kdl"),
     key!("Popups"; "Alt Shift Y"; "Hide or show Yazi popup"; "Yazelix"; "config.kdl"),
     key!("Sidebar"; "Alt Shift H"; "Toggle sidebar"; "Yazelix"; "config.kdl"),
+    key!("Layout"; "Alt Shift B"; "Toggle bottom hints"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Alt n"; "Next attention tab"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Alt p"; "Previous attention tab"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Tab"; "Next session"; "Yazelix"; "config.kdl"),
@@ -445,6 +448,15 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
             KEYBINDINGS_SIDEBAR_PATH,
             "Key chord that hides or shows the managed sidebar. Set false to leave it unmapped.",
             "key chord like Alt Shift A that does not conflict with a packaged binding, or false",
+        ),
+        apply_summary: "next launch",
+        apply_detail: "Saved keybindings apply to newly launched Yazelix sessions.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::managed_keybinding(
+            KEYBINDINGS_BOTTOM_HINTS_PATH,
+            "Key chord that hides or shows the current session's bottom hints. Set false to leave it unmapped.",
+            "key chord like Alt Shift B that does not conflict with a packaged binding, or false",
         ),
         apply_summary: "next launch",
         apply_detail: "Saved keybindings apply to newly launched Yazelix sessions.",

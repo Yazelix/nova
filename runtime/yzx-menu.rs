@@ -1,7 +1,7 @@
 use std::{
     env, io,
     io::{IsTerminal, Write},
-    process::{exit, Command, Output, Stdio},
+    process::{Command, Output, Stdio, exit},
 };
 
 const FZF: &str = "@fzf@";
@@ -30,6 +30,7 @@ const COMMANDS: &[(&str, &str, &str)] = &[
         "workspace",
         "Switch between stacked and split panes",
     ),
+    ("bottom-hints", "workspace", "Toggle bottom hints"),
 ];
 
 fn main() {
@@ -59,7 +60,9 @@ fn run() -> i32 {
     };
 
     let code = if id == "workspace" {
-        open_workspace_popup()
+        orchestrator_action("toggle_workspace_popup", "yazi", "open Yazi")
+    } else if id == "bottom-hints" {
+        orchestrator_action("toggle_bottom_hints", "toggle", "toggle bottom hints")
     } else if id == "layout" {
         toggle_layout()
     } else {
@@ -75,14 +78,14 @@ fn run() -> i32 {
         }
     };
 
-    if !matches!(id, "workspace" | "layout") || code != 0 {
+    if !matches!(id, "workspace" | "layout" | "bottom-hints") || code != 0 {
         pause_if_tty(interactive);
     }
     code
 }
 
-fn open_workspace_popup() -> i32 {
-    let output = orchestrator_pipe("toggle_workspace_popup", Some("yazi"));
+fn orchestrator_action(name: &str, payload: &str, action: &str) -> i32 {
+    let output = orchestrator_pipe(name, Some(payload));
     match output {
         Ok(output)
             if output.status.success()
@@ -92,7 +95,7 @@ fn open_workspace_popup() -> i32 {
         }
         Ok(output) => {
             eprintln!(
-                "Could not open Yazi: {}",
+                "Could not {action}: {}",
                 String::from_utf8_lossy(if output.stderr.is_empty() {
                     &output.stdout
                 } else {
@@ -103,7 +106,7 @@ fn open_workspace_popup() -> i32 {
             1
         }
         Err(error) => {
-            eprintln!("Could not open Yazi: {error}");
+            eprintln!("Could not {action}: {error}");
             127
         }
     }
@@ -113,7 +116,12 @@ fn toggle_layout() -> i32 {
     match orchestrator_pipe("content_layout_target", Some("toggle")) {
         Ok(output) if output.status.success() => {
             match String::from_utf8_lossy(&output.stdout).trim() {
-                layout @ ("single_open" | "single_closed" | "columns_open" | "columns_closed") => {
+                layout
+                    if matches!(
+                        layout.strip_suffix("_no_hints").unwrap_or(layout),
+                        "single_open" | "single_closed" | "columns_open" | "columns_closed"
+                    ) =>
+                {
                     match Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()))
                         .args(["action", "apply-tiled-swap-layout", layout])
                         .output()

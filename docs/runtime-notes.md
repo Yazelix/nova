@@ -212,10 +212,19 @@ refocused.
 `Alt [` and `Alt ]` ask the pane orchestrator to apply the next content
 arrangement directly. The command palette's `layout` entry asks for the same
 next variant, then applies it through Zellij's CLI. Nova has
-one stacked startup layout and four swap variants: stacked or split content,
-each with the sidebar open or collapsed. The split places one existing work
+one stacked startup layout and four content/sidebar families: stacked or split
+content, each with the sidebar open or collapsed. Every family has matching
+visible-hint and hidden-hint swap variants. The split places one existing work
 pane beside a stack of the others. It requires at least two visible tiled work
 panes, starts no new shell, and leaves the current tab folder unchanged.
+
+The bottom hint row has one session-wide visibility owner in the pane orchestrator.
+`Alt Shift B` and the command palette's **Toggle bottom hints** entry send the
+same `toggle_bottom_hints` command. Native pane suppression reclaims the row;
+paired named layouts restore its bottom position. Sidebar and content-layout
+changes preserve the choice. New tabs inherit it, and fresh sessions start
+visible. One connected client handles broadcast toggles; each client restores
+its active tab’s layout and focus. `keybindings.bottom_hints` accepts a replacement chord or `false`.
 
 ## Agent Popup
 

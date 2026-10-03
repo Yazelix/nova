@@ -262,7 +262,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "tutor",
             "radar-setup",
             "workspace",
-            "layout"
+            "layout",
+            "bottom-hints"
         ],
         "yzx menu command allowlist changed\n{menu}"
     );
@@ -451,6 +452,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "keybindings.menu",
         "keybindings.screen",
         "keybindings.sidebar",
+        "keybindings.bottom_hints",
         "keybindings.sidebar_focus",
         "lazygit",
         "yzx-bar-render",
@@ -631,9 +633,15 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         (&custom_sidebar_layout, "custom sidebar layout", 2),
         (&custom_sidebar_swap, "custom sidebar swap layout", 4),
     ] {
-        assert_eq!(text.matches(r#"pane name="sidebar" size="#).count(), expected_count);
+        assert_eq!(
+            text.matches(r#"pane name="sidebar" size="#).count(),
+            expected_count
+        );
         assert_eq!(text.matches(r#"command="true""#).count(), expected_count);
-        assert_eq!(text.matches(r#"args "two words" "--basic""#).count(), expected_count);
+        assert_eq!(
+            text.matches(r#"args "two words" "--basic""#).count(),
+            expected_count
+        );
         assert!(
             !text.contains(r#"plugin location="radar""#) && !text.contains("@sidebar@"),
             "{context} kept Radar or an unresolved sidebar placeholder"
@@ -708,7 +716,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     );
 
     let custom_popup_spec_case = RuntimeCase::new(&temp.path, "custom-popup-spec");
-    custom_popup_spec_case.write_default_config("\n[popup]\nside_margin = 2\nvertical_margin = 1\n\n[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\"]\ntitle = \"btm_popup\"\nkeybinding = \"Alt Shift B\"\nkeep_alive = true\n");
+    custom_popup_spec_case.write_default_config("\n[popup]\nside_margin = 2\nvertical_margin = 1\n\n[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\"]\ntitle = \"btm_popup\"\nkeybinding = \"Alt Shift U\"\nkeep_alive = true\n");
     custom_popup_spec_case.prepared_status(&yzx_bin, "custom popup spec status");
     let custom_popup_spec = custom_popup_spec_case.zellij_file("config.kdl");
     expect_contains(
@@ -718,7 +726,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     );
     expect_popup_binding(
         &custom_popup_spec,
-        "Alt Shift B",
+        "Alt Shift U",
         "btm",
         "custom popup spec config",
     );
@@ -744,7 +752,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
 
     let custom_keys = RuntimeCase::new(&temp.path, "custom-keys");
-    custom_keys.write_default_config("\n[keybindings]\nconfig = \"Alt Shift C\"\nagent = \"Ctrl Shift A\"\ngit = \"Alt Shift G\"\nmenu = \"Alt Shift U\"\nscreen = \"Alt Shift S\"\nsidebar = \"Ctrl Shift B\"\nsidebar_focus = \"Ctrl Shift E\"\n");
+    custom_keys.write_default_config("\n[keybindings]\nconfig = \"Alt Shift C\"\nagent = \"Ctrl Shift A\"\ngit = \"Alt Shift G\"\nmenu = \"Alt Shift U\"\nscreen = \"Alt Shift S\"\nsidebar = \"Ctrl Shift B\"\nbottom_hints = \"Ctrl Shift U\"\nsidebar_focus = \"Ctrl Shift E\"\n");
     let status = custom_keys.prepared_status(&yzx_bin, "custom key status");
     expect_contains_all! {
         &status, "custom key status";
@@ -754,6 +762,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "menu keybinding: Alt Shift U",
         "screen keybinding: Alt Shift S",
         "sidebar keybinding: Ctrl Shift B",
+        "bottom hints keybinding: Ctrl Shift U",
         "forest keybinding: Ctrl Shift E",
         "zellij config: runtime (",
     }
@@ -784,8 +793,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains_all! {
         &custom_key_config, "custom key config";
         r#"bind "Ctrl Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
+        r#"bind "Ctrl Shift U" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }"#,
     }
-    for default in ["Alt Shift H", "Ctrl y", "Ctrl Shift E"] {
+    for default in ["Alt Shift H", "Alt Shift B", "Ctrl y", "Ctrl Shift E"] {
         assert!(
             !custom_key_config.contains(&format!(r#"bind "{default}" {{"#)),
             "custom key kept the default {default} binding"
@@ -793,7 +803,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
 
     let unmapped_keys = RuntimeCase::new(&temp.path, "unmapped-keys");
-    unmapped_keys.write_default_config("\n[keybindings]\nconfig = false\nagent = \"Ctrl Shift A\"\nscreen = false\nsidebar = false\n");
+    unmapped_keys.write_default_config("\n[keybindings]\nconfig = false\nagent = \"Ctrl Shift A\"\nscreen = false\nsidebar = false\nbottom_hints = false\n");
     let status = unmapped_keys.prepared_status(&yzx_bin, "unmapped key status");
     expect_contains_all! {
         &status, "unmapped key status";
@@ -801,6 +811,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "agent keybinding: Ctrl Shift A (remapped)",
         "screen keybinding: unmapped",
         "sidebar keybinding: unmapped",
+        "bottom hints keybinding: unmapped",
         "menu keybinding: Alt Shift M",
     }
     let unmapped_key_config = unmapped_keys.zellij_file("config.kdl");
@@ -810,7 +821,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "agent",
         "unmapped key config",
     );
-    for omitted in ["Alt Shift K", "Alt Shift A", "Alt Shift H"] {
+    for omitted in ["Alt Shift K", "Alt Shift A", "Alt Shift H", "Alt Shift B"] {
         assert!(
             !unmapped_key_config.contains(&format!(r#"bind "{omitted}" {{"#)),
             "unmapped key config kept {omitted}"
@@ -961,7 +972,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "Core",
         "ok    Configuration    settings valid",
         "ok    Commands         shell nu · editor yzx-hx · agent auto",
-        "ok    Interface        7 keybindings · bar widgets configured",
+        "ok    Interface        8 keybindings · bar widgets configured",
         "Runtime",
         "ok    Yazi             ",
         "ok    Components       all packaged helpers and plugins found",
@@ -1385,7 +1396,11 @@ fn expect_menu_dispatch(menu: &Path) {
         "toggle_workspace_popup",
         "Yazi workspace menu route",
     );
-    expect_contains(&binary, "content_layout_target", "content layout menu route");
+    expect_contains(
+        &binary,
+        "content_layout_target",
+        "content layout menu route",
+    );
     expect_contains(
         &binary,
         "Set the tab folder in Yazi",
@@ -1452,6 +1467,20 @@ fn expect_menu_dispatch(menu: &Path) {
     assert_eq!(
         fs::read_to_string(&pipe_args).unwrap(),
         "action pipe --plugin yazelix_pane_orchestrator --name content_layout_target -- toggle\naction apply-tiled-swap-layout columns_open\n"
+    );
+
+    let output = pipe_menu(b"bottom-hints\n", None);
+    assert!(output.status.success());
+    assert_eq!(
+        fs::read_to_string(&pipe_args).unwrap(),
+        "action pipe --plugin yazelix_pane_orchestrator --name toggle_bottom_hints -- toggle\n"
+    );
+    let output = pipe_menu(b"layout\n", Some("columns_closed_no_hints"));
+    assert!(output.status.success());
+    assert!(
+        fs::read_to_string(&pipe_args)
+            .unwrap()
+            .ends_with("action apply-tiled-swap-layout columns_closed_no_hints\n")
     );
 
     let output = pipe_menu(b"layout\n", Some("needs_second_pane"));
@@ -1531,6 +1560,7 @@ fn expect_config_ui(yzx: &Path) {
         "menu = \"Alt Shift M\"",
         "screen = \"Alt Shift A\"",
         "sidebar = \"Alt Shift H\"",
+        "bottom_hints = \"Alt Shift B\"",
         "sidebar_focus = \"Ctrl y\"",
         "widgets = [\"editor\", \"shell\", \"term\", \"codex_usage\", \"cpu\", \"ram\"]",
     }
@@ -1560,6 +1590,7 @@ fn expect_config_ui(yzx: &Path) {
         ("keybindings.menu", "Alt Shift M"),
         ("keybindings.screen", "Alt Shift A"),
         ("keybindings.sidebar", "Alt Shift H"),
+        ("keybindings.bottom_hints", "Alt Shift B"),
         ("keybindings.sidebar_focus", "Ctrl y"),
         (
             "bar.widgets",
@@ -1734,7 +1765,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
         ),
         (
             "bad-custom-popup-command-config",
-            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[popups.btm]\ncommand = \"btm --basic\"\nkeybinding = \"Alt Shift B\"\n",
+            "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[popups.btm]\ncommand = \"btm --basic\"\nkeybinding = \"Alt Shift U\"\n",
             "popups.btm.command must be one executable command without arguments; use args for arguments",
             "invalid custom popup command",
         ),
@@ -1820,7 +1851,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
 
 fn expect_menu_descriptions_match_help(help: &str, menu: &str) {
     for (id, label) in menu.lines().filter_map(menu_command_line) {
-        if matches!(id, "workspace" | "layout") {
+        if matches!(id, "workspace" | "layout" | "bottom-hints") {
             continue; // These entries pipe actions to the pane orchestrator.
         }
         assert!(

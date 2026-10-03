@@ -68,6 +68,7 @@ git = "Alt Shift J"
 menu = "Alt Shift M"
 screen = "Alt Shift A"
 sidebar = "Alt Shift H"
+bottom_hints = "Alt Shift B"
 sidebar_focus = "Ctrl y"
 
 # Custom popups can be added manually. Commands are argv-based, not shell strings.
@@ -76,7 +77,7 @@ sidebar_focus = "Ctrl y"
 # command = "btm"
 # args = ["--basic"]
 # title = "btm_popup"
-# keybinding = "Alt Shift B"
+# keybinding = "Alt Shift U"
 # keep_alive = true
 
 [bar]

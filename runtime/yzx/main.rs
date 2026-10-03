@@ -64,6 +64,11 @@ pub(crate) const MANAGED_KEYBINDING_SPECS: &[(&str, &str, &str)] = &[
     ("menu", "keybindings.menu", "@defaultMenuKeybinding@"),
     ("screen", "keybindings.screen", "@defaultScreenKeybinding@"),
     (
+        "bottom hints",
+        "keybindings.bottom_hints",
+        "@defaultBottomHintsKeybinding@",
+    ),
+    (
         "sidebar",
         "keybindings.sidebar",
         "@defaultSidebarKeybinding@",

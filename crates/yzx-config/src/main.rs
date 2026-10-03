@@ -1187,7 +1187,7 @@ mod tests {
         let path = temp.path.join("config.toml");
         write_config_text(
             &path,
-            "[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\", \"--battery\"]\ntitle = \"btm_popup\"\nkeybinding = \"Alt Shift B\"\nkeep_alive = true\n",
+            "[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\", \"--battery\"]\ntitle = \"btm_popup\"\nkeybinding = \"Alt Shift U\"\nkeep_alive = true\n",
         );
 
         assert_eq!(
@@ -1206,7 +1206,7 @@ mod tests {
         assert_eq!(
             read_custom_popup_keybindings_kdl(&path).unwrap(),
             concat!(
-                "        bind \"Alt Shift B\" {\n",
+                "        bind \"Alt Shift U\" {\n",
                 "            MessagePlugin \"yzpp\" {\n",
                 "                name \"toggle\"\n",
                 "                payload \"btm\"\n",
@@ -1290,15 +1290,15 @@ mod tests {
         // Defends: Custom popup specs stay semantic and cannot shadow packaged popup ownership.
         for (text, expected) in [
             (
-                "[popups.btm]\ncommand = \"btm --basic\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.btm]\ncommand = \"btm --basic\"\nkeybinding = \"Alt Shift U\"\n",
                 "without arguments",
             ),
             (
-                "[popups.yazi]\ncommand = \"btm\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.yazi]\ncommand = \"btm\"\nkeybinding = \"Alt Shift U\"\n",
                 "conflicts with packaged popup id",
             ),
             (
-                "[popups.screen]\ncommand = \"btm\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.screen]\ncommand = \"btm\"\nkeybinding = \"Alt Shift U\"\n",
                 "conflicts with packaged popup id",
             ),
             (
@@ -1314,27 +1314,27 @@ mod tests {
                 "popups.btm.keybinding conflicts with keybindings.config: Alt Shift K",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\nkeybinding = \"Alt Shift B\"\n\n[popups.htop]\ncommand = \"htop\"\nkeybinding = \"Alt Shift B\"\n",
-                "popups.htop.keybinding conflicts with popups.btm.keybinding: Alt Shift B",
+                "[popups.btm]\ncommand = \"btm\"\nkeybinding = \"Alt Shift U\"\n\n[popups.htop]\ncommand = \"htop\"\nkeybinding = \"Alt Shift U\"\n",
+                "popups.htop.keybinding conflicts with popups.btm.keybinding: Alt Shift U",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\ntitle = \" \"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \" \"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.btm.title must not be empty",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\ntitle = \"yazi_popup\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \"yazi_popup\"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.btm.title conflicts with packaged popup title yazi_popup",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\ntitle = \"screen_popup\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \"screen_popup\"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.btm.title conflicts with packaged popup title screen_popup",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\ntitle = \"anima\"\nkeybinding = \"Alt Shift B\"\n",
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \"anima\"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.btm.title conflicts with packaged popup title anima",
             ),
             (
-                "[popups.btm]\ncommand = \"btm\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift B\"\n\n[popups.htop]\ncommand = \"htop\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift U\"\n",
+                "[popups.btm]\ncommand = \"btm\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift U\"\n\n[popups.htop]\ncommand = \"htop\"\ntitle = \"shared_popup\"\nkeybinding = \"Alt Shift U\"\n",
                 "popups.htop.title conflicts with popups.btm.title: shared_popup",
             ),
         ] {
@@ -1416,7 +1416,9 @@ mod tests {
         for &(path, _) in MANAGED_KEYBINDINGS {
             let tab = if matches!(
                 path,
-                KEYBINDINGS_SIDEBAR_PATH | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+                KEYBINDINGS_SIDEBAR_PATH
+                    | KEYBINDINGS_SIDEBAR_FOCUS_PATH
+                    | KEYBINDINGS_BOTTOM_HINTS_PATH
             ) {
                 TAB_CONFIG
             } else {
@@ -1694,7 +1696,7 @@ mod tests {
         let (_temp, paths) = temp_sources();
         write_config_text(
             &paths.root,
-            "[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\"]\ntitle = \"system_monitor\"\nkeybinding = \"Alt Shift B\"\nkeep_alive = true\n",
+            "[popups.btm]\ncommand = \"btm\"\nargs = [\"--basic\"]\ntitle = \"system_monitor\"\nkeybinding = \"Alt Shift U\"\nkeep_alive = true\n",
         );
 
         let model = build_model(&paths).unwrap();

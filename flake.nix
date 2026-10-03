@@ -880,6 +880,7 @@
             menuKey = defaultConfig.keybindings.menu;
             screenKey = defaultConfig.keybindings.screen;
             sidebarKey = defaultConfig.keybindings.sidebar;
+            bottomHintsKey = defaultConfig.keybindings.bottom_hints;
             inherit defaultPopupSideMargin defaultPopupVerticalMargin;
             yzxConfig = "${configUi}/bin/yzx-config-ui";
             yzxMenu = "${yzxMenu}/bin/yzx-menu";
@@ -933,6 +934,7 @@
           defaultMenuKeybinding = defaultConfig.keybindings.menu;
           defaultScreenKeybinding = defaultConfig.keybindings.screen;
           defaultSidebarKeybinding = defaultConfig.keybindings.sidebar;
+          defaultBottomHintsKeybinding = defaultConfig.keybindings.bottom_hints;
           defaultSidebarFocusKeybinding = defaultConfig.keybindings.sidebar_focus;
           inherit defaultPopupSideMargin defaultPopupVerticalMargin;
           version = novaVersion;
@@ -1787,6 +1789,12 @@
         touch "$out"
       '';
     } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+      bottom_hints = pkgs.runCommand "nova-bottom-hints-check" {
+        nativeBuildInputs = [pkgs.python3 pkgs.tmux pkgs.coreutils];
+      } ''
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 90s ${pkgs.python3}/bin/python ${./checks/bottom-hints.py} ${yzx} ${pkgs.bash}/bin/bash
+        touch "$out"
+      '';
       attached_tab_focus = pkgs.runCommand "nova-attached-tab-focus-check" {
         nativeBuildInputs = [pkgs.python3 pkgs.tmux pkgs.coreutils];
       } ''

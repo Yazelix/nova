@@ -4,6 +4,13 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `Alt Shift B` and the command palette's **Toggle bottom hints** action hide or
+  restore bottom hints throughout the current session, reclaiming their row when
+  hidden. Sidebar and stacked/split layout switches retain the choice; new tabs
+  inherit it, and fresh sessions start visible. Focus and input mode survive the
+  toggle, including with multiple attached clients.
+  `keybindings.bottom_hints` remaps the shortcut or disables it with `false`.
+
 - A user `helix/init.scm` loads after Nova's managed Steel startup without
   requiring a user `helix.scm`, so plugins can be added while retaining the
   packaged `:yzx-new-shell` command. Ratconfig creates only `init.scm` when

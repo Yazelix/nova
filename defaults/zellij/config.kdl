@@ -182,6 +182,7 @@ keybinds {
         bind "Alt 8" { GoToTab 8; }
         bind "Alt 9" { GoToTab 9; }
         bind "Alt Shift F" { ToggleFocusFullscreen; }
+        bind "@bottomHintsKey@" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }
         bind "@sidebarKey@" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }
         bind "Ctrl Alt g" { SwitchToMode "Locked"; }
         bind "Ctrl q" { Quit; }

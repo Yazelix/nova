@@ -59,6 +59,12 @@ To try the split work area, open a second work pane with `Alt m`, then press
 Radar sidebar stays open or collapsed as you left it. The command palette's
 `layout` entry remains available with `Alt Shift M`.
 
+`Alt Shift B` or **Toggle bottom hints** in the command palette hides or restores
+bottom hint rows throughout the current session. Hiding them frees one row for
+work panes; sidebar and layout switches retain the choice. New tabs inherit it,
+and fresh sessions start with hints visible.
+Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
+
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
 
 ```sh
@@ -126,6 +132,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **27,482 code/configuration lines** and **5,202 documentation/text
+Yazelix owns **27,858 code/configuration lines** and **5,231 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

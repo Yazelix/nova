@@ -1,35 +1,35 @@
 layout {
-    tab_template name="ui" {
-        pane size=1 borderless=true {
-            @bar@
-        }
-        children
-        pane size=1 borderless=true {
-            plugin location="zellij:nova-zjhints" {
-                show_mode false
-                group_modifiers true
-                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
-                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
-            }
+    pane_template name="top_bar" borderless=true {
+        @bar@
+    }
+
+    pane_template name="bottom_hints" borderless=true {
+        plugin location="zellij:nova-zjhints" {
+            show_mode false
+            group_modifiers true
+            modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
+            key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
         }
     }
 
+    tab_template name="ui" {
+        top_bar size=1
+        children
+        bottom_hints name="bottom_hints" size=1
+    }
+
+    tab_template name="ui_no_hints" {
+        top_bar size=1
+        children
+    }
+
     default_tab_template {
-        pane size=1 borderless=true {
-            @bar@
-        }
+        top_bar size=1
         pane split_direction="vertical" {
             pane name="sidebar" size=32 borderless=false @sidebar@
             children
         }
-        pane size=1 borderless=true {
-            plugin location="zellij:nova-zjhints" {
-                show_mode false
-                group_modifiers true
-                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
-                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
-            }
-        }
+        bottom_hints name="bottom_hints" size=1
     }
 
     tab name="" {
@@ -39,22 +39,13 @@ layout {
     }
 
     new_tab_template cwd="$HOME" {
-        pane size=1 borderless=true {
-            @bar@
-        }
+        top_bar size=1
         pane split_direction="vertical" {
             pane name="sidebar" size=32 borderless=false @sidebar@
             pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {
                 args "--yzx-startup-picker"
             }
         }
-        pane size=1 borderless=true {
-            plugin location="zellij:nova-zjhints" {
-                show_mode false
-                group_modifiers true
-                modifier_format "#[fg=black,bg=#4ca630,bold] {modifier} + "
-                key_format "#[fg=#faebd7,bg=#30343b,bold] {key} "
-            }
-        }
+        bottom_hints name="bottom_hints" size=1
     }
 }

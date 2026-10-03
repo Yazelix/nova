@@ -131,6 +131,40 @@ fn main() -> ExitCode {
         );
         ok = false;
     }
+    for (name, minimum) in [
+        ("single_open", 4),
+        ("single_closed", 4),
+        ("columns_open", 5),
+        ("columns_closed", 5),
+    ] {
+        for hidden in [false, true] {
+            let variant = format!(
+                "swap_tiled_layout name=\"{name}{}\"",
+                if hidden { "_no_hints" } else { "" }
+            );
+            let ui = if hidden { "ui_no_hints" } else { "ui" };
+            if !block_contains(
+                &swap,
+                &variant,
+                &format!("{ui} min_panes={}", minimum - usize::from(hidden)),
+            ) {
+                eprintln!("{swap_path}: {variant} must match the visible pane count");
+                ok = false;
+            }
+        }
+    }
+    if !block_contains(
+        &layout,
+        "tab_template name=\"ui\"",
+        "bottom_hints name=\"bottom_hints\"",
+    ) || block_contains(&layout, "tab_template name=\"ui_no_hints\"", "bottom_hints")
+        || !block_contains(&layout, "tab_template name=\"ui_no_hints\"", "children")
+    {
+        eprintln!(
+            "{layout_path}: visible and hidden hint layouts must share content and keep a named bottom hint pane only when visible"
+        );
+        ok = false;
+    }
     let mut depth = 0i32;
 
     for (index, line) in swap.lines().enumerate() {
@@ -221,8 +255,8 @@ fn bar_layout_is_valid(layout: &str) -> bool {
         .matches(r#"plugin location="zellij:nova-zjhints""#)
         .count();
     let views = layout.matches(r#"role "view""#).count();
-    bars == 3
-        && hint_bars == 3
+    bars == 1
+        && hint_bars == 1
         && views == bars
         && !layout.contains("format_right")
         && !layout.contains("command_cpu")
