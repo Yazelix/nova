@@ -139,4 +139,4 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 Yazelix owns **28,179 code/configuration lines** and **5,288 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets. Hint-color adjustments preserve LOC.
+excludes Beads, lockfiles, and binary assets. Modifier-color adjustments preserve LOC.

@@ -334,4 +334,4 @@ package builds remain a separate gate.
 Closed-tab and idle-popup regressions account for the interaction check’s LOC growth.
 The managed-popup check also covers bottom-bar, sidebar and viewport reflow without process or focus loss.
 
-Configured pipe annotations and remapping checks account for compact-hint LOC growth; color-value changes add no code. Native parsing and existing priority fitting retain one owner each.
+Configured pipe annotations and remapping checks account for compact-hint LOC growth; modifier-red changes add no code. Native parsing and existing priority fitting retain one owner each.

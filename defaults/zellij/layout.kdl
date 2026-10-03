@@ -11,7 +11,7 @@ layout {
             mod_alias_ctrl "C"
             mod_alias_alt "A"
             mod_alias_shift "S"
-            modifier_format "#[fg=#e66f68,bg=#252a30] {modifier} "
+            modifier_format "#[fg=#ff5252,bg=#252a30] {modifier} "
             label_mode_session "sess."
             label_move_tab "mv tab"
             label_fullscreen "full"

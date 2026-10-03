@@ -66,7 +66,7 @@ User-visible runtime changes for Yazelix Nova live here.
   The row has a one-column leading inset; when three modifier groups remain,
   spare width is divided evenly between their gaps. Muted gray labels
   share the keys' plain background, with one-cell gaps between hints. Modifier
-  headers use a slightly dimmer warm red on a subtle charcoal background.
+  headers use true red on a subtle charcoal background.
 
 - Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
   `Ctrl b` Tmux-mode entry. `Alt m` remains the new-pane shortcut.
