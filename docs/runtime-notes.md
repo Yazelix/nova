@@ -203,6 +203,9 @@ wider than its collapsed divider, managed popups use a shared 33-cell left
 margin so the framed 32-column sidebar rail remains visible. A pane update
 reflows any visible managed popup without restarting it. When the rail is
 collapsed, the configured side margin applies symmetrically again.
+Native usable viewport changes also reflow visible managed popups. Hiding the
+bottom hints extends the popup by one row; restoring hints keeps that row clear.
+Configured margins, the running process and keyboard focus survive the resize.
 
 For a sidebar toggle, the pane orchestrator asks Nova Zellij to select the
 exact named tiled swap layout underneath the visible floating layer. Zellij

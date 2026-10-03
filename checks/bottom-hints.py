@@ -17,26 +17,35 @@ binary = str(package / "bin/yzx-zellij")
 packaged_config = (package / "share/yazelix/config.kdl").read_text()
 menu = re.search(r'menu \{\s*command "([^"]+)"', packaged_config).group(1)
 plugin = re.search(r'yazelix_pane_orchestrator location="([^"]+)"', packaged_config).group(1)
+popup_plugin = re.search(r'yzpp location="([^"]+)"', packaged_config).group(1)
 env = {k: v for k, v in os.environ.items() if not k.startswith(("ZELLIJ", "YZX_", "YAZELIX_"))}
 env.update(HOME=str(root / "home"), XDG_CACHE_HOME=str(root / "cache"), XDG_DATA_HOME=str(root / "data"), ZELLIJ_SOCKET_DIR=str(root / "sockets"), TERM="xterm-256color")
 for name in ("home", "cache/yzx-zellij", "sockets"):
     (root / name).mkdir(parents=True, exist_ok=True)
 permissions = "\n".join(" " + p for p in ("ReadApplicationState", "ChangeApplicationState", "OpenTerminalsOrPlugins", "RunCommands", "WriteToStdin", "ReadCliPipes", "MessageAndLaunchOtherPlugins", "ReadSessionEnvironmentVariables"))
-(root / "cache/yzx-zellij/permissions.kdl").write_text(json.dumps(plugin.removeprefix("file:")) + " {\n" + permissions + "\n}\n")
+(root / "cache/yzx-zellij/permissions.kdl").write_text("".join(json.dumps(url.removeprefix("file:")) + " {\n" + permissions + "\n}\n" for url in (plugin, popup_plugin)))
 config = root / "config.kdl"
 config.write_text('''default_shell "__SHELL__"
 show_startup_tips false
 show_release_notes false
 pane_frame_style "full"
 stacked_pane_list false
-plugins { yazelix_pane_orchestrator location="__PLUGIN__" { screen_saver_enabled false; }; radar location="zellij:radar" { role "view"; naming "off"; }; }
-load_plugins { yazelix_pane_orchestrator; }
+plugins {
+    yazelix_pane_orchestrator location="__PLUGIN__" { screen_saver_enabled false; }
+    radar location="zellij:radar" { role "view"; naming "off"; }
+    yzpp location="__POPUP_PLUGIN__" {
+        left_margin_pane_title "sidebar"
+        popup_defaults { side_margin 1; left_margin 33; vertical_margin 0; }
+        popups { proof { command "__SHELL__"; arg_1 "-c"; arg_2 "printf POPUP; echo $$ > __POPUP_PID__; sleep 9999"; pane_title "managed-popup"; }; }
+    }
+}
+load_plugins { yazelix_pane_orchestrator; yzpp; }
 keybinds clear-defaults=true {
     normal { bind "Ctrl q" { Quit; }; bind "Ctrl p" { SwitchToMode "Pane"; }; }
     pane { bind "Ctrl p" { SwitchToMode "Normal"; }; bind "Ctrl y" { CloseFocus; }; }
-    shared_except "locked" { bind "Ctrl t" { GoToTab 2; }; bind "Ctrl r" { GoToTab 1; }; bind "Alt Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }; }
+    shared_except "locked" { bind "Ctrl t" { GoToTab 2; }; bind "Ctrl r" { GoToTab 1; }; bind "Alt g" { MessagePlugin "yzpp" { name "toggle"; payload "proof"; }; }; bind "Alt Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }; }
 }
-'''.replace("__SHELL__", shell).replace("__PLUGIN__", plugin))
+'''.replace("__SHELL__", shell).replace("__PLUGIN__", plugin).replace("__POPUP_PLUGIN__", popup_plugin).replace("__POPUP_PID__", str(root / "popup.pid")))
 ui = '''
     top_bar size=1
     pane split_direction="vertical" {
@@ -114,6 +123,10 @@ def verify(hidden, width=120, height=40, focus=None, frameless=(), columns=None)
             return False
         if not hidden and (bar["pane_y"], bar["pane_rows"], bar["pane_columns"]) != (height - 1, 1, width):
             return False
+        left_margin = 33 if next(p for p in data if p["tab_position"] == 0 and p["title"] == "sidebar")["pane_columns"] > 2 else 1
+        for pane in (p for p in data if p["tab_position"] == 0 and p["title"] == "managed-popup" and not p["is_suppressed"]):
+            if pane["exited"] or (pane["pane_x"], pane["pane_y"], pane["pane_columns"], pane["pane_rows"]) != (left_margin, 1, width - left_margin - 1, height - 1 - (not hidden)):
+                return False
         focused = [p for p in data if p["tab_position"] == 0 and p["is_focused"] and not p["is_suppressed"]]
         return focus is None or max(focused, key=lambda p: p["is_floating"])["id"] == focus
     return wait_for(settled)
@@ -205,10 +218,11 @@ try:
     verify(True)
     tmux("resize-window", "-t", "proof:0", "-x", "80", "-y", "24")
     action("apply-tiled-swap-layout", "columns_open_no_hints")
-    action("new-pane", "--floating", "--", shell, "-c", "printf POPUP; sleep 9999")
+    tmux("send-keys", "-t", "proof:0", "M-g")
     data = wait_for(lambda p: any(x["is_floating"] and x["is_focused"] for x in p))
     popup = next(p["id"] for p in data if p["tab_position"] == 0 and p["is_floating"] and p["is_focused"])
     verify(True, 80, 24, popup, columns=True)
+    popup_pid = (root / "popup.pid").read_text()
     # An idle popup must not repeatedly force full-screen tiled-layout redraws.
     idle_output = root / "idle-popup.output"
     tmux("pipe-pane", "-t", "proof:0", "cat > " + shlex.quote(str(idle_output)))
@@ -225,6 +239,15 @@ try:
     verify(False, 80, 24, popup, columns=True)
     tmux("send-keys", "-t", "proof:0", "C-p", "M-B")
     verify(True, 80, 24, popup, columns=True)
+    pipe("toggle_sidebar")
+    verify(True, 80, 24, popup, columns=True)
+    pipe("toggle_sidebar")
+    verify(True, 80, 24, popup, columns=True)
+    tmux("resize-window", "-t", "proof:0", "-x", "100", "-y", "30")
+    verify(True, 100, 30, popup, columns=True)
+    tmux("resize-window", "-t", "proof:0", "-x", "80", "-y", "24")
+    verify(True, 80, 24, popup, columns=True)
+    assert (root / "popup.pid").read_text() == popup_pid, "popup process restarted during reflow"
     tmux("send-keys", "-t", "proof:0", "C-y")
     wait_for(lambda p: all(x["is_plugin"] or x["id"] != popup for x in p))
     verify(True, 80, 24, columns=True)

@@ -16,6 +16,8 @@ User-visible runtime changes for Yazelix Nova live here.
   orphan bars from accumulating and disabling the session toggle.
   Open popups preserve split work layouts and avoid repeated tiled-layout
   redraws while hints are hidden.
+  Managed popups resize when hints hide or return, keeping the bar uncovered
+  while preserving the popup process, focus and configured margins.
 
 - A user `helix/init.scm` loads after Nova's managed Steel startup without
   requiring a user `helix.scm`, so plugins can be added while retaining the

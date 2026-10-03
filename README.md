@@ -63,6 +63,8 @@ Radar sidebar stays open or collapsed as you left it. The command palette's
 bottom hint rows throughout the current session. Hiding them frees one row for
 work panes; sidebar and layout switches retain the choice. New tabs inherit it,
 and fresh sessions start with hints visible.
+Open managed popups resize with the hint row, preserving their running process
+and keyboard focus.
 Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
 
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
@@ -132,6 +134,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **27,918 code/configuration lines** and **5,243 documentation/text
+Yazelix owns **27,941 code/configuration lines** and **5,251 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.
