@@ -18,6 +18,8 @@ User-visible runtime changes for Yazelix Nova live here.
   redraws while hints are hidden.
   Managed popups resize when hints hide or return, keeping the bar uncovered
   while preserving the popup process, focus and configured margins.
+  Showing a previously hidden floating layer fits its managed popups to the
+  current hint-bar and sidebar geometry.
 
 - A user `helix/init.scm` loads after Nova's managed Steel startup without
   requiring a user `helix.scm`, so plugins can be added while retaining the

@@ -223,8 +223,21 @@ try:
     popup = next(p["id"] for p in data if p["tab_position"] == 0 and p["is_floating"] and p["is_focused"])
     verify(True, 80, 24, popup, columns=True)
     popup_pid = (root / "popup.pid").read_text()
+    # Returning from a hidden floating layer must use the current hint viewport.
+    for hidden in (False, True):
+        action("hide-floating-panes")
+        pipe("toggle_bottom_hints")
+        action("show-floating-panes")
+        verify(hidden, 80, 24, popup, columns=True)
+    for sidebar_columns in (1, 32):
+        action("hide-floating-panes")
+        pipe("toggle_sidebar")
+        wait_for(lambda p: any(x["title"] == "sidebar" and x["tab_position"] == 0 and x["pane_columns"] == sidebar_columns for x in p))
+        action("show-floating-panes")
+        verify(True, 80, 24, popup, columns=True)
     # An idle popup must not repeatedly force full-screen tiled-layout redraws.
     idle_output = root / "idle-popup.output"
+    time.sleep(.6)
     tmux("pipe-pane", "-t", "proof:0", "cat > " + shlex.quote(str(idle_output)))
     time.sleep(.6)
     tmux("pipe-pane", "-t", "proof:0")

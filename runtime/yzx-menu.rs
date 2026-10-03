@@ -85,7 +85,7 @@ fn run() -> i32 {
 }
 
 fn orchestrator_action(name: &str, payload: &str, action: &str) -> i32 {
-    let output = orchestrator_pipe(name, Some(payload));
+    let output = orchestrator_pipe(name, payload);
     match output {
         Ok(output)
             if output.status.success()
@@ -113,7 +113,7 @@ fn orchestrator_action(name: &str, payload: &str, action: &str) -> i32 {
 }
 
 fn toggle_layout() -> i32 {
-    match orchestrator_pipe("content_layout_target", Some("toggle")) {
+    match orchestrator_pipe("content_layout_target", "toggle") {
         Ok(output) if output.status.success() => {
             match String::from_utf8_lossy(&output.stdout).trim() {
                 layout
@@ -164,7 +164,7 @@ fn toggle_layout() -> i32 {
     }
 }
 
-fn orchestrator_pipe(name: &str, payload: Option<&str>) -> io::Result<Output> {
+fn orchestrator_pipe(name: &str, payload: &str) -> io::Result<Output> {
     let mut command = Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()));
     command.args([
         "action",
@@ -173,10 +173,9 @@ fn orchestrator_pipe(name: &str, payload: Option<&str>) -> io::Result<Output> {
         "yazelix_pane_orchestrator",
         "--name",
         name,
+        "--",
+        payload,
     ]);
-    if let Some(payload) = payload {
-        command.args(["--", payload]);
-    }
     command.output()
 }
 
