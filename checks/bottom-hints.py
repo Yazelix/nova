@@ -27,7 +27,7 @@ config = root / "config.kdl"
 config.write_text('''default_shell "__SHELL__"
 show_startup_tips false
 show_release_notes false
-pane_frames true
+pane_frame_style "full"
 stacked_pane_list false
 plugins { yazelix_pane_orchestrator location="__PLUGIN__" { screen_saver_enabled false; }; radar location="zellij:radar" { role "view"; naming "off"; }; }
 load_plugins { yazelix_pane_orchestrator; }
@@ -97,18 +97,21 @@ def hints(data):
     return next(p for p in data if p["title"] == "bottom_hints")
 
 
-def verify(hidden, width=120, height=40, focus=None):
-    data = wait_for(lambda p: hints(p)["is_suppressed"] == hidden and (hidden or (hints(p)["pane_rows"], hints(p)["pane_columns"], hints(p)["pane_y"]) == (1, width, height - 1)))
-    if not hidden:
+def verify(hidden, width=120, height=40, focus=None, frameless=()):
+    def settled(data):
         bar = hints(data)
-        assert (bar["pane_y"], bar["pane_rows"], bar["pane_columns"]) == (height - 1, 1, width), bar
-    else:
-        work = [p for p in data if p["tab_position"] == 0 and not p["is_suppressed"] and not p["is_floating"] and not p["is_plugin"]]
-        assert max(p["pane_y"] + p["pane_rows"] for p in work) == height, work
-    if focus is not None:
+        work = [p for p in data if p["tab_position"] == 0 and not p["is_plugin"] and not p["is_floating"]]
+        if not required_work.issubset(p["id"] for p in work):
+            return False
+        if bar["is_suppressed"] != hidden or not all(not p["is_suppressed"] and not p["exited"] and p["pane_content_columns"] == p["pane_columns"] - (0 if p["id"] in frameless else 2) for p in work):
+            return False
+        if max(p["pane_y"] + p["pane_rows"] for p in work) != height - (not hidden):
+            return False
+        if not hidden and (bar["pane_y"], bar["pane_rows"], bar["pane_columns"]) != (height - 1, 1, width):
+            return False
         focused = [p for p in data if p["tab_position"] == 0 and p["is_focused"] and not p["is_suppressed"]]
-        assert max(focused, key=lambda p: p["is_floating"])["id"] == focus, focused
-    return data
+        return focus is None or max(focused, key=lambda p: p["is_floating"])["id"] == focus
+    return wait_for(settled)
 
 
 try:
@@ -125,11 +128,14 @@ try:
     work = next(p["id"] for p in data if p["title"] == "work-one")
     time.sleep(.5)
     env["ZELLIJ_PANE_ID"] = str(work)
-    wait_for(lambda p: any(x["title"] == "work-two" for x in p))
+    data = wait_for(lambda p: any(x["title"] == "work-two" for x in p))
+    required_work = {p["id"] for p in data if not p["is_plugin"]}
+    second_work = next(p["id"] for p in data if p["title"] == "work-two")
+    verify(False, focus=work)
     for family in ("single_open", "single_closed", "columns_open", "columns_closed"):
         action("apply-tiled-swap-layout", family)
         time.sleep(0.2)
-        for _ in range(2):
+        for _ in range(6):
             pipe("toggle_bottom_hints")
             verify(True, focus=work)
             tmux("send-keys", "-t", "proof:0", "M-B")
@@ -145,6 +151,14 @@ try:
         verify(True)
         pipe("toggle_bottom_hints")
         verify(False)
+    # Respect intentional borderless work panes while restoring framed siblings.
+    action("set-pane-borderless", "--pane-id", str(work), "--borderless")
+    for _ in range(2):
+        pipe("toggle_bottom_hints")
+        verify(True, frameless=(work,))
+        pipe("toggle_bottom_hints")
+        verify(False, frameless=(work,))
+    action("set-pane-borderless", "--pane-id", str(work))
     sidebar = next(p["id"] for p in panes() if p["title"] == "sidebar")
     action("focus-pane-id", "plugin_" + str(sidebar))
     pipe("toggle_bottom_hints")
@@ -153,6 +167,10 @@ try:
     data = wait_for(lambda p: any(x["title"] == "extra" for x in p))
     extra = next(p["id"] for p in data if p["title"] == "extra")
     verify(True)
+    pipe("toggle_bottom_hints")
+    verify(False, focus=sidebar)
+    pipe("toggle_bottom_hints")
+    verify(True, focus=sidebar)
     action("close-pane", "--pane-id", str(extra))
     wait_for(lambda p: all(x["id"] != extra or x["is_plugin"] for x in p))
     verify(True)
@@ -218,6 +236,17 @@ try:
     assert response == "missing", response
     geometry = lambda data: [(p["id"], p["is_plugin"], p["is_suppressed"], p["pane_x"], p["pane_y"], p["pane_rows"], p["pane_columns"]) for p in data]
     assert geometry(before) == geometry(panes()), "missing hint pane changed the layout"
+    action("rename-pane", "--pane-id", "plugin_" + str(bar["id"]), "bottom_hints")
+    action("close-pane", "--pane-id", str(second_work))
+    required_work = {work}
+    wait_for(lambda p: all(x["is_plugin"] or x["id"] != second_work for x in p))
+    action("apply-tiled-swap-layout", "single_open_no_hints")
+    verify(True, 80, 24)
+    for _ in range(3):
+        pipe("toggle_bottom_hints")
+        verify(False, 80, 24)
+        pipe("toggle_bottom_hints")
+        verify(True, 80, 24)
     # Mirrored sessions omit other clients from TabUpdate; still toggle once.
     run([binary, "kill-session", session])
     subprocess.run(["tmux", "-f", "/dev/null", "-L", socket, "kill-server"], env=env, capture_output=True)
@@ -239,11 +268,12 @@ try:
         else:
             raise AssertionError("mirrored client did not render")
     time.sleep(.3)
+    required_work = {p["id"] for p in panes() if not p["is_plugin"]}
     pipe("toggle_bottom_hints")
     verify(True)
     tmux("send-keys", "-t", "proof:1", "M-B")
     verify(False)
-    print("bottom hints: layouts, shortcut/CLI/menu, rapid toggles, pane lifecycle, session-wide visibility, geometry, focus, input mode, multiple and mirrored clients, leader departure, attach, and missing-pane safety passed")
+    print("bottom hints: repeated toggles, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
 finally:
     subprocess.run([binary, "kill-session", session], env=env, capture_output=True)
     subprocess.run(["tmux", "-f", "/dev/null", "-L", socket, "kill-server"], env=env, capture_output=True)

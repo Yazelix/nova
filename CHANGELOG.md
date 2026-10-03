@@ -10,6 +10,8 @@ User-visible runtime changes for Yazelix Nova live here.
   inherit it, and fresh sessions start visible. Focus and input mode survive the
   toggle, including with multiple attached clients.
   `keybindings.bottom_hints` remaps the shortcut or disables it with `false`.
+  Repeated toggles preserve work-pane frames and stack headers, so collapsed
+  panes remain visible and selectable.
 
 - A user `helix/init.scm` loads after Nova's managed Steel startup without
   requiring a user `helix.scm`, so plugins can be added while retaining the

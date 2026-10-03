@@ -316,9 +316,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 27,858 |
-| Documentation and text | 5,231 |
-| Total | 33,089 |
+| Code and configuration | 27,888 |
+| Documentation and text | 5,234 |
+| Total | 33,122 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -327,6 +327,7 @@ The agent overlay and rendered AGENTS rule preserve the README's direct `/docs/`
 
 The bottom-hint shortcut, menu dispatch, shared layout templates and packaged
 headless interaction check account for the bottom-bar feature’s LOC growth.
-The Linux check covers layout families, row reclamation, focus, input mode,
-pane lifecycle, session visibility and regular/mirrored client handoff. Darwin
+The Linux check covers layout families, row reclamation, pane frames and identities,
+single/stacked/split work panes, focus, input mode, pane lifecycle, session visibility
+and regular/mirrored client handoff. Darwin
 package builds remain a separate gate.
