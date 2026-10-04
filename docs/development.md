@@ -72,6 +72,8 @@ Tab/Z/Shift-Tab search and Spot keys, ignored startup Alt-Enter, successful
 handoff, exact later-tab cancellation, and sole-tab session exit on a private X
 display. Shared acceptance still requires Darwin Package Smoke on the exact
 revision; macOS interaction remains unverified.
+Physical keys use the recorder; the final session-exit key avoids its live-app
+health check.
 The shared managed-Yazi keymap gives the persistent popup one Tab/Z search and
 both Shift-Tab encodings for Spot.
 The Linux-only `pane_move_ordering` check uses the same private display to verify
@@ -316,9 +318,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,330 |
-| Documentation and text | 5,492 |
-| Total | 33,822 |
+| Code and configuration | 28,326 |
+| Documentation and text | 5,495 |
+| Total | 33,821 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
