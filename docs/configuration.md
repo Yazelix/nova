@@ -31,8 +31,15 @@ The yellow `>` marks the staged choice, and `Enter` saves it
 ~/.config/yazelix/
 ```
 
-Set `YAZELIX_CONFIG_HOME` to use another root. Generated runtime state
-defaults to:
+`XDG_CONFIG_HOME` changes the base directory, with `yazelix` appended:
+
+```text
+${XDG_CONFIG_HOME:-$HOME/.config}/yazelix
+```
+
+Set `YAZELIX_CONFIG_HOME` to override the complete root. See the
+[macOS XDG opt-in](installation.md#macos-xdg-paths) for shell and GUI environment
+configuration. Generated runtime state defaults to:
 
 ```text
 ${XDG_DATA_HOME:-$HOME/.local/share}/yazelix
@@ -413,7 +420,9 @@ opener
 
 Normal host config such as `~/.config/helix`, `~/.config/yazi`, and
 `~/.config/starship.toml` does not control the managed runtime unless you route
-through these Yazelix-owned files
+through these Yazelix-owned files. Home Manager can
+[reuse one source at both explicit destinations](installation.md#reuse-one-source-for-host-and-nova)
+without ambient configuration adoption
 
 Opening `yzx config` seeds `rio/config.toml` once, but does not create
 `starship.toml` or `zellij/config.kdl`. Saving writes only the selected override,

@@ -208,6 +208,80 @@ programs.yazelix.config = {
 };
 ```
 
+### macOS XDG paths
+
+macOS users can opt into Home Manager's Linux-style XDG directories. In an
+existing nix-darwin configuration that imports Home Manager's Darwin module,
+add this **system-level module**, replacing both occurrences of `alice` with
+the primary user's name:
+
+```nix
+{ config, ... }:
+let
+  xdg = config.home-manager.users.${config.system.primaryUser}.xdg;
+in {
+  system.primaryUser = "alice";
+  home-manager.users.alice.xdg.enable = true;
+
+  launchd.user.envVariables = {
+    XDG_CONFIG_HOME = xdg.configHome;
+    XDG_CACHE_HOME = xdg.cacheHome;
+    XDG_DATA_HOME = xdg.dataHome;
+    XDG_STATE_HOME = xdg.stateHome;
+  };
+}
+```
+
+[Home Manager's `xdg.enable`](https://nix-community.github.io/home-manager/options/home-manager/xdg.html#opt-xdg.enable)
+provides these paths through its shell session variables. nix-darwin's
+[`launchd.user.envVariables`](https://nix-darwin.github.io/nix-darwin/manual/#opt-launchd.user.envVariables)
+applies the same values to the primary user's launchd environment during
+activation, for subsequently launched processes. Apply the normal nix-darwin
+switch and restart affected GUI launchers and applications; running processes
+keep their existing environment. Check Nova's effective roots with `yzx status`.
+This example does not set `XDG_RUNTIME_DIR`,
+which requires a private directory with a login-session lifecycle.
+
+`XDG_CONFIG_HOME` selects the base directory; Nova still appends `yazelix`.
+Generated runtime state uses `XDG_DATA_HOME/yazelix`, not `XDG_STATE_HOME`.
+The direct `YAZELIX_CONFIG_HOME` and `YAZELIX_STATE_DIR` overrides take precedence;
+see [config roots](configuration.md#config-root). These settings do not import
+ambient tool configuration. The example is evaluated for `aarch64-darwin`;
+GUI environment inheritance requires verification on macOS.
+
+### Reuse one source for host and Nova
+
+Install one source file at two explicit Home Manager destinations:
+
+```nix
+let
+  languages = ./languages.toml;
+in {
+  xdg.configFile."helix/languages.toml".source = languages;
+  programs.yazelix = {
+    enable = true;
+    config.helix.languages.source = languages;
+  };
+}
+```
+
+Both `$XDG_CONFIG_HOME/helix/languages.toml` and
+`$XDG_CONFIG_HOME/yazelix/helix/languages.toml` link to the same immutable source.
+Nova reads its own destination. It does not discover or adopt the host file.
+This layout assumes no separate `YAZELIX_CONFIG_HOME` override.
+If `programs.helix.languages` already generates the host destination, use the
+[evaluated Helix configuration recipe](#reuse-an-existing-home-manager-helix-configuration)
+below instead of assigning a competing source.
+
+The [Home Manager module](../home-manager/module.nix) accepts exactly one of
+`text` or `source` per native file. Reuse must respect
+[native config ownership](configuration.md#native-config-files): Zellij accepts
+a sparse sidecar and reserves its integration nodes, while Nova preserves
+required Yazi navigation and Helix reveal bindings. A complete host config is
+not a blanket replacement for those managed policies. `yzx config` identifies
+store-backed files as `home-manager` and names the corresponding option to
+edit; apply changes through the normal Home Manager or nix-darwin switch.
+
 ### Reuse an existing Home Manager Helix configuration
 
 Home Manager can render its evaluated Helix settings and language definitions
