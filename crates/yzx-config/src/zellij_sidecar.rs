@@ -274,7 +274,7 @@ pub(crate) fn parse_zellij_sidecar(
             state.diagnostics.push(zellij_diagnostic(
                 line_number,
                 "unterminated Zellij quoted string",
-                "Close the quoted value before editing from yzx config.",
+                "Close the quoted value before editing from nova config.",
             ));
             continue;
         }
@@ -286,7 +286,7 @@ pub(crate) fn parse_zellij_sidecar(
                 state.diagnostics.push(zellij_diagnostic(
                     line_number,
                     "unmatched Zellij block close",
-                    "Remove the extra closing brace before editing from yzx config.",
+                    "Remove the extra closing brace before editing from nova config.",
                 ));
             } else {
                 block_depth -= 1;
@@ -298,7 +298,7 @@ pub(crate) fn parse_zellij_sidecar(
                 state.diagnostics.push(zellij_diagnostic(
                     line_number,
                     "unsupported content after Zellij block close",
-                    "Put the next node on a new line before editing from yzx config.",
+                    "Put the next node on a new line before editing from nova config.",
                 ));
             }
             continue;
@@ -370,7 +370,7 @@ fn parse_zellij_top_level_line(
             state.diagnostics.push(zellij_diagnostic(
                 line_number,
                 "duplicate Zellij node `ui`",
-                "Keep one ui block before editing from yzx config.",
+                "Keep one ui block before editing from nova config.",
             ));
         } else if !zellij_block_open(line, token) {
             state.diagnostics.push(zellij_diagnostic(
@@ -505,7 +505,7 @@ fn parse_zellij_config_value(
         state.diagnostics.push(zellij_diagnostic(
             line_number,
             format!("duplicate Zellij node `{}`", spec.path),
-            "Keep one assignment before editing from yzx config.",
+            "Keep one assignment before editing from nova config.",
         ));
         return;
     }

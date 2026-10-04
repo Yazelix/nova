@@ -18,10 +18,7 @@ pub(crate) fn run() -> Result<(), AppError> {
             .file_name()
             .is_some_and(|name| name == "yzx")
     });
-    let Some(command) = raw_args.next() else {
-        print_help(legacy_name);
-        return Ok(());
-    };
+    let command = raw_args.next().unwrap_or_else(|| "help".into());
     let args = raw_args.collect::<Vec<_>>();
 
     match command.to_string_lossy().as_ref() {

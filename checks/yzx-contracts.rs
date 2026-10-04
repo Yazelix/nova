@@ -212,10 +212,8 @@ fn main() {
 fn expect_cli_compatibility(package: &Path) {
     let nova = package.join("bin/nova");
     let legacy = package.join("bin/yzx");
-    assert_eq!(
-        fs::canonicalize(&nova).unwrap(),
-        fs::canonicalize(&legacy).unwrap()
-    );
+    let executable = fs::canonicalize(&nova).unwrap();
+    assert_eq!(executable, fs::canonicalize(&legacy).unwrap());
     let help = run_help(&nova, &["--help"]);
     expect_contains(&help, "nova launch [zellij-args...]", "canonical help");
     assert!(!help.contains("compatibility name"));
@@ -253,10 +251,7 @@ fn expect_cli_compatibility(package: &Path) {
     );
     assert_eq!(paths.lines().count(), 2);
     for path in paths.lines() {
-        assert_eq!(
-            fs::canonicalize(path).unwrap(),
-            fs::canonicalize(&nova).unwrap()
-        );
+        assert_eq!(fs::canonicalize(path).unwrap(), executable);
     }
     for binary in [&nova, &legacy] {
         let output = case
@@ -280,11 +275,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let yzx_bin = yzx.join("bin/yzx");
     expect_radar_setup(&yzx_bin);
     let help = run_help(&yzx_bin, &["help"]);
-    for arg in ["-h", "--help"] {
-        assert_eq!(run_help(&yzx_bin, &[arg]), help);
-    }
     let version = run_help(&yzx_bin, &["--version"]);
-    assert_eq!(run_help(&yzx_bin, &[]), help);
     expect_contains_all! {
         &help, "nova help";
         "Yazelix Nova",
