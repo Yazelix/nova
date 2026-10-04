@@ -48,6 +48,12 @@ fn wait_for_panes(
             return Ok(());
         }
         if Instant::now() >= deadline {
+            if let Ok(output) = Command::new(zellij)
+                .args(["-s", session, "action", "dump-screen"])
+                .output()
+            {
+                eprintln!("Last screen:\n{}", String::from_utf8_lossy(&output.stdout));
+            }
             return Err(
                 io::Error::other(format!("pane state never matched {filter}: {state}")).into(),
             );

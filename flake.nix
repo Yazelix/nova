@@ -1825,6 +1825,9 @@
         };
       in
         pkgs.runCommand "nova-startup-picker-cancellation-check" {} ''
+          export XDG_CACHE_HOME="$TMPDIR/cache"
+          export ZELLIJ_SOCKET_DIR="$TMPDIR/s"
+          mkdir -p "$XDG_CACHE_HOME" "$ZELLIJ_SOCKET_DIR"
           ${pkgs.coreutils}/bin/timeout --kill-after=10s 75s ${proof}/bin/nova-startup-picker-cancellation-check
           touch "$out"
         '';
