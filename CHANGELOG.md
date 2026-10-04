@@ -4,6 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `nova` is the canonical CLI, with `yzx` retained as a compatibility name for
+  the same program. Legacy help points to `nova`; ordinary execution, version
+  output and machine-readable output carry no rename warning. Removal remains
+  undecided. Desktop launchers, help and tutorials use `nova`; existing config,
+  state directories, environment variables and internal helper names persist.
+
 - Pane orchestration uses the public upstream Zellij SDK at the packaged native
   revision, so source builds do not require access to the private Nova fork.
 

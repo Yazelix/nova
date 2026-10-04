@@ -11,7 +11,7 @@ fn main() -> ExitCode {
     match run(&Config::from_env(), env::args_os().skip(1)) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
-            eprintln!("yzx reveal: {error:#}");
+            eprintln!("nova reveal: {error:#}");
             ExitCode::FAILURE
         }
     }
@@ -42,13 +42,13 @@ fn run(config: &Config, raw_args: impl IntoIterator<Item = OsString>) -> Result<
 fn parse_target(raw_args: impl IntoIterator<Item = OsString>) -> Result<OsString> {
     let mut args = raw_args.into_iter();
     let Some(target) = args.next() else {
-        bail!("missing target path. Try `yzx reveal --help`.");
+        bail!("missing target path. Try `nova reveal --help`.");
     };
     if target.is_empty() {
-        bail!("missing target path. Try `yzx reveal --help`.");
+        bail!("missing target path. Try `nova reveal --help`.");
     }
     if args.next().is_some() {
-        bail!("expected exactly one target path. Try `yzx reveal --help`.");
+        bail!("expected exactly one target path. Try `nova reveal --help`.");
     }
     Ok(target)
 }
@@ -77,7 +77,7 @@ fn existing_absolute_path_with_home(target: &OsString, home: Option<PathBuf>) ->
 
 fn print_help() {
     println!(
-        "Open the persistent Yazi popup at a file or directory\n\nUsage:\n  yzx reveal <target>\n\nThe target may be absolute, relative to the current directory, or be ~ or ~/..."
+        "Open the persistent Yazi popup at a file or directory\n\nUsage:\n  nova reveal <target>\n\nThe target may be absolute, relative to the current directory, or be ~ or ~/..."
     );
 }
 

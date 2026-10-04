@@ -27,6 +27,7 @@ fn main() {
 
     let yzx = Path::new(yzx);
     let git = Path::new(git);
+    expect_cli_compatibility(yzx);
     expect_read_only_diagnostics(yzx);
     let config = fs::read_to_string(yzx.join("share/yazelix/config.kdl")).unwrap();
     let yzx_shell = default_shell(&config);
@@ -208,6 +209,73 @@ fn main() {
     fs::write(out, "ok\n").unwrap();
 }
 
+fn expect_cli_compatibility(package: &Path) {
+    let nova = package.join("bin/nova");
+    let legacy = package.join("bin/yzx");
+    assert_eq!(
+        fs::canonicalize(&nova).unwrap(),
+        fs::canonicalize(&legacy).unwrap()
+    );
+    let help = run_help(&nova, &["--help"]);
+    expect_contains(&help, "nova launch [zellij-args...]", "canonical help");
+    assert!(!help.contains("compatibility name"));
+    for args in [&[][..], &["help"][..], &["-h"][..], &["--help"][..]] {
+        assert_eq!(run_help(&nova, args), help);
+        let legacy_help = run_help(&legacy, args);
+        assert_eq!(
+            legacy_help,
+            format!("{help}\nyzx is a compatibility name for nova; no removal is scheduled.\n")
+        );
+    }
+
+    let temp = TempDir::new();
+    let case = RuntimeCase::new(&temp.path, "cli-compatibility");
+    let nova_status = successful_output(
+        case.yzx_command(&nova, "status").arg("--json"),
+        "canonical machine-readable status",
+    );
+    let legacy_status = successful_output(
+        case.yzx_command(&legacy, "status").arg("--json"),
+        "legacy machine-readable status",
+    );
+    assert_eq!(nova_status.stdout, legacy_status.stdout);
+    assert_eq!(nova_status.stderr, legacy_status.stderr);
+    assert!(!String::from_utf8_lossy(&legacy_status.stderr).contains("compatibility name"));
+    assert_eq!(
+        run_help(&nova, &["--version"]),
+        run_help(&legacy, &["--version"])
+    );
+    let paths = successful_stdout(
+        case.yzx_command(&nova, "run")
+            .args(["/bin/sh", "-c", "command -v nova; command -v yzx"])
+            .env("PATH", "/private/tmp"),
+        "both command names in the managed PATH",
+    );
+    assert_eq!(paths.lines().count(), 2);
+    for path in paths.lines() {
+        assert_eq!(
+            fs::canonicalize(path).unwrap(),
+            fs::canonicalize(&nova).unwrap()
+        );
+    }
+    for binary in [&nova, &legacy] {
+        let output = case
+            .yzx_command(binary, "run")
+            .args([
+                "sh",
+                "-c",
+                "printf '%s\\n' \"$1\"; printf 'child error\\n' >&2; exit 23",
+                "sh",
+                "two words 🦀",
+            ])
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(23));
+        assert_eq!(output.stdout, "two words 🦀\n".as_bytes());
+        assert_eq!(output.stderr, b"child error\n");
+    }
+}
+
 fn expect_front_door(yzx: &Path, jq: &Path) {
     let yzx_bin = yzx.join("bin/yzx");
     expect_radar_setup(&yzx_bin);
@@ -218,31 +286,31 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let version = run_help(&yzx_bin, &["--version"]);
     assert_eq!(run_help(&yzx_bin, &[]), help);
     expect_contains_all! {
-        &help, "yzx help";
+        &help, "nova help";
         "Yazelix Nova",
         "Usage:",
-        "yzx --version",
-        "yzx config",
-        "yzx yazi-config materialize --user-config-dir <path> --state-dir <path>",
-        "yzx doctor",
-        "yzx radar-setup",
-        "yzx env",
-        "yzx enter [zellij-args...]",
-        "yzx launch [zellij-args...]",
-        "yzx enter --session NAME",
-        "yzx launch --session NAME",
-        "yzx enter attach NAME",
-        "yzx launch attach NAME",
-        "yzx menu",
-        "yzx tutor [lesson]",
-        "yzx reveal <target>",
-        "yzx anima [style]",
-        "yzx run <program> [args...]",
-        "yzx status [--json]",
+        "nova --version",
+        "nova config",
+        "nova yazi-config materialize --user-config-dir <path> --state-dir <path>",
+        "nova doctor",
+        "nova radar-setup",
+        "nova env",
+        "nova enter [zellij-args...]",
+        "nova launch [zellij-args...]",
+        "nova enter --session NAME",
+        "nova launch --session NAME",
+        "nova enter attach NAME",
+        "nova launch attach NAME",
+        "nova menu",
+        "nova tutor [lesson]",
+        "nova reveal <target>",
+        "nova anima [style]",
+        "nova run <program> [args...]",
+        "nova status [--json]",
         "https://github.com/sponsors/luccahuguet",
     }
     let menu = run_help(&yzx_bin, &["menu"]);
-    expect_contains(&menu, "Yazelix Nova command palette", "yzx menu");
+    expect_contains(&menu, "Yazelix Nova command palette", "nova menu");
     let menu_ids = menu
         .lines()
         .filter_map(|line| {
@@ -265,13 +333,13 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             "layout",
             "bottom-hints"
         ],
-        "yzx menu command allowlist changed\n{menu}"
+        "nova menu command allowlist changed\n{menu}"
     );
     expect_menu_descriptions_match_help(&help, &menu);
     for forbidden in [
-        "yzx env",
-        "yzx enter",
-        "yzx reveal",
+        "nova env",
+        "nova enter",
+        "nova reveal",
         "Alt Shift",
         "Ctrl Alt",
         "Git popup",
@@ -279,15 +347,15 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     ] {
         assert!(
             !menu.contains(forbidden),
-            "yzx menu exposes non-allowlisted reference `{forbidden}`\n{menu}"
+            "nova menu exposes non-allowlisted reference `{forbidden}`\n{menu}"
         );
     }
     let reveal_help = run_help(&yzx_bin, &["reveal", "--help"]);
-    expect_contains(&reveal_help, "yzx reveal <target>", "yzx reveal help");
+    expect_contains(&reveal_help, "nova reveal <target>", "nova reveal help");
     let anima_help = run_help(&yzx_bin, &["anima", "--help"]);
     expect_contains_all! {
-        &anima_help, "yzx anima help";
-        "yzx anima [STYLE]",
+        &anima_help, "nova anima help";
+        "nova anima [STYLE]",
         "static",
         "logo",
         "asciiquarium",
@@ -321,39 +389,39 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     let tutor_help = run_help(&yzx_bin, &["tutor", "--help"]);
     expect_contains_all! {
-        &tutor_help, "yzx tutor help";
-        "yzx tutor",
-        "yzx tutor begin",
-        "yzx tutor list",
-        "yzx tutor workspace",
-        "yzx tutor files",
-        "yzx tutor panes",
-        "yzx tutor modes",
-        "yzx tutor discovery",
-        "yzx tutor troubleshooting",
-        "yzx tutor tool_tutors",
-        "yzx tutor hx",
-        "yzx tutor helix",
-        "yzx tutor nu",
-        "yzx tutor nushell",
+        &tutor_help, "nova tutor help";
+        "nova tutor",
+        "nova tutor begin",
+        "nova tutor list",
+        "nova tutor workspace",
+        "nova tutor files",
+        "nova tutor panes",
+        "nova tutor modes",
+        "nova tutor discovery",
+        "nova tutor troubleshooting",
+        "nova tutor tool_tutors",
+        "nova tutor hx",
+        "nova tutor helix",
+        "nova tutor nu",
+        "nova tutor nushell",
     }
     let tutor_root = run_help(&yzx_bin, &["tutor"]);
     expect_contains_all! {
-        &tutor_root, "yzx tutor";
+        &tutor_root, "nova tutor";
         "Yazelix Nova tutor",
-        "yzx tutor begin",
-        "yzx tutor list",
+        "nova tutor begin",
+        "nova tutor list",
     }
     let tutor_list = run_help(&yzx_bin, &["tutor", "list"]);
     expect_contains_all! {
-        &tutor_list, "yzx tutor list";
-        "yzx tutor workspace",
-        "yzx tutor files",
-        "yzx tutor panes",
-        "yzx tutor modes",
-        "yzx tutor discovery",
-        "yzx tutor troubleshooting",
-        "yzx tutor tool_tutors",
+        &tutor_list, "nova tutor list";
+        "nova tutor workspace",
+        "nova tutor files",
+        "nova tutor panes",
+        "nova tutor modes",
+        "nova tutor discovery",
+        "nova tutor troubleshooting",
+        "nova tutor tool_tutors",
     }
     for (lesson, expected) in [
         ("begin", "Start in the right directory"),
@@ -362,27 +430,27 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         ("panes", "move the current tab"),
         ("modes", "quit the session"),
         ("discovery", "Alt Shift M"),
-        ("troubleshooting", "yzx doctor"),
+        ("troubleshooting", "nova doctor"),
         ("tool_tutors", "print the managed Helix tutor command"),
     ] {
         let output = run_help(&yzx_bin, &["tutor", lesson]);
-        expect_contains(&output, expected, &format!("yzx tutor {lesson}"));
+        expect_contains(&output, expected, &format!("nova tutor {lesson}"));
         assert!(
             !output.contains("env --no-shell") && !output.contains("launch --path"),
-            "yzx tutor {lesson} leaked unsupported command syntax\n{}",
+            "nova tutor {lesson} leaked unsupported command syntax\n{}",
             excerpt(&output)
         );
     }
     let helix_tutor = run_help(&yzx_bin, &["tutor", "hx"]);
     expect_contains_all! {
-        &helix_tutor, "yzx tutor hx";
+        &helix_tutor, "nova tutor hx";
         "/bin/yzx-hx --tutor",
         "yzx-hx --tutor",
         "package omits managed Helix",
     }
     let nushell_tutor = run_help(&yzx_bin, &["tutor", "nu"]);
     expect_contains_all! {
-        &nushell_tutor, "yzx tutor nu";
+        &nushell_tutor, "nova tutor nu";
         "/bin/nu -c 'tutor begin'",
         "tutor begin",
     }
@@ -413,7 +481,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     expect_menu_dispatch(&menu_helper);
     expect_contains_all! {
-        &yzx_launcher, "bin/yzx runtime fragment";
+        &yzx_launcher, "bin/nova runtime fragment";
         "Yazelix Nova could not start.",
         "YAZELIX_STATUS_BAR_CACHE_PATH",
         "ZELLIJ_PLUGIN_PERMISSIONS_CACHE",
@@ -473,7 +541,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let env_supervisor = embedded_store_path(&yzx_launcher, "/bin/yzx-env-supervisor");
     let env_supervisor_script = fs::read_to_string(&env_supervisor).unwrap();
     expect_contains_all! {
-        &env_supervisor_script, "yzx env supervisor";
+        &env_supervisor_script, "nova env supervisor";
         "#!/nix/store/",
         "trap cleanup HUP INT TERM EXIT",
         "\"$1\" < /dev/tty &",
@@ -491,9 +559,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         existing_permissions,
     )
     .unwrap();
-    let status = status_case.prepared_status(&yzx_bin, "yzx status");
+    let status = status_case.prepared_status(&yzx_bin, "nova status");
     expect_contains_all! {
-        &status, "yzx status";
+        &status, "nova status";
         "Yazelix Nova status",
         "package: full",
         format!("config home: {}", status_case.config_home.display()),
@@ -530,7 +598,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     let json_case = RuntimeCase::new(&temp.path, "json-\"\\\n");
     let json = successful_stdout(
         json_case.yzx_command(&yzx_bin, "status").arg("--json"),
-        "yzx status --json",
+        "nova status --json",
     );
     assert_eq!(
         jq_output(jq, ".config_home", &json),
@@ -571,7 +639,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     assert_eq!(output.status.code(), Some(23));
     let run_record = String::from_utf8_lossy(&output.stdout);
     expect_contains_all! {
-        &run_record, "yzx run environment";
+        &run_record, "nova run environment";
         "arg=<alpha beta>",
         "arg=<quote\"slash\\>",
         format!("config=<{}>", run_case.config_home.display()),
@@ -585,12 +653,12 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             .env("YAZELIX_CONFIG_HOME", &status_case.config_home)
             .env("XDG_DATA_HOME", &data_home)
             .env_remove("YAZELIX_STATE_DIR"),
-        "yzx status XDG data state",
+        "nova status XDG data state",
     );
     expect_contains(
         &data_status,
         &format!("state dir: {}", data_home.join("yazelix").display()),
-        "yzx status XDG data state",
+        "nova status XDG data state",
     );
 
     let runtime_config = status_case.zellij_file("config.kdl");
@@ -970,9 +1038,9 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "custom shell bar controller inserted unwanted shell label spacing"
     );
 
-    let doctor = doctor_case.run_yzx(&yzx_bin, "doctor", "yzx doctor");
+    let doctor = doctor_case.run_yzx(&yzx_bin, "doctor", "nova doctor");
     expect_contains_all! {
-        &doctor, "yzx doctor";
+        &doctor, "nova doctor";
         "Yazelix Nova doctor",
         "Core",
         "ok    Configuration    settings valid",
@@ -1002,10 +1070,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             .yzx_command(&yzx_bin, "doctor")
             .env("PATH", &doctor_codex_bin)
             .env("CODEX_HOME", &doctor_codex_home),
-        "yzx doctor missing Radar Codex hooks",
+        "nova doctor missing Radar Codex hooks",
     );
     expect_contains_all! {
-        &doctor_codex, "yzx doctor missing Radar Codex hooks";
+        &doctor_codex, "nova doctor missing Radar Codex hooks";
         "warn  Radar            Codex hooks need attention",
         "missing hooks.json: zj-radar Codex hooks are not installed",
         "action: resolve the warning, then run zj-radar setup codex",
@@ -1041,10 +1109,10 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     symlink(temp.path.join("missing-backup"), &settings_backup).unwrap();
     let residue_doctor = successful_stdout(
         doctor_case.yzx_command(&yzx_bin, "doctor").arg("--verbose"),
-        "yzx doctor residue",
+        "nova doctor residue",
     );
     expect_contains_all! {
-        &residue_doctor, "yzx doctor residue";
+        &residue_doctor, "nova doctor residue";
         classic_residue_warning(&configs, "ambiguous"),
         classic_residue_warning(&sessions, "ambiguous"),
         classic_residue_warning(&extern_file, "certain"),
@@ -1055,14 +1123,14 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     assert!(
         !residue_doctor.contains("yazi lookup PATH:"),
-        "verbose doctor duplicated configuration already owned by yzx status"
+        "verbose doctor duplicated configuration already owned by nova status"
     );
     assert_eq!(fs::read_to_string(snapshot).unwrap(), "untouched");
     for current in ["yazi", "zellij", "helix", "helix-steel", "logs"] {
         let path = doctor_case.state_dir.join(current);
         assert!(
             !residue_doctor.contains(&format!("path={}", path.display())),
-            "yzx doctor reported current Nova {current} state as Classic residue"
+            "nova doctor reported current Nova {current} state as Classic residue"
         );
     }
 
@@ -1073,73 +1141,73 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     fs::write(linked_target.join("nushell/yazelix_extern.nu"), "classic").unwrap();
     symlink(linked_target, linked_parent.state_dir.join("initializers")).unwrap();
     let linked_parent_doctor =
-        linked_parent.run_yzx(&yzx_bin, "doctor", "yzx doctor symlinked parent");
+        linked_parent.run_yzx(&yzx_bin, "doctor", "nova doctor symlinked parent");
     expect_contains(
         &linked_parent_doctor,
         "ok    Classic residue  none found",
-        "yzx doctor symlinked parent",
+        "nova doctor symlinked parent",
     );
 
     for (args, expected, context) in [
         (
             &["env", "extra"][..],
-            "yzx env does not accept arguments yet",
-            "yzx env argument error",
+            "nova env does not accept arguments yet",
+            "nova env argument error",
         ),
         (
             &["doctor", "extra"][..],
-            "yzx doctor accepts only --verbose",
-            "yzx doctor argument error",
+            "nova doctor accepts only --verbose",
+            "nova doctor argument error",
         ),
         (
             &["status", "extra"][..],
-            "yzx status accepts only --json",
-            "yzx status argument error",
+            "nova status accepts only --json",
+            "nova status argument error",
         ),
         (
             &["menu", "extra"][..],
-            "yzx menu does not accept arguments yet",
-            "yzx menu argument error",
+            "nova menu does not accept arguments yet",
+            "nova menu argument error",
         ),
         (
             &["tutor", "continue"][..],
-            "Unknown yzx tutor target: continue",
-            "yzx tutor unknown lesson error",
+            "Unknown nova tutor target: continue",
+            "nova tutor unknown lesson error",
         ),
         (
             &["tutor", "workspace", "extra"][..],
-            "Unexpected arguments for yzx tutor",
-            "yzx tutor extra argument error",
+            "Unexpected arguments for nova tutor",
+            "nova tutor extra argument error",
         ),
         (
             &["run"][..],
-            "Usage: yzx run <program> [args...]",
-            "yzx run missing program",
+            "Usage: nova run <program> [args...]",
+            "nova run missing program",
         ),
         (
             &["sponsor"][..],
-            "yzx: unknown command: sponsor",
-            "removed yzx sponsor command",
+            "nova: unknown command: sponsor",
+            "removed nova sponsor command",
         ),
         (
             &["screen"][..],
-            "yzx: unknown command: screen",
-            "renamed yzx screen command",
+            "nova: unknown command: screen",
+            "renamed nova screen command",
         ),
     ] {
         expect_command_error(&yzx_bin, args, expected, context);
     }
     let identity = fs::read_to_string(yzx.join("share/yazelix/runtime_identity.json"))
-        .expect("yzx package is missing runtime_identity.json");
+        .expect("nova package is missing runtime_identity.json");
     let identity_version = jq_output(jq, ".version", &identity);
     assert_eq!(version.trim(), format!("Yazelix Nova ({identity_version})"));
     expect_contains_all! {
-        &identity, "yzx runtime identity";
+        &identity, "nova runtime identity";
         r#""name":"Yazelix Nova""#,
     }
     assert!(
         yzx.join("libexec/yazelix/yzx-tutor").is_file(),
-        "yzx package is missing the tutor helper"
+        "nova package is missing the tutor helper"
     );
 }
 
@@ -1162,11 +1230,11 @@ fn expect_headless_enter(yzx: &Path) {
             .env_remove("WAYLAND_DISPLAY")
             .env_remove("ZELLIJ")
             .env_remove("ZELLIJ_PANE_ID"),
-        "headless yzx enter --version",
+        "headless nova enter --version",
     );
     assert!(
         output.starts_with("yzx-zellij "),
-        "headless yzx enter did not reach Zellij: {output:?}"
+        "headless nova enter did not reach Zellij: {output:?}"
     );
 }
 
@@ -1181,8 +1249,8 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
         let case = RuntimeCase::new(&temp.path, &format!("narrow-path-{command}"));
         let mut yzx = case.yzx_command(&yzx_bin, command);
         yzx.env("PATH", "/private/tmp");
-        let output = successful_stdout(&mut yzx, &format!("narrow PATH yzx {command}"));
-        expect_contains(&output, expected, &format!("narrow PATH yzx {command}"));
+        let output = successful_stdout(&mut yzx, &format!("narrow PATH nova {command}"));
+        expect_contains(&output, expected, &format!("narrow PATH nova {command}"));
     }
 
     for (program, args, context) in [
@@ -1506,7 +1574,7 @@ fn expect_command_error(yzx_bin: &Path, args: &[&str], expected: &str, context: 
     assert_eq!(
         output.status.code(),
         Some(64),
-        "yzx {args:?} should fail with usage status"
+        "nova {args:?} should fail with usage status"
     );
     expect_contains(&String::from_utf8_lossy(&output.stderr), expected, context);
 }
@@ -1540,7 +1608,7 @@ fn expect_config_ui(yzx: &Path) {
     let packaged_config = yzx.join("share/yazelix/config.toml");
     assert!(
         packaged_config.is_file(),
-        "yzx package is missing config.toml"
+        "nova package is missing config.toml"
     );
     let packaged_config = fs::read_to_string(&packaged_config).unwrap();
     expect_contains_all! {
@@ -1870,7 +1938,7 @@ fn expect_menu_descriptions_match_help(help: &str, menu: &str) {
                     .strip_prefix(id)
                     .is_some_and(|rest| rest.trim_start() == label)
             }),
-            "yzx menu command `{id}` description drifted from yzx help"
+            "nova menu command `{id}` description drifted from nova help"
         );
     }
 }
@@ -1902,7 +1970,7 @@ fn expect_startup_failure(
         .unwrap();
     assert!(
         !output.status.success(),
-        "yzx {command} unexpectedly succeeded with config {}\nstdout:\n{}\nstderr:\n{}",
+        "nova {command} unexpectedly succeeded with config {}\nstdout:\n{}\nstderr:\n{}",
         config_home.display(),
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
@@ -1926,7 +1994,7 @@ fn expect_startup_failure(
 }
 
 fn run_help(bin: &Path, args: &[&str]) -> String {
-    successful_stdout(Command::new(bin).args(args), "yzx help")
+    successful_stdout(Command::new(bin).args(args), "nova help")
 }
 
 fn run_nu(yzx_nu: &Path, config_home: &Path, runtime: &Path, commands: &str) -> String {
@@ -2219,7 +2287,7 @@ fn expect_read_only_diagnostics(yzx: &Path) {
             if state == "fresh" && args[0] == "doctor" {
                 expect_contains(
                     &String::from_utf8_lossy(&output.stdout),
-                    "runtime files missing; initialized by yzx enter or yzx launch",
+                    "runtime files missing; initialized by nova enter or nova launch",
                     "fresh doctor guidance",
                 );
             }

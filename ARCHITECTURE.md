@@ -9,13 +9,13 @@ Manager config system, or a main-Yazelix compatibility layer.
 ## Runtime chain
 
 ```text
-yzx launch  →  Rio  →  yzx-welcome  →  Nova Zellij  →  Radar + work panes
-yzx enter   →  yzx-welcome  →  Nova Zellij  →  same layout
-yzx run     →  prepared Yazelix environment  →  exact child argv/status
-yzx yazi-config materialize  →  private materializer  →  effective Yazi config path
+nova launch  →  Rio  →  yzx-welcome  →  Nova Zellij  →  Radar + work panes
+nova enter   →  yzx-welcome  →  Nova Zellij  →  same layout
+nova run     →  prepared Yazelix environment  →  exact child argv/status
+nova yazi-config materialize  →  private materializer  →  effective Yazi config path
 ```
 
-Bare `yzx` prints help. `launch` is the only Rio route.
+Bare `nova` prints help; `yzx` uses the same dispatcher. `launch` is the only Rio route.
 `enter` is the headless/SSH route and requires an interactive host terminal, not
 a display server. `yazelix-no-helix` retains the Rio route and delegates
 editing to an installed host command.
@@ -312,7 +312,7 @@ actions, and diagnostics without extending its API or Yazelix's typed schema.
 redeclare Yazelix-owned plugin ids (`yzpp`, `yazelix_pane_orchestrator`,
 `radar`, or `radar_controller`).
 
-Inside a managed session, `yzx config` Zellij scalar saves and resets also patch
+Inside a managed session, `nova config` Zellij scalar saves and resets also patch
 `$YAZELIX_STATE_DIR/zellij/config.kdl` (watched active file) without wiping
 launch patches. Pane frames, rounded corners, copy-on-select, and clipboard
 target reconfigure the active session; mouse mode, scrollback size, styled
@@ -325,7 +325,7 @@ sends the resulting mode event to the bar, which chooses its internal palette.
 - `yzx-hx` writes effective config under `$YAZELIX_STATE_DIR/helix/config.toml`
   each launch: packaged template deep-merged with optional sparse overrides from
   `~/.config/yazelix/helix/config.toml`, then `keys.normal.A-r` reclaimed
-  for `yzx reveal`.
+  for the internal `yzx reveal` binding.
 - If the user Helix dir has `config.toml`, `languages.toml`, and/or a Steel pair
   (`helix.scm` + `init.scm`), that directory is native config. Packaged Steel
   remains active unless the complete user pair is composed through the private
@@ -468,7 +468,7 @@ Diagnostics stop before Rio/Zellij handoff.
 **C2:** The first config or runtime preparation copies the complete packaged
 Rio config and its adaptive themes only when `rio/config.toml` is absent.
 Ratconfig exposes only the exact file; later edits are user-owned except for
-Nova's top-level `force-theme` projection. With a writable file, `yzx launch`
+Nova's top-level `force-theme` projection. With a writable file, `nova launch`
 omits Rio's theme override and a Ratconfig save updates Rio through its native
 watcher, Zellij through its native action, and the bar through Zellij's mode
 event. Each new managed Yazi reads the active session mode and projects the
