@@ -813,6 +813,10 @@ mod tests {
     fn root_config_catalog_defaults_come_from_config_toml_and_validate() {
         let defaults = default_config().unwrap();
         validate_root_config(&defaults).unwrap();
+        assert_eq!(
+            default_config_value("bottom_hints.start_hidden").unwrap(),
+            json!(false)
+        );
 
         for field_path in CONFIG_FIELDS
             .iter()
@@ -865,6 +869,10 @@ mod tests {
                 "forest.enabled must be true or false",
             ),
             (
+                "[bottom_hints]\nstart_hidden = \"yes\"\n",
+                "bottom_hints.start_hidden must be true or false",
+            ),
+            (
                 "[forest]\nside = \"top\"\n",
                 "forest.side must be one of: left, right",
             ),
@@ -882,6 +890,7 @@ mod tests {
             "",
             "[welcome]\nenabled = false\n",
             "[shell]\natuin = false\n",
+            "[bottom_hints]\nstart_hidden = true\n",
             "[popups.build]\ncommand = \"btm\"\nkeybinding = \"Alt B\"\n\n[popups.logs]\ncommand = \"lnav\"\nargs = [\"app.log\"]\nkeybinding = \"Alt Shift P\"\nkeep_alive = true\n",
         ] {
             validate_root_config(&parse_toml_value(raw).unwrap()).unwrap();
@@ -1374,6 +1383,16 @@ mod tests {
         ));
         assert_config_field(&model, FOREST_ENABLED_PATH, "boolean", "next launch");
         assert_config_field(&model, HELIX_FILE_WATCHER_PATH, "boolean", "next launch");
+        assert_config_field(
+            &model,
+            BOTTOM_HINTS_START_HIDDEN_PATH,
+            "boolean",
+            "next session",
+        );
+        assert_eq!(
+            model_field(&model, BOTTOM_HINTS_START_HIDDEN_PATH).display_label,
+            "Start bottom hints hidden"
+        );
         let forest_side = model_field(&model, FOREST_SIDE_PATH);
         assert_config_field(&model, FOREST_SIDE_PATH, "string", "next launch");
         assert_eq!(
@@ -1482,6 +1501,7 @@ mod tests {
                 FOREST_ENABLED_PATH,
                 FOREST_SIDE_PATH,
                 SIDEBAR_COMMAND_PATH,
+                BOTTOM_HINTS_START_HIDDEN_PATH,
                 AGENT_COMMAND_PATH,
                 WELCOME_ENABLED_PATH,
                 WELCOME_STYLE_PATH,

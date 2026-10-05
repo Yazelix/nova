@@ -830,6 +830,7 @@
             bar="$(${yzxBarRender}/bin/yzx-bar-render ${pkgs.lib.escapeShellArg defaultBarRenderRequest})"
             substitute ${./defaults/zellij/layout.kdl} "$out" \
               --replace-fail '@yazi@' '${yazi}/bin/yzx-yazi' \
+              --replace-fail '@bottomHintsStartTitle@' 'bottom_hints' \
               --replace-fail '@sidebar@' '{
                 plugin location="radar"
             }' \
@@ -1216,6 +1217,7 @@
             appearance.straight_border_style = "double";
             shell.program = "fish";
             welcome.enabled = false;
+            bottom_hints.start_hidden = true;
             keybindings.config = "Alt Shift C";
             keybindings.agent = "Alt Shift A";
             keybindings.git = "Alt Shift G";
@@ -1308,6 +1310,7 @@
         esac
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get shell.program)" = fish
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get appearance.mode)" = light
+        test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get bottom_hints.start_hidden)" = true
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get appearance.straight_border_style)" = double
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get editor.command)" = yzx-hx
         test "$(YAZELIX_CONFIG_HOME="$config_files" ${yzx}/libexec/yazelix/yzx-config --get agent.command)" = auto
@@ -1371,6 +1374,7 @@
         grep -q 'host_theme_mode "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'explicit_theme_hue "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'straight_border_style "double"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        grep -q 'bottom_hints name="bottom_hints_start_hidden"' "$YAZELIX_STATE_DIR/zellij/layout.kdl"
         "${yzx}/bin/yzx-zellij" --config "$YAZELIX_STATE_DIR/zellij/config.kdl" setup --check >/dev/null
         grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'Yazelix Nova doctor' doctor

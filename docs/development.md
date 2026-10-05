@@ -320,9 +320,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,278 |
-| Documentation and text | 5,486 |
-| Total | 33,764 |
+| Code and configuration | 28,413 |
+| Documentation and text | 5,509 |
+| Total | 33,922 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -344,3 +344,8 @@ the pane-order correction. The check protects manual rearrangements, background
 tabs, stacked and split work areas with a popup focused, and new-pane placement.
 
 Configured pipe annotations and remapping checks account for compact-hint LOC growth; the combined movement hint adds six config lines. Native parsing and existing priority fitting retain one owner each.
+
+The bottom-hint startup preference adds boolean configuration, layout propagation
+and checks for startup, restoration, tab inheritance and attach. The pane
+orchestrator consumes the startup marker in native pane state without a timer,
+state file or additional Zellij patch.

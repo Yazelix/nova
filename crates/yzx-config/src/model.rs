@@ -436,7 +436,7 @@ fn build_root_config_field(
     let invalid = current.is_some_and(|value| {
         crate::root_config::validate_config_value(spec.field.path, value).is_err()
     });
-    Ok(build_config_field(
+    let mut field = build_config_field(
         SOURCE_CONFIG,
         root_config_tab(spec.field.path),
         &spec.field,
@@ -444,7 +444,11 @@ fn build_root_config_field(
         Some(&default),
         apply_status(spec.apply_summary, "runtime", spec.apply_detail),
         invalid,
-    ))
+    );
+    if spec.field.path == BOTTOM_HINTS_START_HIDDEN_PATH {
+        field.display_label = "Start bottom hints hidden".to_string();
+    }
+    Ok(field)
 }
 fn build_custom_popup_fields(path: &Path) -> Result<Vec<ratconfig::ConfigUiField>> {
     let raw = if path_entry_exists(path)? {

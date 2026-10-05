@@ -228,13 +228,22 @@ paired named layouts restore its bottom position. Sidebar and content-layout
 changes preserve the choice. Hint toggles preserve work-pane order, including
 manual rearrangements and background tabs. The native tiled matcher retains
 relative pane order when explicit UI slots change; new panes follow existing panes.
-New tabs inherit the hint choice, and fresh sessions start
-visible. One connected client handles broadcast toggles; each client restores
+New tabs inherit the hint choice. Fresh sessions start visible unless
+`bottom_hints.start_hidden = true`; changing that setting affects future sessions.
+Attaching preserves the current choice. One connected client handles broadcast toggles; each client restores
 its active tab’s layout and focus. Closing a tab removes its hint pane while
 retaining native preservation of unrelated background panes.
 Popup reconciliation uses native pane geometry to retain work columns and settle
 the hint layout without a repeated redraw loop.
 `keybindings.bottom_hints` accepts a replacement chord or `false`.
+
+`BOTTOM-HINTS-START-001` is the Nova/provider-to-orchestrator startup contract.
+Nova names only initial and new-tab hint panes `bottom_hints_start_hidden` when
+the preference is enabled. The orchestrator uses the oldest native hint pane
+to seed session visibility and consumes the marker by renaming it `bottom_hints`.
+Later marked tabs inherit that pane's current suppression state. Visible swap
+layouts keep the ordinary name, so restoration and client attach do not reseed
+startup visibility. Native pane state remains the sole runtime visibility owner.
 The `nova_hints` alias passes each managed shortcut chord to `nova-zjhints` as
 `pipe_hint_<id>` metadata because native mode events omit plugin-message
 identities. The managed keybinding patch owns both binding and hint remapping

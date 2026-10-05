@@ -15,6 +15,7 @@ pub(crate) const SIDEBAR_COMMAND_PATH: &str = "sidebar.command";
 pub(crate) const SIDEBAR_ARGS_PATH: &str = "sidebar.args";
 pub(crate) const SIDEBAR_PANE_KDL_PATH: &str = "sidebar.pane.kdl";
 pub(crate) const SIDEBAR_RADAR_COMMAND: &str = "radar";
+pub(crate) const BOTTOM_HINTS_START_HIDDEN_PATH: &str = "bottom_hints.start_hidden";
 pub(crate) const AGENT_COMMAND_PATH: &str = "agent.command";
 pub(crate) const AGENT_ARGS_PATH: &str = "agent.args";
 pub(crate) const AGENT_POPUP_KDL_PATH: &str = "agent.popup.kdl";
@@ -75,6 +76,7 @@ pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     FOREST_ENABLED_PATH,
     FOREST_SIDE_PATH,
     SIDEBAR_COMMAND_PATH,
+    BOTTOM_HINTS_START_HIDDEN_PATH,
     AGENT_COMMAND_PATH,
     WELCOME_ENABLED_PATH,
     WELCOME_STYLE_PATH,
@@ -333,6 +335,14 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "next launch",
         apply_detail: "Saved sidebar arguments apply to newly launched Yazelix sessions.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::boolean(
+            BOTTOM_HINTS_START_HIDDEN_PATH,
+            "Start fresh sessions with bottom key hints hidden.",
+        ),
+        apply_summary: "next session",
+        apply_detail: "Saved startup visibility applies only to fresh sessions. Existing sessions keep their current choice, and the bottom-hint shortcut or menu action can change it.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

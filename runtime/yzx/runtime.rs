@@ -164,6 +164,11 @@ impl Runtime {
             crate::SIDEBAR_PANE_KDL_CONFIG_PATH,
         )?;
         let radar_enabled = sidebar_command == crate::SIDEBAR_RADAR_COMMAND;
+        let bottom_hints_start_hidden = trim_output(config_value(
+            &config_home,
+            &config_toml,
+            "bottom_hints.start_hidden",
+        )?) == "true";
         let welcome_enabled = config_value(&config_home, &config_toml, "welcome.enabled")?;
         let welcome_style = config_value(&config_home, &config_toml, "welcome.style")?;
         let welcome_duration_seconds =
@@ -207,6 +212,7 @@ impl Runtime {
             &shell_program,
             &sidebar_pane_kdl,
             radar_enabled,
+            bottom_hints_start_hidden,
             materialize,
         )?;
         let bar_controller =

@@ -62,7 +62,8 @@ Radar sidebar stays open or collapsed as you left it. The command palette's
 `Alt Shift B` or **Toggle bottom hints** in the command palette hides or restores
 bottom hint rows throughout the current session. Hiding them frees one row for
 work panes; sidebar and layout switches retain the choice. New tabs inherit it,
-and fresh sessions start with hints visible. Toggling preserves pane order,
+and fresh sessions start with hints visible unless `bottom_hints.start_hidden`
+is `true`. Attaching preserves the session's current choice. Toggling preserves pane order,
 including manually rearranged stacks and splits.
 Open managed popups resize with the hint row, preserving their running process
 and keyboard focus.
@@ -143,7 +144,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,278 code/configuration lines** and **5,486 documentation/text
+Yazelix owns **28,413 code/configuration lines** and **5,509 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -158,3 +159,5 @@ explicit host and Nova destinations.
 The sole `yzx` CLI removes alias packaging and compatibility-help logic. Its
 checks protect the executable namespace, global help, managed PATH and child
 argument/output/exit status.
+The bottom-hint startup preference adds configuration, layout propagation and
+session regression checks; native pane state consumes its initial value once.

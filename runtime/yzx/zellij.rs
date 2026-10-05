@@ -7,9 +7,9 @@ use std::{
 
 use crate::{
     DEFAULT_BAR_WIDGETS_JSON, DEFAULT_POPUP_SIDE_MARGIN, DEFAULT_POPUP_VERTICAL_MARGIN,
-    DEFAULT_SHELL_PROGRAM, LAYOUT, LAYOUT_BAR_PLACEHOLDER, LAYOUT_SIDEBAR_PLACEHOLDER,
-    LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE, LAYOUT_YAZI_PLACEHOLDER, YZX_AGENT, YZX_BAR_RENDER,
-    YZX_BAR_RENDER_REQUEST, YZX_YAZI, ZELLIJ_HOME_PLACEHOLDER,
+    DEFAULT_SHELL_PROGRAM, LAYOUT, LAYOUT_BAR_PLACEHOLDER, LAYOUT_BOTTOM_HINTS_PLACEHOLDER,
+    LAYOUT_SIDEBAR_PLACEHOLDER, LAYOUT_SWAP_TEMPLATE, LAYOUT_TEMPLATE, LAYOUT_YAZI_PLACEHOLDER,
+    YZX_AGENT, YZX_BAR_RENDER, YZX_BAR_RENDER_REQUEST, YZX_YAZI, ZELLIJ_HOME_PLACEHOLDER,
     command::{create_dir_all_checked, run_checked, trim_output},
     error::{AppError, path_error, startup},
     paths::parent,
@@ -26,12 +26,14 @@ pub(crate) fn active_layout(
     shell_label: &str,
     sidebar_pane_kdl: &str,
     radar_enabled: bool,
+    bottom_hints_start_hidden: bool,
     materialize: bool,
 ) -> Result<(&'static str, PathBuf), AppError> {
     if appearance_mode == "dark"
         && bar_widgets == DEFAULT_BAR_WIDGETS_JSON
         && shell_label == DEFAULT_SHELL_PROGRAM
         && radar_enabled
+        && !bottom_hints_start_hidden
     {
         return Ok(("packaged", PathBuf::from(LAYOUT)));
     }
@@ -39,7 +41,12 @@ pub(crate) fn active_layout(
     let layout = state_dir.join("zellij/layout.kdl");
     let plugin_block = render_bar_plugin_block(appearance_mode, bar_widgets, shell_label)?;
     if materialize {
-        materialize_layout(&layout, &plugin_block, sidebar_pane_kdl)?;
+        materialize_layout(
+            &layout,
+            &plugin_block,
+            sidebar_pane_kdl,
+            bottom_hints_start_hidden,
+        )?;
     }
     Ok(("runtime", layout))
 }
@@ -696,6 +703,7 @@ fn materialize_layout(
     path: &Path,
     plugin_block: &str,
     sidebar_pane_kdl: &str,
+    bottom_hints_start_hidden: bool,
 ) -> Result<(), AppError> {
     let template_path = Path::new(LAYOUT_TEMPLATE);
     let swap_template_path = Path::new(LAYOUT_SWAP_TEMPLATE);
@@ -706,6 +714,14 @@ fn materialize_layout(
     let layout = template
         .replace(LAYOUT_YAZI_PLACEHOLDER, YZX_YAZI)
         .replace(LAYOUT_BAR_PLACEHOLDER, plugin_block)
+        .replace(
+            LAYOUT_BOTTOM_HINTS_PLACEHOLDER,
+            if bottom_hints_start_hidden {
+                "bottom_hints_start_hidden"
+            } else {
+                "bottom_hints"
+            },
+        )
         .replace(LAYOUT_SIDEBAR_PLACEHOLDER, sidebar_pane_kdl);
     let swap_template = swap_template.replace(LAYOUT_SIDEBAR_PLACEHOLDER, sidebar_pane_kdl);
     let swap_path = path.with_file_name("layout.swap.kdl");

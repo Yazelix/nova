@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- `bottom_hints.start_hidden = true` starts fresh sessions without the bottom
+  key-hint row. The default is `false`. Existing toggles still work; later tabs
+  and attached clients retain the session's current choice. Ratconfig exposes
+  **Start bottom hints hidden**, and Home Manager accepts the same setting.
+
 - `yzx` is the sole public CLI for Yazelix Nova. Packages do not install a
   `nova` command. Desktop launchers, help, tutorials and config hints use `yzx`.
   Existing config/state directories, environment variables and helper names persist.

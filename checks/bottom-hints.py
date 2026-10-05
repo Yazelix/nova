@@ -171,6 +171,9 @@ try:
     run([binary, "kill-session", session + "-rendering"])
     tmux("kill-session", "-t", "rendering")
     config.write_text(fixture_config)
+    # Seed startup only; visible swap layouts retain the ordinary hint role.
+    layout.write_text(layout.read_text().replace('bottom_hints name="bottom_hints" size=1\n\n}', 'bottom_hints name="bottom_hints_start_hidden" size=1\n\n}'))
+    assert 'bottom_hints name="bottom_hints_start_hidden"' in layout.read_text()
     tmux("new-session", "-d", "-s", "proof", "-x", "120", "-y", "40",
          shlex.join([binary, "-c", str(config), "-n", str(layout), "-s", session]) + "; sleep 30")
     # Avoid opening a CLI connection while the first interactive client is starting.
@@ -183,12 +186,20 @@ try:
     data = wait_for(lambda p: any(x["title"] == "bottom_hints" for x in p))
     work = next(p["id"] for p in data if p["title"] == "work-one")
     time.sleep(.5)
-    assert "B hints" in tmux("capture-pane", "-t", "proof:0", "-p"), "configured pipe hint missing"
     env["ZELLIJ_PANE_ID"] = str(work)
     data = wait_for(lambda p: any(x["title"] == "work-two" for x in p))
     required_work = {p["id"] for p in data if not p["is_plugin"]}
     second_work = next(p["id"] for p in data if p["title"] == "work-two")
     third_work = next(p["id"] for p in data if p["title"] == "work-three")
+    verify(True, focus=work)
+    order = work_order(panes())
+    pipe("toggle_bottom_hints")
+    assert work_order(verify(False, focus=work)) == order, "startup restoration reordered work panes"
+    assert "B hints" in tmux("capture-pane", "-t", "proof:0", "-p"), "configured pipe hint missing"
+    action("new-tab", "--layout", str(layout))
+    wait_for(lambda p: len([x for x in p if x["title"] == "bottom_hints"]) == 2 and all(not x["is_suppressed"] for x in p if x["title"] == "bottom_hints"))
+    action("close-tab")
+    wait_for(lambda p: all(x["tab_position"] == 0 for x in p))
     verify(False, focus=work)
     for family in ("single_open", "single_closed", "columns_open", "columns_closed"):
         action("apply-tiled-swap-layout", family)
@@ -321,6 +332,8 @@ try:
     tmux("send-keys", "-t", "proof:0", "C-y")
     wait_for(lambda p: all(x["is_plugin"] or x["id"] != popup for x in p))
     verify(True, 80, 24, columns=True)
+    pipe("toggle_bottom_hints")
+    verify(False, 80, 24, columns=True)
     tmux("new-window", "-t", "proof", "-n", "attach", shlex.join([binary, "-c", str(config), "attach", session]))
     for _ in range(100):
         if "WORK_" in tmux("capture-pane", "-t", "proof:1", "-p"):
@@ -329,6 +342,8 @@ try:
     else:
         raise AssertionError("attached client did not render the workspace")
     tmux("resize-window", "-t", "proof:1", "-x", "80", "-y", "24")
+    verify(False, 80, 24)
+    pipe("toggle_bottom_hints")
     verify(True, 80, 24)
     tmux("send-keys", "-t", "proof:1", "C-t")
     time.sleep(.3)
@@ -388,6 +403,9 @@ try:
             raise AssertionError("mirrored client did not render")
     time.sleep(.3)
     required_work = {p["id"] for p in panes() if not p["is_plugin"]}
+    verify(True)
+    pipe("toggle_bottom_hints")
+    verify(False)
     pipe("toggle_bottom_hints")
     verify(True)
     action("new-tab", "--layout", str(layout))

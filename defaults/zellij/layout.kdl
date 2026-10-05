@@ -42,7 +42,7 @@ layout {
             pane name="sidebar" size=32 borderless=false @sidebar@
             children
         }
-        bottom_hints name="bottom_hints" size=1
+        bottom_hints name="@bottomHintsStartTitle@" size=1
     }
 
     tab name="" {
@@ -59,6 +59,6 @@ layout {
                 args "--yzx-startup-picker"
             }
         }
-        bottom_hints name="bottom_hints" size=1
+        bottom_hints name="@bottomHintsStartTitle@" size=1
     }
 }

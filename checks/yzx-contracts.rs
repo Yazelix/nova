@@ -45,6 +45,7 @@ fn main() {
     expect_headless_enter(yzx);
     expect_narrow_path_launches(yzx, &yzx_shell);
     expect_config_ui(yzx);
+    expect_bottom_hints_startup(yzx);
     expect_startup_diagnostics(yzx);
     expect_rio_config(yzx);
     expect_zellij_config_sidecar(yzx);
@@ -1556,6 +1557,56 @@ impl RuntimeCase {
     }
 }
 
+fn expect_bottom_hints_startup(yzx: &Path) {
+    let temp = TempDir::new();
+    for (name, config, hidden) in [
+        ("hints-unset", "", false),
+        (
+            "hints-visible",
+            "[bottom_hints]\nstart_hidden = false\n",
+            false,
+        ),
+        (
+            "hints-hidden",
+            "[bottom_hints]\nstart_hidden = true\n\n[keybindings]\nbottom_hints = false\n",
+            true,
+        ),
+    ] {
+        let case = RuntimeCase::new(&temp.path, name);
+        case.write_default_config(config);
+        case.prepared_status(&yzx.join("bin/yzx"), name);
+        let runtime_layout = case.zellij_path("layout.kdl");
+        let layout = fs::read_to_string(if runtime_layout.exists() {
+            runtime_layout
+        } else {
+            yzx.join("share/yazelix/layout.kdl")
+        })
+        .unwrap();
+        assert_eq!(
+            layout.contains("bottom_hints_start_hidden"),
+            hidden,
+            "{name}"
+        );
+        assert!(!layout.contains("@bottomHintsStartTitle@"), "{name}");
+        // Visible swap templates never reseed startup state when restoring hints.
+        let ui = layout
+            .split("tab_template name=\"ui\"")
+            .nth(1)
+            .unwrap()
+            .split("tab_template name=\"ui_no_hints\"")
+            .next()
+            .unwrap();
+        assert!(!ui.contains("bottom_hints_start_hidden"), "{name}");
+        if hidden {
+            assert!(
+                !case
+                    .zellij_file("config.kdl")
+                    .contains("name \"toggle_bottom_hints\"")
+            );
+        }
+    }
+}
+
 fn expect_config_ui(yzx: &Path) {
     let packaged_config = yzx.join("share/yazelix/config.toml");
     assert!(
@@ -1602,6 +1653,7 @@ fn expect_config_ui(yzx: &Path) {
         ("agent.args", "[]"),
         ("sidebar.command", "radar"),
         ("sidebar.args", "[]"),
+        ("bottom_hints.start_hidden", "false"),
         ("welcome.enabled", "true"),
         ("welcome.style", "random"),
         ("welcome.duration_seconds", "3"),

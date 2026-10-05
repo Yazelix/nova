@@ -38,6 +38,10 @@ side = "right"
 command = "radar"
 args = []
 
+[bottom_hints]
+# Hide bottom key hints when a fresh session starts. Existing sessions keep their choice.
+start_hidden = false
+
 [agent]
 # "auto" keeps the built-in provider fallback. Any other value is one executable
 # command for the managed agent popup; put arguments in args.

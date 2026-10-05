@@ -72,6 +72,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
 | `sidebar.args` | `[]` | All | Arguments for a custom `sidebar.command` |
+| `bottom_hints.start_hidden` | `false` | Overview | Hide bottom key hints in fresh sessions; attaching retains the session's choice |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
 | `welcome.style` | `random` | Overview | Startup animation, including `friends_and_enemies`, `primordial`, and `game_of_life_tumblers`; `yzx anima --help` lists every supported style |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
