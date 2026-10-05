@@ -97,7 +97,7 @@ fn run() -> io::Result<()> {
     let yazi = nonempty_env("YZX_YAZI_BIN").ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::NotFound,
-            "YZX_YAZI_BIN is missing; launch managed Yazi through nova",
+            "YZX_YAZI_BIN is missing; launch managed Yazi through yzx",
         )
     })?;
     let mut args = env::args_os().skip(1).collect::<Vec<_>>();

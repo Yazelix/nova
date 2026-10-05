@@ -87,10 +87,8 @@ The [repository installation reference](docs/installation.md) covers Main and
 Edge channels, all eight package variants, platform evidence, Home Manager,
 updates, and the binary cache.
 
-Edge uses `nova` as its canonical CLI: `nova launch`, `nova enter`, and
-`nova help`. The compatibility name `yzx` runs the same program; its help
-mentions `nova`, while ordinary commands stay quiet. Removal is undecided.
-The Stable commands above apply to the current released revision.
+`yzx` is the sole public CLI: `yzx launch`, `yzx enter`, and `yzx help`.
+The product name is Yazelix Nova; packages do not install a `nova` command.
 
 ## Documentation
 
@@ -145,7 +143,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,335 code/configuration lines** and **5,497 documentation/text
+Yazelix owns **28,278 code/configuration lines** and **5,486 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -157,6 +155,6 @@ Its control commands share a writable isolated cache and short socket directory;
 timeout reports include the last screen to distinguish input from cleanup stalls.
 Documentation covers macOS XDG opt-in and one config source shared between
 explicit host and Nova destinations.
-The CLI transition owns 82 code/configuration lines for packaging, help and
-compatibility proof. Both names share one dispatcher; checks protect
-help-only notices, machine output, managed PATH and child argument/exit status.
+The sole `yzx` CLI removes alias packaging and compatibility-help logic. Its
+checks protect the executable namespace, global help, managed PATH and child
+argument/output/exit status.

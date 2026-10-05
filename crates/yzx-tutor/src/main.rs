@@ -117,7 +117,7 @@ const TUTOR_LESSONS: &[TutorLesson] = &[
         summary: "Get back to a known pane and inspect stale runtime state",
         scope: "Current Yazelix window",
         outcome: "You can recover from lost focus and use status or doctor to inspect runtime and generated state.",
-        escape_hatch: "Run `nova doctor`, then `nova tutor list` to return to the guided path.",
+        escape_hatch: "Run `yzx doctor`, then `yzx tutor list` to return to the guided path.",
         render: render_troubleshooting_lesson,
     },
     TutorLesson {
@@ -126,7 +126,7 @@ const TUTOR_LESSONS: &[TutorLesson] = &[
         summary: "Switch from Yazelix guidance into the editor and shell tutors",
         scope: "Editor or shell pane",
         outcome: "You can find the managed Helix and Nushell tutors from Yazelix, or continue with a host editor when managed Helix is not included.",
-        escape_hatch: "Quit Helix with `:q`; leave a shell prompt with `Ctrl d` or `exit`, then run `nova tutor list`.",
+        escape_hatch: "Quit Helix with `:q`; leave a shell prompt with `Ctrl d` or `exit`, then run `yzx tutor list`.",
         render: render_tool_tutors_lesson,
     },
 ];
@@ -181,11 +181,11 @@ fn parse_tutor_args(args: &[String]) -> Result<(TutorView, bool), String> {
             Some(index) => TutorView::Lesson(index),
             None => {
                 return Err(format!(
-                    "Unknown nova tutor target: {lesson}. Try `nova tutor --help`."
+                    "Unknown yzx tutor target: {lesson}. Try `yzx tutor --help`."
                 ));
             }
         },
-        _ => return Err("Unexpected arguments for nova tutor.".into()),
+        _ => return Err("Unexpected arguments for yzx tutor.".into()),
     };
 
     Ok((view, help))
@@ -199,20 +199,20 @@ fn print_tutor_help() {
     print!(
         "Show the Yazelix guided tutor\n\n\
 Usage:\n\
-  nova tutor\n\
-  nova tutor begin\n\
-  nova tutor list\n\
-  nova tutor workspace\n\
-  nova tutor files\n\
-  nova tutor panes\n\
-  nova tutor modes\n\
-  nova tutor discovery\n\
-  nova tutor troubleshooting\n\
-  nova tutor tool_tutors\n\
-  nova tutor hx\n\
-  nova tutor helix\n\
-  nova tutor nu\n\
-  nova tutor nushell\n"
+  yzx tutor\n\
+  yzx tutor begin\n\
+  yzx tutor list\n\
+  yzx tutor workspace\n\
+  yzx tutor files\n\
+  yzx tutor panes\n\
+  yzx tutor modes\n\
+  yzx tutor discovery\n\
+  yzx tutor troubleshooting\n\
+  yzx tutor tool_tutors\n\
+  yzx tutor hx\n\
+  yzx tutor helix\n\
+  yzx tutor nu\n\
+  yzx tutor nushell\n"
     );
 }
 
@@ -220,16 +220,16 @@ fn render_overview() -> String {
     markdown(
         r#"# Yazelix Nova tutor
 
-Start with `nova tutor begin`.
+Start with `yzx tutor begin`.
 
-Use `nova tutor list` to see every lesson or come back later.
+Use `yzx tutor list` to see every lesson or come back later.
 
 Useful companions:
 
-- `nova help` shows command syntax.
-- `nova config` opens the Ratconfig UI, including the read-only keys tab.
-- `nova menu` shows the live-filter command palette.
-- `nova doctor` checks config, generated files, packaged tools, and runtime state.
+- `yzx help` shows command syntax.
+- `yzx config` opens the Ratconfig UI, including the read-only keys tab.
+- `yzx menu` shows the live-filter command palette.
+- `yzx doctor` checks config, generated files, packaged tools, and runtime state.
 "#,
     )
 }
@@ -238,7 +238,7 @@ fn render_lesson_list() -> String {
     let mut source = String::from("# Yazelix Nova tutor lessons\n\n");
     for (index, lesson) in TUTOR_LESSONS.iter().enumerate() {
         source.push_str(&format!(
-            "{}. `nova tutor {}` {}  \n",
+            "{}. `yzx tutor {}` {}  \n",
             index + 1,
             lesson.id,
             lesson.title
@@ -248,7 +248,7 @@ fn render_lesson_list() -> String {
             lesson.scope, lesson.summary
         ));
     }
-    source.push_str("\nStart with `nova tutor begin`; revisit this list when coming back later.\n");
+    source.push_str("\nStart with `yzx tutor begin`; revisit this list when coming back later.\n");
     markdown(&source)
 }
 
@@ -263,15 +263,15 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 ## Actions
 
-1. **Run in shell:** Change to the project directory and run `nova enter`.
-2. **Run in shell:** Use `cd <dir> && nova launch` when another directory needs its own Rio window.
+1. **Run in shell:** Change to the project directory and run `yzx enter`.
+2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
 3. **Inside Yazelix:** New tabs open in recent-folder search. Press `{yazi_open}` to use the selected folder as the tab folder and open it in the editor, or `Enter` to move Yazi there for browsing. Press `{yazi_popup}` to open the persistent Yazi popup. In popup search, `Enter` moves Yazi to the result; `{yazi_workspace}` sets it as the tab folder without moving Yazi or opening the editor. In popup browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered. Press `{yazi_search}` or `{yazi_zoxide}` to reopen search from either managed Yazi browser.
 
 ## Mental model
 
 The tab folder supplies the starting directory for managed panes and popups until you change it.
 
-Next lesson: `nova tutor files`.
+Next lesson: `yzx tutor files`.
 "#,
         header = lesson_intro(index, lesson),
         yazi_popup = key(KEY_YAZI_POPUP),
@@ -310,7 +310,7 @@ fn render_files_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 {editor_model} Ordinary popup toggles keep Yazi's browsing state while hidden; reveal starts a reversible round trip at the editor file. Press the same key in Yazi to return without changing the editor buffer. Use `Enter` when opening the selected file is intentional.
 
-Next lesson: `nova tutor panes`.
+Next lesson: `yzx tutor panes`.
 "#,
         header = lesson_intro(index, lesson),
         editor_action = editor_action,
@@ -336,7 +336,7 @@ fn render_panes_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 Focusing and rearranging panes changes the view, not the current tab workspace root.
 
-Next lesson: `nova tutor modes`.
+Next lesson: `yzx tutor modes`.
 "#,
         header = lesson_intro(index, lesson),
         focus_left = key(KEY_FOCUS_LEFT),
@@ -363,7 +363,7 @@ fn render_modes_lesson(index: usize, lesson: &TutorLesson) -> String {
 3. **Inside Yazelix:** Press `{resize_mode}` for resize mode. Press it again to return to normal mode.
 4. **Inside Yazelix:** Press `{quit}` to quit the session.
 
-Next lesson: `nova tutor discovery`.
+Next lesson: `yzx tutor discovery`.
 "#,
         header = lesson_intro(index, lesson),
         pane_mode = key(KEY_PANE_MODE),
@@ -379,12 +379,12 @@ fn render_discovery_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 ## Actions
 
-1. **Run in shell or Yazelix:** Use `nova help` when you know the command name and need syntax.
-2. **Inside Yazelix:** Press `{menu}` or run `nova menu` for the live-filter command palette.
-3. **Inside Yazelix:** Press `{config}` or run `nova config` to open Ratconfig; use its `keys` tab when you need the packaged binding table.
+1. **Run in shell or Yazelix:** Use `yzx help` when you know the command name and need syntax.
+2. **Inside Yazelix:** Press `{menu}` or run `yzx menu` for the live-filter command palette.
+3. **Inside Yazelix:** Press `{config}` or run `yzx config` to open Ratconfig; use its `keys` tab when you need the packaged binding table.
 4. **Inside Yazelix:** Press `{git}` for the Git popup and `{agent}` for the persistent agent popup.
 
-Next lesson: `nova tutor troubleshooting`.
+Next lesson: `yzx tutor troubleshooting`.
 "#,
         header = lesson_intro(index, lesson),
         menu = key(KEY_MENU),
@@ -402,10 +402,10 @@ fn render_troubleshooting_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Inside Yazelix:** Press `{focus_left}` or `{focus_right}` to move focus until you reach a known pane.
 2. **Inside Yazelix:** Press `{menu}` when you remember the action but not the exact command.
-3. **Run in shell or Yazelix:** Use `nova status` for a compact runtime and config summary.
-4. **Run in shell or Yazelix:** Use `nova doctor` when config, generated layouts, packaged tools, or startup state look stale.
+3. **Run in shell or Yazelix:** Use `yzx status` for a compact runtime and config summary.
+4. **Run in shell or Yazelix:** Use `yzx doctor` when config, generated layouts, packaged tools, or startup state look stale.
 
-Next lesson: `nova tutor tool_tutors`.
+Next lesson: `yzx tutor tool_tutors`.
 "#,
         header = lesson_intro(index, lesson),
         focus_left = key(KEY_FOCUS_LEFT),
@@ -420,10 +420,10 @@ fn render_tool_tutors_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 ## Actions
 
-1. **Run in shell or Yazelix:** Use `nova tutor hx` to print the managed Helix tutor command and package-availability guidance.
+1. **Run in shell or Yazelix:** Use `yzx tutor hx` to print the managed Helix tutor command and package-availability guidance.
 2. **Inside Helix:** Leave the tutor with `:q`; use `{reveal}` to restart the persistent Yazi popup at the current file, then press it again in Yazi to return to the unchanged editor buffer.
-3. **Run in shell or Yazelix:** Use `nova tutor nu` to print the Nushell tutor commands.
-4. **Run in shell:** Use `nova env` for the Yazelix-managed shell and packaged tools without opening the workspace UI.
+3. **Run in shell or Yazelix:** Use `yzx tutor nu` to print the Nushell tutor commands.
+4. **Run in shell:** Use `yzx env` for the Yazelix-managed shell and packaged tools without opening the workspace UI.
 "#,
         header = lesson_intro(index, lesson),
         reveal = key(KEY_REVEAL),
@@ -438,7 +438,7 @@ Packages with managed Helix provide this tutor command:
 
 - `{yzx_helix} --tutor`
 
-When you are already inside `nova env` or a managed Yazelix shell, the short form is:
+When you are already inside `yzx env` or a managed Yazelix shell, the short form is:
 
 - `yzx-hx --tutor`
 
@@ -531,13 +531,13 @@ mod tests {
     fn tutor_root_output_stays_minimal() {
         let output = render_overview();
         assert!(output.contains("Yazelix Nova tutor"));
-        assert!(output.contains("nova tutor begin"));
-        assert!(output.contains("nova tutor list"));
-        assert!(output.contains("nova help"));
-        assert!(output.contains("nova config"));
-        assert!(output.contains("nova menu"));
-        assert!(output.contains("nova doctor"));
-        assert!(!output.contains("nova tutor continue"));
+        assert!(output.contains("yzx tutor begin"));
+        assert!(output.contains("yzx tutor list"));
+        assert!(output.contains("yzx help"));
+        assert!(output.contains("yzx config"));
+        assert!(output.contains("yzx menu"));
+        assert!(output.contains("yzx doctor"));
+        assert!(!output.contains("yzx tutor continue"));
         assert!(!output.contains("Mental model"));
     }
 
@@ -551,22 +551,22 @@ mod tests {
         assert!(output.contains("5. "));
         assert!(output.contains("6. "));
         assert!(output.contains("7. "));
-        assert!(output.contains("nova tutor workspace"));
-        assert!(output.contains("nova tutor files"));
-        assert!(output.contains("nova tutor panes"));
-        assert!(output.contains("nova tutor modes"));
-        assert!(output.contains("nova tutor discovery"));
-        assert!(output.contains("nova tutor troubleshooting"));
-        assert!(output.contains("nova tutor tool_tutors"));
-        assert!(output.contains("nova tutor begin"));
+        assert!(output.contains("yzx tutor workspace"));
+        assert!(output.contains("yzx tutor files"));
+        assert!(output.contains("yzx tutor panes"));
+        assert!(output.contains("yzx tutor modes"));
+        assert!(output.contains("yzx tutor discovery"));
+        assert!(output.contains("yzx tutor troubleshooting"));
+        assert!(output.contains("yzx tutor tool_tutors"));
+        assert!(output.contains("yzx tutor begin"));
     }
 
     #[test]
     fn lessons_teach_current_next_surface() {
         let workspace = render_lesson(lesson_index("workspace").unwrap());
         for expected in [
-            "nova enter",
-            "cd <dir> && nova launch",
+            "yzx enter",
+            "cd <dir> && yzx launch",
             KEY_YAZI_POPUP,
             KEY_YAZI_SEARCH,
             KEY_YAZI_ZOXIDE,
@@ -607,9 +607,9 @@ mod tests {
 
         let discovery = render_lesson(lesson_index("discovery").unwrap());
         for expected in [
-            "nova help",
-            "nova menu",
-            "nova config",
+            "yzx help",
+            "yzx menu",
+            "yzx config",
             "keys",
             KEY_MENU,
             KEY_CONFIG,
@@ -620,10 +620,10 @@ mod tests {
         }
 
         let troubleshooting = render_lesson(lesson_index("troubleshooting").unwrap());
-        assert!(troubleshooting.contains("nova status"));
-        assert!(troubleshooting.contains("nova doctor"));
-        assert!(troubleshooting.contains("nova tutor list"));
-        assert!(!troubleshooting.contains("nova tutor continue"));
+        assert!(troubleshooting.contains("yzx status"));
+        assert!(troubleshooting.contains("yzx doctor"));
+        assert!(troubleshooting.contains("yzx tutor list"));
+        assert!(!troubleshooting.contains("yzx tutor continue"));
     }
 
     #[test]
@@ -631,8 +631,8 @@ mod tests {
         let tool_lesson = render_lesson(lesson_index("tool_tutors").unwrap());
         assert!(tool_lesson.contains("print the managed Helix tutor command"));
         assert!(tool_lesson.contains("print the Nushell tutor commands"));
-        assert!(tool_lesson.contains("nova env"));
-        assert!(!tool_lesson.contains("nova env --no-shell"));
+        assert!(tool_lesson.contains("yzx env"));
+        assert!(!tool_lesson.contains("yzx env --no-shell"));
 
         let helix = render_helix_tutor_command();
         assert!(helix.contains(&format!("{YZX_HELIX} --tutor")));
@@ -649,7 +649,7 @@ mod tests {
     #[test]
     fn bundled_tutor_markdown_documents_render() {
         assert!(render_overview().contains("Yazelix Nova tutor"));
-        assert!(render_lesson_list().contains("nova tutor tool_tutors"));
+        assert!(render_lesson_list().contains("yzx tutor tool_tutors"));
         assert!(render_helix_tutor_command().contains("--tutor"));
         assert!(render_nushell_tutor_command().contains("tutor begin"));
         for index in 0..TUTOR_LESSONS.len() {

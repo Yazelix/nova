@@ -74,7 +74,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     {
         doctor_info(
             "Initialization",
-            "runtime files missing; initialized by nova enter or nova launch",
+            "runtime files missing; initialized by yzx enter or yzx launch",
         );
     }
     doctor_ok("Yazi", format!("{} ({YAZI_SOURCE})", yazi.version));
@@ -99,7 +99,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
         doctor_warn(
             "Classic residue",
             format!(
-                "{} unused paths ignored by Nova · details: nova doctor --verbose",
+                "{} unused paths ignored by Nova · details: yzx doctor --verbose",
                 residue.len()
             ),
         );
@@ -121,7 +121,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
 fn check_doctor_inputs() -> Result<(), AppError> {
     let current_exe = env::current_exe().map_err(|error| {
         startup(
-            format!("failed to resolve current nova executable: {error}"),
+            format!("failed to resolve current yzx executable: {error}"),
             "yzx",
             1,
         )
@@ -239,7 +239,7 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) {
     if !attention.is_empty() {
         doctor_detail("action: resolve the warning, then run zj-radar setup codex");
     } else if !output.status.success() {
-        doctor_detail("action: rerun with nova doctor --verbose for zj-radar output");
+        doctor_detail("action: rerun with yzx doctor --verbose for zj-radar output");
     }
     if output.status.success()
         && lines

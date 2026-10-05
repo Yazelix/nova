@@ -12,18 +12,13 @@ use crate::{
 };
 
 pub(crate) fn run() -> Result<(), AppError> {
-    let mut raw_args = env::args_os();
-    let legacy_name = raw_args.next().is_some_and(|arg| {
-        Path::new(&arg)
-            .file_name()
-            .is_some_and(|name| name == "yzx")
-    });
-    let command = raw_args.next().unwrap_or_else(|| "help".into());
-    let args = raw_args.collect::<Vec<_>>();
+    let mut args = env::args_os().skip(1);
+    let command = args.next().unwrap_or_else(|| "help".into());
+    let args = args.collect::<Vec<_>>();
 
     match command.to_string_lossy().as_ref() {
         "help" | "-h" | "--help" => {
-            print_help(legacy_name);
+            print!("{HELP}");
             Ok(())
         }
         "--version" => {
@@ -42,7 +37,7 @@ pub(crate) fn run() -> Result<(), AppError> {
             command
                 .args(["setup", "codex", "claude", "opencode"])
                 .env("PATH", runtime_path());
-            exec(command, "nova radar-setup")
+            exec(command, "yzx radar-setup")
         }
         "menu" => {
             expect_no_args("menu", &args)?;
@@ -54,14 +49,14 @@ pub(crate) fn run() -> Result<(), AppError> {
             [] => print_doctor(false),
             [flag] if flag == "--verbose" => print_doctor(true),
             _ => Err(AppError::Usage(
-                "nova doctor accepts only --verbose\n".to_string(),
+                "yzx doctor accepts only --verbose\n".to_string(),
             )),
         },
         "status" => match args.as_slice() {
             [] => print_status(),
             [flag] if flag == "--json" => print_status_json(),
             _ => Err(AppError::Usage(
-                "nova status accepts only --json\n".to_string(),
+                "yzx status accepts only --json\n".to_string(),
             )),
         },
         "env" => {
@@ -73,15 +68,8 @@ pub(crate) fn run() -> Result<(), AppError> {
         "enter" => exec_managed(false, args),
         "launch" => exec_managed(true, args),
         unknown => Err(AppError::Usage(format!(
-            "nova: unknown command: {unknown}\n\n{HELP}"
+            "yzx: unknown command: {unknown}\n\n{HELP}"
         ))),
-    }
-}
-
-fn print_help(legacy_name: bool) {
-    print!("{HELP}");
-    if legacy_name {
-        println!("\nyzx is a compatibility name for nova; no removal is scheduled.");
     }
 }
 
@@ -90,7 +78,7 @@ fn expect_no_args(command: &str, args: &[OsString]) -> Result<(), AppError> {
         Ok(())
     } else {
         Err(AppError::Usage(format!(
-            "nova {command} does not accept arguments yet\n"
+            "yzx {command} does not accept arguments yet\n"
         )))
     }
 }
@@ -128,7 +116,7 @@ fn exec_yazi_config(args: Vec<OsString>) -> Result<(), AppError> {
                 .arg(user_config_dir)
                 .arg(state_dir)
                 .arg(appearance_mode);
-            exec(command, "nova yazi-config materialize")
+            exec(command, "yzx yazi-config materialize")
         }
         _ => Err(AppError::Usage(YAZI_CONFIG_HELP.to_string())),
     }
@@ -154,13 +142,13 @@ fn exec_menu() -> Result<(), AppError> {
     if let Ok(current_exe) = env::current_exe() {
         command.env("YZX_MENU_YZX", current_exe);
     }
-    exec(command, "nova menu")
+    exec(command, "yzx menu")
 }
 
 fn exec_tutor(args: Vec<OsString>) -> Result<(), AppError> {
     let mut command = Command::new(YZX_TUTOR);
     command.args(args).env("PATH", runtime_path());
-    exec(command, "nova tutor")
+    exec(command, "yzx tutor")
 }
 
 fn exec_env() -> Result<(), AppError> {
@@ -168,13 +156,13 @@ fn exec_env() -> Result<(), AppError> {
     let mut command = Command::new(YZX_ENV_SUPERVISOR);
     command.arg(YZX_SHELL);
     runtime.apply(&mut command);
-    exec(command, "nova env")
+    exec(command, "yzx env")
 }
 
 fn exec_run(args: Vec<OsString>) -> Result<(), AppError> {
     let Some((program, args)) = args.split_first() else {
         return Err(AppError::Usage(
-            "Usage: nova run <program> [args...]\n".to_string(),
+            "Usage: yzx run <program> [args...]\n".to_string(),
         ));
     };
     let needs_yazi = program == "ya" || program == "yazi";
@@ -192,7 +180,7 @@ fn exec_run(args: Vec<OsString>) -> Result<(), AppError> {
     };
     command.args(args);
     runtime.apply(&mut command);
-    exec(command, "nova run")
+    exec(command, "yzx run")
 }
 
 fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
@@ -201,16 +189,16 @@ fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
         .args(args)
         .env("YZX_ZELLIJ", ZELLIJ)
         .env("PATH", runtime_path());
-    exec(command, "nova reveal")
+    exec(command, "yzx reveal")
 }
 
 fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
     let mut command = Command::new(YZX_SCREEN);
     command
         .args(args)
-        .env("YAZELIX_SCREEN_COMMAND_NAME", "nova anima")
+        .env("YAZELIX_SCREEN_COMMAND_NAME", "yzx anima")
         .env("PATH", runtime_path());
-    exec(command, "nova anima")
+    exec(command, "yzx anima")
 }
 
 fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
@@ -257,7 +245,7 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
 fn managed_program(graphical: bool) -> Result<&'static str, AppError> {
     match (graphical, RIO.is_empty()) {
         (true, true) => Err(AppError::Usage(
-            "nova launch is unavailable because this package omits Rio; use nova enter or select a package that includes Rio\n".to_string(),
+            "yzx launch is unavailable because this package omits Rio; use yzx enter or select a package that includes Rio\n".to_string(),
         )),
         (true, false) => Ok(RIO),
         (false, _) => Ok(YZX_WELCOME),
@@ -352,22 +340,22 @@ mod tests {
 const HELP: &str = "Yazelix Nova
 
 Usage:
-  nova
-  nova --version
-  nova help
-  nova config
-  nova yazi-config materialize --user-config-dir <path> --state-dir <path>
-  nova doctor [--verbose]
-  nova radar-setup
-  nova env
-  nova enter [zellij-args...]
-  nova launch [zellij-args...]
-  nova menu
-  nova tutor [lesson]
-  nova reveal <target>
-  nova anima [style]
-  nova run <program> [args...]
-  nova status [--json]
+  yzx
+  yzx --version
+  yzx help
+  yzx config
+  yzx yazi-config materialize --user-config-dir <path> --state-dir <path>
+  yzx doctor [--verbose]
+  yzx radar-setup
+  yzx env
+  yzx enter [zellij-args...]
+  yzx launch [zellij-args...]
+  yzx menu
+  yzx tutor [lesson]
+  yzx reveal <target>
+  yzx anima [style]
+  yzx run <program> [args...]
+  yzx status [--json]
 
 Commands:
   config  Open Yazelix Nova config
@@ -386,15 +374,15 @@ Commands:
   help    Show this help
 
 Agent activity:
-  nova radar-setup   Set up Codex, Claude Code and OpenCode interactively
+  yzx radar-setup   Set up Codex, Claude Code and OpenCode interactively
   Radar asks before changes; unavailable agents are skipped.
   Start a fresh agent session afterward; review Codex hook trust with /hooks.
 
 Sessions:
-  nova enter --session NAME   Start a fresh named session in this terminal
-  nova launch --session NAME  Start a fresh named session in Rio
-  nova enter attach NAME      Attach to a live named session in this terminal
-  nova launch attach NAME     Attach to a live named session in Rio
+  yzx enter --session NAME   Start a fresh named session in this terminal
+  yzx launch --session NAME  Start a fresh named session in Rio
+  yzx enter attach NAME      Attach to a live named session in this terminal
+  yzx launch attach NAME     Attach to a live named session in Rio
 
 Sponsor: https://github.com/sponsors/luccahuguet
 ";
@@ -402,14 +390,14 @@ Sponsor: https://github.com/sponsors/luccahuguet
 const YAZI_CONFIG_HELP: &str = "Materialize Yazelix Nova's effective Yazi configuration
 
 Usage:
-  nova yazi-config materialize --user-config-dir <path> --state-dir <path>
+  yzx yazi-config materialize --user-config-dir <path> --state-dir <path>
 
 Commands:
   materialize  Build and print the effective Yazi config directory
 ";
 
 const YAZI_CONFIG_MATERIALIZE_HELP: &str =
-    "Usage: nova yazi-config materialize --user-config-dir <path> --state-dir <path>
+    "Usage: yzx yazi-config materialize --user-config-dir <path> --state-dir <path>
 
 Options:
   --user-config-dir <path>  Exact directory containing the user's Yazi configuration

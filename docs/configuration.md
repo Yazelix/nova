@@ -1,6 +1,6 @@
 # Configuration
 
-`nova config` opens Nova's Ratconfig interface. It shows packaged defaults,
+`yzx config` opens Nova's Ratconfig interface. It shows packaged defaults,
 persists explicit overrides, exposes advanced native files, and identifies
 Home Manager-owned configuration as declarative. Yazelix maintains reviewed
 recommendation sets for Main, Popups, Zellij, and Yazi; other
@@ -25,7 +25,7 @@ The yellow `>` marks the staged choice, and `Enter` saves it
 
 ## Config root
 
-`nova config` uses the managed config tree under:
+`yzx config` uses the managed config tree under:
 
 ```text
 ~/.config/yazelix/
@@ -51,7 +51,7 @@ directory must not be the generated `state/yazi` subtree or live below it
 ## Main settings
 
 The optional root config lives at `~/.config/yazelix/config.toml`. Opening
-`nova config` or starting Nova does not create it. The UI shows packaged defaults
+`yzx config` or starting Nova does not create it. The UI shows packaged defaults
 for absent keys, saves only explicit overrides, and removes a key when reset.
 Nova rejects unsupported or misspelled paths instead of silently ignoring them,
 while custom popup ids remain dynamic within the documented `popups.<id>`
@@ -73,7 +73,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `sidebar.command` | `radar` | Overview | Packaged Radar plugin or one executable for the managed sidebar |
 | `sidebar.args` | `[]` | All | Arguments for a custom `sidebar.command` |
 | `welcome.enabled` | `true` | Overview | Show the startup welcome splash |
-| `welcome.style` | `random` | Overview | Startup animation, including `friends_and_enemies`, `primordial`, and `game_of_life_tumblers`; `nova anima --help` lists every supported style |
+| `welcome.style` | `random` | Overview | Startup animation, including `friends_and_enemies`, `primordial`, and `game_of_life_tumblers`; `yzx anima --help` lists every supported style |
 | `welcome.duration_seconds` | `3` | All | Startup splash duration, 1 to 60 seconds |
 | `keybindings.bottom_hints` | `Alt Shift B` | Overview | Hide or show the current session's bottom hints |
 | `keybindings.sidebar` | `Alt Shift H` | Overview | Hide or show the managed sidebar |
@@ -186,7 +186,7 @@ equally to both horizontal edges.
 not a root setting. The popup opens at the active tab's canonical workspace
 root and hides on toggle. Ordinary toggles preserve the same live Yazi process
 and its navigation even if the tab root later changes. It uses the layered Yazi
-configuration and editor opener. `nova reveal` replaces the popup process and
+configuration and editor opener. `yzx reveal` replaces the popup process and
 starts Yazi at the requested target.
 
 `agent.command` accepts one executable name or path, not a shell command with
@@ -353,7 +353,7 @@ managed config with Yazi's package manager:
 config_home="${YAZELIX_CONFIG_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/yazelix}"
 mkdir -p "$config_home/yazi"
 YAZI_CONFIG_HOME="$config_home/yazi" \
-  nova run ya pkg add yazi-rs/flavors:catppuccin-mocha
+  yzx run ya pkg add yazi-rs/flavors:catppuccin-mocha
 ```
 
 Select it through Ratconfig or in `$config_home/yazi/theme.toml`:
@@ -365,7 +365,7 @@ light = "catppuccin-mocha"
 ```
 
 `ya` owns `package.toml` and the installed flavor directory. Yazelix uses its
-packaged, version-matched `ya` for `nova run ya`, projects those native files at
+packaged, version-matched `ya` for `yzx run ya`, projects those native files at
 Yazi launch, and never installs or upgrades packages automatically. Compatible
 user-installed flavors appear in both Ratconfig pools automatically
 
@@ -424,7 +424,7 @@ through these Yazelix-owned files. Home Manager can
 [reuse one source at both explicit destinations](installation.md#reuse-one-source-for-host-and-nova)
 without ambient configuration adoption
 
-Opening `nova config` seeds `rio/config.toml` once, but does not create
+Opening `yzx config` seeds `rio/config.toml` once, but does not create
 `starship.toml` or `zellij/config.kdl`. Saving writes only the selected override,
 and resetting removes that key. New managed Yazi
 processes read the saved root mode and project its selected flavor into runtime
@@ -486,7 +486,7 @@ keeps the session's captured appearance across Ratconfig, Rio, Zellij, the bar,
 and new Yazi opens. The saved root mode applies to all of them together in the
 next session; Rio receives the launch-time override because `force-theme`
 cannot be projected. Zellij sidecar saves and resets still update the active
-managed session when `nova config` runs inside it. Pane frames, rounded corners,
+managed session when `yzx config` runs inside it. Pane frames, rounded corners,
 copy-on-select, and clipboard target apply via the Zellij watcher; mouse mode,
 scrollback size, styled underlines, and startup tips need a new session.
 
@@ -515,7 +515,7 @@ Git clients use `yzx-editor` through the standard editor variables. On return,
 the bridge restores the client's transparent Zellij background
 
 `Alt r` starts the active tab's persistent Yazi popup at the current Helix
-buffer. `nova reveal <target>` exposes the same behavior inside a managed session
+buffer. `yzx reveal <target>` exposes the same behavior inside a managed session
 without changing the tab's canonical workspace. The target may be absolute,
 relative to the command's current directory, or use an exact leading `~` or
 `~/` resolved from `HOME`. Editor-to-Yazi reveal replaces an existing popup

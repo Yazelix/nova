@@ -8,6 +8,8 @@ The Home Manager evaluation guard overrides nixpkgs with the reviewed revision
 in `checks/newer-nixpkgs.txt` on Linux and Darwin, exercising the consumer
 `follows` path with the existing configuration and package-override cases.
 Ordinary CI evaluates this override; heavy compatibility builds run in Version Gate.
+The focused package-contract check protects the installed `yzx` namespace,
+public help, managed command discovery, and child argument/output/exit status.
 `Publish Nix Cache` publishes Linux and Darwin capability variants, the Main and
 Edge Linux full-package launcher outputs, and representative Home Manager closures
 from `main` and manual dispatch. Both jobs push the requested output closures
@@ -318,9 +320,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,326 |
-| Documentation and text | 5,495 |
-| Total | 33,821 |
+| Code and configuration | 28,278 |
+| Documentation and text | 5,486 |
+| Total | 33,764 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

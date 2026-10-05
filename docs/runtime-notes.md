@@ -5,13 +5,13 @@ matter when changing launch, config, editor, shell, or popup behavior.
 
 ## Config UI
 
-`nova config` validates the optional root config and seeds the complete native
+`yzx config` validates the optional root config and seeds the complete native
 `rio/config.toml` when that path is missing. Runtime preparation uses the same
 one-time seed.
 
 Packages with the `no-rio` suffix skip that initialization entirely. Their
-`nova enter` path starts the managed workspace in the current terminal, while
-`nova launch` returns an instruction to use `enter` instead.
+`yzx enter` path starts the managed workspace in the current terminal, while
+`yzx launch` returns an instruction to use `enter` instead.
 
 The UI leaves these sparse sources absent until you save a field:
 
@@ -66,7 +66,7 @@ existing Yazi process keeps its current theme until it is reopened.
 
 ## Sessions
 
-`nova enter` and `nova launch` pass the managed config and
+`yzx enter` and `yzx launch` pass the managed config and
 `--new-session-with-layout` to packaged Zellij before forwarding caller
 arguments. Zellij owns session creation, attachment, switching, process
 lifetime, and native failure messages. Plain launch creates an independent
@@ -108,7 +108,7 @@ assignment remains untouched in the user sidecar and is reported as ignored,
 while runtime materialization omits it so the complete pair has one clear
 authority.
 
-When `nova config` runs inside a managed session (`ZELLIJ_SESSION_NAME` or
+When `yzx config` runs inside a managed session (`ZELLIJ_SESSION_NAME` or
 `YAZELIX_ZELLIJ_SESSION_NAME`, plus `YAZELIX_STATE_DIR`), saving a Zellij tab
 field also patches `$YAZELIX_STATE_DIR/zellij/config.kdl` so the running Zellij
 watcher can pick up scalars without rewriting integration patches. Editing the
@@ -302,20 +302,20 @@ automatically or reopens the consent prompt. A declined state remains quiet
 until an explicit successful `zj-radar setup codex` is recognized by a later
 healthy check.
 Non-interactive launches neither prompt nor toast. Child-check, setup, and toast
-failures never block Codex. `nova doctor` replays Radar's read-only Codex
+failures never block Codex. `yzx doctor` replays Radar's read-only Codex
 diagnosis and keeps missing integration warning-only. It omits the trust
 reminder until hooks exist and reports startup failures once through the
 shared diagnostic. Its default
 report groups useful health checks and colors statuses on a TTY.
-`nova doctor --verbose` prints Radar's raw report and individual Classic residue
-entries. `nova status` remains
+`yzx doctor --verbose` prints Radar's raw report and individual Classic residue
+entries. `yzx status` remains
 the owner of paths and settings. Trust remains owned by Codex's `/hooks` UI.
 Both diagnostic commands validate configuration without writing files, initializing
 Rio or granting plugin permissions, including their verbose/JSON forms.
 Missing runtime files remain absent until an existing launch/run command prepares
 them. Text status marks absent generated paths as `not initialized`; doctor gives
 the launch action. Invalid settings or sidecars fail without changing user state.
-`nova radar-setup` and its **Set up Radar for Codex, Claude Code, OpenCode**
+`yzx radar-setup` and its **Set up Radar for Codex, Claude Code, OpenCode**
 entry in `Alt Shift M` invoke the packaged
 `zj-radar setup codex claude opencode` with inherited terminal input/output and
 without `--yes`. Radar owns sequential detection, existing-state handling,
@@ -350,7 +350,7 @@ with the active tab's canonical workspace root as its explicit request cwd.
 The popup uses `toggle_close_behavior "hide"` and
 `preserve_on_cwd_change true`, so ordinary toggles only hide or show the same
 live Yazi process. Yazi remains the sole owner of its navigation state even if
-its process cwd or the canonical tab root changes. `nova reveal` sends one
+its process cwd or the canonical tab root changes. `yzx reveal` sends one
 configured `replace` request to the popup owner with the absolute target as a
 launch argument. Yazi reveals that target during normal startup, so reveal does
 not wait for or address a partially started process. This deliberately resets
@@ -512,7 +512,7 @@ editor, or the full Yazelix runtime:
 
 ```sh
 effective_config="$(
-  nova yazi-config materialize \
+  yzx yazi-config materialize \
     --user-config-dir "$PWD/yazi" \
     --state-dir "$PWD/state"
 )"

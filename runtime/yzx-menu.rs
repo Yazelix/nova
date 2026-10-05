@@ -72,7 +72,7 @@ fn run() -> i32 {
         match status {
             Ok(status) => status.code().unwrap_or(1),
             Err(error) => {
-                eprintln!("Failed to run `nova {id}`: {error}");
+                eprintln!("Failed to run `yzx {id}`: {error}");
                 127
             }
         }
@@ -187,7 +187,7 @@ fn select_with_fzf() -> Option<String> {
             "--header",
             "  Yazelix Nova Command Palette",
             "--prompt",
-            "  nova> ",
+            "  yzx> ",
             "--pointer",
             ">",
             "--layout",

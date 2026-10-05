@@ -166,7 +166,7 @@ pub(crate) const ZELLIJ_CONFIG_STARTER: &str =
     "// Sparse native Zellij overrides layered over Yazelix packaged configuration.\n";
 pub(crate) const ZELLIJ_PLUGINS_STARTER: &str = "// Extra managed Zellij plugins. Do not declare yzpp, yazelix_pane_orchestrator, or radar here.\nplugins {\n}\n\nload_plugins {\n}\n";
 pub(crate) const KEY_READ_ONLY_REASON: &str =
-    "Read-only key binding; nova config does not rewrite native keymaps.";
+    "Read-only key binding; yzx config does not rewrite native keymaps.";
 
 pub(crate) const MANAGED_KEYBINDINGS: &[(&str, &str)] = &[
     (KEYBINDINGS_CONFIG_PATH, "Alt Shift K"),

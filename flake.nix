@@ -374,7 +374,7 @@
         name = "yzx-welcome";
         text = ''
           if [ "''${YZX_WELCOME_ENABLED:-true}" != false ]; then
-            if ! YAZELIX_SCREEN_COMMAND_NAME='nova anima' ${yazelixScreenPackage}/bin/anima "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}"; then
+            if ! YAZELIX_SCREEN_COMMAND_NAME='yzx anima' ${yazelixScreenPackage}/bin/anima "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}"; then
               printf 'yzx welcome: failed to render welcome screen\n' >&2
             fi
           fi
@@ -958,18 +958,14 @@
           chmod -R u+w "$out"
           cp ${main} "$out/main.rs"
         '';
-        command = (rustBin "nova" "${src}/main.rs").overrideAttrs (old: {
-          buildCommand = old.buildCommand + ''
-            ln -s nova "$out/bin/yzx"
-          '';
-        });
+        command = rustBin "yzx" "${src}/main.rs";
         withDesktop = withRio && pkgs.stdenv.hostPlatform.isLinux;
         desktop = pkgs.makeDesktopItem {
           name = "yzx-${channel}";
           desktopName = "Yazelix Nova (${channelLabel})";
           genericName = "Terminal Emulator";
           comment = "Open the Yazelix integrated terminal workspace";
-          exec = "${command}/bin/nova launch";
+          exec = "${command}/bin/yzx launch";
           icon = "yzx";
           terminal = false;
           categories = ["System" "TerminalEmulator"];
@@ -1264,12 +1260,11 @@
         no_rio_path="${homeManagerNoRio.activationPackage}/home-path"
         no_yazi_path="${homeManagerNoYazi.activationPackage}/home-path"
         shared_config_files="${homeManagerSharedStarship.activationPackage}/home-files/.config/yazelix"
-        hm_yzx="${homeManagerConfigFiles.activationPackage}/home-path/bin/nova"
+        hm_yzx="${homeManagerConfigFiles.activationPackage}/home-path/bin/yzx"
         config_files="${homeManagerConfigFiles.activationPackage}/home-files/.config/yazelix"
 
         test -x "$default_path/bin/yzx"
-        test -x "$default_path/bin/nova"
-        test "$(readlink -f "$default_path/bin/nova")" = "$(readlink -f "$default_path/bin/yzx")"
+        test ! -e "$default_path/bin/nova"
         ${if pkgs.stdenv.hostPlatform.isLinux then ''
           test -f "$default_path/share/applications/yzx-stable.desktop"
           grep -Fqx 'Name=Yazelix Nova (Stable)' "$default_path/share/applications/yzx-stable.desktop"
@@ -1361,8 +1356,6 @@
         mkdir -p "$HOME" "$YAZELIX_STATE_DIR" "$XDG_DATA_HOME"
 
         "$hm_yzx" help > help
-        "${homeManagerConfigFiles.activationPackage}/home-path/bin/yzx" help > legacy-help
-        grep -Fq 'yzx is a compatibility name for nova' legacy-help
         ! grep -Fq 'compatibility name' help
         "$hm_yzx" status > status
         "$hm_yzx" doctor > doctor
@@ -1642,7 +1635,7 @@
             status=$?
           fi
           test "$status" -eq 64
-          grep -Fq 'this package omits Rio; use nova enter' "$root/launch-error"
+          grep -Fq 'this package omits Rio; use yzx enter' "$root/launch-error"
           "$package/bin/yzx" enter --version > "$root/enter-version"
           grep -q '^yzx-zellij ' "$root/enter-version"
           "$package/bin/yzx" run yzx-zellij --version > "$root/alias-version"
@@ -1730,7 +1723,7 @@
         grep -Fqx keep "$invalid_state/yazi/sentinel"
 
         PATH=${pkgs.coreutils}/bin "$package/bin/yzx" yazi-config --help > "$root/yazi-config-help"
-        grep -F 'nova yazi-config materialize' "$root/yazi-config-help"
+        grep -F 'yzx yazi-config materialize' "$root/yazi-config-help"
         PATH=${pkgs.coreutils}/bin "$package/bin/yzx" yazi-config materialize --help > "$root/materialize-help"
         grep -F -- '--user-config-dir <path>' "$root/materialize-help"
         set +e
@@ -1739,7 +1732,7 @@
         usage_status=$?
         set -e
         test "$usage_status" -eq 64
-        grep -F 'Usage: nova yazi-config materialize' "$root/materialize-usage"
+        grep -F 'Usage: yzx yazi-config materialize' "$root/materialize-usage"
 
         PATH=${fakeHostYazi}/bin:${pkgs.coreutils}/bin "$package/bin/yzx" doctor > "$root/doctor"
         grep -Fq 'ok    Yazi             ${pkgs.yazi.version} (host)' "$root/doctor"
@@ -1819,7 +1812,7 @@
           recipe = ./checks/startup-picker-cancel.rs;
           runtimeInputs = [pkgs.jq pkgs.xterm pkgs.zoxide];
           environment = {
-            YZX_BIN = "${yzx}/bin/nova";
+            YZX_BIN = "${yzx}/bin/yzx";
             ZELLIJ_BIN = "${yzx}/bin/yzx-zellij";
           };
         };
@@ -1853,7 +1846,7 @@
     apps = eachSystem (system:
       builtins.mapAttrs (_name: package: {
         type = "app";
-        program = "${package}/bin/nova";
+        program = "${package}/bin/yzx";
       })
       self.packages.${system});
   };

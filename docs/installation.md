@@ -32,18 +32,11 @@ absolute package-owned launch command, so Stable, Main, and Edge still start
 their exact immutable packages. Their running top bars identify that package as
 `NOVA 1.3 STABLE`, `NOVA 1.3 MAIN`, or `NOVA 1.3 EDGE`, depending on the version installed.
 
-## CLI names
+## CLI
 
-Edge exposes `nova` as the canonical command and `yzx` as a compatibility name
-for the same dispatcher. Prefer `nova launch`, `nova enter`, and `nova help` on
-Edge. `yzx`, `yzx help`, `yzx -h`, and `yzx --help` include a short compatibility
-notice; ordinary commands, JSON output and version output carry no rename
-warning. No removal date or release is scheduled.
-
-Current Stable installations use `yzx`; the examples below remain valid through
-the compatibility entry point. If another installed product supplies a `nova`
-command, such as OpenStack's client, use `yzx` or the package's absolute
-`bin/nova` path to select Yazelix Nova explicitly.
+`yzx` is the sole public command for Yazelix Nova. Use `yzx launch`, `yzx enter`,
+and `yzx help` on every channel. Packages do not install a `nova` command, so
+Panic Nova and other applications can retain their own executable names.
 
 ## Package variants
 
