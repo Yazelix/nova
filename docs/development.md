@@ -65,8 +65,8 @@ Cachix cache, while source builds remain valid without it. Use Version Gate
 before publishing a release
 
 Linux CI and Darwin Package Smoke build `helix_grammar_sources`, Nova Helix's
-`HELIX-GRAMMAR-SOURCES-001` check. It rejects Codeberg network fetches during Nix
-evaluation and compiles the pinned Codeberg grammars from bundled, hash-verified
+`HELIX-GRAMMAR-SOURCES-001` check. It rejects Codeberg and SourceHut fetches during
+Nix evaluation and compiles their pinned grammars from bundled, hash-verified
 sources. Grammar revisions and snapshot maintenance belong to Nova Helix.
 The Linux-only `startup_picker_cancellation` check reuses Anima's pinned Kinestra
 input to exercise empty-history Yazi, automatic and reopened search, startup
@@ -336,8 +336,8 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 29,342 |
-| Documentation and text | 5,800 |
-| Total | 35,142 |
+| Documentation and text | 5,804 |
+| Total | 35,146 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

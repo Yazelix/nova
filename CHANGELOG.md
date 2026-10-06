@@ -4,6 +4,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Packaged Helix uses pinned source snapshots for Codeberg and SourceHut grammars.
+
 - Radar's Codex hooks and sidebar broadcasts reach the bundled Zellij session
   even when another Zellij version is installed on the host. Its compatibility
   check recognizes the bundled client's upstream version.
