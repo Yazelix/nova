@@ -704,6 +704,13 @@
         '';
       };
       yzxZellij = yazelixDistributionPackage;
+      # Radar invokes zellij for both hook and sidebar broadcasts.
+      radarZellij = pkgs.linkFarm "yzx-radar-zellij" [
+        {
+          name = "bin/zellij";
+          path = "${yzxZellij}/bin/yzx-zellij";
+        }
+      ];
       mkYzx = {
         channel ? "stable",
         withRio,
@@ -951,6 +958,7 @@
             yazi
             zjRadarCliPackage
             yzxZellij
+            radarZellij
           ];
         };
         src = pkgs.runCommand "yzx-command-${variant}-src" {} ''

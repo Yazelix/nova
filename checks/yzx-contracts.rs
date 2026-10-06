@@ -1237,6 +1237,7 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
 
     let case = RuntimeCase::new(&temp.path, "managed-hx-alias");
     write_executable(&temp.path.join("yzx"), "#!/bin/sh\nexit 99\n");
+    write_executable(&temp.path.join("zellij"), "#!/bin/sh\nexit 99\n");
     let mut command = case.yzx_command(&yzx_bin, "run");
     command.args(["printenv", "PATH"]).env("PATH", &temp.path);
     let output = successful_stdout(&mut command, "managed hx PATH");
@@ -1260,6 +1261,26 @@ fn expect_narrow_path_launches(yzx: &Path, yzx_shell: &Path) {
     assert!(
         resolve("zj-radar").is_file(),
         "managed PATH is missing the Radar producer CLI"
+    );
+    assert_eq!(
+        fs::canonicalize(resolve("zellij")).unwrap(),
+        fs::canonicalize(yzx.join("bin/yzx-zellij")).unwrap(),
+        "Radar's zellij must resolve to the bundled client before the host PATH"
+    );
+    assert!(
+        !yzx.join("bin/zellij").exists(),
+        "the Radar transport alias must stay private to Nova's managed PATH"
+    );
+    let report = case
+        .yzx_command(&yzx_bin, "run")
+        .args(["zj-radar", "setup", "zellij", "--check"])
+        .env("PATH", &temp.path)
+        .output()
+        .unwrap();
+    expect_contains(
+        &String::from_utf8_lossy(&report.stdout),
+        "ok zellij binary:",
+        "Radar must recognize the bundled client's upstream version",
     );
     assert_eq!(
         fs::canonicalize(resolve("yzx-yazi")).unwrap(),

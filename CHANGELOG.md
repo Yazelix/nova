@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Radar's Codex hooks and sidebar broadcasts reach the bundled Zellij session
+  even when another Zellij version is installed on the host. Its compatibility
+  check recognizes the bundled client's upstream version.
+
 - The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
   artifact's root, metadata, host boundary and required delivery evidence.
   Implementation remains queued; installation still requires Nix.

@@ -270,6 +270,12 @@ Radar hooks. Nova does not query Codex for activity or provide an equivalent
 hookless fallback. Without those hooks, ordinary pane and command information
 remains available, but Codex activity reporting is unavailable.
 
+Radar's hook and sidebar broadcasts use the bundled `yzx-zellij` through the
+managed session PATH's private `zellij` alias. This prevents another installed
+Zellij version from selecting a different session namespace. The alias reports
+the upstream Zellij version for Radar's compatibility check; `yzx-zellij` retains
+the distribution identity.
+
 Agent popup identity uses the stable `/bin/yzx-agent` command marker. A runtime
 update can change the launcher's store path without losing the running popup,
 including when the agent supplies its own terminal title.
