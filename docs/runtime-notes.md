@@ -239,11 +239,15 @@ the hint layout without a repeated redraw loop.
 
 `BOTTOM-HINTS-START-001` is the Nova/provider-to-orchestrator startup contract.
 Nova names only initial and new-tab hint panes `bottom_hints_start_hidden` when
-the preference is enabled. The orchestrator uses the oldest native hint pane
-to seed session visibility and consumes the marker by renaming it `bottom_hints`.
-Later marked tabs inherit that pane's current suppression state. Visible swap
-layouts keep the ordinary name, so restoration and client attach do not reseed
-startup visibility. Native pane state remains the sole runtime visibility owner.
+the preference is enabled. The oldest hint pane seeds visibility once in the
+orchestrator's native background controller pane. Its title records
+`yazelix_pane_orchestrator:hints:v1:hidden` or `:visible`; it survives tab closure
+and is shared by attached clients. Marked hint panes become `bottom_hints` after
+reconciliation. Later tabs inherit the stored choice even when the original tab
+closes immediately. Visible swap layouts keep the ordinary name. Native pane
+state remains the sole runtime visibility owner.
+Retiring hints lose their hint role before being shown and closed; one native
+client elected across all tabs handles retirement and toggles.
 The `nova_hints` alias passes each managed shortcut chord to `nova-zjhints` as
 `pipe_hint_<id>` metadata because native mode events omit plugin-message
 identities. The managed keybinding patch owns both binding and hint remapping

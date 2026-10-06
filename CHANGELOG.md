@@ -8,6 +8,7 @@ User-visible runtime changes for Yazelix Nova live here.
   key-hint row. The default is `false`. Existing toggles still work; later tabs
   and attached clients retain the session's current choice. Ratconfig exposes
   **Start bottom hints hidden**, and Home Manager accepts the same setting.
+  Closing the original tab immediately after creating another preserves that choice.
 
 - `yzx` is the sole public CLI for Yazelix Nova. Packages do not install a
   `nova` command. Desktop launchers, help, tutorials and config hints use `yzx`.
@@ -34,8 +35,8 @@ User-visible runtime changes for Yazelix Nova live here.
 - `Alt Shift B` and the command palette's **Toggle bottom hints** action hide or
   restore bottom hints throughout the current session, reclaiming their row when
   hidden. Sidebar and stacked/split layout switches retain the choice; new tabs
-  inherit it, and fresh sessions start visible. Focus and input mode survive the
-  toggle, including with multiple attached clients.
+  inherit it, and fresh sessions start visible by default. Focus and input mode
+  survive the toggle, including with multiple attached clients.
   `keybindings.bottom_hints` remaps the shortcut or disables it with `false`.
   Repeated toggles preserve work-pane frames and stack headers, so collapsed
   panes remain visible and selectable.

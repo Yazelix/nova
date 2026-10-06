@@ -144,7 +144,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,413 code/configuration lines** and **5,509 documentation/text
+Yazelix owns **28,426 code/configuration lines** and **5,515 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -160,4 +160,5 @@ The sole `yzx` CLI removes alias packaging and compatibility-help logic. Its
 checks protect the executable namespace, global help, managed PATH and child
 argument/output/exit status.
 The bottom-hint startup preference adds configuration, layout propagation and
-session regression checks; native pane state consumes its initial value once.
+session regression checks; the native background controller keeps the choice
+across tab closure and consumes its initial value once.

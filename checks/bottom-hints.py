@@ -172,8 +172,7 @@ try:
     tmux("kill-session", "-t", "rendering")
     config.write_text(fixture_config)
     # Seed startup only; visible swap layouts retain the ordinary hint role.
-    layout.write_text(layout.read_text().replace('bottom_hints name="bottom_hints" size=1\n\n}', 'bottom_hints name="bottom_hints_start_hidden" size=1\n\n}'))
-    assert 'bottom_hints name="bottom_hints_start_hidden"' in layout.read_text()
+    layout.write_text(layout.read_text().replace(ui, ui.replace('name="bottom_hints"', 'name="bottom_hints_start_hidden"')))
     tmux("new-session", "-d", "-s", "proof", "-x", "120", "-y", "40",
          shlex.join([binary, "-c", str(config), "-n", str(layout), "-s", session]) + "; sleep 30")
     # Avoid opening a CLI connection while the first interactive client is starting.
@@ -413,8 +412,22 @@ try:
     action("close-tab")
     wait_for(lambda p: all(x["tab_position"] == 0 for x in p))
     verify(True)
-    tmux("send-keys", "-t", "proof:1", "M-B")
-    verify(False)
+    # Session choice must survive closing its original hint pane before the new
+    # tab's startup marker has been consumed, for both visible and hidden hints.
+    for hidden in (False, True):
+        tmux("send-keys", "-t", "proof:1", "M-B")
+        verify(hidden)
+        for _ in range(3):
+            action("new-tab", "--layout", str(layout))
+            wait_for(lambda p: len(json.loads(action("list-tabs", "--json"))) == 2)
+            action("go-to-tab", "1")
+            action("close-tab")
+            data = wait_for(lambda p: len({x["tab_position"] for x in p}) == 1
+                            and len([x for x in p if x["title"] in ("bottom_hints", "bottom_hints_start_hidden")]) == 1
+                            and any(x["title"] == "bottom_hints" and x["is_suppressed"] == hidden for x in p))
+            required_work = {p["id"] for p in data if not p["is_plugin"]}
+            verify(hidden)
+            env["ZELLIJ_PANE_ID"] = str(next(iter(required_work)))
     print("bottom hints: compact managed-hint priorities and fitting, repeated toggles, manual pane order, new-pane placement, pane frames and identities, single/stacked/split panes, shortcut/CLI/menu, pane and closed-tab lifecycle, session visibility, geometry, focus, input mode, multiple/mirrored clients, attach, and missing-pane safety passed")
 finally:
     for name in (session, session + "-rendering"):
