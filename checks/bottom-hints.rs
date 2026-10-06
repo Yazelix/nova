@@ -88,6 +88,7 @@ impl Check {
         serde_json::from_str(&self.action(&["list-panes", "--all", "--json"])).unwrap()
     }
 
+    #[track_caller]
     fn wait_for(&self, mut check: impl FnMut(&[Pane]) -> bool) -> Vec<Pane> {
         let mut last = Vec::new();
         let mut error = String::new();
@@ -118,13 +119,8 @@ impl Check {
         );
     }
 
-    fn pipe(&self, name: &str) {
-        let before = if name == "toggle_bottom_hints" {
-            self.panes()
-        } else {
-            Vec::new()
-        };
-        let response = self.action(&[
+    fn pipe_response(&self, name: &str) -> String {
+        self.action(&[
             "pipe",
             "--plugin",
             "yazelix_pane_orchestrator",
@@ -132,7 +128,16 @@ impl Check {
             name,
             "--",
             "toggle",
-        ]);
+        ])
+    }
+
+    fn pipe(&self, name: &str) {
+        let before = if name == "toggle_bottom_hints" {
+            self.panes()
+        } else {
+            Vec::new()
+        };
+        let response = self.pipe_response(name);
         assert_eq!(response.trim(), "ok", "{name}");
         if !before.is_empty() {
             let after = self.panes();
@@ -150,6 +155,7 @@ impl Check {
         }
     }
 
+    #[track_caller]
     fn verify(&self, hidden: bool, view: View) -> Vec<Pane> {
         self.wait_for(|panes| {
             let bars = panes
@@ -551,15 +557,7 @@ keybinds clear-defaults=true {
         c.verify(true, focused_work);
         c.pipe("toggle_sidebar");
         c.verify(true, base);
-        let target = c.action(&[
-            "pipe",
-            "--plugin",
-            "yazelix_pane_orchestrator",
-            "--name",
-            "content_layout_target",
-            "--",
-            "toggle",
-        ]);
+        let target = c.pipe_response("content_layout_target");
         assert!(target.trim().ends_with("_no_hints"), "{target}");
         c.action(&["apply-tiled-swap-layout", target.trim()]);
         c.verify(true, base);
@@ -808,19 +806,7 @@ keybinds clear-defaults=true {
     ]);
     let before = c.wait_for(|p| p.iter().any(|p| p.title == "not-hints"));
     sleep(0.2);
-    assert_eq!(
-        c.action(&[
-            "pipe",
-            "--plugin",
-            "yazelix_pane_orchestrator",
-            "--name",
-            "toggle_bottom_hints",
-            "--",
-            "toggle"
-        ])
-        .trim(),
-        "missing"
-    );
+    assert_eq!(c.pipe_response("toggle_bottom_hints").trim(), "missing");
     let geometry = |data: &[Pane]| {
         data.iter()
             .map(|p| {
