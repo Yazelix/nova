@@ -23,6 +23,9 @@ editing to an installed host command.
 resolving a matching host `yazi`/`ya` pair. The three omission suffixes compose
 into eight explicit package and app outputs.
 
+The [portable runtime contract](docs/portable-runtime.md) defines the future
+managed no-Rio artifact and its root owner. Current installation uses Nix.
+
 ## Platforms
 
 | Surface | Support |

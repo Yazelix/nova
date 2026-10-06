@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
+  artifact's root, metadata, host boundary and required delivery evidence.
+  Implementation remains queued; installation still requires Nix.
+
 - `bottom_hints.start_hidden = true` starts fresh sessions without the bottom
   key-hint row. The default is `false`. Existing toggles still work; later tabs
   and attached clients retain the session's current choice. Ratconfig exposes

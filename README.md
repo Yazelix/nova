@@ -106,6 +106,7 @@ Source, Edge, and maintainer references stay with the code:
 
 - [Architecture](ARCHITECTURE.md)
 - [Runtime contracts](docs/runtime-notes.md)
+- [Portable runtime contract](docs/portable-runtime.md) (implementation target)
 - [Installation and package reference](docs/installation.md)
 - [Development and verification](docs/development.md)
 - [Contributing](CONTRIBUTING.md)
@@ -144,7 +145,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **29,228 code/configuration lines** and **5,537 documentation/text
+Yazelix owns **29,228 code/configuration lines** and **5,776 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -165,3 +166,5 @@ across tab closure and consumes its initial value once.
 Product checks use Rust with a shared headless tmux driver; Python remains in
 GitHub automation. Preserving the native scenarios increases check source lines
 while removing their Python build input.
+The portable-runtime contract accounts for documentation growth; runtime and
+packaging implementation remain separate work.

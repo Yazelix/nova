@@ -336,8 +336,8 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 29,228 |
-| Documentation and text | 5,537 |
-| Total | 34,765 |
+| Documentation and text | 5,776 |
+| Total | 35,004 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -368,3 +368,7 @@ without a timer, state file or additional Zellij patch.
 Rust product checks retain the native interaction coverage and remove Python from
 their build inputs. Typed pane snapshots and explicit assertions increase source
 lines; process setup, cleanup and tmux operations share one driver.
+
+The [portable runtime contract](portable-runtime.md) records the accepted
+no-Rio layout, ownership, metadata and native proof boundaries. Its documentation
+counts here; this decision does not change packaged runtime behavior.
