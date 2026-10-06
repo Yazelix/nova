@@ -2756,6 +2756,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
     let agent = popup_command(config, "/bin/yzx-agent");
     expect_agent_bootstrap(&agent);
     expect_radar_health_transition(&agent);
+    expect_codex_pane_context(&agent);
 
     let git = popup_command(config, "/bin/yzx-git");
     let git_script = fs::read_to_string(&git).unwrap();
@@ -3154,6 +3155,63 @@ fn expect_agent_bootstrap_case(
             fs::read_to_string(&output_file).unwrap(),
             "radar setup codex --check\ncodex resume\n",
             "the second Codex launch must recheck without offering setup again"
+        );
+    }
+}
+
+fn expect_codex_pane_context(agent: &Path) {
+    let temp = TempDir::new();
+    let codex = temp.path.join("codex");
+    let record = temp.path.join("launch");
+    write_executable(
+        &codex,
+        "#!/bin/sh\nif [ \"$1\" = --help ]; then\n  printf '%s\\n' \"$CODEX_TEST_HELP\"\n  exit \"$CODEX_TEST_HELP_EXIT\"\nfi\nprintf '%s\\n' \"$*\" \"$ZELLIJ_SESSION_NAME:$ZELLIJ_PANE_ID\" >\"$YAZELIX_AGENT_TEST_OUT\"\n",
+    );
+    for (help, help_exit, in_pane, radar, args, expected) in [
+        (
+            "--no-daemon",
+            "0",
+            true,
+            true,
+            vec!["resume", "session"],
+            "--no-daemon resume session",
+        ),
+        (
+            "--no-daemon",
+            "0",
+            true,
+            true,
+            vec!["--no-daemon", "resume"],
+            "--no-daemon resume",
+        ),
+        ("--no-daemon", "0", true, false, vec!["resume"], "resume"),
+        ("--no-daemon", "0", false, true, vec!["resume"], "resume"),
+        ("legacy help", "0", true, true, vec!["resume"], "resume"),
+        ("--no-daemon", "1", true, true, vec!["resume"], "resume"),
+    ] {
+        let mut command = isolated_agent_command(agent, &temp.path);
+        command
+            .arg(&codex)
+            .args(args)
+            .env("PATH", "")
+            .env("CODEX_TEST_HELP", help)
+            .env("CODEX_TEST_HELP_EXIT", help_exit)
+            .env("YZX_RADAR_ENABLED", if radar { "true" } else { "false" })
+            .env("YAZELIX_AGENT_TEST_OUT", &record);
+        if in_pane {
+            command
+                .env("ZELLIJ", "0")
+                .env("ZELLIJ_SESSION_NAME", "pane-context")
+                .env("ZELLIJ_PANE_ID", "3");
+        }
+        successful_output(&mut command, "Codex pane context");
+        assert_eq!(
+            fs::read_to_string(&record).unwrap(),
+            format!(
+                "{expected}\n{}\n",
+                if in_pane { "pane-context:3" } else { ":" }
+            ),
+            "Codex hook runner selection changed arguments or pane context"
         );
     }
 }

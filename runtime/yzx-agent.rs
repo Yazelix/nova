@@ -44,10 +44,26 @@ fn run() -> i32 {
 }
 
 fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32 {
+    let mut process = Command::new(command);
     if Path::new(command).file_name() == Some(OsStr::new("codex")) && radar_enabled() {
         offer_codex_radar_setup(command, state_dir);
+        // A shared Codex server cannot inherit this pane's hook environment.
+        if env::var_os("ZELLIJ").is_some()
+            && !args.iter().any(|arg| arg.as_ref() == "--no-daemon")
+            && Command::new(command)
+                .arg("--help")
+                .output()
+                .is_ok_and(|output| {
+                    output.status.success()
+                        && String::from_utf8_lossy(&output.stdout)
+                            .split_whitespace()
+                            .any(|word| word == "--no-daemon")
+                })
+        {
+            process.arg("--no-daemon");
+        }
     }
-    exec_command(command, args)
+    exec_command(process.args(args))
 }
 
 fn radar_enabled() -> bool {
@@ -60,11 +76,11 @@ fn emit_initial_title() {
     let _ = stdout.flush();
 }
 
-fn exec_command<T: AsRef<OsStr>>(command: &OsStr, args: &[T]) -> i32 {
-    let error = Command::new(command).args(args).exec();
+fn exec_command(command: &mut Command) -> i32 {
+    let error = command.exec();
     eprintln!(
         "Yazelix Nova agent popup\n\nFailed to launch `{}`: {error}",
-        command.to_string_lossy()
+        command.get_program().to_string_lossy()
     );
     pause_if_tty();
     127

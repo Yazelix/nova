@@ -276,6 +276,14 @@ Zellij version from selecting a different session namespace. The alias reports
 the upstream Zellij version for Radar's compatibility check; `yzx-zellij` retains
 the distribution identity.
 
+Managed Codex launches with Radar selected use `--no-daemon` when the installed
+Codex advertises it. Codex's shared server snapshots its own environment for
+hooks, which lacks the invoking pane's Zellij identifiers and managed PATH.
+Running in the pane keeps reporting associated with that pane. Existing hook
+trust and enablement still apply; older Codex versions keep their launch arguments.
+When starting Codex directly in a shell, use `codex --no-daemon` if that version
+otherwise uses a shared server.
+
 Agent popup identity uses the stable `/bin/yzx-agent` command marker. A runtime
 update can change the launcher's store path without losing the running popup,
 including when the agent supplies its own terminal title.
