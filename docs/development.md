@@ -279,6 +279,21 @@ nix build .#checks.x86_64-linux.rio_contracts --no-link
 nix build .#checks.x86_64-linux.host_yazi_contracts --no-link
 nix build .#checks.x86_64-linux.no_helix_contracts --no-link
 nix build .#checks.x86_64-linux.yzx_yazi_materialization --no-link
+nix build .#checks.x86_64-linux.attached_tab_focus .#checks.x86_64-linux.bottom_hints --no-link
+```
+
+`TEST-LANGUAGE-001`: maintained product checks use Rust; Python is confined to
+GitHub automation in `.github/scripts`. The native attached-client and bottom-hint
+checks share a headless tmux driver with isolated state, bounded polling and process
+cleanup. Their interactive scenarios run on `x86_64-linux`; the Rio TOML assertion
+also runs in the Darwin package gate. Parsing uses the same serde, serde_json and
+toml versions as the config crate. Linux CI runs both native interaction checks.
+
+Run their deterministic tests and formatting check with:
+
+```sh
+cargo test --locked --manifest-path checks/Cargo.toml
+cargo fmt --manifest-path checks/Cargo.toml --check
 ```
 
 Run the release compatibility check locally on the matching native platform
@@ -320,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 28,426 |
-| Documentation and text | 5,515 |
-| Total | 33,941 |
+| Code and configuration | 29,215 |
+| Documentation and text | 5,537 |
+| Total | 34,752 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -349,3 +364,7 @@ The bottom-hint startup preference adds boolean configuration, layout propagatio
 and checks for startup, restoration, tab inheritance, immediate original-tab
 closure and attach. The native background controller keeps the session choice
 without a timer, state file or additional Zellij patch.
+
+Rust product checks retain the native interaction coverage and remove Python from
+their build inputs. Typed pane snapshots and explicit assertions increase source
+lines; process setup, cleanup and tmux operations share one driver.

@@ -1088,6 +1088,12 @@
         then "${pkgs.unixtools.script}/bin/script -qe /dev/null ${pkgs.yazi}/bin/ya env"
         else "${pkgs.unixtools.script}/bin/script -qec '${pkgs.yazi}/bin/ya env' /dev/null";
       checksSrc = pkgs.lib.cleanSource ./checks;
+      runtimeChecks = pkgs.rustPlatform.buildRustPackage {
+        pname = "nova-runtime-checks";
+        version = "0.1.0";
+        src = checksSrc;
+        cargoLock.lockFile = ./checks/Cargo.lock;
+      };
       yzxContractsCheck = rustBinFor pkgs "yzx-contracts-check" "${checksSrc}/yzx-contracts.rs";
       helixContractsCheck = rustBinFor pkgs "helix-contracts-check" "${checksSrc}/helix-contracts.rs";
       noHelixContractsCheck =
@@ -1576,16 +1582,7 @@
         ! grep -E '/[0-9a-z]{32}-(mars|yazelix[-_]cursors)(-|$)' ${yzxClosure}/store-paths
         ${rioPackage}/bin/rio --help | grep -F -- '--theme-mode <THEME_MODE>'
         ${rioPackage}/bin/rio --config-editor < ${yzx}/share/yazelix/rio/config.toml > inventory.toml
-        ${pkgs.python3}/bin/python3 - <<'PY'
-        import tomllib
-        with open("inventory.toml", "rb") as stream:
-            inventory = tomllib.load(stream)
-        assert inventory["version"] == 1
-        blur = next(field for field in inventory["fields"] if field["path"] == "window.blur")
-        assert True in blur["choices"]
-        with open("${yzx}/share/yazelix/rio/config.toml", "rb") as stream:
-            assert tomllib.load(stream)["window"]["blur"] is True
-        PY
+        ${runtimeChecks}/bin/nova-rio-config-check inventory.toml ${yzx}/share/yazelix/rio/config.toml
         test -x ${yzx}/bin/yzx
         test -f ${yzx}/share/yazelix/rio/config.toml
         grep -Fqx 'cursor = "#00e6ff"' ${yzx}/share/yazelix/rio/config.toml
@@ -1799,15 +1796,15 @@
       '';
     } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
       bottom_hints = pkgs.runCommand "nova-bottom-hints-check" {
-        nativeBuildInputs = [pkgs.python3 pkgs.tmux pkgs.coreutils];
+        nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
       } ''
-        ${pkgs.coreutils}/bin/timeout --kill-after=5s 90s ${pkgs.python3}/bin/python ${./checks/bottom-hints.py} ${yzx} ${pkgs.bash}/bin/bash
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 90s ${runtimeChecks}/bin/nova-bottom-hints-check ${yzx} ${pkgs.bash}/bin/bash
         touch "$out"
       '';
       attached_tab_focus = pkgs.runCommand "nova-attached-tab-focus-check" {
-        nativeBuildInputs = [pkgs.python3 pkgs.tmux pkgs.coreutils];
+        nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
       } ''
-        ${pkgs.coreutils}/bin/timeout --kill-after=5s 50s ${pkgs.python3}/bin/python ${./checks/attached-tab-focus.py} ${yzx} ${pkgs.bash}/bin/bash
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 50s ${runtimeChecks}/bin/nova-attached-tab-focus-check ${yzx} ${pkgs.bash}/bin/bash
         touch "$out"
       '';
       startup_picker_cancellation = let

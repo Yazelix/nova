@@ -144,7 +144,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **28,426 code/configuration lines** and **5,515 documentation/text
+Yazelix owns **29,215 code/configuration lines** and **5,537 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -162,3 +162,6 @@ argument/output/exit status.
 The bottom-hint startup preference adds configuration, layout propagation and
 session regression checks; the native background controller keeps the choice
 across tab closure and consumes its initial value once.
+Product checks use Rust with a shared headless tmux driver; Python remains in
+GitHub automation. Preserving the native scenarios increases check source lines
+while removing their Python build input.

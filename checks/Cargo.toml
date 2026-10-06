@@ -1,0 +1,21 @@
+[package]
+name = "nova-runtime-checks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.150"
+toml = "=1.1.2"
+
+[[bin]]
+name = "nova-attached-tab-focus-check"
+path = "attached-tab-focus.rs"
+
+[[bin]]
+name = "nova-bottom-hints-check"
+path = "bottom-hints.rs"
+
+[[bin]]
+name = "nova-rio-config-check"
+path = "rio-config.rs"
