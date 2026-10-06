@@ -725,14 +725,14 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains(
         &custom_agent_config,
         &format!(
-            "agent {{\n                command \"{}\"\n                arg_1 \"codex\"\n                arg_2 \"resume\"\n                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n                pane_title \"agent_popup\"\n                command_marker \"/bin/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
+            "agent {{\n                command \"{}\"\n                arg_1 \"codex\"\n                arg_2 \"resume\"\n                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n                pane_title \"agent_popup\"\n                command_marker \"/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
             agent_launcher.display(),
         ),
         "custom agent config",
     );
     expect_contains(
         &custom_agent_config,
-        "managed_agent_command_marker \"/bin/yzx-agent\"",
+        "managed_agent_command_marker \"/yzx-agent\"",
         "custom agent command marker",
     );
 
@@ -2690,7 +2690,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         "screen_saver_enabled false",
         "quit_on_last_terminal_close true",
         "popup_plugin_url \"yzpp\"",
-        "managed_agent_command_marker \"/bin/yzx-agent\"",
+        "managed_agent_command_marker \"/yzx-agent\"",
     }
     expect_popup_defaults(config, "1", "0", "packaged popup config");
     for (id, pane_title, command_suffix, extra) in [
@@ -2704,7 +2704,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "agent",
             "agent_popup",
             "/bin/yzx-agent",
-            "\n                command_marker \"/bin/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"",
+            "\n                command_marker \"/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"",
         ),
         ("git", "git_popup", "/bin/yzx-git", ""),
         ("menu", "menu_popup", "/bin/yzx-menu", ""),

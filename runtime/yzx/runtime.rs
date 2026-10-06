@@ -1,3 +1,4 @@
+use crate::paths::package_path;
 use std::{
     env,
     ffi::{OsStr, OsString},
@@ -140,10 +141,10 @@ impl Runtime {
         let config_home = config_home()?;
         let config_toml = config_home.join("config.toml");
         let rio_config = config_home.join("rio/config.toml");
-        if materialize && !RIO.is_empty() {
+        if materialize && !RIO.0.is_empty() {
             run_checked(
                 &rio_config,
-                Command::new(YZX_CONFIG)
+                Command::new(package_path(YZX_CONFIG)?)
                     .arg("--init-rio")
                     .env("YAZELIX_CONFIG_HOME", &config_home),
             )?;
@@ -152,7 +153,7 @@ impl Runtime {
         let shell_program = trim_output(config_value(&config_home, &config_toml, "shell.program")?);
         let editor_command =
             trim_output(config_value(&config_home, &config_toml, "editor.command")?);
-        let editor = effective_editor_command(&editor_command);
+        let editor = effective_editor_command(&editor_command)?;
         let agent_command = trim_output(config_value(&config_home, &config_toml, "agent.command")?);
         let agent_args = trim_output(config_value(&config_home, &config_toml, "agent.args")?);
         let sidebar_command =
@@ -221,8 +222,8 @@ impl Runtime {
         let zellij_plugins_sidecar = config_home.join("zellij/plugins.kdl");
         let zellij_text = run_checked(
             &zellij_sidecar,
-            Command::new(YZX_ZELLIJ_CONFIG)
-                .arg(YZX_CONFIG_KDL)
+            Command::new(package_path(YZX_ZELLIJ_CONFIG)?)
+                .arg(package_path(YZX_CONFIG_KDL)?)
                 .arg(&zellij_sidecar),
         )?;
         let zellij_config_source = if zellij_sidecar.is_file() {
@@ -233,7 +234,7 @@ impl Runtime {
         let (zellij_config_source, zellij_config) = active_zellij_config(
             &state_dir,
             zellij_config_source,
-            PathBuf::from(YZX_CONFIG_KDL),
+            package_path(YZX_CONFIG_KDL)?,
             zellij_text,
             &appearance_mode,
             &layout,
@@ -286,16 +287,16 @@ impl Runtime {
         })
     }
 
-    pub(crate) fn apply(&self, command: &mut Command) {
+    pub(crate) fn apply(&self, command: &mut Command) -> Result<(), AppError> {
         let yzx_menu_yzx = env::current_exe().unwrap_or_else(|_| PathBuf::from("yzx"));
         command
             .env("YAZELIX_CONFIG_HOME", &self.config_home)
             .env("YAZELIX_STATE_DIR", &self.state_dir)
             .env("YAZELIX_EDITOR", &self.editor)
-            .env("EDITOR", YZX_EDITOR)
-            .env("VISUAL", YZX_EDITOR)
+            .env("EDITOR", package_path(YZX_EDITOR)?)
+            .env("VISUAL", package_path(YZX_EDITOR)?)
             .env("YZX_EDITOR", &self.editor)
-            .env("GIT_EDITOR", YZX_EDITOR)
+            .env("GIT_EDITOR", package_path(YZX_EDITOR)?)
             .env("YZX_OPEN_LOG", &self.yzx_open_log)
             .env("YZX_WELCOME_ENABLED", &self.welcome_enabled)
             .env("YZX_WELCOME_STYLE", &self.welcome_style)
@@ -317,8 +318,8 @@ impl Runtime {
                 self.state_dir.join(ZELLIJ_PERMISSIONS_FILE),
             )
             .env("YZX_MENU_YZX", yzx_menu_yzx)
-            .env("YZX_ZELLIJ", ZELLIJ)
-            .env("PATH", runtime_path());
+            .env("YZX_ZELLIJ", package_path(ZELLIJ)?)
+            .env("PATH", runtime_path()?);
         if let Some(yazi) = &self.yazi {
             command
                 .env("YZX_YAZI_BIN", &yazi.yazi)
@@ -327,6 +328,7 @@ impl Runtime {
         if let Some(bridge_session_id) = &self.bridge_session_id {
             command.env("YAZELIX_HELIX_BRIDGE_SESSION_ID", bridge_session_id);
         }
+        Ok(())
     }
 
     pub(crate) fn yazi(&self) -> &YaziRuntime {
@@ -340,7 +342,7 @@ impl Runtime {
     }
 
     pub(crate) fn rio_config(&self) -> String {
-        if !RIO.is_empty() {
+        if !RIO.0.is_empty() {
             source_path("user", &self.rio_config)
         } else {
             "not included".to_string()
@@ -368,19 +370,19 @@ fn source_path(source: &str, path: &Path) -> String {
 fn config_value(config_home: &Path, config_toml: &Path, key: &str) -> Result<String, AppError> {
     run_checked(
         config_toml,
-        Command::new(YZX_CONFIG)
+        Command::new(package_path(YZX_CONFIG)?)
             .arg("--get")
             .arg(key)
             .env("YAZELIX_CONFIG_HOME", config_home),
     )
 }
 
-fn effective_editor_command(command: &str) -> String {
-    if matches!(command, "yzx-hx" | "hx") {
-        YZX_HELIX.to_string()
+fn effective_editor_command(command: &str) -> Result<String, AppError> {
+    Ok(if matches!(command, "yzx-hx" | "hx") {
+        package_path(YZX_HELIX)?.to_string_lossy().into_owned()
     } else {
         command.to_string()
-    }
+    })
 }
 
 fn select_appearance_mode(
@@ -421,7 +423,7 @@ fn bridge_session_id() -> OsString {
 }
 
 fn uses_helix_bridge(command: &str) -> bool {
-    command == YZX_HELIX || Path::new(command).file_name() == Some(OsStr::new("yzx-hx"))
+    command == YZX_HELIX.0 || Path::new(command).file_name() == Some(OsStr::new("yzx-hx"))
 }
 
 #[cfg(test)]
@@ -431,8 +433,8 @@ mod tests {
 
     #[test]
     fn short_hx_maps_to_packaged_helix_bridge() {
-        assert_eq!(effective_editor_command("hx"), YZX_HELIX);
-        assert!(uses_helix_bridge(YZX_HELIX));
+        assert_eq!(effective_editor_command("hx").ok().unwrap(), YZX_HELIX.0);
+        assert!(uses_helix_bridge(YZX_HELIX.0));
         assert!(uses_helix_bridge("/nix/store/example/bin/yzx-hx"));
         assert!(uses_helix_bridge("yzx-hx"));
         assert!(!uses_helix_bridge("hx"));

@@ -1,3 +1,6 @@
+#[path = "yzx/package.rs"]
+mod package;
+
 use std::{
     env,
     ffi::{OsStr, OsString},
@@ -31,7 +34,7 @@ struct ManagedEnv {
 
 impl ManagedEnv {
     fn load() -> io::Result<Self> {
-        let editor = effective_editor_command(yzx_config_value("editor.command")?);
+        let editor = effective_editor_command(yzx_config_value("editor.command")?)?;
         Ok(Self {
             state_dir: state_dir(),
             appearance_mode: current_appearance_mode(yzx_config_value("appearance.mode")?),
@@ -42,19 +45,34 @@ impl ManagedEnv {
         })
     }
 
-    fn command(&self, program: impl AsRef<OsStr>, role: Option<&str>) -> Command {
+    fn command(&self, program: impl AsRef<OsStr>, role: Option<&str>) -> io::Result<Command> {
         let mut command = Command::new(program);
         command
-            .env("PATH", runtime_path())
+            .env("PATH", runtime_path()?)
             .env("YAZELIX_STATE_DIR", &self.state_dir)
-            .env("YZX_OPEN", YZX_OPEN)
-            .env("YZX_YAZI_RETURN", YZX_YAZI_RETURN)
-            .env("YZX_ZELLIJ", zellij_binary())
+            .env(
+                "YZX_OPEN",
+                package::path(YZX_OPEN, "libexec/yazelix/yzx-open")?,
+            )
+            .env(
+                "YZX_YAZI_RETURN",
+                package::path(YZX_YAZI_RETURN, "libexec/yazelix/yzx-yazi-return")?,
+            )
+            .env("YZX_ZELLIJ", zellij_binary()?)
             .env("YAZELIX_EDITOR", &self.editor)
-            .env("EDITOR", YZX_EDITOR_LAUNCHER)
-            .env("VISUAL", YZX_EDITOR_LAUNCHER)
+            .env(
+                "EDITOR",
+                package::path(YZX_EDITOR_LAUNCHER, "libexec/yazelix/yzx-editor")?,
+            )
+            .env(
+                "VISUAL",
+                package::path(YZX_EDITOR_LAUNCHER, "libexec/yazelix/yzx-editor")?,
+            )
             .env("YZX_EDITOR", &self.editor)
-            .env("GIT_EDITOR", YZX_EDITOR_LAUNCHER)
+            .env(
+                "GIT_EDITOR",
+                package::path(YZX_EDITOR_LAUNCHER, "libexec/yazelix/yzx-editor")?,
+            )
             .env("YZX_OPEN_LOG", &self.yzx_open_log);
         if let Some(role) = role {
             command.env("YZX_YAZI_ROLE", role);
@@ -70,16 +88,16 @@ impl ManagedEnv {
                 .env("ZELLIJ_SESSION_NAME", "")
                 .env("KITTY_WINDOW_ID", "1");
         }
-        command
+        Ok(command)
     }
 
-    fn yazi_command(&self, yazi: &OsStr, role: Option<&str>, config: &Path) -> Command {
-        let mut command = self.command(yazi, role);
+    fn yazi_command(&self, yazi: &OsStr, role: Option<&str>, config: &Path) -> io::Result<Command> {
+        let mut command = self.command(yazi, role)?;
         command.env("YAZI_CONFIG_HOME", config).env(
             "YZX_YAZI_STARSHIP_CONFIG",
             config.join("yazelix_starship.toml"),
         );
-        command
+        Ok(command)
     }
 }
 
@@ -116,11 +134,11 @@ fn run() -> io::Result<()> {
 
     let managed = ManagedEnv::load()?;
     let yazi_config = yazi_config_home(
-        Path::new(YZX_YAZI_CONFIG),
+        &package::path(YZX_YAZI_CONFIG, "share/yazelix/yazi")?,
         &managed.state_dir,
         &managed.appearance_mode,
     )?;
-    let mut command = managed.yazi_command(&yazi, role, &yazi_config);
+    let mut command = managed.yazi_command(&yazi, role, &yazi_config)?;
     command.args(args);
     Err(command.exec())
 }
@@ -128,12 +146,12 @@ fn run() -> io::Result<()> {
 fn run_startup_picker(yazi: &OsStr, args: &[OsString]) -> io::Result<()> {
     let managed = ManagedEnv::load()?;
     let config = yazi_config_home(
-        Path::new(YZX_YAZI_STARTUP_CONFIG),
+        &package::path(YZX_YAZI_STARTUP_CONFIG, "share/yazelix/yazi-startup")?,
         &managed.state_dir.join("startup-picker"),
         &managed.appearance_mode,
     )?;
     let status = managed
-        .yazi_command(yazi, Some("startup-picker"), &config)
+        .yazi_command(yazi, Some("startup-picker"), &config)?
         .args(args)
         .status()?;
     if status.success() || status.code() == Some(130) {
@@ -149,7 +167,7 @@ fn close_cancelled_startup_picker_tab() -> io::Result<()> {
     let Some(pane_id) = nonempty_env("ZELLIJ_PANE_ID") else {
         return Ok(());
     };
-    let mut command = Command::new(zellij_binary());
+    let mut command = Command::new(zellij_binary()?);
     if let Some(session) =
         nonempty_env("ZELLIJ_SESSION_NAME").or_else(|| nonempty_env("YAZELIX_ZELLIJ_SESSION_NAME"))
     {
@@ -194,10 +212,13 @@ fn yazi_config_home(
     let Some(user_yazi) = config_home().map(|path| path.join("yazi")) else {
         return Ok(packaged.into());
     };
-    let output = Command::new(YZX_YAZI_MATERIALIZER)
-        .args([packaged, &user_yazi, state_dir])
-        .arg(appearance_mode)
-        .output()?;
+    let output = Command::new(package::path(
+        YZX_YAZI_MATERIALIZER,
+        "libexec/yazelix/yzx-yazi-config",
+    )?)
+    .args([packaged, &user_yazi, state_dir])
+    .arg(appearance_mode)
+    .output()?;
     if !output.status.success() {
         return Err(io::Error::other(trim_output(
             &[output.stdout, output.stderr].concat(),
@@ -207,7 +228,10 @@ fn yazi_config_home(
 }
 
 fn yzx_config_value(path: &str) -> io::Result<String> {
-    let output = Command::new(YZX_CONFIG).arg("--get").arg(path).output()?;
+    let output = Command::new(package::path(YZX_CONFIG, "libexec/yazelix/yzx-config")?)
+        .arg("--get")
+        .arg(path)
+        .output()?;
     if output.status.success() {
         return Ok(trim_output(&output.stdout));
     }
@@ -234,12 +258,14 @@ fn select_appearance_mode(configured: String, session_mode: Option<&OsStr>, live
     configured
 }
 
-fn effective_editor_command(command: String) -> String {
-    if matches!(command.as_str(), "yzx-hx" | "hx") {
-        YZX_HELIX.to_string()
+fn effective_editor_command(command: String) -> io::Result<String> {
+    Ok(if matches!(command.as_str(), "yzx-hx" | "hx") {
+        package::path(YZX_HELIX, "libexec/yazelix/yzx-hx")?
+            .to_string_lossy()
+            .into_owned()
     } else {
         command
-    }
+    })
 }
 
 fn config_home() -> Option<PathBuf> {
@@ -276,24 +302,21 @@ fn uses_helix_bridge(command: &str) -> bool {
     command == YZX_HELIX || Path::new(command).file_name() == Some(OsStr::new("yzx-hx"))
 }
 
-fn runtime_path() -> OsString {
-    match nonempty_env("PATH") {
-        Some(path) => {
-            let mut merged = OsString::from(PATH_PREFIX);
-            merged.push(":");
-            merged.push(path);
-            merged
-        }
-        None => PATH_PREFIX.into(),
-    }
+fn runtime_path() -> io::Result<OsString> {
+    package::search_path(package::child_root()?.as_deref(), PATH_PREFIX)
 }
 
 fn nonempty_env(name: &str) -> Option<OsString> {
     env::var_os(name).filter(|value| !value.is_empty())
 }
 
-fn zellij_binary() -> OsString {
-    nonempty_env("YZX_ZELLIJ").unwrap_or_else(|| YZX_ZELLIJ.into())
+fn zellij_binary() -> io::Result<OsString> {
+    if package::child_root()?.is_none() {
+        if let Some(path) = nonempty_env("YZX_ZELLIJ") {
+            return Ok(path);
+        }
+    }
+    Ok(package::path(YZX_ZELLIJ, "libexec/yazelix/yzx-zellij")?.into_os_string())
 }
 
 fn trim_output(bytes: &[u8]) -> String {
@@ -306,9 +329,18 @@ mod tests {
 
     #[test]
     fn managed_helix_names_map_to_packaged_editor_while_host_commands_pass_through() {
-        assert_eq!(effective_editor_command("yzx-hx".to_string()), YZX_HELIX);
-        assert_eq!(effective_editor_command("hx".to_string()), YZX_HELIX);
-        assert_eq!(effective_editor_command("nvim".to_string()), "nvim");
+        assert_eq!(
+            effective_editor_command("yzx-hx".to_string()).unwrap(),
+            YZX_HELIX
+        );
+        assert_eq!(
+            effective_editor_command("hx".to_string()).unwrap(),
+            YZX_HELIX
+        );
+        assert_eq!(
+            effective_editor_command("nvim".to_string()).unwrap(),
+            "nvim"
+        );
         assert!(uses_helix_bridge(YZX_HELIX));
         assert!(uses_helix_bridge("/nix/store/example/bin/yzx-hx"));
         assert!(!uses_helix_bridge("nvim"));

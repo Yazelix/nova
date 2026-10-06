@@ -44,7 +44,7 @@ plugins {
             agent {
                 command "@yzxAgent@"
                 pane_title "agent_popup"
-                command_marker "/bin/yzx-agent"
+                command_marker "/yzx-agent"
                 preserve_terminal_title true
                 toggle_close_behavior "hide"
             }
@@ -79,7 +79,7 @@ plugins {
         screen_saver_enabled false
         quit_on_last_terminal_close true
         popup_plugin_url "yzpp"
-        managed_agent_command_marker "/bin/yzx-agent"
+        managed_agent_command_marker "/yzx-agent"
     }
 
     radar location="@zjRadar@" {

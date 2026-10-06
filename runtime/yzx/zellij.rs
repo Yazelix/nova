@@ -1,3 +1,4 @@
+use crate::paths::package_path;
 use std::{
     fmt::Display,
     fs,
@@ -29,13 +30,14 @@ pub(crate) fn active_layout(
     bottom_hints_start_hidden: bool,
     materialize: bool,
 ) -> Result<(&'static str, PathBuf), AppError> {
-    if appearance_mode == "dark"
+    if crate::paths::package_root()?.is_none()
+        && appearance_mode == "dark"
         && bar_widgets == DEFAULT_BAR_WIDGETS_JSON
         && shell_label == DEFAULT_SHELL_PROGRAM
         && radar_enabled
         && !bottom_hints_start_hidden
     {
-        return Ok(("packaged", PathBuf::from(LAYOUT)));
+        return Ok(("packaged", package_path(LAYOUT)?));
     }
 
     let layout = state_dir.join("zellij/layout.kdl");
@@ -72,7 +74,8 @@ pub(crate) fn active_zellij_config(
     materialize: bool,
 ) -> Result<(&'static str, PathBuf), AppError> {
     let runtime_config = state_dir.join("zellij/config.kdl");
-    let mut patched = text;
+    let mut patched = crate::package::render(crate::paths::package_root()?.as_deref(), &text)
+        .map_err(|error| startup(error.to_string(), config.display(), 1))?;
     let replaced = patched.replace(ZELLIJ_HOME_PLACEHOLDER, &kdl_string(home_dir.display()));
     if replaced == patched {
         return Err(startup(
@@ -84,8 +87,9 @@ pub(crate) fn active_zellij_config(
     patched = replaced;
     patched = patch_explicit_theme_hue(patched, &config, appearance_mode)?;
     patched = patch_straight_border_style(patched, &config, straight_border_style)?;
-    if layout != Path::new(LAYOUT) {
-        let packaged_layout_dir = parent(Path::new(LAYOUT));
+    let packaged_layout = package_path(LAYOUT)?;
+    if layout != packaged_layout {
+        let packaged_layout_dir = parent(&packaged_layout);
         let active_layout_dir = parent(layout);
         let marker = format!("layout_dir {}", kdl_string(packaged_layout_dir.display()));
         let replaced = patched.replace(
@@ -100,7 +104,10 @@ pub(crate) fn active_zellij_config(
             ));
         }
         patched = replaced;
-        let replaced = patched.replace(LAYOUT, &layout.display().to_string());
+        let replaced = patched.replace(
+            &kdl_string(packaged_layout.display()),
+            &kdl_string(layout.display()),
+        );
         if replaced == patched {
             return Err(startup(
                 "Zellij config is missing the packaged layout path",
@@ -356,8 +363,8 @@ fn patch_agent_popup(
         return Ok(text);
     }
     let marker = format!(
-        "            agent {{\n                command {}\n                pane_title \"agent_popup\"\n                command_marker \"/bin/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
-        kdl_string(YZX_AGENT),
+        "            agent {{\n                command {}\n                pane_title \"agent_popup\"\n                command_marker \"/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }}",
+        kdl_string(package_path(YZX_AGENT)?.display()),
     );
     if !text.contains(&marker) {
         return Err(startup(
@@ -635,16 +642,18 @@ fn render_bar_block(
     shell_label: &str,
     field: &str,
 ) -> Result<String, AppError> {
-    let template_path = Path::new(YZX_BAR_RENDER_REQUEST);
-    let template = fs::read_to_string(template_path)
-        .map_err(|error| path_error("read", template_path, template_path, error))?;
+    let template_path = package_path(YZX_BAR_RENDER_REQUEST)?;
+    let template = fs::read_to_string(&template_path)
+        .map_err(|error| path_error("read", &template_path, &template_path, error))?;
+    let template = crate::package::render(crate::paths::package_root()?.as_deref(), &template)
+        .map_err(|error| startup(error.to_string(), template_path.display(), 1))?;
     let request = template
         .replace("__YZX_APPEARANCE_MODE__", appearance_mode)
         .replace(r#""__YZX_BAR_WIDGET_TRAY__""#, bar_widgets)
         .replace("__YZX_SHELL_LABEL__", shell_label);
     Ok(trim_output(run_checked(
-        Path::new(YZX_BAR_RENDER),
-        Command::new(YZX_BAR_RENDER).args([request, field.to_string()]),
+        Path::new(&package_path(YZX_BAR_RENDER)?),
+        Command::new(package_path(YZX_BAR_RENDER)?).args([request, field.to_string()]),
     )?))
 }
 
@@ -705,14 +714,15 @@ fn materialize_layout(
     sidebar_pane_kdl: &str,
     bottom_hints_start_hidden: bool,
 ) -> Result<(), AppError> {
-    let template_path = Path::new(LAYOUT_TEMPLATE);
-    let swap_template_path = Path::new(LAYOUT_SWAP_TEMPLATE);
-    let template = fs::read_to_string(template_path)
-        .map_err(|error| path_error("read", template_path, template_path, error))?;
-    let swap_template = fs::read_to_string(swap_template_path)
-        .map_err(|error| path_error("read", swap_template_path, swap_template_path, error))?;
+    let template_path = package_path(LAYOUT_TEMPLATE)?;
+    let swap_template_path = package_path(LAYOUT_SWAP_TEMPLATE)?;
+    let template = fs::read_to_string(&template_path)
+        .map_err(|error| path_error("read", &template_path, &template_path, error))?;
+    let swap_template = fs::read_to_string(&swap_template_path)
+        .map_err(|error| path_error("read", &swap_template_path, &swap_template_path, error))?;
+    let yazi = kdl_string(package_path(YZX_YAZI)?.display());
     let layout = template
-        .replace(LAYOUT_YAZI_PLACEHOLDER, YZX_YAZI)
+        .replace(LAYOUT_YAZI_PLACEHOLDER, &yazi[1..yazi.len() - 1])
         .replace(LAYOUT_BAR_PLACEHOLDER, plugin_block)
         .replace(
             LAYOUT_BOTTOM_HINTS_PLACEHOLDER,

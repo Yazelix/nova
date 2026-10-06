@@ -1,3 +1,6 @@
+#[path = "yzx/package.rs"]
+mod package;
+
 use std::{
     env, io,
     io::{IsTerminal, Write},
@@ -122,7 +125,7 @@ fn toggle_layout() -> i32 {
                         "single_open" | "single_closed" | "columns_open" | "columns_closed"
                     ) =>
                 {
-                    match Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()))
+                    match Command::new(zellij_binary())
                         .args(["action", "apply-tiled-swap-layout", layout])
                         .output()
                     {
@@ -165,7 +168,7 @@ fn toggle_layout() -> i32 {
 }
 
 fn orchestrator_pipe(name: &str, payload: &str) -> io::Result<Output> {
-    let mut command = Command::new(env::var_os("YZX_ZELLIJ").unwrap_or_else(|| ZELLIJ.into()));
+    let mut command = Command::new(zellij_binary());
     command.args([
         "action",
         "pipe",
@@ -180,7 +183,7 @@ fn orchestrator_pipe(name: &str, payload: &str) -> io::Result<Output> {
 }
 
 fn select_with_fzf() -> Option<String> {
-    let mut child = Command::new(FZF)
+    let mut child = Command::new(owned_path(FZF, "libexec/yazelix/fzf"))
         .args([
             "--border",
             "rounded",
@@ -264,4 +267,20 @@ fn pause_if_tty(interactive: bool) {
         let mut line = String::new();
         let _ = io::stdin().read_line(&mut line);
     }
+}
+
+fn owned_path(nix: &str, relative: &str) -> std::path::PathBuf {
+    package::path(nix, relative).unwrap_or_else(|error| {
+        eprintln!("yzx-menu: {error}");
+        exit(1)
+    })
+}
+
+fn zellij_binary() -> std::ffi::OsString {
+    if env::var_os(package::ROOT_ENV).is_none() {
+        if let Some(path) = env::var_os("YZX_ZELLIJ") {
+            return path;
+        }
+    }
+    owned_path(ZELLIJ, "libexec/yazelix/yzx-zellij").into_os_string()
 }

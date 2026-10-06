@@ -100,7 +100,7 @@ pub(crate) fn read_agent_popup_kdl(path: &Path) -> Result<String> {
     if command == AGENT_AUTO_COMMAND {
         return Ok(String::new());
     }
-    Ok(render_agent_popup_kdl(&command, &agent_args(&value)?))
+    render_agent_popup_kdl(&command, &agent_args(&value)?)
 }
 pub(crate) fn read_sidebar_pane_kdl(path: &Path) -> Result<String> {
     let value = read_optional_toml_file_value(path, "config.toml")?;
@@ -357,10 +357,14 @@ fn validate_sidebar_command(value: &str) -> Result<()> {
     }
     Ok(())
 }
-fn render_agent_popup_kdl(command: &str, args: &[String]) -> String {
+fn render_agent_popup_kdl(command: &str, args: &[String]) -> Result<String> {
     let mut text = format!(
         "            agent {{\n                command {}\n",
-        kdl_string(PACKAGED_AGENT_LAUNCHER)
+        kdl_string(
+            &crate::package::path(PACKAGED_AGENT_LAUNCHER, "libexec/yazelix/yzx-agent")?
+                .display()
+                .to_string()
+        )
     );
     for (index, arg) in std::iter::once(command)
         .chain(args.iter().map(String::as_str))
@@ -373,9 +377,9 @@ fn render_agent_popup_kdl(command: &str, args: &[String]) -> String {
         ));
     }
     text.push_str(
-        "                pane_title \"agent_popup\"\n                command_marker \"/bin/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }",
+        "                pane_title \"agent_popup\"\n                command_marker \"/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"\n            }",
     );
-    text
+    Ok(text)
 }
 pub(crate) fn validate_keybindings(value: &JsonValue) -> Result<()> {
     let mut used = BTreeMap::new();

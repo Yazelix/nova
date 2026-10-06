@@ -1,3 +1,5 @@
+use crate::package::json_string;
+
 use crate::{
     PACKAGE_VARIANT, VERSION, YAZI_SOURCE, error::AppError, paths::zellij_session_label,
     runtime::Runtime,
@@ -66,28 +68,6 @@ fn status_json(runtime: &Runtime) -> String {
         zellij_session_label("true", "false")
     ));
     json
-}
-
-fn json_string(value: &str) -> String {
-    let mut escaped = String::with_capacity(value.len() + 2);
-    escaped.push('"');
-    for character in value.chars() {
-        match character {
-            '"' => escaped.push_str("\\\""),
-            '\\' => escaped.push_str("\\\\"),
-            '\u{0008}' => escaped.push_str("\\b"),
-            '\u{000C}' => escaped.push_str("\\f"),
-            '\n' => escaped.push_str("\\n"),
-            '\r' => escaped.push_str("\\r"),
-            '\t' => escaped.push_str("\\t"),
-            character if character <= '\u{001F}' => {
-                escaped.push_str(&format!("\\u{:04x}", character as u32));
-            }
-            character => escaped.push(character),
-        }
-    }
-    escaped.push('"');
-    escaped
 }
 
 #[cfg(test)]

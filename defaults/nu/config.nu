@@ -4,8 +4,8 @@ source "@zoxideInit@"
 alias clc = clip copy
 alias clp = clip paste
 
-$env.PROMPT_COMMAND = { || ^@starship@ prompt --cmd-duration ($env.CMD_DURATION_MS? | default 0) $"--status=($env.LAST_EXIT_CODE? | default 0)" }
-$env.PROMPT_COMMAND_RIGHT = { || ^@starship@ prompt --right --cmd-duration ($env.CMD_DURATION_MS? | default 0) $"--status=($env.LAST_EXIT_CODE? | default 0)" }
+$env.PROMPT_COMMAND = { || ^"@starship@" prompt --cmd-duration ($env.CMD_DURATION_MS? | default 0) $"--status=($env.LAST_EXIT_CODE? | default 0)" }
+$env.PROMPT_COMMAND_RIGHT = { || ^"@starship@" prompt --right --cmd-duration ($env.CMD_DURATION_MS? | default 0) $"--status=($env.LAST_EXIT_CODE? | default 0)" }
 $env.PROMPT_INDICATOR = ""
 $env.PROMPT_INDICATOR_VI_INSERT = ""
 $env.PROMPT_INDICATOR_VI_NORMAL = ""

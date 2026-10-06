@@ -60,7 +60,7 @@ The native path owner also supplies the Nix delivery bindings. Current Nix
 outputs join symlinks to separate store outputs, so their resolved executable
 parent does not identify the joined package root. Packaging selects the
 delivery mode explicitly; absent portable metadata must not trigger a store
-fallback. `.8` must preserve existing Nix and Home Manager behavior.
+fallback. Nix and Home Manager retain their pinned delivery bindings.
 
 The launcher passes its canonical portable root to managed children through
 the internal `YAZELIX_RUNTIME_ROOT` value. An inherited value cannot retarget
@@ -70,6 +70,28 @@ bindings from its existing composition, including script interpreters, managed
 PATH, bar requests, plugin references and configuration templates. Component
 translation stays at its existing boundary. This contract requires no new
 general path registry, public root override or configuration schema.
+
+`runtime/yzx/package.rs` owns executable-root discovery, contained-path checks
+and managed PATH. Native helpers share that module; shell wrappers call its
+private `yzx-package` adapter. Required managed commands must be executable
+files. Root-relative Zellij, bar and Nu templates materialize into user state
+on each fresh invocation. Yazi and LazyGit consume their resolved opener/editor
+environment, and Helix receives explicit runtime, Steel and bridge bindings.
+Agent identity markers match `/yzx-agent` in either delivery layout.
+Watcher updates stage their ownership record before replacing the managed link;
+failed staging preserves the existing link and record for retry.
+Portable tutor examples use Nushell external-command quoting for their paths.
+The bar adapter runs portable widget commands through the managed shell, which
+expands the propagated root after Zjstatus parses the command. Root characters
+therefore do not become command syntax; Nix widget commands remain unchanged.
+
+The internal Nix `runtimeRootFixture` compiles the front door with
+`--cfg yzx_portable` and installs a real `bin/yzx`. It exercises the root
+contract while retaining native Nix dependencies. Its env bootstrap uses the
+Nix-provided `env` because `/usr/bin/env` is absent inside the Nix sandbox;
+managed PATH selects the fixture's packaged Bash/sh. `.2` and `.3` own native
+loader relocation and the final host interpreter boundary. This fixture is
+not a published archive or an installation method.
 
 ## NPR-PAYLOAD-001: owned files and host boundary
 
@@ -185,7 +207,11 @@ Preserve user Steel files and the watcher's refusal to replace an unknown
 native library. Across `R1` to `R2`, update a prior Nova-managed watcher link
 only with evidence of its ownership; matching the current root alone is
 insufficient. An unknown file or link must remain untouched with a diagnostic.
-`.8` chooses the smallest mechanism that proves both cases.
+The private package helper records the target when it creates a watcher link.
+It replaces a subsequent link only when that recorded target matches, or when
+the existing link matches the prior Nix-owned watcher pattern. Regular files
+and unknown links are refused. Ownership records and link updates live in
+Steel's user state, outside the package root.
 
 ## NPR-PROOF-001: acceptance boundaries
 

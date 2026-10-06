@@ -164,9 +164,11 @@ pub(crate) fn config_paths() -> Result<ConfigPaths> {
         yazi_keymap: home.join("yazi/keymap.toml"),
         yazi_package: home.join("yazi/package.toml"),
         yazi_theme: home.join("yazi/theme.toml"),
-        packaged_yazi: option_env!("YAZELIX_PACKAGED_YAZI")
-            .map(PathBuf::from)
-            .ok_or_else(|| error("yzx-config is missing its packaged Yazi config"))?,
+        packaged_yazi: crate::package::path(
+            option_env!("YAZELIX_PACKAGED_YAZI")
+                .ok_or_else(|| error("yzx-config is missing its packaged Yazi config"))?,
+            "share/yazelix/yazi",
+        )?,
         zellij_plugins: home.join("zellij/plugins.kdl"),
     })
 }

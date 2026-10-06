@@ -6,9 +6,9 @@ export YAZELIX_STATE_DIR
 YAZELIX_CONFIG_HOME="${YAZELIX_CONFIG_HOME:-${XDG_CONFIG_HOME:-${HOME:-/tmp}/.config}/yazelix}"
 user_helix_dir="$YAZELIX_CONFIG_HOME/helix"
 user_helix_config="$user_helix_dir/config.toml"
-packaged_helix_dir="@yzxHelixConfig@"
+packaged_helix_dir=@yzxHelixConfig@
 packaged_helix_config="$packaged_helix_dir/config.toml"
-packaged_steel_dir="@yzxHelixSteelConfig@"
+packaged_steel_dir=@yzxHelixSteelConfig@
 effective_helix_config="$YAZELIX_STATE_DIR/helix/config.toml"
 helix_config_dir="$packaged_helix_dir"
 helix_config_file="$effective_helix_config"
@@ -29,7 +29,17 @@ if [ -f "$user_helix_config" ] ||
 fi
 HELIX_STEEL_CONFIG="$steel_config_dir"
 export HELIX_STEEL_CONFIG
-STEEL_SEARCH_PATHS="@yzxForestCogs@${STEEL_SEARCH_PATHS:+:$STEEL_SEARCH_PATHS}"
+forest_cogs=@yzxForestCogs@
+bridge_modules=@helixSteelModules@
+STEEL_SEARCH_PATHS="$bridge_modules:$forest_cogs${STEEL_SEARCH_PATHS:+:$STEEL_SEARCH_PATHS}"
+YZX_HELIX_REGISTER=@bridgeRegister@
+YZX_HELIX_WATCHER_START=@fileWatcherStart@
+YZX_OPEN_TERMINAL=@openTerminal@
+export YZX_HELIX_REGISTER YZX_HELIX_WATCHER_START YZX_OPEN_TERMINAL
+if [ -n "${YAZELIX_RUNTIME_ROOT:-}" ]; then
+  HELIX_RUNTIME=@helixRuntime@
+  export HELIX_RUNTIME
+fi
 export STEEL_SEARCH_PATHS
 YAZELIX_HELIX_FILE_WATCHER="$(@yzxConfig@ --get helix.file_watcher)"
 export YAZELIX_HELIX_FILE_WATCHER
@@ -39,15 +49,9 @@ if [ "$YAZELIX_HELIX_FILE_WATCHER" = true ]; then
   native_dir="$STEEL_HOME/native"
   watcher_link="$native_dir/@fileWatcherLibrary@"
   @mkdir@ -p "$native_dir"
-  if [ -e "$watcher_link" ] || [ -L "$watcher_link" ]; then
-    existing_target="$(@readlink@ "$watcher_link" 2>/dev/null || true)"
-    case "$existing_target" in
-      @nixStoreDir@/*-nova-helix-file-watcher-*/lib/@fileWatcherLibrary@) ;;
-      *) printf 'yzx-hx: refusing to replace an existing Steel native library: %s\n' "$watcher_link" >&2; exit 1 ;;
-    esac
-  fi
-  @ln@ -sfnT "@fileWatcherNative@" "$watcher_link"
-  STEEL_SEARCH_PATHS="@fileWatcherModules@:$STEEL_SEARCH_PATHS"
+  @packageHelper@ --watcher-link "$watcher_link" @fileWatcherNative@ "@nixStoreDir@"
+  watcher_modules=@fileWatcherModules@
+  STEEL_SEARCH_PATHS="$watcher_modules:$STEEL_SEARCH_PATHS"
   export STEEL_SEARCH_PATHS
 fi
 

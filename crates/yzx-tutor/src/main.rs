@@ -1,3 +1,6 @@
+#[path = "../../../runtime/yzx/package.rs"]
+mod package;
+
 mod cli_render;
 mod tutor_document;
 
@@ -444,7 +447,7 @@ When you are already inside `yzx env` or a managed Yazelix shell, the short form
 
 If your selected package omits managed Helix, use your host editor's own tutor instead.
 "#,
-        yzx_helix = YZX_HELIX,
+        yzx_helix = owned_command(YZX_HELIX, "libexec/yazelix/yzx-hx"),
     ))
 }
 
@@ -460,7 +463,7 @@ From a regular shell, run the packaged Nushell command:
 
 - `{nu} -c 'tutor begin'`
 "#,
-        nu = NUSHELL,
+        nu = owned_command(NUSHELL, "libexec/yazelix/nu"),
     ))
 }
 
@@ -678,5 +681,17 @@ mod tests {
                 lesson.id
             );
         }
+    }
+}
+
+fn owned_command(nix: &str, relative: &str) -> String {
+    let path = package::path(nix, relative).unwrap_or_else(|error| {
+        eprintln!("yzx-tutor: {error}");
+        std::process::exit(1)
+    });
+    if env::var_os(package::ROOT_ENV).is_some() {
+        format!("^{}", package::json_string(&path.to_string_lossy()))
+    } else {
+        path.display().to_string()
     }
 }

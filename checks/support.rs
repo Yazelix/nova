@@ -24,7 +24,12 @@ pub fn write_executable(path: &Path, contents: impl AsRef<[u8]>) {
 }
 
 pub fn successful_output(command: &mut Command, context: &str) -> Output {
-    let output = command.output().unwrap();
+    let output = command.output().unwrap_or_else(|error| {
+        panic!(
+            "{context}: cannot execute {}: {error}",
+            command.get_program().to_string_lossy()
+        )
+    });
     assert!(
         output.status.success(),
         "{context} failed with status {}\nstdout:\n{}\nstderr:\n{}",
@@ -77,14 +82,17 @@ pub fn binary_text(path: &Path) -> String {
 }
 
 pub fn embedded_store_path(text: &str, suffix: &str) -> PathBuf {
-    let end = text
-        .find(suffix)
-        .unwrap_or_else(|| panic!("binary text is missing path suffix {suffix}"))
-        + suffix.len();
-    let start = text[..end]
-        .rfind("/nix/store/")
-        .unwrap_or_else(|| panic!("binary text is missing /nix/store path for {suffix}"));
-    PathBuf::from(&text[start..end])
+    text.match_indices(suffix)
+        .filter_map(|(start, _)| {
+            let end = start + suffix.len();
+            let start = text[..end].rfind("/nix/store/")?;
+            let path = PathBuf::from(&text[start..end]);
+            path.exists().then_some(path)
+        })
+        .next()
+        .unwrap_or_else(|| {
+            panic!("binary text is missing an installed store path ending in {suffix}")
+        })
 }
 
 pub struct RuntimeCase {

@@ -3,6 +3,7 @@
   nushell,
   runtimeIdentity,
   novaBar,
+  portableRuntime ? false,
 }: {
   appearanceMode,
   widgetTray,
@@ -18,10 +19,22 @@
   custom_text = "";
   appearance_mode = appearanceMode;
   tab_label_mode = "full";
-  nu_bin = "${nushell}/bin/nu";
-  yzx_control_bin = "${coreutils}/bin/false";
-  nova_bar_widget_bin = "${novaBar}/${novaBar.widgetPath}";
-  runtime_dir = "${runtimeIdentity}";
+  nu_bin =
+    if portableRuntime
+    then "__YZX_RUNTIME_ROOT__/libexec/yazelix/nu"
+    else "${nushell}/bin/nu";
+  yzx_control_bin =
+    if portableRuntime
+    then "__YZX_RUNTIME_ROOT__/libexec/yazelix/false"
+    else "${coreutils}/bin/false";
+  nova_bar_widget_bin =
+    if portableRuntime
+    then "__YZX_RUNTIME_ROOT__/libexec/yazelix/nova-bar-widget"
+    else "${novaBar}/${novaBar.widgetPath}";
+  runtime_dir =
+    if portableRuntime
+    then "__YZX_RUNTIME_ROOT__/share/yazelix"
+    else "${runtimeIdentity}";
   claude_usage_display = "both";
   claude_usage_periods = ["5h" "week"];
   codex_usage_display = "quota";

@@ -335,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 29,357 |
-| Documentation and text | 5,805 |
-| Total | 35,162 |
+| Code and configuration | 30,398 |
+| Documentation and text | 5,846 |
+| Total | 36,244 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -372,3 +372,8 @@ lines; process setup, cleanup and tmux operations share one driver.
 The [portable runtime contract](portable-runtime.md) records the accepted
 no-Rio layout, ownership, metadata and native proof boundaries. Its documentation
 counts here; this decision does not change packaged runtime behavior.
+
+Runtime-root implementation adds shared native path ownership, explicit managed
+tool/config/asset bindings and guarded watcher-link migration. The installed
+fixture exercises relocation, missing assets and escaping symlinks; native
+archive delivery remains a separate platform proof.

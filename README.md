@@ -145,10 +145,12 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **29,357 code/configuration lines** and **5,805 documentation/text
+Yazelix owns **30,398 code/configuration lines** and **5,846 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
+The shared package-root owner, managed-tool bindings, watcher ownership and
+relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
 The startup-picker check uses physical keys and waits for the intended tab's
@@ -166,8 +168,8 @@ across tab closure and consumes its initial value once.
 Product checks use Rust with a shared headless tmux driver; Python remains in
 GitHub automation. Preserving the native scenarios increases check source lines
 while removing their Python build input.
-The portable-runtime contract accounts for documentation growth; runtime and
-packaging implementation remain separate work.
+The portable-runtime contract accounts for documentation growth; native archive
+packaging remains separate work.
 Radar's private transport alias, upstream version reporting, and conflicting-host
 regression check account for the agent delivery fix's code/configuration growth.
 Managed Codex launches keep hooks in the pane process when supported; the

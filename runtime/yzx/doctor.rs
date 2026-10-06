@@ -1,3 +1,4 @@
+use crate::paths::package_path;
 use std::{
     env,
     fmt::Display,
@@ -42,7 +43,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
             runtime.shell_program, runtime.editor_command, runtime.agent_command
         ),
     );
-    if !has_managed_helix && runtime.editor == YZX_HELIX {
+    if !has_managed_helix && Path::new(&runtime.editor) == package_path(YZX_HELIX)? {
         doctor_warn(
             "Editor",
             format!(
@@ -62,7 +63,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     doctor_section("Runtime");
     doctor_ok(
         "Configs",
-        if RIO.is_empty() {
+        if RIO.0.is_empty() {
             "Zellij · layout validated · Rio omitted"
         } else {
             "Zellij · layout validated · Rio included"
@@ -70,7 +71,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     );
     if !runtime.zellij_config.is_file()
         || !runtime.layout.is_file()
-        || (!RIO.is_empty() && !runtime.rio_config.is_file())
+        || (!RIO.0.is_empty() && !runtime.rio_config.is_file())
     {
         doctor_info(
             "Initialization",
@@ -85,7 +86,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
 
     doctor_section("Integrations");
     if runtime.radar_enabled() {
-        doctor_radar_codex(&runtime.agent_command, verbose);
+        doctor_radar_codex(&runtime.agent_command, verbose)?;
     }
     if has_managed_helix {
         doctor_helix_config_warning(&runtime.config_home)?;
@@ -127,29 +128,29 @@ fn check_doctor_inputs() -> Result<(), AppError> {
         )
     })?;
     for (label, path) in [
-        ("front door", current_exe.as_path()),
-        ("config UI", Path::new(YZX_CONFIG_UI)),
-        ("menu helper", Path::new(YZX_MENU)),
-        ("tutor helper", Path::new(YZX_TUTOR)),
-        ("anima helper", Path::new(YZX_SCREEN)),
-        ("welcome helper", Path::new(YZX_WELCOME)),
-        ("config helper", Path::new(YZX_CONFIG)),
-        ("zellij config helper", Path::new(YZX_ZELLIJ_CONFIG)),
-        ("reveal helper", Path::new(YZX_REVEAL)),
-        ("packaged Zellij config", Path::new(YZX_CONFIG_KDL)),
-        ("Zellij", Path::new(ZELLIJ)),
-        ("layout", Path::new(LAYOUT)),
-        ("layout template", Path::new(LAYOUT_TEMPLATE)),
-        ("layout swap template", Path::new(LAYOUT_SWAP_TEMPLATE)),
-        ("bar render request", Path::new(YZX_BAR_RENDER_REQUEST)),
-        ("bar renderer", Path::new(YZX_BAR_RENDER)),
-        ("managed editor", Path::new(YZX_HELIX)),
-        ("Yazi opener", Path::new(YZX_YAZI)),
+        ("front door", current_exe),
+        ("config UI", package_path(YZX_CONFIG_UI)?),
+        ("menu helper", package_path(YZX_MENU)?),
+        ("tutor helper", package_path(YZX_TUTOR)?),
+        ("anima helper", package_path(YZX_SCREEN)?),
+        ("welcome helper", package_path(YZX_WELCOME)?),
+        ("config helper", package_path(YZX_CONFIG)?),
+        ("zellij config helper", package_path(YZX_ZELLIJ_CONFIG)?),
+        ("reveal helper", package_path(YZX_REVEAL)?),
+        ("packaged Zellij config", package_path(YZX_CONFIG_KDL)?),
+        ("Zellij", package_path(ZELLIJ)?),
+        ("layout", package_path(LAYOUT)?),
+        ("layout template", package_path(LAYOUT_TEMPLATE)?),
+        ("layout swap template", package_path(LAYOUT_SWAP_TEMPLATE)?),
+        ("bar render request", package_path(YZX_BAR_RENDER_REQUEST)?),
+        ("bar renderer", package_path(YZX_BAR_RENDER)?),
+        ("managed editor", package_path(YZX_HELIX)?),
+        ("Yazi opener", package_path(YZX_YAZI)?),
     ] {
-        require_file(label, path)?;
+        require_file(label, &path)?;
     }
-    if !RIO.is_empty() {
-        require_file("Rio", Path::new(RIO))?;
+    if !RIO.0.is_empty() {
+        require_file("Rio", &package_path(RIO)?)?;
     }
     require_command("Radar CLI", "zj-radar")?;
 
@@ -169,7 +170,7 @@ fn require_file(label: &str, path: &Path) -> Result<(), AppError> {
 }
 
 fn require_command(label: &str, command: &str) -> Result<(), AppError> {
-    if command_exists(command) {
+    if command_exists(command, &runtime_path()?) {
         return Ok(());
     }
     Err(startup(
@@ -179,27 +180,27 @@ fn require_command(label: &str, command: &str) -> Result<(), AppError> {
     ))
 }
 
-fn command_exists(command: &str) -> bool {
+fn command_exists(command: &str, path: &std::ffi::OsStr) -> bool {
     if command.as_bytes().contains(&b'/') {
         executable_file(Path::new(command))
     } else {
-        env::split_paths(&runtime_path()).any(|dir| executable_file(&dir.join(command)))
+        env::split_paths(path).any(|dir| executable_file(&dir.join(command)))
     }
 }
 
-fn doctor_radar_codex(agent_command: &str, verbose: bool) {
+fn doctor_radar_codex(agent_command: &str, verbose: bool) -> Result<(), AppError> {
+    let mut path = runtime_path()?;
     let configured_codex = (Path::new(agent_command)
         .file_name()
         .and_then(|name| name.to_str())
         == Some("codex")
-        && command_exists(agent_command))
+        && command_exists(agent_command, &path))
     .then_some(agent_command);
-    let codex = configured_codex.or_else(|| command_exists("codex").then_some("codex"));
+    let codex = configured_codex.or_else(|| command_exists("codex", &path).then_some("codex"));
     let Some(codex) = codex else {
         doctor_info("Radar", "Codex not found; hook check skipped");
-        return;
+        return Ok(());
     };
-    let mut path = runtime_path();
     if let Some(parent) = Path::new(codex)
         .parent()
         .filter(|path| !path.as_os_str().is_empty())
@@ -217,7 +218,7 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) {
         Ok(output) => output,
         Err(error) => {
             doctor_warn("Radar", format!("zj-radar could not run: {error}"));
-            return;
+            return Ok(());
         }
     };
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -253,6 +254,7 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) {
             doctor_detail(&format!("radar: {line}"));
         }
     }
+    Ok(())
 }
 
 fn doctor_ok(label: &str, value: impl Display) {

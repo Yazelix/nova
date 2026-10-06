@@ -5,9 +5,10 @@ use std::{
     process::{Command, Output},
 };
 
-use crate::error::{path_error, startup, AppError};
+use crate::error::{AppError, path_error, startup};
 
 pub(crate) fn exec(mut command: Command, check: &str) -> Result<(), AppError> {
+    crate::paths::apply_package(&mut command)?;
     Err(startup(
         format!("failed to exec {check}: {}", command.exec()),
         check,
@@ -16,6 +17,7 @@ pub(crate) fn exec(mut command: Command, check: &str) -> Result<(), AppError> {
 }
 
 pub(crate) fn run_checked(check: &Path, command: &mut Command) -> Result<String, AppError> {
+    crate::paths::apply_package(command)?;
     match command.output() {
         Ok(output) if output.status.success() => Ok(String::from_utf8_lossy(&output.stdout).into()),
         Ok(output) => Err(startup(

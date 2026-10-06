@@ -67,6 +67,7 @@ jobs:
             .#checks.x86_64-linux.desktop_channels \
             .#checks.x86_64-linux.yzx_yazi_materialization \
             .#checks.x86_64-linux.yzx_launcher_unit \
+            .#checks.x86_64-linux.runtime_root \
             .#checks.x86_64-linux.contracts \
             .#checks.x86_64-linux.attached_tab_focus \
             .#checks.x86_64-linux.bottom_hints \

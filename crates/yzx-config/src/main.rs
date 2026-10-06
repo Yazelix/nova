@@ -1,3 +1,6 @@
+#[path = "../../../runtime/yzx/package.rs"]
+mod package;
+
 use std::{env, process};
 
 mod catalog;
@@ -1253,7 +1256,7 @@ mod tests {
                     "                arg_2 \"resume\"\n",
                     "                arg_3 \"--dangerously-bypass-approvals-and-sandbox\"\n",
                     "                pane_title \"agent_popup\"\n",
-                    "                command_marker \"/bin/yzx-agent\"\n",
+                    "                command_marker \"/yzx-agent\"\n",
                     "                preserve_terminal_title true\n",
                     "                toggle_close_behavior \"hide\"\n",
                     "            }}",

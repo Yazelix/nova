@@ -2,12 +2,30 @@ use std::{
     env,
     ffi::OsString,
     path::{Path, PathBuf},
+    process::Command,
 };
 
 use crate::{
-    error::{startup, AppError},
     PATH_PREFIX,
+    error::{AppError, startup},
 };
+
+pub(crate) fn package_root() -> Result<Option<PathBuf>, AppError> {
+    crate::package::front_door(crate::PORTABLE_RUNTIME)
+        .map_err(|error| startup(error.to_string(), "installed package root", 1))
+}
+
+pub(crate) fn package_path(binding: (&str, &str)) -> Result<PathBuf, AppError> {
+    crate::package::owned(package_root()?.as_deref(), binding.0, binding.1)
+        .map_err(|error| startup(error.to_string(), binding.1, 1))
+}
+
+pub(crate) fn apply_package(command: &mut Command) -> Result<(), AppError> {
+    let root = package_root()?;
+    crate::package::apply(root.as_deref(), command);
+    command.env("YZX_PACKAGE_HELPER", package_path(crate::PACKAGE_HELPER)?);
+    Ok(())
+}
 
 pub(crate) fn config_home() -> Result<PathBuf, AppError> {
     if let Some(path) = nonempty_env("YAZELIX_CONFIG_HOME") {
@@ -50,7 +68,11 @@ pub(crate) fn enter_terminal_label() -> OsString {
         .unwrap_or_else(|| OsString::from("unknown"))
 }
 
-pub(crate) fn runtime_path() -> OsString {
+pub(crate) fn runtime_path() -> Result<OsString, AppError> {
+    if let Some(root) = package_root()? {
+        return crate::package::search_path(Some(&root), "")
+            .map_err(|error| startup(error.to_string(), "managed PATH", 1));
+    }
     let mut merged = env::current_exe()
         .ok()
         .and_then(|path| path.parent().map(Path::to_path_buf))
@@ -65,7 +87,7 @@ pub(crate) fn runtime_path() -> OsString {
         }
         merged.push(path);
     }
-    merged
+    Ok(merged)
 }
 
 pub(crate) fn nonempty_env(name: &str) -> Option<OsString> {

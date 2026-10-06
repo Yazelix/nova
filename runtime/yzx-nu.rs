@@ -1,3 +1,6 @@
+#[path = "yzx/package.rs"]
+mod package;
+
 use std::{
     env,
     ffi::OsString,
@@ -13,15 +16,17 @@ const NU: &str = "@nu@";
 const PACKAGED_NU: &str = "@packagedNu@";
 const PATH_PREFIX: &str = "@pathPrefix@";
 const YZX_CONFIG: &str = "@yzxConfig@";
+const ATUIN_SCRIPT: &str = "@atuinInit@";
+const ATUIN_NO_BIND_SCRIPT: &str = "@atuinNoBindInit@";
 const ATUIN_INIT: &str = r#"if not (
     (scope commands | any {|command| $command.name == "_atuin_search_cmd" }) or
     ($env.config.keybindings? | default [] | any {|binding| ($binding.name? | default "") == "atuin" })
 ) {
     try {
         if "ATUIN_NOBIND" in $env {
-            source "@atuinNoBindInit@"
+            source __YZX_ATUIN_NO_BIND__
         } else {
-            source "@atuinInit@"
+            source __YZX_ATUIN__
         }
     } catch {|error|
         print --stderr $"yzx-nu: managed Atuin init failed: ($error.msg)"
@@ -43,12 +48,12 @@ fn run() -> io::Result<()> {
     let config_home = config_home()?;
     let user_nu = config_home.join("nu");
     let user_starship = config_home.join("starship.toml");
-    let packaged_nu = PathBuf::from(PACKAGED_NU);
+    let packaged_nu = package::path(PACKAGED_NU, "share/yazelix/nu")?;
     let runtime = state_dir();
     let runtime_nu = runtime.join("nu");
     fs::create_dir_all(&runtime_nu)?;
     let starship_config = runtime.join("starship.toml");
-    let status = Command::new(YZX_CONFIG)
+    let status = Command::new(package::path(YZX_CONFIG, "libexec/yazelix/yzx-config")?)
         .arg("--write-effective-starship-config")
         .arg(&user_starship)
         .arg(&starship_config)
@@ -60,7 +65,41 @@ fn run() -> io::Result<()> {
     }
 
     let mise_init = host_mise_init();
-    let atuin_init = atuin_enabled()?.then_some(ATUIN_INIT);
+    let atuin_init = if atuin_enabled()? {
+        Some(
+            ATUIN_INIT
+                .replace(
+                    "__YZX_ATUIN_NO_BIND__",
+                    &nu_quote(&package::path(
+                        ATUIN_NO_BIND_SCRIPT,
+                        "share/yazelix/shell/atuin/nu-nobind",
+                    )?),
+                )
+                .replace(
+                    "__YZX_ATUIN__",
+                    &nu_quote(&package::path(
+                        ATUIN_SCRIPT,
+                        "share/yazelix/shell/atuin/nu",
+                    )?),
+                ),
+        )
+    } else {
+        None
+    };
+    let packaged_nu = if let Some(root) = package::child_root()? {
+        let materialized = runtime_nu.join("packaged");
+        fs::create_dir_all(&materialized)?;
+        for file in ["env.nu", "config.nu"] {
+            let source = package::owned(Some(&root), "", &format!("share/yazelix/nu/{file}"))?;
+            atomic_write(
+                &materialized.join(file),
+                package::render(Some(&root), &fs::read_to_string(source)?)?,
+            )?;
+        }
+        materialized
+    } else {
+        packaged_nu
+    };
     let env_config = runtime_nu.join("env.nu");
     write_layered_config(
         &env_config,
@@ -77,17 +116,17 @@ fn run() -> io::Result<()> {
         &packaged_nu.join("config.nu"),
         &user_nu.join("config.nu"),
         mise_init.as_deref(),
-        atuin_init,
+        atuin_init.as_deref(),
     )?;
 
-    let error = Command::new(NU)
+    let error = Command::new(package::path(NU, "libexec/yazelix/nu")?)
         .arg("--experimental-options=native-clip")
         .arg("--env-config")
         .arg(env_config)
         .arg("--config")
         .arg(config)
         .args(env::args_os().skip(1))
-        .env("PATH", runtime_path())
+        .env("PATH", runtime_path()?)
         .env("STARSHIP_CONFIG", starship_config)
         .exec();
     Err(error)
@@ -136,7 +175,7 @@ fn write_layered_config(
 }
 
 fn atuin_enabled() -> io::Result<bool> {
-    let output = Command::new(YZX_CONFIG)
+    let output = Command::new(package::path(YZX_CONFIG, "libexec/yazelix/yzx-config")?)
         .args(["--get", "shell.atuin"])
         .output()?;
     if !output.status.success() {
@@ -160,7 +199,7 @@ fn host_mise_init() -> Option<String> {
     let output = Command::new("mise")
         .arg("activate")
         .arg("nu")
-        .env("PATH", runtime_path())
+        .env("PATH", runtime_path().ok()?)
         .output()
         .ok()?;
     if output.status.success() {
@@ -198,16 +237,8 @@ fn unix_nanos() -> u128 {
         .unwrap_or_default()
 }
 
-fn runtime_path() -> OsString {
-    match nonempty_env("PATH") {
-        Some(path) => {
-            let mut merged = OsString::from(PATH_PREFIX);
-            merged.push(":");
-            merged.push(path);
-            merged
-        }
-        _ => PATH_PREFIX.into(),
-    }
+fn runtime_path() -> io::Result<OsString> {
+    package::search_path(package::child_root()?.as_deref(), PATH_PREFIX)
 }
 
 fn nonempty_env(name: &str) -> Option<OsString> {

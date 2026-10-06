@@ -1,5 +1,5 @@
 ;; Yazelix Nova packaged Steel init.
-(require (only-in "@bridgeModule@" yzx-helix-start))
+(require (only-in "yazelix/bridge.scm" yzx-helix-start))
 (require (only-in "helix/misc.scm" enqueue-thread-local-callback))
 (require (only-in "steel/result" unwrap-ok))
 (require (only-in "forest/forest.scm" forest-configure! forest-open forest-set-toggle-key!))
@@ -15,7 +15,7 @@
      (wait
       (unwrap-ok
        (spawn-process
-        (command "@bridgeRegister@" (list (transport-local-addr server))))))))
+        (command (env-var "YZX_HELIX_REGISTER") (list (transport-local-addr server))))))))
   (if (equal? status 0)
       server
       (begin
@@ -41,7 +41,7 @@
        forest-open)))
 
 (when (equal? (yzx-env-or-false "YAZELIX_HELIX_FILE_WATCHER") "true")
-  (load "@fileWatcherStart@"))
+  (load (env-var "YZX_HELIX_WATCHER_START")))
 
 (define yzx-user-init (yzx-env-or-false "YAZELIX_HELIX_USER_STEEL_INIT"))
 (if (string? yzx-user-init) (load yzx-user-init) #f)

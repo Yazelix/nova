@@ -3,8 +3,8 @@ use std::{env, fs, os::unix::fs::PermissionsExt, path::Path, process::Command};
 mod support;
 
 use support::{
-    binary_text, embedded_store_path, excerpt, expect_contains, expect_order, write_config_home,
-    write_executable, RuntimeCase, TempDir,
+    RuntimeCase, TempDir, binary_text, embedded_store_path, excerpt, expect_contains, expect_order,
+    write_config_home, write_executable,
 };
 
 macro_rules! expect_contains_all {
@@ -71,7 +71,7 @@ fn expect_helix_wrapper(helix: &Path) {
         "(require (only-in \"helix/static.scm\" cx->current-file get-helix-cwd))",
         "(require (only-in \"helix/commands.scm\" run-shell-command))",
         "(define (yzx-new-shell-command target)",
-        "/bin/yzx-open-terminal",
+        "YZX_OPEN_TERMINAL",
         "(define (yzx-new-shell)",
     }
     assert!(
@@ -79,12 +79,12 @@ fn expect_helix_wrapper(helix: &Path) {
         "packaged Helix Steel module still references recentf\n{}",
         excerpt(&helix_module)
     );
-    let open_terminal = embedded_store_path(&helix_module, "/bin/yzx-open-terminal");
+    let open_terminal = embedded_store_path(&helix_script, "/bin/yzx-open-terminal");
     let open_terminal_script = fs::read_to_string(&open_terminal).unwrap();
     expect_contains_all! {
         &open_terminal_script, "packaged Helix new-shell helper";
-        "zellij action new-pane --cwd",
-        "dirname -- \"$target\"",
+        "action new-pane --cwd",
+        "-- \"$target\"",
     }
 
     let helix_init = fs::read_to_string(helix_steel.join("init.scm")).unwrap();
@@ -92,8 +92,8 @@ fn expect_helix_wrapper(helix: &Path) {
         &helix_init, "packaged Helix Steel init";
         "yzx-helix-start",
         "transport-local-addr",
-        "/share/yazelix-helix/steel/yazelix/bridge.scm",
-        "/bin/yzx-helix-register",
+        "yazelix/bridge.scm",
+        "YZX_HELIX_REGISTER",
         "YAZELIX_HELIX_USER_STEEL_INIT",
         "(require (only-in \"helix/misc.scm\" enqueue-thread-local-callback))",
         "forest/forest.scm",
@@ -104,7 +104,7 @@ fn expect_helix_wrapper(helix: &Path) {
         "YAZELIX_FOREST_TOGGLE_KEY",
         "YAZELIX_FOREST_START_UNFOCUSED",
         "YAZELIX_HELIX_FILE_WATCHER",
-        "-yzx-helix-file-watcher-start.scm",
+        "YZX_HELIX_WATCHER_START",
         "(forest-open #:focused #f)",
         "(load yzx-user-init)",
     }
@@ -128,7 +128,7 @@ fn expect_helix_wrapper(helix: &Path) {
         "managed Helix must not open Forest before its first view exists\n{}",
         excerpt(&helix_init)
     );
-    let watcher_start = embedded_store_path(&helix_init, "-yzx-helix-file-watcher-start.scm");
+    let watcher_start = embedded_store_path(&helix_script, "-yzx-helix-file-watcher-start.scm");
     let watcher_start = fs::read_to_string(watcher_start).unwrap();
     expect_contains_all! {
         &watcher_start, "packaged Helix watcher startup";
@@ -156,7 +156,10 @@ fn expect_helix_wrapper(helix: &Path) {
         "(define (forest-open #:focused [focused? #t])",
         "(hashset \".git\" \"target\" \".direnv\" \"node_modules\" \"__pycache__\" \".hg\")",
     }
-    expect_bridge_registry_publisher(&embedded_store_path(&helix_init, "/bin/yzx-helix-register"));
+    expect_bridge_registry_publisher(&embedded_store_path(
+        &helix_script,
+        "/bin/yzx-helix-register",
+    ));
 
     expect_helix_wrapper_config_selection(&helix_script);
 }
@@ -354,9 +357,11 @@ for arg do printf 'arg=%s\\n' \"$arg\" >> \"$YZX_FAKE_HX_OUT\"; done\n";
     let managed_link = watcher_state.join("steel-home/native").join(&library);
     assert_eq!(fs::read_link(&managed_link).unwrap(), native_library);
     assert!(native_library.is_file());
-    assert!(watcher_package
-        .join("share/steel/nova-helix-file-watcher/file-watcher.scm")
-        .is_file());
+    assert!(
+        watcher_package
+            .join("share/steel/nova-helix-file-watcher/file-watcher.scm")
+            .is_file()
+    );
     expect_contains(
         &watcher_output,
         &format!("{}/share/steel", watcher_package.display()),

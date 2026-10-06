@@ -4,6 +4,14 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Runtime paths share one package-root owner. Relocation fixtures exercise
+  managed helpers, Helix/Steel/watcher assets, Yazi, Nu and generated Zellij
+  configuration; missing or escaping package inputs fail with a diagnostic.
+  Nova-managed watcher links follow a moved root without replacing user libraries.
+  Failed watcher staging preserves the previous link and ownership record.
+  Portable tutor commands use Nushell quoting for roots containing spaces or quotes.
+  Nix and Home Manager retain their delivery bindings; installation requires Nix.
+
 - Packaged Helix uses pinned source snapshots for Codeberg and SourceHut grammars.
 
 - Radar's Codex hooks and sidebar broadcasts reach the bundled Zellij session
@@ -15,7 +23,7 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
   artifact's root, metadata, host boundary and required delivery evidence.
-  Implementation remains queued; installation still requires Nix.
+  Native archive packaging remains queued; installation still requires Nix.
 
 - `bottom_hints.start_hidden = true` starts fresh sessions without the bottom
   key-hint row. The default is `false`. Existing toggles still work; later tabs

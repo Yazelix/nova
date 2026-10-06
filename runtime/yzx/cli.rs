@@ -1,4 +1,10 @@
-use std::{env, ffi::OsString, path::Path, process::Command};
+use crate::paths::package_path;
+use std::{
+    env,
+    ffi::OsString,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use crate::{
     RIO, VERSION, YZX_CONFIG, YZX_CONFIG_UI, YZX_ENV_SUPERVISOR, YZX_MENU, YZX_REVEAL, YZX_SCREEN,
@@ -36,7 +42,7 @@ pub(crate) fn run() -> Result<(), AppError> {
             let mut command = Command::new("zj-radar");
             command
                 .args(["setup", "codex", "claude", "opencode"])
-                .env("PATH", runtime_path());
+                .env("PATH", runtime_path()?);
             exec(command, "yzx radar-setup")
         }
         "menu" => {
@@ -83,10 +89,11 @@ fn expect_no_args(command: &str, args: &[OsString]) -> Result<(), AppError> {
     }
 }
 
-fn exec_plain(program: &str) -> Result<(), AppError> {
-    let mut command = Command::new(program);
-    command.env("PATH", runtime_path());
-    exec(command, program)
+fn exec_plain(binding: (&str, &str)) -> Result<(), AppError> {
+    let program = package_path(binding)?;
+    let mut command = Command::new(&program);
+    command.env("PATH", runtime_path()?);
+    exec(command, &program.to_string_lossy())
 }
 
 fn exec_yazi_config(args: Vec<OsString>) -> Result<(), AppError> {
@@ -105,14 +112,16 @@ fn exec_yazi_config(args: Vec<OsString>) -> Result<(), AppError> {
             };
             let appearance_mode = current_appearance_mode(
                 trim_output(run_checked(
-                    Path::new(YZX_CONFIG),
-                    Command::new(YZX_CONFIG).arg("--get").arg("appearance.mode"),
+                    Path::new(&package_path(YZX_CONFIG)?),
+                    Command::new(package_path(YZX_CONFIG)?)
+                        .arg("--get")
+                        .arg("appearance.mode"),
                 )?),
                 false,
             );
-            let mut command = Command::new(YZX_YAZI_MATERIALIZER);
+            let mut command = Command::new(package_path(YZX_YAZI_MATERIALIZER)?);
             command
-                .arg(YZX_YAZI_CONFIG)
+                .arg(package_path(YZX_YAZI_CONFIG)?)
                 .arg(user_config_dir)
                 .arg(state_dir)
                 .arg(appearance_mode);
@@ -137,8 +146,8 @@ fn materialize_paths(args: &[OsString]) -> Option<(&OsString, &OsString)> {
 }
 
 fn exec_menu() -> Result<(), AppError> {
-    let mut command = Command::new(YZX_MENU);
-    command.env("PATH", runtime_path());
+    let mut command = Command::new(package_path(YZX_MENU)?);
+    command.env("PATH", runtime_path()?);
     if let Ok(current_exe) = env::current_exe() {
         command.env("YZX_MENU_YZX", current_exe);
     }
@@ -146,16 +155,16 @@ fn exec_menu() -> Result<(), AppError> {
 }
 
 fn exec_tutor(args: Vec<OsString>) -> Result<(), AppError> {
-    let mut command = Command::new(YZX_TUTOR);
-    command.args(args).env("PATH", runtime_path());
+    let mut command = Command::new(package_path(YZX_TUTOR)?);
+    command.args(args).env("PATH", runtime_path()?);
     exec(command, "yzx tutor")
 }
 
 fn exec_env() -> Result<(), AppError> {
     let runtime = Runtime::prepare_with_yazi()?;
-    let mut command = Command::new(YZX_ENV_SUPERVISOR);
-    command.arg(YZX_SHELL);
-    runtime.apply(&mut command);
+    let mut command = Command::new(package_path(YZX_ENV_SUPERVISOR)?);
+    command.arg(package_path(YZX_SHELL)?);
+    runtime.apply(&mut command)?;
     exec(command, "yzx env")
 }
 
@@ -174,43 +183,47 @@ fn exec_run(args: Vec<OsString>) -> Result<(), AppError> {
     let mut command = if program == "ya" {
         Command::new(&runtime.yazi().ya)
     } else if program == "yazi" {
-        Command::new(YZX_YAZI)
+        Command::new(package_path(YZX_YAZI)?)
+    } else if matches!(program.to_str(), Some("hx" | "yzx-hx")) {
+        Command::new(package_path(crate::YZX_HELIX)?)
     } else {
         Command::new(program)
     };
     command.args(args);
-    runtime.apply(&mut command);
+    runtime.apply(&mut command)?;
     exec(command, "yzx run")
 }
 
 fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
-    let mut command = Command::new(YZX_REVEAL);
+    let mut command = Command::new(package_path(YZX_REVEAL)?);
     command
         .args(args)
-        .env("YZX_ZELLIJ", ZELLIJ)
-        .env("PATH", runtime_path());
+        .env("YZX_ZELLIJ", package_path(ZELLIJ)?)
+        .env("PATH", runtime_path()?);
     exec(command, "yzx reveal")
 }
 
 fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
-    let mut command = Command::new(YZX_SCREEN);
+    let mut command = Command::new(package_path(YZX_SCREEN)?);
     command
         .args(args)
         .env("YAZELIX_SCREEN_COMMAND_NAME", "yzx anima")
-        .env("PATH", runtime_path());
+        .env("PATH", runtime_path()?);
     exec(command, "yzx anima")
 }
 
 fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppError> {
     let program = managed_program(graphical)?;
     let runtime = Runtime::prepare_new_session_with_yazi()?;
-    let live_appearance = !RIO.is_empty() && project_rio_appearance(&runtime)?;
-    let mut command = Command::new(program);
+    let live_appearance = !RIO.0.is_empty() && project_rio_appearance(&runtime)?;
+    let mut command = Command::new(&program);
     if graphical {
         apply_rio_launch_appearance(&mut command, &runtime.appearance_mode, live_appearance);
-        command.arg(YZX_WELCOME).arg(ZELLIJ);
+        command
+            .arg(package_path(YZX_WELCOME)?)
+            .arg(package_path(ZELLIJ)?);
     } else {
-        command.arg(ZELLIJ);
+        command.arg(package_path(ZELLIJ)?);
     }
     command
         .arg("--config")
@@ -218,7 +231,7 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
         .arg("--new-session-with-layout")
         .arg(&runtime.layout)
         .args(zellij_args);
-    runtime.apply(&mut command);
+    runtime.apply(&mut command)?;
     command
         .env("YZX_APPEARANCE_MODE", &runtime.appearance_mode)
         .env(
@@ -239,23 +252,23 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
             enter_terminal_label()
         },
     );
-    exec(command, program)
+    exec(command, &program.to_string_lossy())
 }
 
-fn managed_program(graphical: bool) -> Result<&'static str, AppError> {
-    match (graphical, RIO.is_empty()) {
+fn managed_program(graphical: bool) -> Result<PathBuf, AppError> {
+    match (graphical, RIO.0.is_empty()) {
         (true, true) => Err(AppError::Usage(
             "yzx launch is unavailable because this package omits Rio; use yzx enter or select a package that includes Rio\n".to_string(),
         )),
-        (true, false) => Ok(RIO),
-        (false, _) => Ok(YZX_WELCOME),
+        (true, false) => package_path(RIO),
+        (false, _) => package_path(YZX_WELCOME),
     }
 }
 
 fn project_rio_appearance(runtime: &Runtime) -> Result<bool, AppError> {
     let result = trim_output(run_checked(
         &runtime.rio_config,
-        Command::new(YZX_CONFIG)
+        Command::new(package_path(YZX_CONFIG)?)
             .arg("--project-rio-appearance")
             .arg(&runtime.appearance_mode)
             .env("YAZELIX_CONFIG_HOME", &runtime.config_home),
@@ -285,7 +298,7 @@ mod tests {
 
     #[test]
     fn managed_rio_launch_theme_modes_are_explicit() {
-        let mut rio = Command::new(RIO);
+        let mut rio = Command::new(RIO.0);
         apply_rio_launch_appearance(&mut rio, "light", false);
         assert_eq!(
             rio.get_args()
@@ -294,7 +307,7 @@ mod tests {
             ["--app-id", "yzx", "--theme-mode", "light", "-e"]
         );
 
-        let mut live_rio = Command::new(RIO);
+        let mut live_rio = Command::new(RIO.0);
         apply_rio_launch_appearance(&mut live_rio, "light", true);
         assert_eq!(
             live_rio

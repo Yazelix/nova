@@ -1,15 +1,16 @@
+use crate::paths::package_path;
 use std::{
     env,
     ffi::OsStr,
-    path::{absolute, PathBuf},
+    path::{PathBuf, absolute},
     process::Command,
 };
 
 use crate::{
+    YA_COMMAND, YAZI_COMMAND, YAZI_SOURCE, YAZI_TESTED_VERSION,
     command::executable_file,
-    error::{startup, AppError},
+    error::{AppError, startup},
     paths::{nonempty_env, runtime_path},
-    YAZI_COMMAND, YAZI_SOURCE, YAZI_TESTED_VERSION, YA_COMMAND,
 };
 
 pub(crate) struct YaziRuntime {
@@ -23,8 +24,8 @@ impl YaziRuntime {
     pub(crate) fn resolve() -> Result<Self, AppError> {
         if YAZI_SOURCE == "bundled" {
             return Ok(Self {
-                yazi: YAZI_COMMAND.into(),
-                ya: YA_COMMAND.into(),
+                yazi: package_path(YAZI_COMMAND)?,
+                ya: package_path(YA_COMMAND)?,
                 version: YAZI_TESTED_VERSION.into(),
                 warning: None,
             });
@@ -36,13 +37,13 @@ impl YaziRuntime {
                 1,
             ));
         }
-        let lookup_path = runtime_path();
+        let lookup_path = runtime_path()?;
 
         let inherited_yazi = nonempty_env("YZX_YAZI_BIN");
         let inherited_ya = nonempty_env("YZX_YA");
         let (yazi_command, ya_command) = match (inherited_yazi, inherited_ya) {
             (Some(yazi), Some(ya)) => (yazi, ya),
-            _ => (YAZI_COMMAND.into(), YA_COMMAND.into()),
+            _ => (YAZI_COMMAND.0.into(), YA_COMMAND.0.into()),
         };
         let ((yazi, yazi_version), (ya, ya_version)) = match (
             probe_command("yazi", &yazi_command, &lookup_path),
@@ -172,7 +173,7 @@ mod tests {
     use super::*;
     use std::{
         fs,
-        os::unix::fs::{symlink, PermissionsExt},
+        os::unix::fs::{PermissionsExt, symlink},
     };
 
     #[test]
