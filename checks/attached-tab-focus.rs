@@ -156,4 +156,30 @@ mod tests {
         assert_eq!(highlighted("[1] \x1b[1;48;2;17;34;51m[2]", rgb), [2]);
         assert!(highlighted("\x1b[38;2;17;34;51m[1] [2]", rgb).is_empty());
     }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn failed_commands_do_not_expose_environment_values() {
+        let mut terminal = Terminal::new(Path::new("/nonexistent"), "diagnostic-proof");
+        terminal.environment.clear();
+        terminal
+            .environment
+            .insert("PATH".into(), env::var_os("PATH").unwrap());
+        terminal
+            .environment
+            .insert("CHECK_TEST_SECRET".into(), "private-sentinel".into());
+        let failure = std::panic::catch_unwind(|| {
+            terminal.run(env::current_exe().unwrap(), &["--not-a-check-option"], None)
+        })
+        .unwrap_err();
+        let message = failure.downcast_ref::<String>().unwrap();
+        assert!(
+            !message.contains("private-sentinel"),
+            "inherited values leaked"
+        );
+        assert!(
+            message.contains("--not-a-check-option"),
+            "command context missing"
+        );
+    }
 }

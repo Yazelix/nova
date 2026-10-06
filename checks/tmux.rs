@@ -82,7 +82,7 @@ impl Terminal {
         args: &[&str],
         input: Option<&str>,
     ) -> String {
-        let mut command = self.command(program);
+        let mut command = self.command(program.as_ref());
         command
             .args(args)
             .stdin(if input.is_some() {
@@ -104,7 +104,8 @@ impl Terminal {
         let output = child.wait_with_output().unwrap();
         assert!(
             output.status.success(),
-            "{command:?}: {}\n{}",
+            "{:?} {args:?}: {}\n{}",
+            program.as_ref(),
             String::from_utf8_lossy(&output.stderr),
             String::from_utf8_lossy(&output.stdout)
         );
