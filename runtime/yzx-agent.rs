@@ -49,7 +49,10 @@ fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32
         offer_codex_radar_setup(command, state_dir);
         // A shared Codex server cannot inherit this pane's hook environment.
         if env::var_os("ZELLIJ").is_some()
-            && !args.iter().any(|arg| arg.as_ref() == "--no-daemon")
+            && !args
+                .iter()
+                .take_while(|arg| arg.as_ref() != "--")
+                .any(|arg| arg.as_ref() == "--no-daemon")
             && Command::new(command)
                 .arg("--help")
                 .output()
@@ -63,7 +66,13 @@ fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32
             process.arg("--no-daemon");
         }
     }
-    exec_command(process.args(args))
+    let error = process.args(args).exec();
+    eprintln!(
+        "Yazelix Nova agent popup\n\nFailed to launch `{}`: {error}",
+        command.to_string_lossy()
+    );
+    pause_if_tty();
+    127
 }
 
 fn radar_enabled() -> bool {
@@ -74,16 +83,6 @@ fn emit_initial_title() {
     let mut stdout = io::stdout().lock();
     let _ = stdout.write_all(b"\x1b]0;agent popup\x07");
     let _ = stdout.flush();
-}
-
-fn exec_command(command: &mut Command) -> i32 {
-    let error = command.exec();
-    eprintln!(
-        "Yazelix Nova agent popup\n\nFailed to launch `{}`: {error}",
-        command.get_program().to_string_lossy()
-    );
-    pause_if_tty();
-    127
 }
 
 fn launch_configured(id: &str, provider_file: &Path, state_dir: &Path) -> i32 {

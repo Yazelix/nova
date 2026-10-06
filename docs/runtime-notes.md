@@ -278,7 +278,7 @@ the distribution identity.
 
 Managed Codex launches with Radar selected use `--no-daemon` when the installed
 Codex advertises it. Codex's shared server snapshots its own environment for
-hooks, which lacks the invoking pane's Zellij identifiers and managed PATH.
+hooks, which can omit the invoking pane's Zellij identifiers or refer to another pane.
 Running in the pane keeps reporting associated with that pane. Existing hook
 trust and enablement still apply; older Codex versions keep their launch arguments.
 When starting Codex directly in a shell, use `codex --no-daemon` if that version

@@ -3165,7 +3165,7 @@ fn expect_codex_pane_context(agent: &Path) {
     let record = temp.path.join("launch");
     write_executable(
         &codex,
-        "#!/bin/sh\nif [ \"$1\" = --help ]; then\n  printf '%s\\n' \"$CODEX_TEST_HELP\"\n  exit \"$CODEX_TEST_HELP_EXIT\"\nfi\nprintf '%s\\n' \"$*\" \"$ZELLIJ_SESSION_NAME:$ZELLIJ_PANE_ID\" >\"$YAZELIX_AGENT_TEST_OUT\"\n",
+        "#!/bin/sh\nif [ \"$1\" = --help ]; then\n  printf '%s\\n' \"$CODEX_TEST_HELP\"\n  exit \"$CODEX_TEST_HELP_EXIT\"\nfi\nprintf '%s\\0' \"$@\" >\"$YAZELIX_AGENT_TEST_OUT\"\nprintf '%s\\n' \"$ZELLIJ_SESSION_NAME:$ZELLIJ_PANE_ID\" >>\"$YAZELIX_AGENT_TEST_OUT\"\n",
     );
     for (help, help_exit, in_pane, radar, args, expected) in [
         (
@@ -3173,8 +3173,8 @@ fn expect_codex_pane_context(agent: &Path) {
             "0",
             true,
             true,
-            vec!["resume", "session"],
-            "--no-daemon resume session",
+            vec!["resume", "session with spaces", ""],
+            "--no-daemon\0resume\0session with spaces\0\0",
         ),
         (
             "--no-daemon",
@@ -3182,12 +3182,28 @@ fn expect_codex_pane_context(agent: &Path) {
             true,
             true,
             vec!["--no-daemon", "resume"],
-            "--no-daemon resume",
+            "--no-daemon\0resume\0",
         ),
-        ("--no-daemon", "0", true, false, vec!["resume"], "resume"),
-        ("--no-daemon", "0", false, true, vec!["resume"], "resume"),
-        ("legacy help", "0", true, true, vec!["resume"], "resume"),
-        ("--no-daemon", "1", true, true, vec!["resume"], "resume"),
+        (
+            "--no-daemon",
+            "0",
+            true,
+            true,
+            vec!["--", "--no-daemon"],
+            "--no-daemon\0--\0--no-daemon\0",
+        ),
+        (
+            "--no-daemon",
+            "0",
+            true,
+            true,
+            vec!["--no-daemon", "--", "--no-daemon"],
+            "--no-daemon\0--\0--no-daemon\0",
+        ),
+        ("--no-daemon", "0", true, false, vec!["resume"], "resume\0"),
+        ("--no-daemon", "0", false, true, vec!["resume"], "resume\0"),
+        ("legacy help", "0", true, true, vec!["resume"], "resume\0"),
+        ("--no-daemon", "1", true, true, vec!["resume"], "resume\0"),
     ] {
         let mut command = isolated_agent_command(agent, &temp.path);
         command
@@ -3208,7 +3224,7 @@ fn expect_codex_pane_context(agent: &Path) {
         assert_eq!(
             fs::read_to_string(&record).unwrap(),
             format!(
-                "{expected}\n{}\n",
+                "{expected}{}\n",
                 if in_pane { "pane-context:3" } else { ":" }
             ),
             "Codex hook runner selection changed arguments or pane context"

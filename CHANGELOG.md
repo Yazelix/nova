@@ -11,6 +11,7 @@ User-visible runtime changes for Yazelix Nova live here.
   check recognizes the bundled client's upstream version.
   Managed Codex launches use its supported `--no-daemon` option so hooks retain
   the invoking pane's environment instead of the shared server's environment.
+  Literal arguments after `--` do not suppress the runner option.
 
 - The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
   artifact's root, metadata, host boundary and required delivery evidence.
