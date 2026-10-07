@@ -25,6 +25,8 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     let yazi = YaziRuntime::resolve()?;
     let has_managed_helix = MANAGED_HELIX == "included";
     check_doctor_inputs()?;
+    #[cfg(yzx_archive)]
+    require_command("host Git (install Git on this machine)", "git")?;
     require_command("editor", &runtime.editor)?;
     if runtime.agent_command != AGENT_AUTO_COMMAND {
         require_command("agent.command", &runtime.agent_command)?;

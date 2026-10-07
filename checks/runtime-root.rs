@@ -13,7 +13,7 @@ fn main() {
     let first = installed.join("first root");
     let moved = installed.join("moved root's");
     successful_output(
-        Command::new("cp").args(["-RL", fixture]).arg(&first),
+        Command::new("cp").args(["-R", fixture]).arg(&first),
         "install root fixture",
     );
     successful_output(
@@ -266,6 +266,31 @@ fn main() {
         assert!(String::from_utf8_lossy(&escape.stderr).contains("escapes runtime root"));
         fs::remove_file(&nu).unwrap();
         fs::rename(saved, nu).unwrap();
+        // Nix delivery still requires its owned Git, even with host Git on PATH.
+        let git = root.join("libexec/yazelix/git");
+        if git.is_file() {
+            write_executable(&temp.path.join("git"), "#!/bin/sh\nexit 0\n");
+            let saved = git.with_extension("saved");
+            fs::rename(&git, &saved).unwrap();
+            let missing = command(&["env"]).env("PATH", &temp.path).output().unwrap();
+            fs::rename(&saved, &git).unwrap();
+            assert!(!missing.status.success());
+            assert!(String::from_utf8_lossy(&missing.stderr).contains(git.to_str().unwrap()));
+        }
+        // Native archives guard private libraries even when the host has copies.
+        if let Ok(inputs) = fs::read_to_string(root.join("share/yazelix/native-inputs.txt")) {
+            let relative = inputs
+                .lines()
+                .find(|line| line.ends_with("/libssl.so.3"))
+                .unwrap();
+            let library = root.join(relative);
+            let saved = library.with_extension("saved");
+            fs::rename(&library, &saved).unwrap();
+            let missing = command(&["--version"]).output().unwrap();
+            fs::rename(&saved, &library).unwrap();
+            assert!(!missing.status.success());
+            assert!(String::from_utf8_lossy(&missing.stderr).contains(library.to_str().unwrap()));
+        }
     }
     fs::write(
         out,

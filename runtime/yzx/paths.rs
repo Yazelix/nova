@@ -23,7 +23,29 @@ pub(crate) fn package_path(binding: (&str, &str)) -> Result<PathBuf, AppError> {
 pub(crate) fn apply_package(command: &mut Command) -> Result<(), AppError> {
     let root = package_root()?;
     crate::package::apply(root.as_deref(), command);
+    if root.is_some() {
+        command.env("PATH", runtime_path()?);
+    }
     command.env("YZX_PACKAGE_HELPER", package_path(crate::PACKAGE_HELPER)?);
+    #[cfg(yzx_archive)]
+    for (name, relative) in [
+        ("TERMINFO_DIRS", "share/terminfo"),
+        ("MAGIC", "share/misc/magic.mgc"),
+        ("MAGICK_HOME", "lib/components/imagemagick"),
+        (
+            "MAGICK_CONFIGURE_PATH",
+            "lib/components/imagemagick/etc/ImageMagick-7",
+        ),
+        ("FONTCONFIG_FILE", "share/fontconfig/fonts.conf"),
+        ("FONTCONFIG_PATH", "share/fontconfig"),
+        ("SSL_CERT_FILE", "share/yazelix/ca-bundle.crt"),
+        ("CURL_CA_BUNDLE", "share/yazelix/ca-bundle.crt"),
+        ("OPENSSL_CONF", "share/openssl/openssl.cnf"),
+        ("OPENSSL_MODULES", "lib/openssl-modules"),
+        ("OPENSSL_ENGINES", "lib/openssl-engines"),
+    ] {
+        command.env(name, package_path(("", relative))?);
+    }
     Ok(())
 }
 
@@ -70,6 +92,9 @@ pub(crate) fn enter_terminal_label() -> OsString {
 
 pub(crate) fn runtime_path() -> Result<OsString, AppError> {
     if let Some(root) = package_root()? {
+        #[cfg(not(yzx_archive))]
+        crate::package::owned(Some(&root), "", "libexec/yazelix/git")
+            .map_err(|error| startup(error.to_string(), "managed Git", 1))?;
         return crate::package::search_path(Some(&root), "")
             .map_err(|error| startup(error.to_string(), "managed PATH", 1));
     }

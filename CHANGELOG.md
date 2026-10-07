@@ -4,6 +4,19 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Managed Yazi waits for valid pane dimensions before starting, preventing a
+  cold Zellij PTY from making the startup picker exit immediately.
+
+- The development `x86_64-linux` flake output `yazelix-no-rio-archive` builds
+  a relocatable no-Rio archive with managed Helix, Yazi and shell/preview tools.
+  It uses the host glibc (2.42 or newer), private libraries and packaged assets;
+  missing required inputs fail before dispatch. The archive requires host Git;
+  Lazygit, Yazi and shell prompts use the user's Git installation and configuration.
+  Portable child helpers select their packaged interpreter through managed PATH,
+  including when host PATH lacks Bash.
+  Public archive downloads and an installer
+  remain pending. The archive output has no runnable flake app entry.
+
 - Runtime paths share one package-root owner. Relocation fixtures exercise
   managed helpers, Helix/Steel/watcher assets, Yazi, Nu and generated Zellij
   configuration; missing or escaping package inputs fail with a diagnostic.
@@ -23,7 +36,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
   artifact's root, metadata, host boundary and required delivery evidence.
-  Native archive packaging remains queued; installation still requires Nix.
+  Public portable installation remains pending; current release installations
+  still require Nix.
 
 - `bottom_hints.start_hidden = true` starts fresh sessions without the bottom
   key-hint row. The default is `false`. Existing toggles still work; later tabs

@@ -20,6 +20,44 @@ pub(crate) fn front_door(portable: bool) -> io::Result<Option<PathBuf>> {
     executable_root(&env::current_exe()?).map(Some)
 }
 
+#[cfg(target_os = "linux")]
+pub(crate) fn check_native_inputs(root: &Path) -> io::Result<()> {
+    unsafe extern "C" {
+        fn gnu_get_libc_version() -> *const std::ffi::c_char;
+    }
+    let inputs =
+        std::fs::read_to_string(owned(Some(root), "", "share/yazelix/native-inputs.txt")?)?;
+    let mut lines = inputs.lines();
+    let minimum = lines
+        .next()
+        .and_then(|line| line.strip_prefix("glibc "))
+        .ok_or_else(|| io::Error::other("invalid native package requirements"))?;
+    let version = |text: &str| -> io::Result<Vec<u32>> {
+        text.split('.')
+            .map(|part| part.parse().map_err(io::Error::other))
+            .collect()
+    };
+    // glibc returns a process-lifetime, NUL-terminated version string.
+    let actual = unsafe { std::ffi::CStr::from_ptr(gnu_get_libc_version()) }
+        .to_str()
+        .map_err(io::Error::other)?;
+    if version(actual)? < version(minimum)? {
+        return Err(io::Error::other(format!(
+            "this package requires glibc {minimum} or newer; host has {actual}"
+        )));
+    }
+    for relative in lines {
+        let path = owned(Some(root), "", relative)?;
+        if !std::fs::File::open(&path)?.metadata()?.is_file() {
+            return Err(io::Error::other(format!(
+                "required native package input is not a regular file: {}",
+                path.display()
+            )));
+        }
+    }
+    Ok(())
+}
+
 fn executable_root(executable: &Path) -> io::Result<PathBuf> {
     let executable = executable.canonicalize()?;
     let bin = executable
@@ -103,7 +141,6 @@ pub(crate) fn search_path(root: Option<&Path>, nix_prefix: &str) -> io::Result<O
                 "carapace",
                 "atuin",
                 "zoxide",
-                "git",
                 "fzf",
                 "jq",
                 "bash",
@@ -184,6 +221,35 @@ pub(crate) fn apply(root: Option<&Path>, command: &mut Command) {
 mod tests {
     use super::*;
     use std::{fs, os::unix::fs::symlink};
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn native_inputs_require_the_declared_libc_and_owned_libraries() {
+        let root = env::temp_dir().join(format!("yzx-native-{}", std::process::id()));
+        fs::create_dir_all(root.join("share/yazelix")).unwrap();
+        fs::create_dir_all(root.join("lib")).unwrap();
+        let inputs = root.join("share/yazelix/native-inputs.txt");
+        let library = root.join("lib/private.so");
+        fs::write(&inputs, "glibc 2.0\nlib/private.so\n").unwrap();
+        assert!(
+            check_native_inputs(&root)
+                .unwrap_err()
+                .to_string()
+                .contains(library.to_str().unwrap())
+        );
+        fs::write(&library, "packaged library").unwrap();
+        check_native_inputs(&root).unwrap();
+        fs::write(&inputs, "glibc 999.0\nlib/private.so\n").unwrap();
+        assert!(
+            check_native_inputs(&root)
+                .unwrap_err()
+                .to_string()
+                .contains("glibc 999.0")
+        );
+        fs::write(&inputs, "glibc 2.0\n../host/private.so\n").unwrap();
+        assert!(check_native_inputs(&root).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn moved_roots_follow_the_executable_and_reject_missing_or_escaping_inputs() {

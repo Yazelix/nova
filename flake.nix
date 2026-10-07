@@ -756,6 +756,7 @@
         withManagedHelix,
         withManagedYazi,
         portableRuntime ? false,
+        nativeArchive ? false,
       }: let
         templatePath = nix: relative:
           if portableRuntime
@@ -877,6 +878,7 @@
           '';
         };
         yazi = rustPackageBin "yzx-yazi" (pkgs.replaceVars ./runtime/yzx-yazi.rs {
+          stty = "${pkgs.coreutils}/bin/stty";
           yzxYaziConfig = "${yzxYaziConfig}";
           yzxYaziStartupConfig = "${yzxYaziStartupConfig}";
           yzxYaziMaterializer = "${yzxYaziMaterializer}/bin/yzx-yazi-config";
@@ -1030,7 +1032,7 @@
           then
             pkgs.runCommand "yzx-root-fixture" {nativeBuildInputs = [pkgs.rustc pkgs.stdenv.cc];} ''
               mkdir -p "$out/bin"
-              rustc --edition=2024 --cfg yzx_portable ${src}/main.rs -o "$out/bin/yzx"
+              rustc --edition=2024 --cfg yzx_portable ${pkgs.lib.optionalString nativeArchive "--cfg yzx_archive"} ${src}/main.rs -o "$out/bin/yzx"
             ''
           else rustBin "yzx" "${src}/main.rs";
         rootNuConfig = pkgs.replaceVars ./defaults/nu/config.nu {
@@ -1090,7 +1092,6 @@
               install -m 755 ${command}/bin/yzx "$out/bin/yzx"
               for package in ${pkgs.lib.concatStringsSep " " (map toString [
                   pkgs.coreutils
-                  pkgs.git
                   pkgs.lazygit
                   pkgs.jq
                   pkgs.fzf
@@ -1130,6 +1131,7 @@
                   yzxOpenTerminal
                   yzxHelixBridgeRegister
                 ]
+                ++ pkgs.lib.optional (!nativeArchive) pkgs.git
                 ++ pkgs.lib.optional withManagedYazi pkgs.yazi)}; do
                 for binary in "$package"/bin/*; do
                   test ! -e "$binary" || cp -Lf --remove-destination "$binary" "$out/libexec/yazelix/"
@@ -1242,6 +1244,19 @@
         withManagedYazi = false;
       };
       default = yazelix;
+    } // pkgs.lib.optionalAttrs (system == "x86_64-linux") {
+      yazelix-no-rio-archive = import ./packaging/linux-archive.nix {
+        inherit pkgs;
+        version = novaVersion;
+        runtime = mkYzx {
+          channel = "edge";
+          withRio = false;
+          withManagedHelix = true;
+          withManagedYazi = true;
+          portableRuntime = true;
+          nativeArchive = true;
+        };
+      };
     });
 
     checks = eachSystem (system: let
@@ -1783,6 +1798,7 @@
         touch "$out"
       '';
       no_rio_contracts = pkgs.runCommand "yzx-no-rio-contracts" {} ''
+        test ${pkgs.lib.boolToString (self.apps.${system} ? yazelix-no-rio-archive)} = false
         check_no_rio() {
           local package="$1"
           local variant="$2"
@@ -2039,6 +2055,6 @@
         type = "app";
         program = "${package}/bin/yzx";
       })
-      self.packages.${system});
+      (builtins.removeAttrs self.packages.${system} ["yazelix-no-rio-archive"]));
   };
 }

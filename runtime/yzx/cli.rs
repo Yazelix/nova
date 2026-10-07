@@ -18,6 +18,11 @@ use crate::{
 };
 
 pub(crate) fn run() -> Result<(), AppError> {
+    #[cfg(yzx_archive)]
+    crate::package::check_native_inputs(
+        &crate::paths::package_root()?.expect("native archive has a package root"),
+    )
+    .map_err(|error| startup(error.to_string(), "native package requirements", 1))?;
     let mut args = env::args_os().skip(1);
     let command = args.next().unwrap_or_else(|| "help".into());
     let args = args.collect::<Vec<_>>();

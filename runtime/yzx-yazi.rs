@@ -4,11 +4,11 @@ mod package;
 use std::{
     env,
     ffi::{OsStr, OsString},
-    io,
+    io::{self, IsTerminal},
     os::unix::process::CommandExt,
     path::{Path, PathBuf},
-    process::{Command, ExitCode},
-    time::{SystemTime, UNIX_EPOCH},
+    process::{Command, ExitCode, Stdio},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 const YZX_YAZI_CONFIG: &str = "@yzxYaziConfig@";
@@ -21,6 +21,7 @@ const YZX_HELIX: &str = "@yzxHelix@";
 const YZX_EDITOR_LAUNCHER: &str = "@yzxEditor@";
 const YZX_CONFIG: &str = "@yzxConfig@";
 const PATH_PREFIX: &str = "@pathPrefix@";
+const STTY: &str = "@stty@";
 const PANE_ORCHESTRATOR: &str = "yazelix_pane_orchestrator";
 
 struct ManagedEnv {
@@ -92,12 +93,39 @@ impl ManagedEnv {
     }
 
     fn yazi_command(&self, yazi: &OsStr, role: Option<&str>, config: &Path) -> io::Result<Command> {
+        if io::stdin().is_terminal() {
+            wait_for_terminal_dimensions(&package::path(STTY, "libexec/yazelix/stty")?)?;
+        }
         let mut command = self.command(yazi, role)?;
         command.env("YAZI_CONFIG_HOME", config).env(
             "YZX_YAZI_STARSHIP_CONFIG",
             config.join("yazelix_starship.toml"),
         );
         Ok(command)
+    }
+}
+
+fn wait_for_terminal_dimensions(stty: &Path) -> io::Result<()> {
+    // Zellij can resize a newly spawned PTY after its command starts.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    loop {
+        let output = Command::new(stty)
+            .arg("size")
+            .stdin(Stdio::inherit())
+            .output()?;
+        let size = String::from_utf8_lossy(&output.stdout)
+            .split_ascii_whitespace()
+            .map(str::parse::<u16>)
+            .collect::<Result<Vec<_>, _>>();
+        if output.status.success()
+            && matches!(size.as_deref(), Ok([rows, columns]) if *rows > 0 && *columns > 0)
+        {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            return Err(io::Error::other("terminal dimensions did not become ready"));
+        }
+        std::thread::sleep(Duration::from_millis(10));
     }
 }
 
@@ -326,6 +354,30 @@ fn trim_output(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{fs, os::unix::fs::PermissionsExt};
+
+    #[test]
+    fn managed_yazi_waits_for_both_dimensions_and_bounds_failure() {
+        let root = env::temp_dir().join(format!("yzx-yazi-size-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        let stty = root.join("stty");
+        fs::write(
+            &stty,
+            "#!/bin/sh\ncd \"$(dirname \"$0\")\"\nn=$(cat count 2>/dev/null || echo 0)\necho $((n+1)) > count\ncase $n in 0) echo '0 0';; 1) echo '0 120';; *) echo '40 120';; esac\n",
+        )
+        .unwrap();
+        fs::set_permissions(&stty, fs::Permissions::from_mode(0o755)).unwrap();
+        wait_for_terminal_dimensions(&stty).unwrap();
+        assert_eq!(fs::read_to_string(root.join("count")).unwrap(), "3\n");
+        fs::write(&stty, "#!/bin/sh\necho '0 0'\n").unwrap();
+        assert!(
+            wait_for_terminal_dimensions(&stty)
+                .unwrap_err()
+                .to_string()
+                .contains("terminal dimensions did not become ready")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn managed_helix_names_map_to_packaged_editor_while_host_commands_pass_through() {

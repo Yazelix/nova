@@ -335,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 30,398 |
-| Documentation and text | 5,846 |
-| Total | 36,244 |
+| Code and configuration | 30,869 |
+| Documentation and text | 5,948 |
+| Total | 36,817 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -376,4 +376,12 @@ counts here; this decision does not change packaged runtime behavior.
 Runtime-root implementation adds shared native path ownership, explicit managed
 tool/config/asset bindings and guarded watcher-link migration. The installed
 fixture exercises relocation, missing assets and escaping symlinks; native
-archive delivery remains a separate platform proof.
+archive delivery has separate Linux userspace and kernel proof.
+
+The development Linux archive uses the same root owner, preserves separate
+private-library directories and guards owned native/script inputs. Its
+packaging and Nix-free interaction check account for code growth; public
+artifact publication and installation remain separate work.
+The archive uses host Git with its configuration and hooks, retaining packaged
+Lazygit. This removes Git's helper translation and Perl/Python/Gettext copies;
+the Nix delivery retains its existing packaged Git.

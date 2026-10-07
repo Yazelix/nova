@@ -1,7 +1,8 @@
 # Portable runtime contract
 
 This is the implementation target for `yazelix-nix-free-installer-nx4-a48.1`.
-Nova currently requires Nix; this document does not announce a portable release.
+Published Nova installations currently require Nix; this document does not
+announce a portable release.
 It covers one payload: managed Helix, managed Yazi, and no Rio. `yzx` remains
 the public command, with the existing no-Rio command behavior.
 
@@ -15,7 +16,8 @@ The completed `.6` inventory and `.7` Linux experiment used source revision
 `dd727ac201d00160870d7494b50cffbaa6862e5b`. The inventory's 632 store paths total
 1,654,994,200 uncompressed NAR bytes. That is a conservative closure census,
 not a download size or a certified minimum payload. Copying the joined output
-alone loses its dependencies; no payload deletion has been approved.
+alone loses its dependencies. The portable archive delegates Git to the host;
+the existing Nix delivery retains packaged Git.
 
 The Linux experiment used the real native `yzx`, noninteractive Bash, Zellij
 and OpenSSL, with a substituted Radar helper. It passed in two isolated roots,
@@ -42,6 +44,64 @@ library exclusions and permissive store-string warnings do not establish this
 contract. The [custom `nix bundle` interface](https://nix.dev/manual/nix/2.34/command-ref/new-cli/nix3-bundle.html)
 is distinct from its default bundler. A build interface can remain useful;
 target-side Nix or `/nix/store` virtualization is outside this contract.
+
+## Linux archive factory
+
+`nix build .#yazelix-no-rio-archive` produces the development Edge archive
+`yazelix-nova-<version>-x86_64-linux.tar.gz`. Nix is a build requirement;
+the extracted runtime does not use Nix. The output exists only on
+`x86_64-linux` and preserves the managed no-Rio composition and its embedded
+Zellij plugins. Publication, indexed metadata, licensing notices and an
+installer belong to `.4` and `.5`.
+The archive is a build output and has no executable flake app entry.
+
+The factory uses existing `patchelf` and `readelf` tools with a narrow
+Nova packaging script. Each private library retains its original component
+directory, so two incompatible libraries with the same SONAME remain distinct.
+ELFs use the host interpreter and root-relative RPATH. Static executables
+retain their native execution path. The archive normalizes entry order,
+timestamps, ownership and gzip headers.
+
+Packaged data bindings cover terminfo, file signatures,
+ImageMagick delegates, fontconfig/fonts, Fish and TLS trust/configuration.
+Git is a host prerequisite; its helper and Perl/Python/Gettext stack is excluded.
+A generated owned-input list guards private libraries and script interpreters
+before dispatch. Required ELF symbol versions select the glibc floor, currently
+2.42; this payload does not support glibc 2.39 or musl.
+
+`checks/linux-archive.sh` runs inside a clean Linux environment with tmux and
+coreutils and host Git, against an extracted root. It rejects a mounted Nix store,
+checks managed tools, host Git configuration and hooks, Lazygit, previews and HTTPS, and drives
+a fresh `enter` session through the startup picker, Helix and a managed shell.
+It also opens and exits managed Yazi, returning to the same shell.
+The shared `runtime-root` check covers moved roots and missing/escaping inputs.
+Container checks prove userspace compatibility; a separate VM supplies kernel
+evidence. Neither is manual dogfood or a public Linux support announcement.
+
+Stock ImageMagick's default `label:` font lookup also fails in a clean Fedora
+image with only its minimal font set. Explicit DejaVu text rendering and SVG
+font selection exercise the packaged fonts without changing that child policy.
+
+The 2026-10-07 development payload measured 396,593,484 compressed bytes
+(378.22 MiB) and 1,300,709,957 regular-file bytes
+(1.21 GiB), across 6,937 regular files and 160 internal
+symlinks. Filesystem allocation depends on the extraction target. Zellij's
+byte-identical entrypoint copies use aliases, saving 140,411,480 uncompressed
+bytes. The largest individual files are Carapace (70.6 MB), Zellij (70.2 MB),
+Nushell (60.9 MB), Helix (44.0 MB) and Atuin (37.4 MB).
+
+Unprivileged, read-only installations passed the complete scripted workspace
+probe in Fedora 43 (glibc 2.42) and Ubuntu 26.04 (glibc 2.43), without the Nix
+store or development checkout. The installed root moved between paths with
+spaces and an apostrophe; an external entrypoint symlink retained root ownership.
+Linux 6.12.93 has a separate VM probe; older kernels remain unverified. Exact-commit Linux/Darwin
+gates and manual fresh-session dogfood remain acceptance requirements.
+
+A single-core VM exposed a startup race: Yazi read a newly created Zellij PTY
+at 0×0 and exited before the resize arrived. The existing managed-Yazi launcher
+uses packaged `stty` to wait for both dimensions to become positive before
+starting its child. Nonterminal probes keep their existing behavior; a pane
+that never becomes ready fails after a bounded wait. No Zellij patch is required.
 
 ## NPR-ROOT-001: root selection
 
@@ -70,6 +130,8 @@ bindings from its existing composition, including script interpreters, managed
 PATH, bar requests, plugin references and configuration templates. Component
 translation stays at its existing boundary. This contract requires no new
 general path registry, public root override or configuration schema.
+The shared child-launch boundary applies the managed PATH to portable children,
+including internal scripts used by diagnostics, before their interpreter runs.
 
 `runtime/yzx/package.rs` owns executable-root discovery, contained-path checks
 and managed PATH. Native helpers share that module; shell wrappers call its
@@ -111,7 +173,7 @@ Zellij retains ownership of its embedded Nova Wasm plugins.
 
 Carry `.6`'s managed tools and feature assets: Helix runtime and grammars,
 Steel/Forest cogs, watcher library and modules, Yazi plugins and flavors,
-Nushell/Bash/Zsh/Fish initialization, shell integrations, preview tools, Git,
+Nushell/Bash/Zsh/Fish initialization, shell integrations, preview tools,
 Lazygit, tutor, anima and Nova helpers. Pruning a closure reference requires
 evidence that the selected feature set still works.
 
@@ -119,18 +181,32 @@ For Linux, the host supplies the ELF interpreter and matching glibc family.
 The initial mechanism uses `/lib64/ld-linux-x86-64.so.2` on x86_64, relative
 ELF library search, and declared host `libgcc_s.so.1`. Packaging records exact
 allowed system-library SONAMEs and checks their required symbol versions.
+The measured libgcc requirements span `GCC_3.0` through `GCC_4.3.0`, including
+`GCC_3.3`, `GCC_3.3.1`, `GCC_3.4`, `GCC_4.0.0` and `GCC_4.2.0`.
 Other native dependencies, including OpenSSL, remain private to `R`; the
 candidate bundler's wider host exclusion list is not Nova's policy.
 
 Script helpers use host `/usr/bin/env` with a packaged interpreter selected by
-the managed PATH, as `.7` tested for Bash. Declare `/usr/bin/env` as a host
-prerequisite; check the packaged interpreter before script execution.
+the managed PATH, as `.7` tested for Bash. Declare `/usr/bin/env` with `-S`
+argument-splitting support as a host prerequisite; check the packaged
+interpreter before script execution.
+The portable archive requires host Git on inherited PATH. Packaged Lazygit,
+Yazi Git indicators and shell prompts use it with the user's Git configuration,
+helpers and hooks. Nova does not set `GIT_EXEC_PATH`, `GIT_TEMPLATE_DIR` or
+`GIT_SSL_CAINFO`. `yzx doctor` diagnoses missing Git; Git-dependent features
+require it, while help and identity remain available. The existing Nix delivery
+retains packaged Git. Interactive shells and Nova script interpreters remain
+packaged in both deliveries.
 
 The host also supplies a capable terminal/PTY, writable user storage, Unix
 sockets and loopback networking. `.2` must check the full payload's use of
 Linux process information, DNS/NSS, trust roots, locale and timezone data,
 then record any required host facilities. No minimum kernel or blanket
 distribution support follows from `.7`.
+Clean-system probes cover `/proc` process information, libc DNS/NSS lookup,
+private TLS trust, the C locale and host timezone data for UTC and
+`America/Sao_Paulo`. Host resolver/NSS configuration, user records and timezone
+data remain system inputs; this archive does not supply a replacement host OS.
 
 Configured host editors, agents, LSPs, formatters, mise, custom popup commands
 and the optional host integrations identified in `.6` remain explicit external
