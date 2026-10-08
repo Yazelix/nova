@@ -3,16 +3,34 @@ use std::{env, fs, path::Path};
 mod tmux;
 use tmux::{Terminal, sleep};
 
-fn highlighted(row: &str, rgb: &str) -> Vec<usize> {
+fn highlighted(row: &str, rgb: &[u16; 3]) -> Vec<usize> {
     let mut active = false;
     let mut selected = Vec::new();
     for segment in row.split("\x1b[") {
         let text = if let Some((codes, text)) = segment.split_once('m') {
             if codes.bytes().all(|b| b.is_ascii_digit() || b == b';') {
-                if codes == "0" {
-                    active = false;
-                } else if codes.contains(rgb) {
-                    active = true;
+                let mut codes = codes
+                    .split(';')
+                    .map(|code| code.parse::<u16>().unwrap_or(0));
+                while let Some(code) = codes.next() {
+                    match code {
+                        0 | 30..=37 | 39 | 90..=97 => active = false,
+                        38 | 48 | 58 => {
+                            // Consume color components without treating them as attributes.
+                            let color = match codes.next() {
+                                Some(2) => codes.by_ref().take(3).collect::<Vec<_>>(),
+                                Some(5) => {
+                                    codes.next();
+                                    Vec::new()
+                                }
+                                _ => Vec::new(),
+                            };
+                            if code == 38 {
+                                active = color == *rgb;
+                            }
+                        }
+                        _ => {}
+                    }
                 }
                 text
             } else {
@@ -30,13 +48,10 @@ fn highlighted(row: &str, rgb: &str) -> Vec<usize> {
     selected
 }
 
-fn pane_text(terminal: &Terminal, window: usize, ansi: bool) -> String {
-    terminal.capture(&format!("clients:{window}"), ansi)
-}
-
-fn selected(terminal: &Terminal, window: usize, rgb: &str) -> Vec<usize> {
+fn selected(terminal: &Terminal, window: usize, rgb: &[u16; 3]) -> Vec<usize> {
     highlighted(
-        pane_text(terminal, window, true)
+        terminal
+            .capture(&format!("clients:{window}"), true)
             .lines()
             .next()
             .unwrap_or_default(),
@@ -47,7 +62,7 @@ fn selected(terminal: &Terminal, window: usize, rgb: &str) -> Vec<usize> {
 fn wait_tabs(terminal: &Terminal, window: usize) {
     terminal.wait(
         || {
-            let text = pane_text(terminal, window, false);
+            let text = terminal.capture(&format!("clients:{window}"), false);
             let top = text.lines().next().unwrap_or_default();
             top.contains("[1") && top.contains("[2")
         },
@@ -86,14 +101,7 @@ fn main() {
         .find(|line| line.trim_start().starts_with("tab_active "))
         .unwrap();
     let hex = &active.split_once("fg=#").unwrap().1[..6];
-    let rgb = format!(
-        "38;2;{}",
-        (0..6)
-            .step_by(2)
-            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap().to_string())
-            .collect::<Vec<_>>()
-            .join(";")
-    );
+    let rgb = std::array::from_fn(|i| u16::from_str_radix(&hex[2 * i..2 * i + 2], 16).unwrap());
     let start = terminal.launch(&["-n", layout.to_str().unwrap(), "-s", &terminal.session])
         + "; printf '\\nEXIT:%s\\n' $?; sleep 30";
     terminal.tmux(&[
@@ -129,13 +137,13 @@ fn main() {
     for delay in [0.1, 0.3, 0.5, 1.0] {
         sleep(delay);
         assert_eq!(selected(&terminal, 0, &rgb), [1]);
-        assert!(pane_text(&terminal, 0, false).contains("ONE"));
+        assert!(terminal.capture("clients:0", false).contains("ONE"));
     }
     assert_eq!(selected(&terminal, 1, &rgb), [2]);
-    assert!(pane_text(&terminal, 1, false).contains("TWO"));
+    assert!(terminal.capture("clients:1", false).contains("TWO"));
     terminal.tmux(&["send-keys", "-t", "clients:1", "C-q"]);
     terminal.wait(
-        || pane_text(&terminal, 1, false).contains("EXIT:0"),
+        || terminal.capture("clients:1", false).contains("EXIT:0"),
         "second client did not exit cleanly",
         "clients:1",
     );
@@ -144,7 +152,7 @@ fn main() {
     terminal.tmux(&["send-keys", "-t", "clients:2", "M-2"]);
     sleep(1.0);
     assert_eq!(selected(&terminal, 2, &rgb), [2]);
-    assert!(pane_text(&terminal, 2, false).contains("TWO"));
+    assert!(terminal.capture("clients:2", false).contains("TWO"));
     println!("two clients kept independent tab highlights across attach and reattach");
 }
 
@@ -153,13 +161,30 @@ mod tests {
     use super::*;
     #[test]
     fn tab_highlights_follow_foreground_colour_and_reset() {
-        let rgb = "38;2;17;34;51";
+        let rgb = &[17, 34, 51];
         assert_eq!(
             highlighted("\x1b[38;2;17;34;51m[1 one]\x1b[0m 2 two", rgb),
             [1]
         );
         assert_eq!(highlighted("1 one \x1b[1;38;2;17;34;51m[2 two]", rgb), [2]);
         assert!(highlighted("\x1b[48;2;17;34;51m[1 one] 2 two", rgb).is_empty());
+        for change in ["22;38;2;160;166;175", "39", "31", "38;5;166"] {
+            assert_eq!(
+                highlighted(
+                    &format!("\x1b[38;2;17;34;51m[1 one]\x1b[{change}m [2] two"),
+                    rgb
+                ),
+                [1],
+                "foreground change {change}"
+            );
+        }
+        for change in ["1", "48;2;0;39;38", "48;5;0"] {
+            assert_eq!(
+                highlighted(&format!("\x1b[38;2;17;34;51m\x1b[{change}m[1 one]"), rgb),
+                [1],
+                "non-foreground change {change}"
+            );
+        }
     }
 
     #[cfg(target_os = "linux")]
