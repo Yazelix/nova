@@ -335,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 30,869 |
-| Documentation and text | 5,948 |
-| Total | 36,817 |
+| Code and configuration | 30,951 |
+| Documentation and text | 5,972 |
+| Total | 36,923 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -385,3 +385,4 @@ artifact publication and installation remain separate work.
 The archive uses host Git with its configuration and hooks, retaining packaged
 Lazygit. This removes Git's helper translation and Perl/Python/Gettext copies;
 the Nix delivery retains its existing packaged Git.
+Linux CI checks the archive's glibc baseline and selected-library ownership.

@@ -1,10 +1,14 @@
 set -euo pipefail
-: "${payload:?}" "${out:?}"
+: "${payload:?}" "${out:?}" "${glibcBaseline:?}"
 cp -R "$payload" "$out"
 chmod -R u+w "$out"
 mkdir -p "$out/lib/native"
 declare -A copied=() origins=() seen=()
-mapfile -d "" queue < <(find "$out" -type f \( -perm /111 -o -name "*.so*" \) -print0)
+declare -A replacements=()
+while IFS=$'\t' read -r original compatible; do
+    replacements[$original]=$compatible
+done < "${libraryReplacements:-/dev/null}"
+mapfile -d "" queue < <(find "$out" -type f -print0)
 for ((i=0; i<${#queue[@]}; i++)); do
     binary=${queue[i]}
     [[ $(od -An -tx1 -N4 "$binary") == " 7f 45 4c 46" ]] || continue
@@ -33,6 +37,13 @@ for ((i=0; i<${#queue[@]}; i++)); do
         if [[ $source == "$out"/* ]]; then
             target=$source
         elif [[ $source == /nix/store/* ]]; then
+            for original in "${!replacements[@]}"; do
+                if [[ $source == "$original/"* ]]; then
+                    source="${replacements[$original]}/${source#"$original/"}"
+                    [[ -f $source ]] || { echo "missing compatible library: $source" >&2; exit 1; }
+                    break
+                fi
+            done
             target="$out/lib/native/${source#/nix/store/}"
             if [[ ! ${copied[$source]+set} ]]; then
                 copied[$source]=$target
@@ -60,6 +71,10 @@ for binary in "${!seen[@]}"; do
 done
 minimum=$(sort -V "$TMPDIR/glibc-versions" | tail -1)
 test -n "$minimum"
+if [[ $(printf '%s\n' "$glibcBaseline" "$minimum" | sort -V | tail -1) != "$glibcBaseline" ]]; then
+    echo "archive requires glibc $minimum; baseline is $glibcBaseline" >&2
+    exit 1
+fi
 inputs="$TMPDIR/native-inputs.txt"
 printf 'glibc %s\n' "$minimum" > "$inputs"
 sort -u "$out/share/yazelix/native-inputs.txt" >> "$inputs"

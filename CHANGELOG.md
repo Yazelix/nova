@@ -9,7 +9,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - The development `x86_64-linux` flake output `yazelix-no-rio-archive` builds
   a relocatable no-Rio archive with managed Helix, Yazi and shell/preview tools.
-  It uses the host glibc (2.42 or newer), private libraries and packaged assets;
+  It uses the host glibc (2.39 or newer), private libraries and packaged assets;
+  Current dependency versions use compatible runtime providers compiled against
+  pinned glibc 2.39 build inputs; assembly rejects higher ELF requirements.
   missing required inputs fail before dispatch. The archive requires host Git;
   Lazygit, Yazi and shell prompts use the user's Git installation and configuration.
   Portable child helpers select their packaged interpreter through managed PATH,

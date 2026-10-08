@@ -26,10 +26,10 @@ ELF execution preserved `current_exe`; relative library search plus declared
 private-file guards prevented missing OpenSSL from falling back to a host copy.
 This proves a bootstrap slice, not a fresh Nova workspace or the full closure.
 
-The experiment passed on glibc 2.39. The inventoried interactive Bash depends
-on ncurses requiring `GLIBC_2.42`, so the unchanged payload cannot claim a floor
-below 2.42. `.2` must measure and prove the complete artifact's requirements,
-or rebuild dependencies for a lower floor. Interactive Bash remains in scope.
+The experiment passed on glibc 2.39. The original interactive Bash depended
+on ncurses requiring `GLIBC_2.42`; copying that payload unchanged required 2.42.
+The archive rebuilds the affected runtime providers for the lower baseline.
+Interactive Bash remains in scope.
 
 These results select direct host-loader execution and root-relative private
 libraries for Linux. They reject naive invocation through a copied loader,
@@ -66,8 +66,19 @@ Packaged data bindings cover terminfo, file signatures,
 ImageMagick delegates, fontconfig/fonts, Fish and TLS trust/configuration.
 Git is a host prerequisite; its helper and Perl/Python/Gettext stack is excluded.
 A generated owned-input list guards private libraries and script interpreters
-before dispatch. Required ELF symbol versions select the glibc floor, currently
-2.42; this payload does not support glibc 2.39 or musl.
+before dispatch. Required ELF symbol versions select the glibc floor. Assembly
+rejects any requirement above 2.39; musl remains unsupported.
+
+The archive uses the current coreutils, ncurses, libssh and librist recipes with
+GCC's native sysroot set to pinned glibc 2.39 headers/startup/link inputs.
+Those inputs are build-only; the host supplies libc at runtime. All other tool
+versions and the ordinary Nix build remain unchanged. One archive composition
+selects the rebuilt commands and shared-library providers; the existing bundler
+applies those provider choices while preserving component directories. This
+avoids rebuilding Nixpkgs' compiler and build-tool graph. Whole-payload ELF
+checks and clean-system interaction checks protect that boundary.
+Auxiliary tool and delegate collection preserves commands already selected by
+the runtime composition.
 
 `checks/linux-archive.sh` runs inside a clean Linux environment with tmux and
 coreutils and host Git, against an extracted root. It rejects a mounted Nix store,
@@ -82,7 +93,7 @@ Stock ImageMagick's default `label:` font lookup also fails in a clean Fedora
 image with only its minimal font set. Explicit DejaVu text rendering and SVG
 font selection exercise the packaged fonts without changing that child policy.
 
-The 2026-10-07 development payload measured 396,593,484 compressed bytes
+The earlier glibc-2.42 payload measured 396,593,484 compressed bytes
 (378.22 MiB) and 1,300,709,957 regular-file bytes
 (1.21 GiB), across 6,937 regular files and 160 internal
 symlinks. Filesystem allocation depends on the extraction target. Zellij's
@@ -90,12 +101,20 @@ byte-identical entrypoint copies use aliases, saving 140,411,480 uncompressed
 bytes. The largest individual files are Carapace (70.6 MB), Zellij (70.2 MB),
 Nushell (60.9 MB), Helix (44.0 MB) and Atuin (37.4 MB).
 
-Unprivileged, read-only installations passed the complete scripted workspace
-probe in Fedora 43 (glibc 2.42) and Ubuntu 26.04 (glibc 2.43), without the Nix
+That payload's unprivileged, read-only installations passed the complete scripted
+workspace probe in Fedora 43 (glibc 2.42) and Ubuntu 26.04 (glibc 2.43), without the Nix
 store or development checkout. The installed root moved between paths with
 spaces and an apostrophe; an external entrypoint symlink retained root ownership.
 Linux 6.12.93 has a separate VM probe; older kernels remain unverified. Exact-commit Linux/Darwin
 gates and manual fresh-session dogfood remain acceptance requirements.
+
+The glibc-2.39 development payload measures 396,646,946 compressed bytes and
+1,301,148,493 regular-file bytes, with 6,937 files and 160 internal symlinks.
+All 729 ELF files require at most glibc 2.39; private library search is root-relative.
+Unprivileged, read-only roots pass the complete scripted workspace probe in
+Ubuntu 24.04/glibc 2.39, Fedora 43/glibc 2.42 and Ubuntu 26.04/glibc 2.43,
+without Nix, a mounted store or the checkout. This is userspace proof on the
+host's Linux 7.1.5 kernel; the earlier 6.12.93 VM result covers the older payload.
 
 A single-core VM exposed a startup race: Yazi read a newly created Zellij PTY
 at 0×0 and exited before the resize arrived. The existing managed-Yazi launcher

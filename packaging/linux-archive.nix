@@ -2,6 +2,8 @@
   pkgs,
   runtime,
   version,
+  glibcBaseline,
+  libraryReplacements,
 }: let
   prepared = pkgs.runCommand "nova-linux-payload" {} ''
     cp -RL ${runtime} "$out"
@@ -17,7 +19,7 @@
     test -s "$TMPDIR/yazi-paths"
     mkdir -p "$out/lib/components"
     while IFS= read -r directory; do
-      cp -Lf --remove-destination "$directory"/* "$out/libexec/yazelix/"
+      cp -L --update=none "$directory"/* "$out/libexec/yazelix/"
       package=$(dirname "$directory")
       cp -RL "$package" "$out/lib/components/$(basename "$package")"
       if test -x "$directory/magick"; then
@@ -37,7 +39,8 @@
     sed -i 's|/etc/fonts/conf.d|conf.d|' "$out/share/fontconfig/fonts.conf"
     magick_config="$out/lib/components/imagemagick/etc/ImageMagick-7"
     grep -oE '/nix/store/[^ /&";]+/bin/[a-zA-Z0-9_.+-]+' "$magick_config/delegates.xml" | sort -u | while IFS= read -r command; do
-      cp -Lf --remove-destination "$command" "$out/libexec/yazelix/"
+      # Auxiliary discovery must preserve the runtime's selected commands.
+      cp -L --update=none "$command" "$out/libexec/yazelix/"
     done
     chmod -R u+w "$magick_config"
     sed -i -E 's|/nix/store/[^ /&";]+/bin/([a-zA-Z0-9_.+-]+)|\1|g' "$magick_config/delegates.xml"
@@ -67,6 +70,7 @@
   '';
   payload = pkgs.runCommand "nova-linux-runtime" {
     nativeBuildInputs = [pkgs.patchelf pkgs.binutils];
+    inherit glibcBaseline libraryReplacements;
     payload = prepared;
   } "bash ${./linux-relocate.sh}";
 in

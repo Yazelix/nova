@@ -49,6 +49,7 @@ grep -q 'omits Rio' "$work/launch.log"
     bash -c "printf native-bash"
     zsh -c "printf native-zsh"
     fish -c "test \"\$__fish_data_dir\" = \"\$YAZELIX_RUNTIME_ROOT/share/fish\""
+    ffmpeg -version
     test "$(command -v git)" = "$NOVA_HOST_GIT"
     test "$(git --exec-path)" = "$NOVA_HOST_GIT_EXEC_PATH"
     test "$(git native-proof)" = native-git

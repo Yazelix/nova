@@ -145,7 +145,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **30,869 code/configuration lines** and **5,948 documentation/text
+Yazelix owns **30,951 code/configuration lines** and **5,972 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. The native pane-order correction
 and stronger interaction check account for the 61-line code/configuration growth.
@@ -172,6 +172,8 @@ Linux archive assembly, native-library relocation and input guards account for
 code growth. The Nix-free interaction check exercises managed tools, previews,
 host Git and Lazygit in a fresh workspace; public portable installation remains pending.
 Host Git removes the archive's Git helper rewriting and Perl/Python/Gettext stack.
+An archive-only compiler selects glibc 2.39 runtime providers; the library bundler
+enforces the baseline. A focused check covers rejection and provider ownership.
 Managed Yazi's pane-readiness gate prevents a zero-size startup exit; its
 transition and bounded failure are checked.
 Radar's private transport alias, upstream version reporting, and conflicting-host

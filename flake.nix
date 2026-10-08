@@ -10,6 +10,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    linuxLibc = {
+      url = "github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798";
+      flake = false;
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -107,6 +111,7 @@
   outputs = {
     self,
     nixpkgs,
+    linuxLibc,
     home-manager,
     rio,
     zellijSource,
@@ -196,11 +201,7 @@
               --set-default VK_ADD_DRIVER_FILES "${pkgs.mesa}/share/vulkan/icd.d"
           '';
         };
-  in {
-    homeManagerModules.default = homeManagerModule;
-
-    packages = eachSystem (system: let
-      pkgs = pkgsFor system;
+    runtimeFor = system: pkgs: let
       rustBin = rustBinFor pkgs;
       rustPackageBin = name: src:
         rustBin name (pkgs.runCommand "${name}-src" {} ''
@@ -1202,62 +1203,74 @@
           withManagedHelix = true;
           withManagedYazi = true;
         };
-    in rec {
-      nova-zjhints = novaZjhintsPackage;
-      nova-zellij-distribution = yazelixDistributionPackage;
-      yazelix = mkFullYzx "stable";
-      yazelix-main = mkFullYzx "main";
-      yazelix-edge = mkFullYzx "edge";
-      yazelix-no-helix = mkYzx {
-        withRio = true;
-        withManagedHelix = false;
-        withManagedYazi = true;
-      };
-      yazelix-no-yazi = mkYzx {
-        withRio = true;
-        withManagedHelix = true;
-        withManagedYazi = false;
-      };
-      yazelix-no-helix-no-yazi = mkYzx {
-        withRio = true;
-        withManagedHelix = false;
-        withManagedYazi = false;
-      };
-      yazelix-no-rio = mkYzx {
-        withRio = false;
-        withManagedHelix = true;
-        withManagedYazi = true;
-      };
-      yazelix-no-rio-no-helix = mkYzx {
-        withRio = false;
-        withManagedHelix = false;
-        withManagedYazi = true;
-      };
-      yazelix-no-rio-no-yazi = mkYzx {
-        withRio = false;
-        withManagedHelix = true;
-        withManagedYazi = false;
-      };
-      yazelix-no-rio-no-helix-no-yazi = mkYzx {
-        withRio = false;
-        withManagedHelix = false;
-        withManagedYazi = false;
-      };
-      default = yazelix;
-    } // pkgs.lib.optionalAttrs (system == "x86_64-linux") {
-      yazelix-no-rio-archive = import ./packaging/linux-archive.nix {
-        inherit pkgs;
-        version = novaVersion;
-        runtime = mkYzx {
-          channel = "edge";
+    in {
+      inherit mkYzx;
+      packages = rec {
+        nova-zjhints = novaZjhintsPackage;
+        nova-zellij-distribution = yazelixDistributionPackage;
+        yazelix = mkFullYzx "stable";
+        yazelix-main = mkFullYzx "main";
+        yazelix-edge = mkFullYzx "edge";
+        yazelix-no-helix = mkYzx {
+          withRio = true;
+          withManagedHelix = false;
+          withManagedYazi = true;
+        };
+        yazelix-no-yazi = mkYzx {
+          withRio = true;
+          withManagedHelix = true;
+          withManagedYazi = false;
+        };
+        yazelix-no-helix-no-yazi = mkYzx {
+          withRio = true;
+          withManagedHelix = false;
+          withManagedYazi = false;
+        };
+        yazelix-no-rio = mkYzx {
           withRio = false;
           withManagedHelix = true;
           withManagedYazi = true;
-          portableRuntime = true;
-          nativeArchive = true;
         };
+        yazelix-no-rio-no-helix = mkYzx {
+          withRio = false;
+          withManagedHelix = false;
+          withManagedYazi = true;
+        };
+        yazelix-no-rio-no-yazi = mkYzx {
+          withRio = false;
+          withManagedHelix = true;
+          withManagedYazi = false;
+        };
+        yazelix-no-rio-no-helix-no-yazi = mkYzx {
+          withRio = false;
+          withManagedHelix = false;
+          withManagedYazi = false;
+        };
+        default = yazelix;
       };
-    });
+    };
+  in {
+    homeManagerModules.default = homeManagerModule;
+
+    packages = eachSystem (system: let
+      pkgs = pkgsFor system;
+      archive = import ./packaging/linux-pkgs.nix {inherit pkgs linuxLibc;};
+    in
+      (runtimeFor system pkgs).packages // pkgs.lib.optionalAttrs (system == "x86_64-linux") {
+        yazelix-no-rio-archive = import ./packaging/linux-archive.nix {
+          pkgs = archive.pkgs;
+          inherit (archive) glibcBaseline libraryReplacements;
+          version = novaVersion;
+          runtime = (runtimeFor system archive.pkgs).mkYzx {
+            channel = "edge";
+            withRio = false;
+            withManagedHelix = true;
+            withManagedYazi = true;
+            portableRuntime = true;
+            nativeArchive = true;
+          };
+        };
+      });
 
     checks = eachSystem (system: let
       pkgs = pkgsFor system;
@@ -2001,6 +2014,31 @@
         touch "$out"
       '';
     } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+      archive_glibc_baseline = pkgs.runCommand "nova-archive-glibc-baseline-check" {
+        nativeBuildInputs = [pkgs.patchelf pkgs.binutils];
+      } ''
+        export payload="$TMPDIR/payload"
+        mkdir -p "$payload/bin" "$payload/share/yazelix"
+        cp ${pkgs.coreutils}/bin/coreutils "$payload/bin/coreutils"
+        chmod -x "$payload/bin/coreutils"
+        cp ${pkgs.ncurses}/bin/tset "$payload/bin/tset"
+        touch "$payload/share/yazelix/native-inputs.txt"
+        if glibcBaseline=0.0 out="$TMPDIR/rejected" bash ${./packaging/linux-relocate.sh} > rejected.log 2>&1; then
+          echo 'accepted an ELF above the glibc baseline' >&2
+          exit 1
+        fi
+        grep -F 'baseline is 0.0' rejected.log
+        glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/accepted" bash ${./packaging/linux-relocate.sh}
+        grep -E '^glibc [0-9]+\.[0-9]+$' "$TMPDIR/accepted/share/yazelix/native-inputs.txt"
+        readelf -l "$TMPDIR/accepted/bin/coreutils" | grep -F '/lib64/ld-linux-x86-64.so.2'
+        printf '%s\t%s\n' ${pkgs.ncurses.out} "$TMPDIR/missing-provider" > providers
+        if libraryReplacements="$PWD/providers" glibcBaseline=2.39 out="$TMPDIR/missing" bash ${./packaging/linux-relocate.sh} > missing.log 2>&1; then
+          echo 'ignored the selected library provider' >&2
+          exit 1
+        fi
+        grep -F "missing compatible library: $TMPDIR/missing-provider/" missing.log
+        touch "$out"
+      '';
       bottom_hints = pkgs.runCommand "nova-bottom-hints-check" {
         nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
       } ''
