@@ -11,6 +11,8 @@ User-visible runtime changes for Yazelix Nova live here.
   new-tab, close and last-tab-toggle hints are omitted; their bindings remain available.
   Pane mode uses the same separators, HJKL and Esc hint, with one shortcut per
   main action and secondary focus, embed, pin and immersive hints omitted.
+  Resize mode shows HJKL grow/shrink directions and Esc with pipe separators,
+  omitting repeated generic resize hints while keeping every binding.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.

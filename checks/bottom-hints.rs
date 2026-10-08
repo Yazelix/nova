@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::{collections::HashSet, env, fs, path::Path};
 mod tmux;
-use tmux::{Terminal, quote, sleep};
+use tmux::{quote, sleep, Terminal};
 
 #[derive(Debug, Deserialize)]
 struct Pane {
@@ -461,11 +461,13 @@ keybinds clear-defaults=true {
                     row.starts_with(mode)
                         && row.contains(match mode {
                             "LOCKED" => "unlock",
-                            "TAB" | "PANE" => "ESC normal",
+                            "TAB" | "PANE" | "RESIZE" => "ESC normal",
                             _ => "back",
                         })
-                        && (["LOCKED", "TAB", "PANE"].contains(&mode)
+                        && (["LOCKED", "TAB", "PANE", "RESIZE"].contains(&mode)
                             || row.contains("ESC / ENTER"))
+                        && (mode != "RESIZE"
+                            || row.trim_end() == "RESIZE | hjkl grow | HJKL shrink | ESC normal")
                         && (mode != "TAB"
                             || (row.contains("hjkl focus")
                                 && row.contains(" | ")

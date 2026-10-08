@@ -31,6 +31,8 @@ has no mode prefix. Tab mode uses HJKL, dim pipe separators and an Esc return
 hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints.
 Pane hints use the same presentation, with one key per main action; secondary
 focus, embed, pin and fullscreen-without-UI hints are hidden; bindings remain.
+Resize uses `hjkl grow`, `HJKL shrink` and `ESC normal` with the same pipes,
+omitting generic resize hints while preserving their bindings.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
 `preferred_key_<mode>_<hint>` advertises one currently bound key; if that key
 is unavailable, the hint falls back to its actual bindings.
