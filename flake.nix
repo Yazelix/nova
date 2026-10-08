@@ -703,7 +703,13 @@
         };
         nativeBuildInputs = [pkgs.pkg-config];
         buildInputs = [pkgs.openssl];
-        doCheck = false;
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [pkgs.openssl]}"''}
+          cargo test --frozen --target ${pkgs.stdenv.hostPlatform.rust.rustcTarget}
+          runHook postCheck
+        '';
         buildPhase = ''
           runHook preBuild
           cargo build --frozen --release --target wasm32-wasip1

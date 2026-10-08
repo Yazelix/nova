@@ -250,7 +250,7 @@ fn bar_layout_is_valid(layout: &str) -> bool {
         && !layout.contains("command_cpu")
         && !layout.contains(r#"YZX " // {datetime}"#)
         && !layout.contains("NOVA ")
-        && !layout.contains("{mode}")
-        && !layout.contains("mode_normal")
+        && !block_contains(layout, "pane_template name=\"top_bar\"", "{mode}")
+        && !block_contains(layout, "pane_template name=\"top_bar\"", "mode_normal")
         && !layout.contains(r#"plugin location="tab-bar""#)
 }

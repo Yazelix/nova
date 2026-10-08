@@ -1,9 +1,8 @@
 diff --git a/src/main.rs b/src/main.rs
-index 7e670a37..021dcd21 100644
 --- a/src/main.rs
 +++ b/src/main.rs
-@@ -745,9 +745,8 @@ fn dim_style_declaration(decl: &StyleDeclaration, strength: f32) -> StyleDeclara
- 
+@@ -745,9 +745,8 @@
+
  /// A dimmed copy of `colors`. Only the `Styling` groups this plugin's own
  /// rendering actually reads are touched, so dimming the rest would be dead
 -/// work: `ribbon_unselected`/`text_unselected` for hints
@@ -14,7 +13,7 @@ index 7e670a37..021dcd21 100644
  fn dim_styling(colors: &Styling, strength: f32) -> Styling {
      Styling {
          ribbon_unselected: dim_style_declaration(&colors.ribbon_unselected, strength),
-@@ -785,7 +784,7 @@ fn render_descended_indicator(mode_info: &ModeInfo, style: &HintStyle) -> String
+@@ -785,7 +784,7 @@
          keys: mode_info.nested_ascend_keys.clone(),
      };
      let mut parts = vec![];
@@ -22,8 +21,28 @@ index 7e670a37..021dcd21 100644
 +    render_hint(&mut parts, &hint, style, false);
      ANSIStrings(&parts).to_string()
  }
- 
-@@ -1540,6 +1539,24 @@ fn group_keys(
+
+@@ -949,9 +948,17 @@
+             dim,
+             key_format: self.key_format.as_deref(),
+             desc_format: self.desc_format.as_deref(),
+-            spacer: self.hint_spacer.as_deref(),
++            spacer: self
++                .config
++                .get(&format!("hint_spacer_{mode_key}"))
++                .map(String::as_str)
++                .or(self.hint_spacer.as_deref()),
+             discover: self.discover_hints,
+-            direction_keys: self.direction_keys,
++            direction_keys: self
++                .config
++                .get(&format!("direction_keys_{mode_key}"))
++                .map(|value| DirectionKeys::from_config(value))
++                .unwrap_or(self.direction_keys),
+             key_order: self.key_order,
+             mode: &mode_key,
+             hint_order: &self.hint_order,
+@@ -1540,6 +1547,24 @@
              });
          }
      }
@@ -47,8 +66,29 @@ index 7e670a37..021dcd21 100644
 +    }
      groups
  }
- 
-@@ -1682,6 +1699,7 @@ fn style_key_with_modifier(
+
+@@ -1568,10 +1593,18 @@
+         return String::new();
+     }
+     let joined = chord_alias(modifiers, config).unwrap_or_else(|| {
+-        modifiers
++        let aliases = modifiers
+             .iter()
+             .map(|m| modifier_display(*m, config))
+-            .collect()
++            .collect::<Vec<_>>();
++        if aliases
++            .iter()
++            .all(|alias| !alias.is_empty() && alias.chars().all(char::is_alphanumeric))
++        {
++            aliases.join("-")
++        } else {
++            aliases.concat()
++        }
+     });
+     if joined
+         .chars()
+@@ -1682,6 +1715,7 @@
      key_bindings: &[KeyWithModifier],
      palette: &Styling,
      config: &BTreeMap<String, String>,
@@ -56,22 +96,57 @@ index 7e670a37..021dcd21 100644
  ) -> Vec<ANSIString<'static>> {
      if key_bindings.is_empty() {
          return vec![];
-@@ -1691,7 +1709,11 @@ fn style_key_with_modifier(
+@@ -1691,7 +1725,11 @@
      let contrasting_fg = palette_match!(palette.ribbon_unselected.base);
      let ribbon = || Style::new().fg(contrasting_fg).on(saturated_bg);
- 
+
 -    let mut styled_parts = vec![Style::new().paint(" "), ribbon().paint(" ")];
 +    let mut styled_parts = vec![];
 +    if !grouped {
 +        styled_parts.push(Style::new().paint(" "));
 +    }
 +    styled_parts.push(ribbon().paint(" "));
- 
+
      for (group_idx, group) in group_keys(key_bindings, config).iter().enumerate() {
          if group_idx > 0 {
-@@ -2069,10 +2091,20 @@ fn merge_hint(hints: &mut Vec<Hint>, id: &str, label: &str, keys: &[KeyWithModif
+@@ -1703,9 +1741,7 @@
+             styled_parts.push(ribbon().bold().paint(prefix));
+         }
+
+-        for key in &group.keys {
+-            styled_parts.push(ribbon().bold().paint(key.clone()));
+-        }
++        styled_parts.push(ribbon().bold().paint(compose_key_group(&group.keys)));
+     }
+
+     styled_parts.push(ribbon().paint(" "));
+@@ -1731,6 +1767,14 @@
+     ]
  }
- 
+
++fn compose_key_group(keys: &[String]) -> String {
++    if keys.iter().all(|key| key.chars().count() == 1) {
++        keys.concat()
++    } else {
++        keys.join(" / ")
++    }
++}
++
+ /// Compose the plain-text representation of a key binding as it appears in a
+ /// hint, e.g. `^p`, `h|j|k|l`, or `←↓↑→`. This is the value substituted for the
+ /// `{key}` placeholder when a custom `key_format` is configured; the styling
+@@ -1743,7 +1787,7 @@
+             format!(
+                 "{}{}",
+                 group_prefix(&group.modifiers, config),
+-                group.keys.concat()
++                compose_key_group(&group.keys)
+             )
+         })
+         .collect::<Vec<_>>()
+@@ -2069,10 +2113,27 @@
+ }
+
  /// Render a hint's styled segments, without tracking consumed keys.
 -fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintStyle) {
 +fn render_hint(
@@ -82,6 +157,13 @@ index 7e670a37..021dcd21 100644
 +) {
      // Optionally collapse hjkl/arrow duplicates down to a single family.
      let mut keys = filter_direction_keys(&hint.keys, style.direction_keys);
++    if let Some(key) = hint_override("preferred_key_", hint, style.mode, style.config)
++        .flatten()
++        .and_then(|value| value.parse::<KeyWithModifier>().ok())
++        .filter(|key| keys.contains(key))
++    {
++        keys = vec![key];
++    }
      sort_keys(&mut keys, style.key_order);
 +    if grouped {
 +        for key in &mut keys {
@@ -89,9 +171,9 @@ index 7e670a37..021dcd21 100644
 +        }
 +    }
      let keys = keys.as_slice();
- 
+
      // A per-hint format overrides the global one; either overrides the theme
-@@ -2105,7 +2137,12 @@ fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintSt
+@@ -2105,7 +2166,12 @@
          // Real keys keep the modifier grouping the palette styling does;
          // a replacement is already a finished string.
          None if replacement.is_some() => parts.extend(style_key_text(&key_text, style.colors)),
@@ -103,12 +185,12 @@ index 7e670a37..021dcd21 100644
 +            grouped,
 +        )),
      }
- 
+
      // Description part, resolved the same way.
-@@ -2537,18 +2574,42 @@ fn render_hints_for_mode(
+@@ -2537,18 +2603,42 @@
          hints.sort_by_key(|hint| style.hint_order.rank(hint));
      }
- 
+
 +    let group_modifiers = style
 +        .config
 +        .get("group_modifiers")
@@ -155,11 +237,11 @@ index 7e670a37..021dcd21 100644
 +            parts: vec![],
          })
          .collect();
- 
-@@ -2562,15 +2623,54 @@ fn render_hints_for_mode(
+
+@@ -2562,15 +2652,54 @@
          .map(|indicator| format::render_template(indicator, &[], style.config, style.dim))
          .unwrap_or_default();
- 
+
 -    let gap = style.limit.and_then(|limit| {
 -        drop_to_fit(
 -            &mut pieces,
@@ -217,11 +299,11 @@ index 7e670a37..021dcd21 100644
 +            }
 +        }
 +    }
- 
+
      // The indicator stands in for the dropped run, spaced like a hint so it
      // reads as one.
-@@ -2603,23 +2703,89 @@ enum HintGroup {
- 
+@@ -2603,23 +2732,89 @@
+
  /// One rendered hint, kept separate so it can be dropped whole.
  struct HintPiece {
 +    hint_index: usize,
@@ -229,7 +311,7 @@ index 7e670a37..021dcd21 100644
      width: usize,
      group: HintGroup,
  }
- 
+
 +fn shared_modifiers(hint: &Hint, style: &HintStyle) -> Option<Vec<KeyModifier>> {
 +    if hint_override(CONFIG_KEYS_PREFIX, hint, style.mode, style.config).is_some() {
 +        return None;
@@ -301,8 +383,7 @@ index 7e670a37..021dcd21 100644
  fn visible_width(parts: &[ANSIString<'static>], wide_ambiguous: bool) -> usize {
      calculate_visible_length(&format!("{}", ANSIStrings(parts)), wide_ambiguous)
  }
--
-+
+
  /// Drop hints until the line fits, and report where the gap opened.
  ///
 -/// Hints go in a single contiguous run so one indicator can stand for all of
@@ -317,7 +398,7 @@ index 7e670a37..021dcd21 100644
  ///
  /// Returns the index the indicator belongs at, or `None` if nothing was
  /// dropped. A single hint wider than the whole limit survives and is cut by
-@@ -2630,6 +2796,7 @@ fn drop_to_fit(
+@@ -2630,6 +2825,7 @@
      limit: usize,
      indicator_width: usize,
      precedence: HintPrecedence,
@@ -325,15 +406,15 @@ index 7e670a37..021dcd21 100644
  ) -> Option<usize> {
      let width = |pieces: &Vec<HintPiece>, extra: usize| {
          let hints: usize = pieces.iter().map(|piece| piece.width).sum();
-@@ -2637,7 +2804,6 @@ fn drop_to_fit(
+@@ -2637,7 +2833,6 @@
          hints + extra + spacer_width * count.saturating_sub(1)
      };
- 
+
 -    let mut gap = None;
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -2645,7 +2811,7 @@ fn drop_to_fit(
+@@ -2645,7 +2840,7 @@
          if width(pieces, extra) <= limit {
              break;
          }
@@ -342,9 +423,8 @@ index 7e670a37..021dcd21 100644
              break;
          };
          pieces.remove(index);
-@@ -2656,38 +2822,16 @@ fn drop_to_fit(
--
-+
+@@ -2656,38 +2851,16 @@
+
  /// The hint to give up next, as an index into `pieces`.
  ///
 -/// Always the one adjacent to the gap, so what is dropped stays a single run.
@@ -389,10 +469,9 @@ index 7e670a37..021dcd21 100644
 +        HintPrecedence::Leading => first(HintGroup::Trailing).or_else(|| last(HintGroup::Leading)),
 +    })
  }
--
-+
+
  /// Discover every enabled keybinding the curated hints didn't already show, and
-@@ -2706,10 +2850,57 @@ fn add_discovered_hints(
+@@ -2706,10 +2879,57 @@
      used: &[KeyWithModifier],
      style: &HintStyle,
  ) {
@@ -450,11 +529,78 @@ index 7e670a37..021dcd21 100644
          // A binding's first action is often plumbing — a pipe to a plugin, a
          // rename input — with the part worth advertising coming after it. Judge
          // the binding by its first action that is worth a hint, so a key like
-@@ -3519,6 +3710,66 @@ mod tests {
+@@ -3170,6 +3390,67 @@
+     use super::*;
+     use std::collections::HashMap;
+
++    #[test]
++    fn tab_exit_preference_tracks_current_bindings_and_aliases() {
++        let keys = vec![
++            (key(BareKey::Esc), vec![TO_NORMAL]),
++            (key(BareKey::Enter), vec![TO_NORMAL]),
++            (ctrl('t'), vec![TO_NORMAL]),
++        ];
++        let config = [
++            ("label_tab_mode_normal", "normal"),
++            ("preferred_key_tab_normal", "Esc"),
++        ];
++        assert_eq!(rendered(InputMode::Tab, &keys, &config), "ESC normal");
++        let mut aliases = config.to_vec();
++        aliases.push(("key_alias_esc", "Cancel"));
++        assert_eq!(rendered(InputMode::Tab, &keys, &aliases), "Cancel normal");
++        let remapped = &keys[1..];
++        let fallback = rendered(InputMode::Tab, remapped, &config);
++        assert!(fallback.contains("ENTER"), "{fallback}");
++        assert!(!fallback.contains("ESC"), "{fallback}");
++        let pane = rendered(InputMode::Pane, &keys, &config);
++        assert!(pane.contains("ESC / ENTER"), "{pane}");
++    }
++
++    #[test]
++    fn key_boundaries_preserve_named_keys_and_configured_aliases() {
++        let mut config = label_config(&[("mod_alias_ctrl", "C"), ("mod_alias_alt", "A")]);
++        for (keys, expected) in [
++            (vec![key(BareKey::Esc), key(BareKey::Enter)], "ESC / ENTER"),
++            (
++                vec![key(BareKey::PageUp), key(BareKey::PageDown)],
++                "PgUp / PgDn",
++            ),
++            (
++                "hjkl".chars().map(|c| key(BareKey::Char(c))).collect(),
++                "hjkl",
++            ),
++        ] {
++            assert_eq!(compose_key_text(&keys, &config), expected);
++            let palette = style_key_with_modifier(&keys, &Styling::default(), &config, false);
++            assert!(ANSIStrings(&palette).to_string().contains(expected));
++        }
++        let chord = [key(BareKey::Char('t'))
++            .with_ctrl_modifier()
++            .with_alt_modifier()];
++        assert_eq!(compose_key_text(&chord, &config), "C-A t");
++        config.insert("mod_alias_ctrl".into(), "^".into());
++        config.insert("mod_alias_alt".into(), "⌥".into());
++        assert_eq!(compose_key_text(&chord, &config), "^⌥t");
++        config.insert("mod_alias_ctrl".into(), "".into());
++        config.insert("mod_alias_alt".into(), "".into());
++        assert_eq!(compose_key_text(&chord, &config), "t");
++        config.insert("chord_mods_custom".into(), "ctrl+alt".into());
++        config.insert("chord_alias_custom".into(), "CUSTOM".into());
++        assert_eq!(compose_key_text(&chord, &config), "CUSTOM t");
++        config.insert("key_alias_esc".into(), "Cancel".into());
++        assert_eq!(
++            compose_key_text(&[key(BareKey::Esc), key(BareKey::Enter)], &config),
++            "Cancel / ENTER"
++        );
++    }
++
+     /// Sort a string of characters as if they were the keys of one hint, so an
+     /// expected ordering can be written as a plain string literal.
+     fn sorted(chars: &str, order: KeyOrder) -> String {
+@@ -3519,6 +3800,66 @@
          assert_eq!(rendered(InputMode::Locked, &keymap, &[]), "");
      }
--
-+
+
 +    #[test]
 +    fn configured_pipe_hints_require_the_current_pipe_binding() {
 +        let keymap = vec![
@@ -518,11 +664,33 @@ index 7e670a37..021dcd21 100644
      /// Tab navigation as Zellij binds it by default: both families, both ways.
      fn tab_nav_keymap() -> Vec<(KeyWithModifier, Vec<Action>)> {
          vec![
-@@ -3729,6 +3980,172 @@ mod tests {
-         ]
+@@ -3622,8 +3963,11 @@
+             (key(BareKey::Enter), vec![TO_NORMAL]),
+             (key(BareKey::Esc), vec![TO_NORMAL]),
+         ];
+-        assert_eq!(rendered(InputMode::Pane, &keymap, &[]), "ESCENTER normal");
+-        assert_eq!(rendered(InputMode::Tab, &keymap, &[]), "ESCENTER normal");
++        assert_eq!(
++            rendered(InputMode::Pane, &keymap, &[]),
++            "ESC / ENTER normal"
++        );
++        assert_eq!(rendered(InputMode::Tab, &keymap, &[]), "ESC / ENTER normal");
      }
- 
-+    #[test]
+
+     #[test]
+@@ -3671,7 +4015,7 @@
+             (key(BareKey::Enter), vec![TO_NORMAL]),
+             (key(BareKey::Esc), vec![TO_NORMAL]),
+         ];
+-        assert_eq!(rendered(InputMode::Pane, &pane, config), "ESCENTER exit");
++        assert_eq!(rendered(InputMode::Pane, &pane, config), "ESC / ENTER exit");
+     }
+
+     /// A styled line of the shape the plugin actually emits: coloured segments
+@@ -3730,6 +4074,172 @@
+     }
+
+     #[test]
 +    fn numeric_keys_compact_only_when_the_displayed_run_is_contiguous() {
 +        let keys = ('1'..='9')
 +            .map(|digit| KeyWithModifier::new(BareKey::Char(digit)).with_alt_modifier())
@@ -688,6 +856,7 @@ index 7e670a37..021dcd21 100644
 +        }
 +    }
 +
-     #[test]
++    #[test]
      fn a_per_hint_format_overrides_the_global_one() {
          let keymap = four_hints();
+         let config = &[

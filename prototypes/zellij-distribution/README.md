@@ -23,14 +23,25 @@ default layout uses compact `C`, `C-A`, `A` and `A-S` headers with subdued red
 text on separate charcoal backgrounds. Red keys and muted gray descriptions
 share the plain background, with one-cell gaps between hints. Whole-hint
 fitting keeps core workspace and managed Nova actions ahead of secondary native
-hints. Labels include `sess.`, `mv tab` and `full`. Three groups share spare
+hints. Labels include `sess.`, `move` and `full`. Three groups share spare
 width through balanced gaps; four or more retain small separators.
 The row has a one-column leading inset. Consecutive numbered keys display as
-`1–9`, and the default layout omits the mode badge. Nova's two `Alt [` and
+`1–9`. Minor modes show a plain mode label and one direction-key family; Normal
+has no mode prefix. Tab mode uses HJKL, dim pipe separators and an Esc return
+hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints. Mode-scoped
+`hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
+`preferred_key_<mode>_<hint>` advertises one currently bound key; if that key
+is unavailable, the hint falls back to its actual bindings.
+Return controls survive before secondary hints as the row
+narrows. Named keys use separators (`ESC / ENTER`, `PgUp / PgDn`), and inline
+word-like modifiers use hyphens (`C-A`). Compact character runs, configured
+chord aliases and symbol aliases retain their existing presentation.
+Nova's two `Alt [` and
 `Alt ]` content bindings share one `[] layout` hint.
 
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
 standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
+The zjhints package runs its native renderer tests before installing the Wasm.
 The zjhints toolchain pins Fenix separately because it requires Rust 1.96;
 Nova Bar's older toolchain remains independent.
 The grouped-modifier patch can be dropped once upstream zjhints supplies the

@@ -443,6 +443,53 @@ keybinds clear-defaults=true {
             );
         }
     }
+    for width in [80, 120, 180, 200] {
+        c.terminal.resize("rendering:0", width, 40);
+        for (key, mode, exit) in [
+            ("C-p", "PANE", "Escape"),
+            ("C-n", "RESIZE", "Escape"),
+            ("C-M-t", "TAB", "Escape"),
+            ("C-M-s", "SCROLL", "Escape"),
+            ("C-M-o", "SESSION", "Escape"),
+            ("C-M-g", "LOCKED", "C-M-g"),
+        ] {
+            c.tmux(&["send-keys", "-t", "rendering:0", key]);
+            c.terminal.wait(
+                || {
+                    let screen = c.terminal.capture("rendering:0", false);
+                    let row = screen.lines().last().unwrap_or_default();
+                    row.starts_with(mode)
+                        && row.contains(match mode {
+                            "LOCKED" => "unlock",
+                            "TAB" => "ESC normal",
+                            _ => "back",
+                        })
+                        && (["LOCKED", "TAB"].contains(&mode) || row.contains("ESC / ENTER"))
+                        && (mode != "TAB"
+                            || (row.contains("hjkl focus")
+                                && row.contains(" | ")
+                                && ["new", "close", "toggle", "1–9", "ENTER", "←", "C-A t"]
+                                    .iter()
+                                    .all(|hint| !row.contains(hint))))
+                        && (mode != "PANE"
+                            || ["new", "close", "focus"]
+                                .iter()
+                                .all(|hint| row.contains(hint)))
+                },
+                &format!("minor-mode hints missing: {mode} at {width} columns"),
+                "rendering:0",
+            );
+            c.tmux(&["send-keys", "-t", "rendering:0", exit]);
+            c.terminal.wait(
+                || {
+                    let screen = c.terminal.capture("rendering:0", false);
+                    screen.lines().last().unwrap_or_default().contains("p pane")
+                },
+                "displayed exit did not restore Normal hints",
+                "rendering:0",
+            );
+        }
+    }
     c.terminal
         .run(&c.terminal.binary, &["kill-session", &render_session], None);
     c.tmux(&["kill-session", "-t", "rendering"]);
