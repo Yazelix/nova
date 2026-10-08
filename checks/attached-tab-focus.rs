@@ -22,7 +22,9 @@ fn highlighted(row: &str, rgb: &str) -> Vec<usize> {
             segment
         };
         if active {
-            selected.extend((1..=2).filter(|index| text.contains(&format!("[{index}]"))));
+            selected.extend((1..=2).filter(|index| {
+                text.contains(&format!("[{index} ")) || text.contains(&format!("[{index}]"))
+            }));
         }
     }
     selected
@@ -45,9 +47,9 @@ fn selected(terminal: &Terminal, window: usize, rgb: &str) -> Vec<usize> {
 fn wait_tabs(terminal: &Terminal, window: usize) {
     terminal.wait(
         || {
-            let text = pane_text(terminal, window, true);
+            let text = pane_text(terminal, window, false);
             let top = text.lines().next().unwrap_or_default();
-            top.contains("[1]") && top.contains("[2]")
+            top.contains("[1") && top.contains("[2")
         },
         "client never showed both tabs",
         &format!("clients:{window}"),
@@ -83,9 +85,9 @@ fn main() {
         .lines()
         .find(|line| line.trim_start().starts_with("tab_active "))
         .unwrap();
-    let hex = &active.split_once("bg=#").unwrap().1[..6];
+    let hex = &active.split_once("fg=#").unwrap().1[..6];
     let rgb = format!(
-        "48;2;{}",
+        "38;2;{}",
         (0..6)
             .step_by(2)
             .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap().to_string())
@@ -150,11 +152,14 @@ fn main() {
 mod tests {
     use super::*;
     #[test]
-    fn tab_highlights_follow_background_colour_and_reset() {
-        let rgb = "48;2;17;34;51";
-        assert_eq!(highlighted("\x1b[48;2;17;34;51m[1]\x1b[0m [2]", rgb), [1]);
-        assert_eq!(highlighted("[1] \x1b[1;48;2;17;34;51m[2]", rgb), [2]);
-        assert!(highlighted("\x1b[38;2;17;34;51m[1] [2]", rgb).is_empty());
+    fn tab_highlights_follow_foreground_colour_and_reset() {
+        let rgb = "38;2;17;34;51";
+        assert_eq!(
+            highlighted("\x1b[38;2;17;34;51m[1 one]\x1b[0m 2 two", rgb),
+            [1]
+        );
+        assert_eq!(highlighted("1 one \x1b[1;38;2;17;34;51m[2 two]", rgb), [2]);
+        assert!(highlighted("\x1b[48;2;17;34;51m[1 one] 2 two", rgb).is_empty());
     }
 
     #[cfg(target_os = "linux")]

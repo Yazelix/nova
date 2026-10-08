@@ -70,7 +70,7 @@ pub(crate) fn config_home() -> Result<PathBuf, AppError> {
 pub(crate) fn home_dir() -> Result<PathBuf, AppError> {
     nonempty_env("HOME")
         .map(PathBuf::from)
-        .ok_or_else(|| startup("HOME is required to scope home-marker new tabs.", "", 1))
+        .ok_or_else(|| startup("HOME is required to scope new tabs.", "", 1))
 }
 
 pub(crate) fn state_dir() -> PathBuf {

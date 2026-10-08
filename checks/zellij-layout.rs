@@ -1,7 +1,5 @@
 use std::{collections::BTreeSet, env, fs, process::ExitCode};
 
-const HOME_TAB_MARKER: &str = "\u{f015}";
-
 fn main() -> ExitCode {
     let args = env::args().collect::<Vec<_>>();
     let [_, layout_path, swap_path] = args.as_slice() else {
@@ -14,7 +12,6 @@ fn main() -> ExitCode {
         .lines()
         .filter_map(tab_template)
         .collect::<BTreeSet<_>>();
-    let home_tab = format!("tab name=\"{HOME_TAB_MARKER}\"");
     let mut ok = true;
     for (block, needle, message) in [
         (
@@ -33,7 +30,7 @@ fn main() -> ExitCode {
             "missing Radar sidebar in new tab template",
         ),
         (
-            &home_tab,
+            "tab {",
             "pane name=\"yazi_picker\" command=",
             "missing tiled Yazi picker in startup tab",
         ),
@@ -80,18 +77,11 @@ fn main() -> ExitCode {
         );
         ok = false;
     }
-    if !layout.lines().any(|line| {
-        line.trim()
-            .starts_with(&format!(r#"tab name="{HOME_TAB_MARKER}""#))
-    }) {
-        eprintln!("{layout_path}: startup tab must use the Yazelix home tab marker");
-        ok = false;
-    }
     if !layout
         .lines()
         .any(|line| line.trim() == r#"new_tab_template cwd="$HOME" {"#)
     {
-        eprintln!("{layout_path}: new tabs must open in home to match the home marker");
+        eprintln!("{layout_path}: new tabs must open in the user's home directory");
         ok = false;
     }
     if !bar_layout_is_valid(&layout) {

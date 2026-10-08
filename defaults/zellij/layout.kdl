@@ -45,7 +45,7 @@ layout {
         bottom_hints name="@bottomHintsStartTitle@" size=1
     }
 
-    tab name="" {
+    tab {
         pane name="yazi_picker" command="@yazi@" focus=true close_on_exit=true {
             args "--yzx-startup-picker"
         }

@@ -59,6 +59,10 @@ To try the split work area, open a second work pane with `Alt m`, then press
 Radar sidebar stays open or collapsed as you left it. The command palette's
 `layout` entry remains available with `Alt Shift M`.
 
+Active tabs use bold orange `[index name]` labels on the terminal background;
+inactive tabs use muted gray. Initial picker tabs use their directory basename,
+including `lucca` for `/home/lucca/`, without a special home icon or label.
+
 `Alt Shift B` or **Toggle bottom hints** in the command palette hides or restores
 bottom hint rows throughout the current session. Hiding them frees one row for
 work panes; sidebar and layout switches retain the choice. New tabs inherit it,
@@ -145,10 +149,10 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **30,951 code/configuration lines** and **5,976 documentation/text
+Yazelix owns **30,946 code/configuration lines** and **5,984 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets. The native pane-order correction
-and stronger interaction check account for the 61-line code/configuration growth.
+excludes Beads, lockfiles, and binary assets. These appearance changes remove
+five code/configuration lines and add eight documentation lines.
 The shared package-root owner, managed-tool bindings, watcher ownership and
 relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,

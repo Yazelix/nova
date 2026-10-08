@@ -4,8 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
-- New Nova Rio configs use `window.opacity = 0.6` and
+- New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.
+
+- Active tabs use bold orange `[index name]` labels without a background fill;
+  ordinary inactive tabs use muted gray. Startup picker tabs use their directory
+  name, including `lucca` for `/home/lucca/`, with no special home icon or alias.
 
 - Managed Yazi waits for valid pane dimensions before starting, preventing a
   cold Zellij PTY from making the startup picker exit immediately.

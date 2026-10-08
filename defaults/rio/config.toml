@@ -17,7 +17,7 @@ trail-cursor = true
 width = 960
 height = 620
 decorations = "disabled"
-opacity = 0.6
+opacity = 0.70
 blur = true
 opacity-cells = true
 

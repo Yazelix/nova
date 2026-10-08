@@ -178,7 +178,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         recorder.on_exit(cleanup);
     }
 
-    let home = recorder.work().join("home");
+    let home = recorder.work().join("account");
     let picker_dir = recorder.work().join("picker");
     let nested_dir = picker_dir.join("nested");
     let quick_dir = recorder.work().join("quick-target");
@@ -205,7 +205,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         recorder,
         zellij,
         sessions[0],
-        r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
+        r#"any(.[]; .title == "yazi_picker" and .is_focused and .tab_name == "picker")"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "target.txt")?;
     wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
@@ -256,7 +256,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         recorder,
         zellij,
         sessions[0],
-        r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .tab_position == 1 and .title == "yazi_picker" and .is_focused)"#,
+        r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .tab_position == 1 and .title == "yazi_picker" and .is_focused and .tab_name == "picker")"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
     write_chars(zellij, sessions[0], "quick-target")?;
@@ -335,12 +335,12 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         .status()?;
     recorder.stop_app()?;
 
-    launch(recorder, yzx, sessions[1], &picker_dir, &home)?;
+    launch(recorder, yzx, sessions[1], &home, &home)?;
     wait_for_panes(
         recorder,
         zellij,
         sessions[1],
-        r#"any(.[]; .title == "yazi_picker" and .is_focused)"#,
+        r#"any(.[]; .title == "yazi_picker" and .is_focused and .tab_name == "account")"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[1], "Enter Go here")?;
     recorder.key("Escape", Duration::from_millis(100))?;
