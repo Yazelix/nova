@@ -35,7 +35,12 @@ Resize uses `hjkl grow`, `HJKL shrink` and `ESC normal` with the same pipes,
 omitting generic resize hints while preserving their bindings.
 Scroll uses `jk scroll`, `hl page`, search, scrollback editing and Esc with
 the same pipes, omitting duplicate and secondary hints; all bindings remain.
+Search shows next/previous matches, letter-based scrolling and separate
+case/whole-word/wrap controls; option hints yield to navigation and exit on
+narrow rows. Search Input shows Enter search and Esc cancel back to Scroll.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
+Compound modes use `enter_search`, `rename_tab` and `rename_pane` consistently
+for prefixes and hint settings.
 `preferred_key_<mode>_<hint>` advertises a bound key or comma-separated group;
 all requested keys must be available, otherwise the actual bindings are shown.
 Single-key parsing takes priority, preserving literal comma keys and aliases.

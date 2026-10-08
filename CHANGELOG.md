@@ -16,6 +16,9 @@ User-visible runtime changes for Yazelix Nova live here.
   Scroll mode shows line/page navigation, search, scrollback editing and Esc
   with the same separators; duplicate and secondary hints are omitted.
   Every minor-mode label has a one-column left inset from the window edge.
+  Search separates match navigation, scrolling and case/word/wrap options.
+  Search Input shows Enter to search and Esc to cancel back to Scroll.
+  Compound-mode hint settings use the same names as their mode prefixes.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.

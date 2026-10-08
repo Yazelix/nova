@@ -1,7 +1,17 @@
 diff --git a/src/main.rs b/src/main.rs
 --- a/src/main.rs
 +++ b/src/main.rs
-@@ -745,9 +745,8 @@
+@@ -6,8 +6,7 @@
+ use std::borrow::Cow;
+ use std::collections::{BTreeMap, BTreeSet};
+ use unicode_width::UnicodeWidthChar;
+-use zellij_tile::prelude::actions::Action;
+-use zellij_tile::prelude::actions::SearchDirection;
++use zellij_tile::prelude::actions::{Action, SearchDirection, SearchOption};
+ use zellij_tile::prelude::*;
+ use zellij_tile_utils::palette_match;
+
+@@ -745,9 +744,8 @@
 
  /// A dimmed copy of `colors`. Only the `Styling` groups this plugin's own
  /// rendering actually reads are touched, so dimming the rest would be dead
@@ -13,7 +23,7 @@ diff --git a/src/main.rs b/src/main.rs
  fn dim_styling(colors: &Styling, strength: f32) -> Styling {
      Styling {
          ribbon_unselected: dim_style_declaration(&colors.ribbon_unselected, strength),
-@@ -785,7 +784,7 @@
+@@ -785,7 +783,7 @@
          keys: mode_info.nested_ascend_keys.clone(),
      };
      let mut parts = vec![];
@@ -22,7 +32,16 @@ diff --git a/src/main.rs b/src/main.rs
      ANSIStrings(&parts).to_string()
  }
 
-@@ -949,9 +948,17 @@
+@@ -914,7 +912,7 @@
+         } else {
+             vec![]
+         };
+-        let mode_key = format!("{:?}", mode_info.mode).to_lowercase();
++        let mode_key = mode_config_suffix(mode_info.mode);
+         let limit = self.length_limit();
+         let dimmed_colors;
+         let colors: &Styling = if dim > 0.0 {
+@@ -949,11 +947,19 @@
              dim,
              key_format: self.key_format.as_deref(),
              desc_format: self.desc_format.as_deref(),
@@ -40,9 +59,30 @@ diff --git a/src/main.rs b/src/main.rs
 +                .map(|value| DirectionKeys::from_config(value))
 +                .unwrap_or(self.direction_keys),
              key_order: self.key_order,
-             mode: &mode_key,
+-            mode: &mode_key,
++            mode: mode_key,
              hint_order: &self.hint_order,
-@@ -1540,6 +1547,24 @@
+             limit: limit.map(|limit| {
+                 limit
+@@ -1289,7 +1295,7 @@
+                 } else {
+                     &mode_info.style.colors
+                 };
+-                let mode_key = format!("{:?}", mode_info.mode).to_lowercase();
++                let mode_key = mode_config_suffix(mode_info.mode);
+                 let hint_order = HintOrder::default();
+                 let indicator_style = HintStyle {
+                     colors,
+@@ -1302,7 +1308,7 @@
+                     // A sequence ("press Ctrl o, then ]"), not the alternative
+                     // keys sort_keys reorders for a normal hint.
+                     key_order: KeyOrder::Unsorted,
+-                    mode: &mode_key,
++                    mode: mode_key,
+                     hint_order: &hint_order,
+                     limit: None,
+                     wide_ambiguous: self.wide_ambiguous,
+@@ -1540,6 +1546,24 @@
              });
          }
      }
@@ -67,7 +107,7 @@ diff --git a/src/main.rs b/src/main.rs
      groups
  }
 
-@@ -1568,10 +1593,18 @@
+@@ -1568,10 +1592,18 @@
          return String::new();
      }
      let joined = chord_alias(modifiers, config).unwrap_or_else(|| {
@@ -88,7 +128,7 @@ diff --git a/src/main.rs b/src/main.rs
      });
      if joined
          .chars()
-@@ -1682,6 +1715,7 @@
+@@ -1682,6 +1714,7 @@
      key_bindings: &[KeyWithModifier],
      palette: &Styling,
      config: &BTreeMap<String, String>,
@@ -96,7 +136,7 @@ diff --git a/src/main.rs b/src/main.rs
  ) -> Vec<ANSIString<'static>> {
      if key_bindings.is_empty() {
          return vec![];
-@@ -1691,7 +1725,11 @@
+@@ -1691,7 +1724,11 @@
      let contrasting_fg = palette_match!(palette.ribbon_unselected.base);
      let ribbon = || Style::new().fg(contrasting_fg).on(saturated_bg);
 
@@ -109,7 +149,7 @@ diff --git a/src/main.rs b/src/main.rs
 
      for (group_idx, group) in group_keys(key_bindings, config).iter().enumerate() {
          if group_idx > 0 {
-@@ -1703,9 +1741,7 @@
+@@ -1703,9 +1740,7 @@
              styled_parts.push(ribbon().bold().paint(prefix));
          }
 
@@ -120,7 +160,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      styled_parts.push(ribbon().paint(" "));
-@@ -1731,6 +1767,14 @@
+@@ -1731,6 +1766,14 @@
      ]
  }
 
@@ -135,7 +175,7 @@ diff --git a/src/main.rs b/src/main.rs
  /// Compose the plain-text representation of a key binding as it appears in a
  /// hint, e.g. `^p`, `h|j|k|l`, or `←↓↑→`. This is the value substituted for the
  /// `{key}` placeholder when a custom `key_format` is configured; the styling
-@@ -1743,7 +1787,7 @@
+@@ -1743,7 +1786,7 @@
              format!(
                  "{}{}",
                  group_prefix(&group.modifiers, config),
@@ -144,7 +184,7 @@ diff --git a/src/main.rs b/src/main.rs
              )
          })
          .collect::<Vec<_>>()
-@@ -2069,10 +2113,33 @@
+@@ -2069,10 +2112,33 @@
  }
 
  /// Render a hint's styled segments, without tracking consumed keys.
@@ -179,7 +219,7 @@ diff --git a/src/main.rs b/src/main.rs
      let keys = keys.as_slice();
 
      // A per-hint format overrides the global one; either overrides the theme
-@@ -2105,7 +2172,12 @@
+@@ -2105,7 +2171,12 @@
          // Real keys keep the modifier grouping the palette styling does;
          // a replacement is already a finished string.
          None if replacement.is_some() => parts.extend(style_key_text(&key_text, style.colors)),
@@ -193,7 +233,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      // Description part, resolved the same way.
-@@ -2537,18 +2609,42 @@
+@@ -2537,18 +2608,42 @@
          hints.sort_by_key(|hint| style.hint_order.rank(hint));
      }
 
@@ -244,7 +284,7 @@ diff --git a/src/main.rs b/src/main.rs
          })
          .collect();
 
-@@ -2562,15 +2658,54 @@
+@@ -2562,15 +2657,54 @@
          .map(|indicator| format::render_template(indicator, &[], style.config, style.dim))
          .unwrap_or_default();
 
@@ -308,7 +348,7 @@ diff --git a/src/main.rs b/src/main.rs
 
      // The indicator stands in for the dropped run, spaced like a hint so it
      // reads as one.
-@@ -2603,23 +2738,89 @@
+@@ -2603,23 +2737,89 @@
 
  /// One rendered hint, kept separate so it can be dropped whole.
  struct HintPiece {
@@ -404,7 +444,7 @@ diff --git a/src/main.rs b/src/main.rs
  ///
  /// Returns the index the indicator belongs at, or `None` if nothing was
  /// dropped. A single hint wider than the whole limit survives and is cut by
-@@ -2630,6 +2831,7 @@
+@@ -2630,6 +2830,7 @@
      limit: usize,
      indicator_width: usize,
      precedence: HintPrecedence,
@@ -412,7 +452,7 @@ diff --git a/src/main.rs b/src/main.rs
  ) -> Option<usize> {
      let width = |pieces: &Vec<HintPiece>, extra: usize| {
          let hints: usize = pieces.iter().map(|piece| piece.width).sum();
-@@ -2637,7 +2839,6 @@
+@@ -2637,7 +2838,6 @@
          hints + extra + spacer_width * count.saturating_sub(1)
      };
 
@@ -420,7 +460,7 @@ diff --git a/src/main.rs b/src/main.rs
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -2645,7 +2846,7 @@
+@@ -2645,7 +2845,7 @@
          if width(pieces, extra) <= limit {
              break;
          }
@@ -429,7 +469,7 @@ diff --git a/src/main.rs b/src/main.rs
              break;
          };
          pieces.remove(index);
-@@ -2656,38 +2857,16 @@
+@@ -2656,38 +2856,16 @@
 
  /// The hint to give up next, as an index into `pieces`.
  ///
@@ -477,7 +517,7 @@ diff --git a/src/main.rs b/src/main.rs
  }
 
  /// Discover every enabled keybinding the curated hints didn't already show, and
-@@ -2706,10 +2885,57 @@
+@@ -2706,10 +2884,57 @@
      used: &[KeyWithModifier],
      style: &HintStyle,
  ) {
@@ -535,10 +575,57 @@ diff --git a/src/main.rs b/src/main.rs
          // A binding's first action is often plumbing — a pipe to a plugin, a
          // rename input — with the part worth advertising coming after it. Judge
          // the binding by its first action that is worth a hint, so a key like
-@@ -3170,6 +3396,117 @@
+@@ -3114,7 +3339,11 @@
+         Action::Search {
+             direction: SearchDirection::Up,
+         } => ("search_up", "up"),
+-        Action::SearchToggleOption { option: _ } => ("search_toggle", "toggle"),
++        Action::SearchToggleOption { option } => match option {
++            SearchOption::CaseSensitivity => ("search_case", "case"),
++            SearchOption::WholeWord => ("search_word", "word"),
++            SearchOption::Wrap => ("search_wrap", "wrap"),
++        },
+
+         // Misc
+         Action::Copy => ("copy", "copy"),
+@@ -3170,6 +3399,151 @@
      use super::*;
      use std::collections::HashMap;
 
++    #[test]
++    fn search_options_keep_distinct_meanings_after_remapping() {
++        for bindings in [
++            [
++                ('c', SearchOption::CaseSensitivity, "case"),
++                ('o', SearchOption::WholeWord, "word"),
++                ('w', SearchOption::Wrap, "wrap"),
++            ],
++            [
++                ('x', SearchOption::Wrap, "wrap"),
++                ('y', SearchOption::CaseSensitivity, "case"),
++                ('z', SearchOption::WholeWord, "word"),
++            ],
++        ] {
++            let keys = bindings
++                .iter()
++                .map(|(ch, option, _)| {
++                    (
++                        key(BareKey::Char(*ch)),
++                        vec![Action::SearchToggleOption {
++                            option: option.clone(),
++                        }],
++                    )
++                })
++                .collect::<Vec<_>>();
++            let expected = bindings
++                .iter()
++                .map(|(ch, _, label)| format!("{ch} {label}"))
++                .collect::<Vec<_>>()
++                .join("|");
++            assert_eq!(rendered(InputMode::Search, &keys, &[]), expected);
++        }
++    }
++
 +    #[test]
 +    fn tab_exit_preference_tracks_current_bindings_and_aliases() {
 +        let keys = vec![
@@ -653,7 +740,25 @@ diff --git a/src/main.rs b/src/main.rs
      /// Sort a string of characters as if they were the keys of one hint, so an
      /// expected ordering can be written as a plain string literal.
      fn sorted(chars: &str, order: KeyOrder) -> String {
-@@ -3519,6 +3856,66 @@
+@@ -3420,7 +3794,7 @@
+         let colors = Styling::default();
+         let config = label_config(config);
+         let hint_order = HintOrder::from_config(config.get("hint_order").map_or("", |v| v));
+-        let mode_key = format!("{:?}", mode).to_lowercase();
++        let mode_key = mode_config_suffix(mode);
+         let style = HintStyle {
+             colors: &colors,
+             dim: config
+@@ -3445,7 +3819,7 @@
+                 config.get("direction_keys").map_or("both", |v| v),
+             ),
+             key_order: KeyOrder::default(),
+-            mode: &mode_key,
++            mode: mode_key,
+             hint_order: &hint_order,
+             limit: config.get("limit").and_then(|v| v.parse::<usize>().ok()),
+             drop_indicator: config.get("drop_indicator").map(|v| v.as_str()),
+@@ -3519,6 +3893,66 @@
          assert_eq!(rendered(InputMode::Locked, &keymap, &[]), "");
      }
 
@@ -720,7 +825,7 @@ diff --git a/src/main.rs b/src/main.rs
      /// Tab navigation as Zellij binds it by default: both families, both ways.
      fn tab_nav_keymap() -> Vec<(KeyWithModifier, Vec<Action>)> {
          vec![
-@@ -3622,8 +4019,11 @@
+@@ -3622,8 +4056,11 @@
              (key(BareKey::Enter), vec![TO_NORMAL]),
              (key(BareKey::Esc), vec![TO_NORMAL]),
          ];
@@ -734,7 +839,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      #[test]
-@@ -3671,7 +4071,7 @@
+@@ -3671,7 +4108,7 @@
              (key(BareKey::Enter), vec![TO_NORMAL]),
              (key(BareKey::Esc), vec![TO_NORMAL]),
          ];
@@ -743,7 +848,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      /// A styled line of the shape the plugin actually emits: coloured segments
-@@ -3729,6 +4129,172 @@
+@@ -3729,6 +4166,172 @@
          ]
      }
 
@@ -916,3 +1021,67 @@ diff --git a/src/main.rs b/src/main.rs
      #[test]
      fn a_per_hint_format_overrides_the_global_one() {
          let keymap = four_hints();
+@@ -4658,11 +5261,58 @@
+     }
+
+     #[test]
+-    fn mode_config_suffix_matches_zjstatus_naming() {
+-        assert_eq!(mode_config_suffix(InputMode::Normal), "normal");
+-        assert_eq!(mode_config_suffix(InputMode::EnterSearch), "enter_search");
+-        assert_eq!(mode_config_suffix(InputMode::RenameTab), "rename_tab");
+-        assert_eq!(mode_config_suffix(InputMode::RenamePane), "rename_pane");
++    fn enter_search_settings_share_the_mode_prefix_scope() {
++        let config = label_config(&[
++            ("mode_format_enter_search", "INPUT | "),
++            ("hint_spacer_enter_search", " | "),
++            ("label_enter_search_mode_scroll", "cancel"),
++            ("preferred_key_enter_search_cancel", "Esc"),
++        ]);
++        let mode_info = ModeInfo {
++            mode: InputMode::EnterSearch,
++            keybinds: vec![(
++                InputMode::EnterSearch,
++                vec![
++                    (
++                        key(BareKey::Esc),
++                        vec![Action::SwitchToMode {
++                            input_mode: InputMode::Scroll,
++                        }],
++                    ),
++                    (
++                        ctrl('c'),
++                        vec![Action::SwitchToMode {
++                            input_mode: InputMode::Scroll,
++                        }],
++                    ),
++                    (
++                        key(BareKey::Enter),
++                        vec![Action::SwitchToMode {
++                            input_mode: InputMode::Search,
++                        }],
++                    ),
++                ],
++            )],
++            ..Default::default()
++        };
++        let state = State {
++            show_mode: true,
++            discover_hints: true,
++            key_format: Some("{key} ".into()),
++            desc_format: Some("{desc}".into()),
++            hint_order: HintOrder::from_config("*, cancel"),
++            config,
++            ..Default::default()
++        };
++        let output = state.render_hint_line(&mode_info, 0.0);
++        let mut parser = AnsiParser::new(&output);
++        let mut plain = String::new();
++        while let Some(segment) = parser.next_segment() {
++            if let AnsiSegment::VisibleChar(ch) = segment {
++                plain.push(ch);
++            }
++        }
++        assert_eq!(plain, "INPUT | ENTER search | ESC cancel");
+     }
+
+     /// The pane a nested session runs in throughout these tests.

@@ -519,6 +519,49 @@ keybinds clear-defaults=true {
                 "rendering:0",
             );
         }
+        c.tmux(&["send-keys", "-t", "rendering:0", "C-M-s"]);
+        for (key, expected) in [
+            ("s", " SEARCH INPUT | ENTER search | ESC cancel"),
+            (
+                "Escape",
+                " SCROLL | jk scroll | hl page | s search | e edit | ESC normal",
+            ),
+            ("s", " SEARCH INPUT | ENTER search | ESC cancel"),
+        ] {
+            c.tmux(&["send-keys", "-t", "rendering:0", key]);
+            c.terminal.wait(
+                || {
+                    let screen = c.terminal.capture("rendering:0", false);
+                    screen.lines().last().unwrap_or_default().trim_end() == expected
+                },
+                "search input or advertised cancel target missing",
+                "rendering:0",
+            );
+        }
+        c.tmux(&["send-keys", "-t", "rendering:0", "WORK", "Enter"]);
+        c.terminal.wait(
+            || {
+                let screen = c.terminal.capture("rendering:0", false);
+                let row = screen.lines().last().unwrap_or_default().trim_end();
+                row.starts_with(" SEARCH | n next | p prev | jk scroll | hl page | ")
+                    && row.ends_with("ESC normal")
+                    && (width < 120
+                        || ["c case", "o word", "w wrap"]
+                            .iter()
+                            .all(|hint| row.contains(hint)))
+            },
+            "search match navigation, options or exit missing",
+            "rendering:0",
+        );
+        c.tmux(&["send-keys", "-t", "rendering:0", "n", "p", "Escape"]);
+        c.terminal.wait(
+            || {
+                let screen = c.terminal.capture("rendering:0", false);
+                screen.lines().last().unwrap_or_default().contains("p pane")
+            },
+            "Search exit did not restore Normal hints",
+            "rendering:0",
+        );
     }
     c.terminal
         .run(&c.terminal.binary, &["kill-session", &render_session], None);
