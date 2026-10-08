@@ -6,20 +6,22 @@ layout {
     pane_template name="bottom_hints" borderless=true {
         plugin location="nova_hints" {
             show_mode true
-            mode_format "#[fg=#ef7a73,bold]{mode}  "
+            mode_format " #[fg=#ef7a73,bold]{mode}  "
             mode_format_normal ""
-            mode_format_tab "#[fg=#ef7a73,bold]TAB #[fg=#555b66]| "
-            mode_format_pane "#[fg=#ef7a73,bold]PANE #[fg=#555b66]| "
-            mode_format_resize "#[fg=#ef7a73,bold]RESIZE #[fg=#555b66]| "
-            mode_format_enter_search "#[fg=#ef7a73,bold]SEARCH INPUT  "
-            mode_format_rename_tab "#[fg=#ef7a73,bold]RENAME TAB  "
-            mode_format_rename_pane "#[fg=#ef7a73,bold]RENAME PANE  "
+            mode_format_tab " #[fg=#ef7a73,bold]TAB #[fg=#555b66]| "
+            mode_format_pane " #[fg=#ef7a73,bold]PANE #[fg=#555b66]| "
+            mode_format_resize " #[fg=#ef7a73,bold]RESIZE #[fg=#555b66]| "
+            mode_format_scroll " #[fg=#ef7a73,bold]SCROLL #[fg=#555b66]| "
+            mode_format_enter_search " #[fg=#ef7a73,bold]SEARCH INPUT  "
+            mode_format_rename_tab " #[fg=#ef7a73,bold]RENAME TAB  "
+            mode_format_rename_pane " #[fg=#ef7a73,bold]RENAME PANE  "
             collapse_when_empty false
             group_modifiers true
             direction_keys "arrows"
             direction_keys_tab "letters"
             direction_keys_pane "letters"
             direction_keys_resize "letters"
+            direction_keys_scroll "letters"
             mod_alias_ctrl "C"
             mod_alias_alt "A"
             mod_alias_shift "S"
@@ -42,6 +44,12 @@ layout {
             label_pane_focus_last_pane ""
             label_pane_toggle_focus_no_ui_fullscreen ""
             label_scroll_scroll "scroll"
+            label_scroll_half_page ""
+            label_scroll_bottom ""
+            label_scroll_scroll_to_previous_prompt ""
+            label_scroll_scroll_to_next_prompt ""
+            label_scroll_select_command_at_scroll_position ""
+            label_scroll_copy_last_command_output ""
             label_search_scroll "scroll"
             label_tab_mode_normal "normal"
             preferred_key_tab_normal "Esc"
@@ -55,6 +63,9 @@ layout {
             label_resize_decrease "shrink"
             label_resize_mode_normal "normal"
             preferred_key_resize_normal "Esc"
+            label_scroll_mode_normal "normal"
+            preferred_key_scroll_normal "Esc"
+            preferred_key_scroll_page "h,l"
             hint_order "focus, =new, =close, search_down, search_up, =scroll, page, half_page, detach, manager, mode_pane, mode_resize, mode_tab, mode_scroll, sess., =move, mode_locked, content_layout, go_to_tab, new_pane, menu, full, hints, sidebar, git, config, agent, *, back, normal"
             hint_precedence "tl"
             color_key "#ef7a73"
@@ -64,6 +75,7 @@ layout {
             hint_spacer_tab "#[fg=#555b66] | "
             hint_spacer_pane "#[fg=#555b66] | "
             hint_spacer_resize "#[fg=#555b66] | "
+            hint_spacer_scroll "#[fg=#555b66] | "
         }
     }
 

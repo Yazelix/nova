@@ -457,17 +457,23 @@ keybinds clear-defaults=true {
             c.terminal.wait(
                 || {
                     let screen = c.terminal.capture("rendering:0", false);
-                    let row = screen.lines().last().unwrap_or_default();
+                    let raw = screen.lines().last().unwrap_or_default();
+                    let Some(row) = raw.strip_prefix(' ') else {
+                        return false;
+                    };
                     row.starts_with(mode)
                         && row.contains(match mode {
                             "LOCKED" => "unlock",
-                            "TAB" | "PANE" | "RESIZE" => "ESC normal",
+                            "TAB" | "PANE" | "RESIZE" | "SCROLL" => "ESC normal",
                             _ => "back",
                         })
-                        && (["LOCKED", "TAB", "PANE", "RESIZE"].contains(&mode)
+                        && (["LOCKED", "TAB", "PANE", "RESIZE", "SCROLL"].contains(&mode)
                             || row.contains("ESC / ENTER"))
                         && (mode != "RESIZE"
                             || row.trim_end() == "RESIZE | hjkl grow | HJKL shrink | ESC normal")
+                        && (mode != "SCROLL"
+                            || row.trim_end()
+                                == "SCROLL | jk scroll | hl page | s search | e edit | ESC normal")
                         && (mode != "TAB"
                             || (row.contains("hjkl focus")
                                 && row.contains(" | ")

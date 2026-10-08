@@ -144,7 +144,7 @@ diff --git a/src/main.rs b/src/main.rs
              )
          })
          .collect::<Vec<_>>()
-@@ -2069,10 +2113,27 @@
+@@ -2069,10 +2113,33 @@
  }
 
  /// Render a hint's styled segments, without tracking consumed keys.
@@ -157,12 +157,18 @@ diff --git a/src/main.rs b/src/main.rs
 +) {
      // Optionally collapse hjkl/arrow duplicates down to a single family.
      let mut keys = filter_direction_keys(&hint.keys, style.direction_keys);
-+    if let Some(key) = hint_override("preferred_key_", hint, style.mode, style.config)
++    if let Some(preferred) = hint_override("preferred_key_", hint, style.mode, style.config)
 +        .flatten()
-+        .and_then(|value| value.parse::<KeyWithModifier>().ok())
-+        .filter(|key| keys.contains(key))
++        .and_then(|value| {
++            value
++                .parse::<KeyWithModifier>()
++                .map(|key| vec![key])
++                .or_else(|_| value.split(',').map(|key| key.trim().parse()).collect())
++                .ok()
++        })
++        .filter(|preferred| preferred.iter().all(|key| keys.contains(key)))
 +    {
-+        keys = vec![key];
++        keys.retain(|key| preferred.contains(key));
 +    }
      sort_keys(&mut keys, style.key_order);
 +    if grouped {
@@ -173,7 +179,7 @@ diff --git a/src/main.rs b/src/main.rs
      let keys = keys.as_slice();
 
      // A per-hint format overrides the global one; either overrides the theme
-@@ -2105,7 +2166,12 @@
+@@ -2105,7 +2172,12 @@
          // Real keys keep the modifier grouping the palette styling does;
          // a replacement is already a finished string.
          None if replacement.is_some() => parts.extend(style_key_text(&key_text, style.colors)),
@@ -187,7 +193,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      // Description part, resolved the same way.
-@@ -2537,18 +2603,42 @@
+@@ -2537,18 +2609,42 @@
          hints.sort_by_key(|hint| style.hint_order.rank(hint));
      }
 
@@ -238,7 +244,7 @@ diff --git a/src/main.rs b/src/main.rs
          })
          .collect();
 
-@@ -2562,15 +2652,54 @@
+@@ -2562,15 +2658,54 @@
          .map(|indicator| format::render_template(indicator, &[], style.config, style.dim))
          .unwrap_or_default();
 
@@ -302,7 +308,7 @@ diff --git a/src/main.rs b/src/main.rs
 
      // The indicator stands in for the dropped run, spaced like a hint so it
      // reads as one.
-@@ -2603,23 +2732,89 @@
+@@ -2603,23 +2738,89 @@
 
  /// One rendered hint, kept separate so it can be dropped whole.
  struct HintPiece {
@@ -398,7 +404,7 @@ diff --git a/src/main.rs b/src/main.rs
  ///
  /// Returns the index the indicator belongs at, or `None` if nothing was
  /// dropped. A single hint wider than the whole limit survives and is cut by
-@@ -2630,6 +2825,7 @@
+@@ -2630,6 +2831,7 @@
      limit: usize,
      indicator_width: usize,
      precedence: HintPrecedence,
@@ -406,7 +412,7 @@ diff --git a/src/main.rs b/src/main.rs
  ) -> Option<usize> {
      let width = |pieces: &Vec<HintPiece>, extra: usize| {
          let hints: usize = pieces.iter().map(|piece| piece.width).sum();
-@@ -2637,7 +2833,6 @@
+@@ -2637,7 +2839,6 @@
          hints + extra + spacer_width * count.saturating_sub(1)
      };
 
@@ -414,7 +420,7 @@ diff --git a/src/main.rs b/src/main.rs
      while pieces.len() > 1 {
          // Once a hint has been dropped the indicator is part of the line, so it
          // has to be paid for out of the same budget.
-@@ -2645,7 +2840,7 @@
+@@ -2645,7 +2846,7 @@
          if width(pieces, extra) <= limit {
              break;
          }
@@ -423,7 +429,7 @@ diff --git a/src/main.rs b/src/main.rs
              break;
          };
          pieces.remove(index);
-@@ -2656,38 +2851,16 @@
+@@ -2656,38 +2857,16 @@
 
  /// The hint to give up next, as an index into `pieces`.
  ///
@@ -471,7 +477,7 @@ diff --git a/src/main.rs b/src/main.rs
  }
 
  /// Discover every enabled keybinding the curated hints didn't already show, and
-@@ -2706,10 +2879,57 @@
+@@ -2706,10 +2885,57 @@
      used: &[KeyWithModifier],
      style: &HintStyle,
  ) {
@@ -529,7 +535,7 @@ diff --git a/src/main.rs b/src/main.rs
          // A binding's first action is often plumbing — a pipe to a plugin, a
          // rename input — with the part worth advertising coming after it. Judge
          // the binding by its first action that is worth a hint, so a key like
-@@ -3170,6 +3390,67 @@
+@@ -3170,6 +3396,117 @@
      use super::*;
      use std::collections::HashMap;
 
@@ -554,6 +560,56 @@ diff --git a/src/main.rs b/src/main.rs
 +        assert!(!fallback.contains("ESC"), "{fallback}");
 +        let pane = rendered(InputMode::Pane, &keys, &config);
 +        assert!(pane.contains("ESC / ENTER"), "{pane}");
++    }
++
++    #[test]
++    fn preferred_key_groups_require_every_binding_and_preserve_single_keys() {
++        let keys = vec![
++            (key(BareKey::Char('h')), vec![Action::PageScrollUp]),
++            (key(BareKey::Char('l')), vec![Action::PageScrollDown]),
++            (key(BareKey::PageUp), vec![Action::PageScrollUp]),
++            (key(BareKey::PageDown), vec![Action::PageScrollDown]),
++        ];
++        let preference = [("preferred_key_scroll_page", "h,l")];
++        assert_eq!(rendered(InputMode::Scroll, &keys, &preference), "hl page");
++        let mut aliases = preference.to_vec();
++        aliases.push(("key_alias_h", "previous"));
++        assert_eq!(
++            rendered(InputMode::Scroll, &keys, &aliases),
++            "previous / l page"
++        );
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &keys,
++                &[("preferred_key_scroll_page", "h,h,l")]
++            ),
++            "hl page"
++        );
++        assert_eq!(
++            rendered(InputMode::Scroll, &keys[1..], &preference),
++            rendered(InputMode::Scroll, &keys[1..], &[])
++        );
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &keys,
++                &[("preferred_key_scroll_page", "h,invalid")]
++            ),
++            rendered(InputMode::Scroll, &keys, &[])
++        );
++        let comma = vec![
++            (key(BareKey::Char(',')), vec![Action::PageScrollUp]),
++            (key(BareKey::Char('l')), vec![Action::PageScrollDown]),
++        ];
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &comma,
++                &[("preferred_key_scroll_page", ",")]
++            ),
++            ", page"
++        );
 +    }
 +
 +    #[test]
@@ -597,7 +653,7 @@ diff --git a/src/main.rs b/src/main.rs
      /// Sort a string of characters as if they were the keys of one hint, so an
      /// expected ordering can be written as a plain string literal.
      fn sorted(chars: &str, order: KeyOrder) -> String {
-@@ -3519,6 +3800,66 @@
+@@ -3519,6 +3856,66 @@
          assert_eq!(rendered(InputMode::Locked, &keymap, &[]), "");
      }
 
@@ -664,7 +720,7 @@ diff --git a/src/main.rs b/src/main.rs
      /// Tab navigation as Zellij binds it by default: both families, both ways.
      fn tab_nav_keymap() -> Vec<(KeyWithModifier, Vec<Action>)> {
          vec![
-@@ -3622,8 +3963,11 @@
+@@ -3622,8 +4019,11 @@
              (key(BareKey::Enter), vec![TO_NORMAL]),
              (key(BareKey::Esc), vec![TO_NORMAL]),
          ];
@@ -678,7 +734,7 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      #[test]
-@@ -3671,7 +4015,7 @@
+@@ -3671,7 +4071,7 @@
              (key(BareKey::Enter), vec![TO_NORMAL]),
              (key(BareKey::Esc), vec![TO_NORMAL]),
          ];
@@ -687,10 +743,11 @@ diff --git a/src/main.rs b/src/main.rs
      }
 
      /// A styled line of the shape the plugin actually emits: coloured segments
-@@ -3730,6 +4074,172 @@
+@@ -3729,6 +4129,172 @@
+         ]
      }
 
-     #[test]
++    #[test]
 +    fn numeric_keys_compact_only_when_the_displayed_run_is_contiguous() {
 +        let keys = ('1'..='9')
 +            .map(|digit| KeyWithModifier::new(BareKey::Char(digit)).with_alt_modifier())
@@ -856,7 +913,6 @@ diff --git a/src/main.rs b/src/main.rs
 +        }
 +    }
 +
-+    #[test]
+     #[test]
      fn a_per_hint_format_overrides_the_global_one() {
          let keymap = four_hints();
-         let config = &[

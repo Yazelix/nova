@@ -25,17 +25,20 @@ share the plain background, with one-cell gaps between hints. Whole-hint
 fitting keeps core workspace and managed Nova actions ahead of secondary native
 hints. Labels include `sess.`, `move` and `full`. Three groups share spare
 width through balanced gaps; four or more retain small separators.
-The row has a one-column leading inset. Consecutive numbered keys display as
-`1–9`. Minor modes show a plain mode label and one direction-key family; Normal
+Normal hints and minor-mode labels have a one-column leading inset. Consecutive
+numbered keys display as `1–9`. Minor modes show a plain mode label and one direction-key family; Normal
 has no mode prefix. Tab mode uses HJKL, dim pipe separators and an Esc return
 hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints.
 Pane hints use the same presentation, with one key per main action; secondary
 focus, embed, pin and fullscreen-without-UI hints are hidden; bindings remain.
 Resize uses `hjkl grow`, `HJKL shrink` and `ESC normal` with the same pipes,
 omitting generic resize hints while preserving their bindings.
+Scroll uses `jk scroll`, `hl page`, search, scrollback editing and Esc with
+the same pipes, omitting duplicate and secondary hints; all bindings remain.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
-`preferred_key_<mode>_<hint>` advertises one currently bound key; if that key
-is unavailable, the hint falls back to its actual bindings.
+`preferred_key_<mode>_<hint>` advertises a bound key or comma-separated group;
+all requested keys must be available, otherwise the actual bindings are shown.
+Single-key parsing takes priority, preserving literal comma keys and aliases.
 Return controls survive before secondary hints as the row
 narrows. Named keys use separators (`ESC / ENTER`, `PgUp / PgDn`), and inline
 word-like modifiers use hyphens (`C-A`). Compact character runs, configured

@@ -13,6 +13,9 @@ User-visible runtime changes for Yazelix Nova live here.
   main action and secondary focus, embed, pin and immersive hints omitted.
   Resize mode shows HJKL grow/shrink directions and Esc with pipe separators,
   omitting repeated generic resize hints while keeping every binding.
+  Scroll mode shows line/page navigation, search, scrollback editing and Esc
+  with the same separators; duplicate and secondary hints are omitted.
+  Every minor-mode label has a one-column left inset from the window edge.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.
