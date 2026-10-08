@@ -441,7 +441,8 @@ Rio owns the full schema and validation for `rio/config.toml`. When that path
 does not already exist, Yazelix copies the packaged config and any missing
 `nova-dark`/`nova-light` themes; an existing theme file is never replaced.
 Upgrades leave those user-owned files alone. New configs enable `window.blur`
-with `window.opacity = 0.88`; blur depends on compositor support.
+with `window.opacity = 0.6` and `window.opacity-cells = true`, so explicit TUI
+backgrounds share the window's transparency; blur depends on compositor support.
 Ratconfig's Rio tab exposes eight native controls: blur, opacity, font family and
 size, line height, cursor trail, audio bell, and quit confirmation. Rio's versioned
 `--config-editor` inventory and native parser own the field defaults and validation

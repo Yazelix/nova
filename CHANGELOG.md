@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- New Nova Rio configs use `window.opacity = 0.6` and
+  `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.
+
 - Managed Yazi waits for valid pane dimensions before starting, preventing a
   cold Zellij PTY from making the startup picker exit immediately.
 
