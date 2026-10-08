@@ -28,8 +28,10 @@ width through balanced gaps; four or more retain small separators.
 The row has a one-column leading inset. Consecutive numbered keys display as
 `1–9`. Minor modes show a plain mode label and one direction-key family; Normal
 has no mode prefix. Tab mode uses HJKL, dim pipe separators and an Esc return
-hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints. Mode-scoped
-`hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
+hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints.
+Pane hints use the same presentation, with one key per main action; secondary
+focus, embed, pin and fullscreen-without-UI hints are hidden; bindings remain.
+Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
 `preferred_key_<mode>_<hint>` advertises one currently bound key; if that key
 is unavailable, the hint falls back to its actual bindings.
 Return controls survive before secondary hints as the row

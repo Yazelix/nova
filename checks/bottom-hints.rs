@@ -461,10 +461,11 @@ keybinds clear-defaults=true {
                     row.starts_with(mode)
                         && row.contains(match mode {
                             "LOCKED" => "unlock",
-                            "TAB" => "ESC normal",
+                            "TAB" | "PANE" => "ESC normal",
                             _ => "back",
                         })
-                        && (["LOCKED", "TAB"].contains(&mode) || row.contains("ESC / ENTER"))
+                        && (["LOCKED", "TAB", "PANE"].contains(&mode)
+                            || row.contains("ESC / ENTER"))
                         && (mode != "TAB"
                             || (row.contains("hjkl focus")
                                 && row.contains(" | ")
@@ -472,9 +473,30 @@ keybinds clear-defaults=true {
                                     .iter()
                                     .all(|hint| !row.contains(hint))))
                         && (mode != "PANE"
-                            || ["new", "close", "focus"]
+                            || (["hjkl focus", "n new", "x close", " | "]
                                 .iter()
-                                .all(|hint| row.contains(hint)))
+                                .all(|hint| row.contains(hint))
+                                && [
+                                    "embed",
+                                    "pin",
+                                    "toggle focus",
+                                    "focus last",
+                                    "ENTER",
+                                    "←",
+                                    "C p",
+                                ]
+                                .iter()
+                                .all(|hint| !row.contains(hint))
+                                && (width < 120
+                                    || [
+                                        "f full",
+                                        "w float",
+                                        "r split right",
+                                        "d split down",
+                                        "c rename",
+                                    ]
+                                    .iter()
+                                    .all(|hint| row.contains(hint)))))
                 },
                 &format!("minor-mode hints missing: {mode} at {width} columns"),
                 "rendering:0",

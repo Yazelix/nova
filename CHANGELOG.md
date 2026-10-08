@@ -9,6 +9,8 @@ User-visible runtime changes for Yazelix Nova live here.
   of secondary hints at narrow widths. Normal-mode rows retain their appearance.
   Tab mode uses pipe separators, HJKL focus and an Esc return hint; numbered-tab,
   new-tab, close and last-tab-toggle hints are omitted; their bindings remain available.
+  Pane mode uses the same separators, HJKL and Esc hint, with one shortcut per
+  main action and secondary focus, embed, pin and immersive hints omitted.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.
