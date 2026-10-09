@@ -19,14 +19,14 @@ new-pane placement when updating the patch or upstream pin.
 at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
 [`grouped modifiers patch`](zjhints-group-modifiers.patch). Its opt-in
 `group_modifiers true` option joins hints with the same modifier chord. The
-default layout uses compact `C`, `C-A`, `A` and `A-S` headers with subdued red
+default layout uses compact `{C}`, `{C-A}`, `{A}` and `{A-S}` headers with subdued red
 text on separate charcoal backgrounds. Red keys and muted gray descriptions
 share the plain background, with one-cell gaps between hints. Whole-hint
 fitting keeps core workspace and managed Nova actions ahead of secondary native
 hints. Labels include `sess.`, `move` and `full`. Three groups share spare
 width through balanced gaps; four or more retain small separators.
 Normal hints and minor-mode labels have a one-column leading inset. Consecutive
-numbered keys display as `1–9`. Minor modes show a plain mode label and one direction-key family; Normal
+numbered keys display as `1–9`. Minor modes show a brace-outlined label and one direction-key family; Normal
 has no mode prefix. Tab mode uses HJKL, dim pipe separators and an Esc return
 hint, omitting numbered-tab, new-tab, close and last-tab-toggle hints.
 Pane hints use the same presentation, with one key per main action; secondary
@@ -43,7 +43,8 @@ Enter accepts the typed name and returns to Normal; Esc restores the original
 name and returns to Tab or Pane. Ctrl-C remains bound, with Enter preferred in the hint.
 Session shows detach, manager, config, plugins and Esc with the same pipes;
 secondary plugin and nested-session hints are hidden while their bindings remain.
-Locked uses the same inset and pipe, preserving its existing `C-A g unlock` badge.
+Locked uses the same inset and pipe, with a `{C-A} g unlock` badge.
+Brace outlines have no interior padding and use the existing mode/header templates.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
 Compound modes use `enter_search`, `rename_tab` and `rename_pane` consistently
 for prefixes and hint settings.

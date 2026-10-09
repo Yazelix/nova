@@ -6,18 +6,18 @@ layout {
     pane_template name="bottom_hints" borderless=true {
         plugin location="nova_hints" {
             show_mode true
-            mode_format " #[fg=#ef7a73,bold]{mode}  "
+            mode_format " #[fg=#ef7a73,bold]{{mode}}  "
             mode_format_normal ""
-            mode_format_tab " #[fg=#ef7a73,bold]TAB #[fg=#555b66]| "
-            mode_format_pane " #[fg=#ef7a73,bold]PANE #[fg=#555b66]| "
-            mode_format_resize " #[fg=#ef7a73,bold]RESIZE #[fg=#555b66]| "
-            mode_format_scroll " #[fg=#ef7a73,bold]SCROLL #[fg=#555b66]| "
-            mode_format_search " #[fg=#ef7a73,bold]SEARCH #[fg=#555b66]| "
-            mode_format_enter_search " #[fg=#ef7a73,bold]SEARCH INPUT #[fg=#555b66]| "
-            mode_format_rename_tab " #[fg=#ef7a73,bold]RENAME TAB #[fg=#555b66]| "
-            mode_format_rename_pane " #[fg=#ef7a73,bold]RENAME PANE #[fg=#555b66]| "
-            mode_format_session " #[fg=#ef7a73,bold]SESSION #[fg=#555b66]| "
-            mode_format_locked " #[fg=#ef7a73,bold]LOCKED #[fg=#555b66]| "
+            mode_format_tab " #[fg=#ef7a73,bold]{TAB} #[fg=#555b66]| "
+            mode_format_pane " #[fg=#ef7a73,bold]{PANE} #[fg=#555b66]| "
+            mode_format_resize " #[fg=#ef7a73,bold]{RESIZE} #[fg=#555b66]| "
+            mode_format_scroll " #[fg=#ef7a73,bold]{SCROLL} #[fg=#555b66]| "
+            mode_format_search " #[fg=#ef7a73,bold]{SEARCH} #[fg=#555b66]| "
+            mode_format_enter_search " #[fg=#ef7a73,bold]{SEARCH INPUT} #[fg=#555b66]| "
+            mode_format_rename_tab " #[fg=#ef7a73,bold]{RENAME TAB} #[fg=#555b66]| "
+            mode_format_rename_pane " #[fg=#ef7a73,bold]{RENAME PANE} #[fg=#555b66]| "
+            mode_format_session " #[fg=#ef7a73,bold]{SESSION} #[fg=#555b66]| "
+            mode_format_locked " #[fg=#ef7a73,bold]{LOCKED} #[fg=#555b66]| "
             collapse_when_empty false
             group_modifiers true
             direction_keys "arrows"
@@ -29,7 +29,7 @@ layout {
             mod_alias_ctrl "C"
             mod_alias_alt "A"
             mod_alias_shift "S"
-            modifier_format "#[fg=#ff5252,bg=#252a30] {modifier} "
+            modifier_format "#[fg=#ff5252,bg=#252a30]{{modifier}}"
             label_mode_session "sess."
             label_move_tab "move"
             "key_format_normal_=move" "#[fg=$key]hl/jk "

@@ -4,9 +4,12 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Bottom-bar modifier badges and minor-mode labels use compact brace outlines,
+  such as `{C-A}` and `{TAB}`, without interior padding.
+
 - Minor-mode bottom hints show the current mode, separate named keys and mixed
   modifiers, display one direction-key family, and keep return controls ahead
-  of secondary hints at narrow widths. Normal-mode rows retain their appearance.
+  of secondary hints at narrow widths. Normal shortcuts keep their existing grouping.
   Tab mode uses pipe separators, HJKL focus and an Esc return hint; numbered-tab,
   new-tab, close and last-tab-toggle hints are omitted; their bindings remain available.
   Pane mode uses the same separators, HJKL and Esc hint, with one shortcut per

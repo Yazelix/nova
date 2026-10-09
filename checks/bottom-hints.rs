@@ -436,7 +436,7 @@ keybinds clear-defaults=true {
         assert!(!row.contains("..."), "partial hint clipped: {row}");
         if width == 180 {
             assert!(
-                [" C ", " C-A ", " A ", " A-S "]
+                ["{C}", "{C-A}", "{A}", "{A-S}"]
                     .iter()
                     .all(|header| row.matches(header).count() == 1),
                 "{row}"
@@ -461,21 +461,21 @@ keybinds clear-defaults=true {
                     let Some(row) = raw.strip_prefix(' ') else {
                         return false;
                     };
-                    row.starts_with(mode)
+                    row.starts_with(&format!("{{{mode}}}"))
                         && row.contains(match mode {
                             "LOCKED" => "unlock",
                             _ => "ESC normal",
                         })
                         && (mode != "LOCKED"
-                            || row.trim_end() == "LOCKED |  C-A  g unlock")
+                            || row.trim_end() == "{LOCKED} | {C-A} g unlock")
                         && (mode != "SESSION"
                             || row.trim_end()
-                                == "SESSION | d detach | w manager | c config | p plugins | ESC normal")
+                                == "{SESSION} | d detach | w manager | c config | p plugins | ESC normal")
                         && (mode != "RESIZE"
-                            || row.trim_end() == "RESIZE | hjkl grow | HJKL shrink | ESC normal")
+                            || row.trim_end() == "{RESIZE} | hjkl grow | HJKL shrink | ESC normal")
                         && (mode != "SCROLL"
                             || row.trim_end()
-                                == "SCROLL | jk scroll | hl page | s search | e edit | ESC normal")
+                                == "{SCROLL} | jk scroll | hl page | s search | e edit | ESC normal")
                         && (mode != "TAB"
                             || (row.contains("hjkl focus")
                                 && row.contains(" | ")
@@ -522,7 +522,7 @@ keybinds clear-defaults=true {
                                 .lines()
                                 .last()
                                 .unwrap_or_default()
-                                .starts_with(" LOCKED | ")
+                                .starts_with(" {LOCKED} | ")
                     },
                     "Locked input did not reach the pane PTY or changed Nova mode",
                     "rendering:0",
@@ -540,12 +540,12 @@ keybinds clear-defaults=true {
         }
         c.tmux(&["send-keys", "-t", "rendering:0", "C-M-s"]);
         for (key, expected) in [
-            ("s", " SEARCH INPUT | ENTER search | ESC cancel"),
+            ("s", " {SEARCH INPUT} | ENTER search | ESC cancel"),
             (
                 "Escape",
-                " SCROLL | jk scroll | hl page | s search | e edit | ESC normal",
+                " {SCROLL} | jk scroll | hl page | s search | e edit | ESC normal",
             ),
-            ("s", " SEARCH INPUT | ENTER search | ESC cancel"),
+            ("s", " {SEARCH INPUT} | ENTER search | ESC cancel"),
         ] {
             c.tmux(&["send-keys", "-t", "rendering:0", key]);
             c.terminal.wait(
@@ -562,7 +562,7 @@ keybinds clear-defaults=true {
             || {
                 let screen = c.terminal.capture("rendering:0", false);
                 let row = screen.lines().last().unwrap_or_default().trim_end();
-                row.starts_with(" SEARCH | n next | p prev | jk scroll | hl page | ")
+                row.starts_with(" {SEARCH} | n next | p prev | jk scroll | hl page | ")
                     && row.ends_with("ESC normal")
                     && (width < 120
                         || ["c case", "o word", "w wrap"]
@@ -611,8 +611,8 @@ keybinds clear-defaults=true {
         (true, "C-p", "c", "PANE", "saved-pane"),
     ] {
         let original = current_name(pane);
-        let parent_hint = format!(" {parent} | ");
-        let rename_hint = format!(" RENAME {parent} | ENTER save | ESC cancel");
+        let parent_hint = format!(" {{{parent}}} | ");
+        let rename_hint = format!(" {{RENAME {parent}}} | ENTER save | ESC cancel");
         c.tmux(&["send-keys", "-t", "rendering:0", parent_key]);
         c.terminal.wait(
             || {
