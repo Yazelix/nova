@@ -33,7 +33,8 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - Full tab labels use `[index name]` in both focus states, keeping their text and
   positions steady. Active tabs use bold orange without a background fill;
-  ordinary inactive tabs use muted gray. Startup picker tabs use their directory
+  floating-pane indicators are omitted from full, compact and rename labels.
+  Ordinary inactive tabs use muted gray. Startup picker tabs use their directory
   name, including `lucca` for `/home/lucca/`, with no special home icon or alias.
 
 - Managed Yazi waits for valid pane dimensions before starting, preventing a

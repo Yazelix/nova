@@ -86,6 +86,9 @@ fn main() {
     }
     tab name="poe2" {
         pane command="__SHELL__" { args "-c" "printf ONE; sleep 9999"; }
+        floating_panes {
+            pane command="__SHELL__" { args "-c" "printf FLOAT; sleep 9999"; }
+        }
     }
     tab name="eon café" {
         pane command="__SHELL__" { args "-c" "printf TWO; sleep 9999"; }
@@ -132,7 +135,12 @@ fn main() {
     ]);
     wait_tabs(&terminal, 1);
     let expected = " [1 poe2]  [2 eon café]  [3 界面 space]";
-    for width in [80, 120, 180] {
+    for (width, floating) in [
+        (80, "hide-floating-panes"),
+        (120, "show-floating-panes"),
+        (180, "hide-floating-panes"),
+    ] {
+        terminal.action(&[floating, "--tab-id", "0"]);
         terminal.resize("clients:0", width, 40);
         for index in [1, 2, 3, 2, 1] {
             terminal.tmux(&["send-keys", "-t", "clients:0", &format!("M-{index}")]);
@@ -187,7 +195,7 @@ fn main() {
     assert_eq!(selected(&terminal, 2, &rgb), [2]);
     assert!(terminal.capture("clients:2", false).contains("TWO"));
     println!(
-        "three outlined tabs kept text and mouse targets stable at 80/120/180 columns; two clients kept independent highlights across attach and reattach"
+        "three outlined tabs kept text and mouse targets stable with visible and hidden floating panes at 80/120/180 columns; two clients kept independent highlights across attach and reattach"
     );
 }
 
