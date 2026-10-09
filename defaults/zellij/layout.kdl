@@ -17,6 +17,7 @@ layout {
             mode_format_rename_tab " #[fg=#ef7a73,bold]RENAME TAB #[fg=#555b66]| "
             mode_format_rename_pane " #[fg=#ef7a73,bold]RENAME PANE #[fg=#555b66]| "
             mode_format_session " #[fg=#ef7a73,bold]SESSION #[fg=#555b66]| "
+            mode_format_locked " #[fg=#ef7a73,bold]LOCKED #[fg=#555b66]| "
             collapse_when_empty false
             group_modifiers true
             direction_keys "arrows"

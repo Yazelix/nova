@@ -466,6 +466,8 @@ keybinds clear-defaults=true {
                             "LOCKED" => "unlock",
                             _ => "ESC normal",
                         })
+                        && (mode != "LOCKED"
+                            || row.trim_end() == "LOCKED |  C-A  g unlock")
                         && (mode != "SESSION"
                             || row.trim_end()
                                 == "SESSION | d detach | w manager | c config | p plugins | ESC normal")
@@ -509,6 +511,23 @@ keybinds clear-defaults=true {
                 &format!("minor-mode hints missing: {mode} at {width} columns"),
                 "rendering:0",
             );
+            if mode == "LOCKED" {
+                let marker = format!("LOCKED_{width}");
+                c.tmux(&["send-keys", "-t", "rendering:0", "Enter", &marker, "C-p"]);
+                c.terminal.wait(
+                    || {
+                        let screen = c.terminal.capture("rendering:0", false);
+                        screen.contains(&format!("{marker}^P"))
+                            && screen
+                                .lines()
+                                .last()
+                                .unwrap_or_default()
+                                .starts_with(" LOCKED | ")
+                    },
+                    "Locked input did not reach the pane PTY or changed Nova mode",
+                    "rendering:0",
+                );
+            }
             c.tmux(&["send-keys", "-t", "rendering:0", exit]);
             c.terminal.wait(
                 || {

@@ -23,6 +23,7 @@ User-visible runtime changes for Yazelix Nova live here.
   cancelling restores the original name and returns to Tab or Pane mode.
   Session shows detach, manager, config, plugins and Esc with pipe separators;
   less-used hints are omitted while their bindings remain available.
+  Locked uses the same inset and pipe, retaining its Ctrl-Alt-G unlock badge.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.

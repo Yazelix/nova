@@ -43,6 +43,7 @@ Enter accepts the typed name and returns to Normal; Esc restores the original
 name and returns to Tab or Pane. Ctrl-C remains bound, with Enter preferred in the hint.
 Session shows detach, manager, config, plugins and Esc with the same pipes;
 secondary plugin and nested-session hints are hidden while their bindings remain.
+Locked uses the same inset and pipe, preserving its existing `C-A g unlock` badge.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
 Compound modes use `enter_search`, `rename_tab` and `rename_pane` consistently
 for prefixes and hint settings.
