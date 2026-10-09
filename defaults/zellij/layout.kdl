@@ -16,6 +16,7 @@ layout {
             mode_format_enter_search " #[fg=#ef7a73,bold]SEARCH INPUT #[fg=#555b66]| "
             mode_format_rename_tab " #[fg=#ef7a73,bold]RENAME TAB #[fg=#555b66]| "
             mode_format_rename_pane " #[fg=#ef7a73,bold]RENAME PANE #[fg=#555b66]| "
+            mode_format_session " #[fg=#ef7a73,bold]SESSION #[fg=#555b66]| "
             collapse_when_empty false
             group_modifiers true
             direction_keys "arrows"
@@ -86,6 +87,14 @@ layout {
             label_rename_pane_mode_normal "save"
             preferred_key_rename_pane_save "Enter"
             label_rename_pane_undo_rename "cancel"
+            label_session_about ""
+            label_session_share ""
+            label_session_layout_manager ""
+            label_session_focus_guest_session ""
+            label_session_focus_host_session ""
+            label_session_toggle_host_fullscreen ""
+            label_session_mode_normal "normal"
+            preferred_key_session_normal "Esc"
             hint_order "focus, =new, =close, search_down, search_up, =next, =prev, =scroll, page, half_page, detach, manager, mode_pane, mode_resize, mode_tab, mode_scroll, sess., =move, mode_locked, content_layout, go_to_tab, new_pane, menu, full, hints, sidebar, git, config, agent, *, back, normal, cancel"
             hint_precedence "tl"
             color_key "#ef7a73"
@@ -100,6 +109,7 @@ layout {
             hint_spacer_enter_search "#[fg=#555b66] | "
             hint_spacer_rename_tab "#[fg=#555b66] | "
             hint_spacer_rename_pane "#[fg=#555b66] | "
+            hint_spacer_session "#[fg=#555b66] | "
         }
     }
 

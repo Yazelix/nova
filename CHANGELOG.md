@@ -21,6 +21,8 @@ User-visible runtime changes for Yazelix Nova live here.
   Compound-mode hint settings use the same names as their mode prefixes.
   Rename Tab and Rename Pane show separate Enter save and Esc cancel hints;
   cancelling restores the original name and returns to Tab or Pane mode.
+  Session shows detach, manager, config, plugins and Esc with pipe separators;
+  less-used hints are omitted while their bindings remain available.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.

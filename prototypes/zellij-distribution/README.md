@@ -41,6 +41,8 @@ narrow rows. Search Input shows Enter search and Esc cancel back to Scroll.
 Rename Tab and Rename Pane show Enter save and Esc cancel with the same pipes.
 Enter accepts the typed name and returns to Normal; Esc restores the original
 name and returns to Tab or Pane. Ctrl-C remains bound, with Enter preferred in the hint.
+Session shows detach, manager, config, plugins and Esc with the same pipes;
+secondary plugin and nested-session hints are hidden while their bindings remain.
 Mode-scoped `hint_spacer_<mode>` and `direction_keys_<mode>` keep these choices local.
 Compound modes use `enter_search`, `rename_tab` and `rename_pane` consistently
 for prefixes and hint settings.

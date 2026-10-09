@@ -335,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 31,652 |
-| Documentation and text | 6,037 |
-| Total | 37,689 |
+| Code and configuration | 31,662 |
+| Documentation and text | 6,043 |
+| Total | 37,705 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
