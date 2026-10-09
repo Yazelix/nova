@@ -19,6 +19,8 @@ User-visible runtime changes for Yazelix Nova live here.
   Search separates match navigation, scrolling and case/word/wrap options.
   Search Input shows Enter to search and Esc to cancel back to Scroll.
   Compound-mode hint settings use the same names as their mode prefixes.
+  Rename Tab and Rename Pane show separate Enter save and Esc cancel hints;
+  cancelling restores the original name and returns to Tab or Pane mode.
 
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.

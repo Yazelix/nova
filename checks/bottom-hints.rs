@@ -563,6 +563,89 @@ keybinds clear-defaults=true {
             "rendering:0",
         );
     }
+    c.terminal.resize("rendering:0", 120, 40);
+    let current_name = |pane: bool| {
+        let output = c.terminal.run(
+            &c.terminal.binary,
+            &[
+                "-c",
+                config.to_str().unwrap(),
+                "-s",
+                &render_session,
+                "action",
+                if pane { "list-panes" } else { "list-tabs" },
+                "--json",
+            ],
+            None,
+        );
+        let records: Vec<serde_json::Value> = serde_json::from_str(&output).unwrap();
+        records
+            .iter()
+            .find(|r| r[if pane { "is_focused" } else { "active" }] == true)
+            .unwrap()[if pane { "title" } else { "name" }]
+        .as_str()
+        .unwrap()
+        .to_owned()
+    };
+    for (pane, parent_key, rename_key, parent, saved) in [
+        (false, "C-M-t", "r", "TAB", "saved-tab"),
+        (true, "C-p", "c", "PANE", "saved-pane"),
+    ] {
+        let original = current_name(pane);
+        let parent_hint = format!(" {parent} | ");
+        let rename_hint = format!(" RENAME {parent} | ENTER save | ESC cancel");
+        c.tmux(&["send-keys", "-t", "rendering:0", parent_key]);
+        c.terminal.wait(
+            || {
+                c.terminal
+                    .capture("rendering:0", false)
+                    .contains(&parent_hint)
+            },
+            "rename parent mode missing",
+            "rendering:0",
+        );
+        for (text, exit, after_hint, expected_name) in [
+            (
+                "discarded",
+                "Escape",
+                parent_hint.as_str(),
+                original.as_str(),
+            ),
+            (saved, "Enter", "p pane", saved),
+        ] {
+            c.tmux(&["send-keys", "-t", "rendering:0", rename_key]);
+            c.terminal.wait(
+                || {
+                    c.terminal
+                        .capture("rendering:0", false)
+                        .lines()
+                        .last()
+                        .unwrap_or_default()
+                        .trim_end()
+                        == rename_hint
+                },
+                "rename save/cancel hints missing",
+                "rendering:0",
+            );
+            c.tmux(&["send-keys", "-t", "rendering:0", text]);
+            c.terminal.wait(
+                || current_name(pane) == text,
+                "typed rename did not reach the native name",
+                "rendering:0",
+            );
+            c.tmux(&["send-keys", "-t", "rendering:0", exit]);
+            c.terminal.wait(
+                || {
+                    c.terminal
+                        .capture("rendering:0", false)
+                        .contains(after_hint)
+                        && current_name(pane) == expected_name
+                },
+                "rename did not save/cancel and return to its advertised mode",
+                "rendering:0",
+            );
+        }
+    }
     c.terminal
         .run(&c.terminal.binary, &["kill-session", &render_session], None);
     c.tmux(&["kill-session", "-t", "rendering"]);

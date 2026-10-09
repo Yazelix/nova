@@ -149,7 +149,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,561 code/configuration lines** and **6,030 documentation/text
+Yazelix owns **31,652 code/configuration lines** and **6,037 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -158,6 +158,8 @@ the simplified Tab, Pane, Resize, Scroll and Search rows accurate when bindings 
 Group preferences require every selected key; renderer tests cover remaps,
 aliases, duplicate preferences, literal comma keys and remapped search options.
 Installed checks cover Search Input cancellation, submission and Search exits.
+Rename hints separate save and cancel; installed checks verify typed names,
+restoration on Esc, acceptance on Enter and the destination modes.
 Foreground-aware tab verification
 distinguishes color changes from styling and backgrounds, adding 25 check lines.
 The shared package-root owner, managed-tool bindings, watcher ownership and
