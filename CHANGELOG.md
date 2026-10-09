@@ -31,7 +31,8 @@ User-visible runtime changes for Yazelix Nova live here.
 - New Nova Rio configs use `window.opacity = 0.70` and
   `window.opacity-cells = true` for translucent TUI backgrounds, including Radar.
 
-- Active tabs use bold orange `[index name]` labels without a background fill;
+- Full tab labels use `[index name]` in both focus states, keeping their text and
+  positions steady. Active tabs use bold orange without a background fill;
   ordinary inactive tabs use muted gray. Startup picker tabs use their directory
   name, including `lucca` for `/home/lucca/`, with no special home icon or alias.
 

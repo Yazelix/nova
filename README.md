@@ -59,7 +59,8 @@ To try the split work area, open a second work pane with `Alt m`, then press
 Radar sidebar stays open or collapsed as you left it. The command palette's
 `layout` entry remains available with `Alt Shift M`.
 
-Active tabs use bold orange `[index name]` labels on the terminal background;
+Full tab labels use `[index name]` in both focus states, keeping text and positions
+steady when focus changes. Active tabs use bold orange on the terminal background;
 inactive tabs use muted gray. Initial picker tabs use their directory basename,
 including `lucca` for `/home/lucca/`, without a special home icon or label.
 
@@ -149,7 +150,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,682 code/configuration lines** and **6,051 documentation/text
+Yazelix owns **31,717 code/configuration lines** and **6,053 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -164,8 +165,8 @@ Session hints show detach, manager, config, plugins and Esc with the same pipes;
 mode-scoped labels hide secondary hints while preserving their bindings.
 Locked uses the same separator; installed checks verify key passthrough and unlocking.
 Modifier badges and minor-mode labels use compact brace outlines without interior padding.
-Foreground-aware tab verification
-distinguishes color changes from styling and backgrounds, adding 25 check lines.
+Native tab verification distinguishes foreground highlighting from styling and
+backgrounds, and checks stable text and mouse targets across three widths.
 The shared package-root owner, managed-tool bindings, watcher ownership and
 relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,

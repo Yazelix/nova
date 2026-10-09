@@ -964,8 +964,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     expect_contains_all! {
         &light_config, "light appearance bar controller";
         r#"host_theme_mode "light""#,
-        r##"host_theme_dark_tab_normal "#[fg=#a0a6af] [{index}] {name} ""##,
-        r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} ""##,
+        r##"host_theme_dark_tab_normal "#[fg=#a0a6af] [{index} {name}] ""##,
+        r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index} {name}] ""##,
         r##"#[fg=#2f7d32,bold] hx"##,
     }
 
@@ -2480,8 +2480,8 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     expect_contains_all! {
         &config, "packaged dark appearance bar controller";
         r#"host_theme_mode "dark""#,
-        r##"host_theme_dark_tab_normal "#[fg=#a0a6af] [{index}] {name} ""##,
-        r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} ""##,
+        r##"host_theme_dark_tab_normal "#[fg=#a0a6af] [{index} {name}] ""##,
+        r##"host_theme_light_tab_normal "#[fg=#5c5f77] [{index} {name}] ""##,
     }
     let yzx_yazi = popup_command(&config, "/bin/yzx-yazi");
     let public_yzx_yazi = yzx.join("bin/yzx-yazi");

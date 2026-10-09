@@ -1601,7 +1601,7 @@
         grep -q 'straight_border_style "double"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'bottom_hints name="bottom_hints_start_hidden"' "$YAZELIX_STATE_DIR/zellij/layout.kdl"
         "${yzx}/bin/yzx-zellij" --config "$YAZELIX_STATE_DIR/zellij/config.kdl" setup --check >/dev/null
-        grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index}] {name} "' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index} {name}] "' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'Yazelix Nova doctor' doctor
         grep -q 'ok    Configuration    settings valid' doctor
         grep -q 'ok    Commands         shell fish · editor yzx-hx · agent auto' doctor

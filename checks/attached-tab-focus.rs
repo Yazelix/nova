@@ -40,7 +40,7 @@ fn highlighted(row: &str, rgb: &[u16; 3]) -> Vec<usize> {
             segment
         };
         if active {
-            selected.extend((1..=2).filter(|index| {
+            selected.extend((1..=3).filter(|index| {
                 text.contains(&format!("[{index} ")) || text.contains(&format!("[{index}]"))
             }));
         }
@@ -64,9 +64,9 @@ fn wait_tabs(terminal: &Terminal, window: usize) {
         || {
             let text = terminal.capture(&format!("clients:{window}"), false);
             let top = text.lines().next().unwrap_or_default();
-            top.contains("[1") && top.contains("[2")
+            (1..=3).all(|index| top.contains(&format!("[{index}")))
         },
-        "client never showed both tabs",
+        "client never showed all three tabs",
         &format!("clients:{window}"),
     );
 }
@@ -84,11 +84,14 @@ fn main() {
         }
         children
     }
-    tab name="one" {
+    tab name="poe2" {
         pane command="__SHELL__" { args "-c" "printf ONE; sleep 9999"; }
     }
-    tab name="two" {
+    tab name="eon café" {
         pane command="__SHELL__" { args "-c" "printf TWO; sleep 9999"; }
+    }
+    tab name="界面 space" {
+        pane command="__SHELL__" { args "-c" "printf THREE; sleep 9999"; }
     }
 }
 "#
@@ -128,6 +131,36 @@ fn main() {
         &(attach.clone() + "; printf '\\nEXIT:%s\\n' $?; sleep 30"),
     ]);
     wait_tabs(&terminal, 1);
+    let expected = " [1 poe2]  [2 eon café]  [3 界面 space]";
+    for width in [80, 120, 180] {
+        terminal.resize("clients:0", width, 40);
+        for index in [1, 2, 3, 2, 1] {
+            terminal.tmux(&["send-keys", "-t", "clients:0", &format!("M-{index}")]);
+            terminal.wait(
+                || {
+                    selected(&terminal, 0, &rgb) == [index]
+                        && terminal.capture("clients:0", false).starts_with(expected)
+                },
+                "focus changed tab text or positions",
+                "clients:0",
+            );
+        }
+        for (index, column) in [(2, 13), (3, 27), (1, 3)] {
+            terminal.tmux(&[
+                "send-keys",
+                "-t",
+                "clients:0",
+                "-l",
+                &format!("\x1b[<0;{column};1M\x1b[<0;{column};1m"),
+            ]);
+            terminal.wait(
+                || selected(&terminal, 0, &rgb) == [index],
+                "tab mouse target moved after focus changes",
+                "clients:0",
+            );
+            assert!(terminal.capture("clients:0", false).starts_with(expected));
+        }
+    }
     terminal.tmux(&["send-keys", "-t", "clients:1", "M-2"]);
     sleep(1.0);
     assert_eq!(selected(&terminal, 1, &rgb), [2]);
@@ -153,7 +186,9 @@ fn main() {
     sleep(1.0);
     assert_eq!(selected(&terminal, 2, &rgb), [2]);
     assert!(terminal.capture("clients:2", false).contains("TWO"));
-    println!("two clients kept independent tab highlights across attach and reattach");
+    println!(
+        "three outlined tabs kept text and mouse targets stable at 80/120/180 columns; two clients kept independent highlights across attach and reattach"
+    );
 }
 
 #[cfg(test)]
