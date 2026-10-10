@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,728 code/configuration lines** and **6,101 documentation/text
+Yazelix owns **31,773 code/configuration lines** and **6,109 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -202,3 +202,4 @@ Managed Codex launches keep hooks in the pane process when supported; the
 capability and argument regression check account for 89 additional code lines.
 Managed Helix's pinned grammar snapshots keep Codeberg and SourceHut out of
 package evaluation and grammar builds.
+Delayed-EOF and native-key sidebar checks account for the additional test lines.

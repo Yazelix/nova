@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::{collections::HashSet, env, fs, path::Path};
+use std::{collections::HashSet, env, fs, path::Path, process::Stdio};
 mod tmux;
 use tmux::{Terminal, quote, sleep};
 
@@ -331,7 +331,7 @@ load_plugins { yazelix_pane_orchestrator; yzpp; }
 keybinds clear-defaults=true {
     normal { bind "Ctrl q" { Quit; }; bind "Ctrl p" { SwitchToMode "Pane"; }; }
     pane { bind "Ctrl p" { SwitchToMode "Normal"; }; bind "Ctrl y" { CloseFocus; }; }
-    shared_except "locked" { bind "Ctrl t" { GoToTab 2; }; bind "Ctrl r" { GoToTab 1; }; bind "Alt g" { MessagePlugin "yzpp" { name "toggle"; payload "proof"; }; }; bind "Alt Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }; }
+    shared_except "locked" { bind "Ctrl t" { GoToTab 2; }; bind "Ctrl r" { GoToTab 1; }; bind "Alt g" { MessagePlugin "yzpp" { name "toggle"; payload "proof"; }; }; bind "Alt Shift B" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_bottom_hints"; }; }; bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }; }
 }
 "#.replace("__HINT_PLUGIN__", &hint_plugin).replace("__SHELL__", shell).replace("__PLUGIN__", &plugin).replace("__POPUP_PLUGIN__", &popup_plugin).replace("__POPUP_PID__", root.join("popup.pid").to_str().unwrap());
     let ui = r#"
@@ -907,11 +907,52 @@ keybinds clear-defaults=true {
     }
     for columns in [1, 32] {
         c.action(&["hide-floating-panes"]);
-        c.pipe("toggle_sidebar");
+        let order = work_order(&c.panes(), 0);
+        let mut request = c
+            .terminal
+            .action_command(&[
+                "pipe",
+                "--plugin",
+                "yazelix_pane_orchestrator",
+                "--name",
+                "toggle_sidebar",
+                "--",
+                "toggle",
+            ])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        // Keep EOF pending until the plugin has observed the first toggle.
+        let input = request.stdin.take().unwrap();
         c.wait_for(|p| {
-            p.iter()
-                .any(|p| p.title == "sidebar" && p.tab_position == 0 && p.pane_columns == columns)
+            let state: serde_json::Value =
+                serde_json::from_str(&c.pipe_response("maintainer_debug_editor_state")).unwrap();
+            state["sidebar_is_collapsed"].as_bool() == Some(columns == 1)
+                && p.iter().any(|p| {
+                    p.title == "sidebar" && p.tab_position == 0 && p.pane_columns == columns
+                })
         });
+        drop(input);
+        let output = request.wait_with_output().unwrap();
+        assert!(output.status.success(), "{output:?}");
+        assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "ok");
+        for _ in 0..5 {
+            sleep(0.1);
+            let panes = c.panes();
+            assert!(
+                panes.iter().any(|p| p.title == "sidebar"
+                    && p.tab_position == 0
+                    && p.pane_columns == columns),
+                "CLI EOF toggled the sidebar again: {panes:?}"
+            );
+            assert_eq!(
+                work_order(&panes, 0),
+                order,
+                "sidebar toggle reordered panes"
+            );
+        }
         c.action(&["show-floating-panes"]);
         c.verify(true, popup_view);
     }
@@ -938,10 +979,14 @@ keybinds clear-defaults=true {
     c.verify(false, popup_view);
     c.tmux(&["send-keys", "-t", "proof:0", "C-p", "M-B"]);
     c.verify(true, popup_view);
-    c.pipe("toggle_sidebar");
-    c.verify(true, popup_view);
-    c.pipe("toggle_sidebar");
-    c.verify(true, popup_view);
+    for columns in [1, 32] {
+        c.tmux(&["send-keys", "-t", "proof:0", "M-H"]);
+        c.wait_for(|p| {
+            p.iter()
+                .any(|p| p.title == "sidebar" && p.tab_position == 0 && p.pane_columns == columns)
+        });
+        c.verify(true, popup_view);
+    }
     c.terminal.resize("proof:0", 100, 30);
     c.verify(
         true,

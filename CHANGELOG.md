@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- CLI sidebar toggles ignore the closing empty pipe message, preventing one
+  request from immediately reversing itself.
+
 - Standalone Nova Rio uses `nrio`, its own config directory and
   `NRIO_CONFIG_HOME`, and a distinct Nova Rio desktop/application identity.
   Full Nova packages consume the pinned fork privately and retain Nova-owned
