@@ -4,6 +4,13 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Standalone Nova Rio uses `nrio`, its own config directory and
+  `NRIO_CONFIG_HOME`, and a distinct Nova Rio desktop/application identity.
+  Full Nova packages consume the pinned fork privately and retain Nova-owned
+  Rio config. The no-Rio archive still uses an independently installed terminal.
+  The pinned fork also includes its existing fix for opacity banding in
+  explicitly colored Unicode half-block artwork.
+
 - Bottom-bar modifier badges and minor-mode labels use compact brace outlines,
   such as `{C-A}` and `{TAB}`, without interior padding.
 

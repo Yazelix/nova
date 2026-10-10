@@ -38,6 +38,40 @@ their exact immutable packages. Their running top bars identify that package as
 and `yzx help` on every channel. Packages do not install a `nova` command, so
 Panic Nova and other applications can retain their own executable names.
 
+## Nova Rio beside upstream Rio
+
+Full Nova packages select their exact Nova Rio dependency privately. They do
+not install a `rio` or `nrio` command on PATH. Upstream Rio can remain installed.
+
+For a separately installed no-Rio archive, install the standalone fork:
+
+```sh
+nix profile add github:Yazelix/nova-rio/edge#nrio
+```
+
+Home Manager consumers add the child flake's
+`packages.${pkgs.stdenv.hostPlatform.system}.nrio` to `home.packages`, leaving
+upstream Rio and `programs.rio` independent. Pin the child revision in the lock
+file. The fork overlay adds `pkgs.nrio` and does not replace `pkgs.rio`.
+
+`nrio` uses `~/.config/nrio/config.toml` (or `$XDG_CONFIG_HOME/nrio/config.toml`
+on Linux). `NRIO_CONFIG_HOME` overrides that directory; upstream
+`RIO_CONFIG_HOME` does not affect the fork. Set the native shell configuration
+to the installed archive launcher, using an absolute path:
+
+```toml
+[shell]
+program = "/absolute/path/to/archive/bin/yzx"
+args = ["enter"]
+```
+
+The Linux desktop entry is **Nova Rio**, with ID
+`com.yazelix.nova-rio.desktop`, command `nrio`, and its own icon/app identity.
+The macOS bundle is `NovaRio.app`, with ID `com.yazelix.nova-rio` and `nrio`
+URL scheme. Upstream configuration is not copied or migrated. The terminal
+capability names remain Rio's. The fork's Nix package requires Nix; this does
+not make Rio part of the no-Rio archive or promise a portable Rio download.
+
 ## Package variants
 
 Package names follow `yazelix[-no-rio][-no-helix][-no-yazi]`:

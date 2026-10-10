@@ -245,7 +245,7 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
         );
     if graphical {
         command.env(
-            "RIO_CONFIG_HOME",
+            "NRIO_CONFIG_HOME",
             runtime.rio_config.parent().expect("Rio config directory"),
         );
     }

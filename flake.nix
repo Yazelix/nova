@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rio = {
-      url = "github:Yazelix/nova-rio/2ad2987d0580855393667651ce1d22f094901a23";
+      url = "github:Yazelix/nova-rio/aead5c08d1d5b8396fedf1038b609144b93cbe4c";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zellijSource = {
@@ -180,7 +180,7 @@
         ];
       };
     rioPackageFor = pkgs: let
-      rioPackage = rio.packages.${pkgs.stdenv.hostPlatform.system}.rio.overrideAttrs (_: {
+      rioPackage = rio.packages.${pkgs.stdenv.hostPlatform.system}.nrio.overrideAttrs (_: {
         CARGO_BUILD_JOBS = "1";
         CARGO_PROFILE_RELEASE_LTO = "false";
         CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "16";
@@ -196,8 +196,8 @@
           paths = [rioPackage];
           nativeBuildInputs = [pkgs.makeWrapper];
           postBuild = ''
-            rm "$out/bin/rio"
-            makeWrapper "${rioPackage}/bin/rio" "$out/bin/rio" \
+            rm "$out/bin/nrio"
+            makeWrapper "${rioPackage}/bin/nrio" "$out/bin/nrio" \
               --set-default VK_ADD_DRIVER_FILES "${pkgs.mesa}/share/vulkan/icd.d"
           '';
         };
@@ -874,7 +874,7 @@
             export YZX_RIO_INCLUDED=${if withRio then "1" else "0"}
             YZX_RIO=${
               if withRio
-              then ownedShell "${rioPackage}/bin/rio" "libexec/yazelix/rio"
+              then ownedShell "${rioPackage}/bin/nrio" "libexec/yazelix/rio"
               else "''"
             }
             export YZX_RIO
@@ -984,7 +984,7 @@
           yzxShell = "${yzxShell}/bin/yzx-shell";
           yzxEnvSupervisor = "${yzxEnvSupervisor}/bin/yzx-env-supervisor";
           zellij = "${yzxZellij}/bin/yzx-zellij";
-          rio = if withRio then "${rioPackage}/bin/rio" else "";
+          rio = if withRio then "${rioPackage}/bin/nrio" else "";
           layout = "${layout}/layout.kdl";
           layoutTemplate = "${./defaults/zellij/layout.kdl}";
           layoutSwapTemplate = "${./defaults/zellij/layout.swap.kdl}";
@@ -1197,7 +1197,7 @@
             ''
             + pkgs.lib.optionalString withDesktop ''
               install -d "$out/share/icons/hicolor/scalable/apps"
-              ln -s ${rioPackage}/share/icons/hicolor/scalable/apps/rio.svg \
+              ln -s ${rioPackage}/share/icons/hicolor/scalable/apps/nrio.svg \
                 "$out/share/icons/hicolor/scalable/apps/yzx.svg"
             '';
           meta.platforms = supportedSystems;
@@ -1798,11 +1798,14 @@
         touch "$out"
       '';
       rio_contracts = pkgs.runCommand "yzx-rio-contracts" {} ''
+        test -e ${rio.checks.${system}.coexistence}
         grep -Fx ${rioPackage} ${yzxClosure}/store-paths
-        ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "grep -Fx ${pkgs.mesa} ${yzxClosure}/store-paths && grep -Fq VK_ADD_DRIVER_FILES ${rioPackage}/bin/rio && ! grep -Fq VK_ICD_FILENAMES ${rioPackage}/bin/rio"}
+        ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "grep -Fx ${pkgs.mesa} ${yzxClosure}/store-paths && grep -Fq VK_ADD_DRIVER_FILES ${rioPackage}/bin/nrio && ! grep -Fq VK_ICD_FILENAMES ${rioPackage}/bin/nrio"}
         ! grep -E '/[0-9a-z]{32}-(mars|yazelix[-_]cursors)(-|$)' ${yzxClosure}/store-paths
-        ${rioPackage}/bin/rio --help | grep -F -- '--theme-mode <THEME_MODE>'
-        ${rioPackage}/bin/rio --config-editor < ${yzx}/share/yazelix/rio/config.toml > inventory.toml
+        test ! -e ${rioPackage}/bin/rio
+        test -f ${rioPackage}/share/applications/com.yazelix.nova-rio.desktop
+        ${rioPackage}/bin/nrio --help | grep -F -- '--theme-mode <THEME_MODE>'
+        ${rioPackage}/bin/nrio --config-editor < ${yzx}/share/yazelix/rio/config.toml > inventory.toml
         ${runtimeChecks}/bin/nova-rio-config-check inventory.toml ${yzx}/share/yazelix/rio/config.toml
         test -x ${yzx}/bin/yzx
         test -f ${yzx}/share/yazelix/rio/config.toml
@@ -1831,7 +1834,7 @@
           test "$(${pkgs.jq}/bin/jq -r .rio_revision "$package/share/yazelix/runtime_identity.json")" = null
           ! grep -Fx ${rioPackage} "$closure"
           ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux "! grep -Fx ${pkgs.mesa} \"$closure\""}
-          ! grep -E '/[0-9a-z]{32}-(nova-rio|rio-terminfo)(-|$)' "$closure"
+          ! grep -E '/[0-9a-z]{32}-(nova-rio|nrio-terminfo|rio-terminfo)(-|$)' "$closure"
 
           config_ui="$(${pkgs.gnused}/bin/sed -n 's/.*command "\([^"]*yzx-config-ui\)".*/\1/p' "$package/share/yazelix/config.kdl" | ${pkgs.coreutils}/bin/head -n 1)"
           grep -Fq 'export YZX_RIO_INCLUDED=0' "$config_ui"

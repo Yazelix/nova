@@ -484,7 +484,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "/bin/anima",
         "/bin/ya",
         "/bin/yzx-zellij",
-        "/bin/rio",
+        "/bin/nrio",
         "tokenusage",
         "--theme-mode",
         "--project-rio-appearance",
@@ -2169,10 +2169,10 @@ fn expect_rio_config(yzx: &Path) {
     expect_contains_all! {
         &launcher, "runtime Rio config fragment";
         "YAZELIX_CONFIG_HOME",
-        "RIO_CONFIG_HOME",
+        "NRIO_CONFIG_HOME",
         "--app-id",
         "--theme-mode",
-        "/bin/rio",
+        "/bin/nrio",
     }
 
     let temp = TempDir::new();
