@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,791 code/configuration lines** and **6,122 documentation/text
+Yazelix owns **31,791 code/configuration lines** and **6,173 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -173,6 +173,7 @@ The shared package-root owner, managed-tool bindings, watcher ownership and
 relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
+It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
 The native startup patch retains background permission callbacks until the
 first client connects, then replays them.
 The isolated [mouse selection patch](prototypes/zellij-distribution/zellij-mouse-selection.patch)
