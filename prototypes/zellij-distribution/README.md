@@ -1,19 +1,17 @@
 # Nova Zellij distribution
 
 Edge builds this small distribution from the merged [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
-at upstream commit `81f56e1aed4e17b822af5cb382a8f524e35f3eae`. It embeds
+at upstream commit `333d7898a840314e41d3cc9d2a264a1b9732bb7b`. It embeds
 Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 
-The isolated [`pane-order patch`](zellij-pane-order.patch) corrects upstream
-`81f56e1` tiled-layout matching. After matching explicit commands and plugins,
-remaining panes retain their relative logical order in the remaining slots;
-new panes follow existing panes. This prevents a returning bottom-hint slot
-from rotating work panes. Nix applies it to the vendored `zellij-server` crate;
-the upstream source pin and plugin API remain unchanged. Remove the patch when
-upstream preserves the same order. The packaged bottom-hint check exercises
-manual rearrangements, both work layouts, background tabs, floating popups and
-new-pane placement when updating the patch or upstream pin.
+Upstream [PR #5687](https://github.com/zellij-org/zellij/pull/5687) preserves
+relative pane order when reapplying tiled layouts. The isolated
+[`background startup patch`](zellij-background-startup.patch) retains startup
+callbacks until the first client connects, then replays them.
+Drop it when upstream preserves pending events across client registration.
+The bottom-hint check covers manual rearrangements, stacked and split work areas,
+background tabs, floating popups and new-pane placement.
 
 `nova-zjhints` is [zjhints v0.5.0](https://github.com/myah-mitchell/zjhints/releases/tag/v0.5.0)
 at `709d56292217920a5b7e2702302cd66b60ed6477` with the isolated
@@ -81,7 +79,7 @@ feedback are omitted.
 
 Keep `collapse_when_empty false` in Nova's bottom-hints template. zjhints' tile
 fork `cb9e59fd3481b6d7becf432db5ae65559ad4dfc4` encodes `SetSelfCollapsed`
-as command 230 with payload field 173; native `81f56e1` assigns those IDs to
+as command 230 with payload field 173; native Zellij assigns those IDs to
 `ApplyFloatingSwapLayout`. The pane orchestrator owns session-wide visibility.
 Recheck both protocol definitions before changing either pin or enabling
 collapse. This incompatibility does not establish the cause of reported pane

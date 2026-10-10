@@ -85,14 +85,14 @@ impl Check {
         self.terminal.tmux(args)
     }
     fn panes(&self) -> Vec<Pane> {
-        serde_json::from_str(&self.action(&["list-panes", "--all", "--json"])).unwrap()
+        self.wait_for(|_| true)
     }
 
     #[track_caller]
     fn wait_for(&self, mut check: impl FnMut(&[Pane]) -> bool) -> Vec<Pane> {
         let mut last = Vec::new();
         let mut error = String::new();
-        for _ in 0..100 {
+        for _ in 0..200 {
             let output = self
                 .terminal
                 .action_command(&["list-panes", "--all", "--json"])
@@ -957,6 +957,7 @@ keybinds clear-defaults=true {
         c.verify(true, popup_view);
     }
     let idle = root.join("idle-popup.output");
+    fs::write(&idle, "").unwrap();
     sleep(0.6);
     c.tmux(&[
         "pipe-pane",

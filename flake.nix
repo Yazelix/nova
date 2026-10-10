@@ -23,7 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zellijSource = {
-      url = "github:zellij-org/zellij/81f56e1aed4e17b822af5cb382a8f524e35f3eae";
+      url = "github:zellij-org/zellij/333d7898a840314e41d3cc9d2a264a1b9732bb7b";
       flake = false;
     };
     yazelixHelix = {
@@ -729,9 +729,9 @@
             pname = "nova-zellij-distribution";
             version = "0.1.0";
             src = ./prototypes/zellij-distribution;
-            hash = "sha256-umTpH0bQZ4qMFMLCDUOdQYFsxdCyz8NtScbHANx3/sE=";
+            hash = "sha256-MDnAwJ2hGIzOvItk55ACuWX5+NFCjzhVG1FhaWKQKaU=";
           };
-          patches = [./prototypes/zellij-distribution/zellij-pane-order.patch];
+          patches = [./prototypes/zellij-distribution/zellij-background-startup.patch ./prototypes/zellij-distribution/zellij-mouse-selection.patch];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
@@ -2051,7 +2051,7 @@
       bottom_hints = pkgs.runCommand "nova-bottom-hints-check" {
         nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
       } ''
-        ${pkgs.coreutils}/bin/timeout --kill-after=5s 90s ${runtimeChecks}/bin/nova-bottom-hints-check ${yzx} ${pkgs.bash}/bin/bash
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 180s ${runtimeChecks}/bin/nova-bottom-hints-check ${yzx} ${pkgs.bash}/bin/bash
         touch "$out"
       '';
       attached_tab_focus = pkgs.runCommand "nova-attached-tab-focus-check" {

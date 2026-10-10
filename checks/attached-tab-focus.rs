@@ -175,6 +175,11 @@ fn main() {
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-2"]);
     sleep(0.5);
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-1"]);
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [1],
+        "first client never returned to its own tab",
+        "clients:0",
+    );
     for delay in [0.1, 0.3, 0.5, 1.0] {
         sleep(delay);
         assert_eq!(selected(&terminal, 0, &rgb), [1]);
@@ -191,7 +196,11 @@ fn main() {
     terminal.tmux(&["new-window", "-t", "clients", "-n", "reattached", &attach]);
     wait_tabs(&terminal, 2);
     terminal.tmux(&["send-keys", "-t", "clients:2", "M-2"]);
-    sleep(1.0);
+    terminal.wait(
+        || selected(&terminal, 2, &rgb) == [2],
+        "reattached client never selected its requested tab",
+        "clients:2",
+    );
     assert_eq!(selected(&terminal, 2, &rgb), [2]);
     assert!(terminal.capture("clients:2", false).contains("TWO"));
     println!(

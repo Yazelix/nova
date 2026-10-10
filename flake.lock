@@ -745,11 +745,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791644349,
-        "narHash": "sha256-Zv7NXQt0s9z9uuvfokqo/Yu47T6W8aNrs5YbAi9g8us=",
+        "lastModified": 1791663032,
+        "narHash": "sha256-uNj+D7UgtOrUP5vIwP4H6ok5FdA/EeDrw5vMiZINjfQ=",
         "owner": "Yazelix",
         "repo": "zellij-pane-orchestrator",
-        "rev": "031a1152c2900f79e74a84462acec31d1fc64132",
+        "rev": "0a254ca60da4eb7989671dd17697b564b105b473",
         "type": "github"
       },
       "original": {
@@ -826,17 +826,17 @@
     "zellijSource": {
       "flake": false,
       "locked": {
-        "lastModified": 1790234780,
-        "narHash": "sha256-w5huFL7qAZ15zzoKlntJpp8m+PV+q7CJ5O4JRLJ65uU=",
+        "lastModified": 1791555287,
+        "narHash": "sha256-rwv6KIuDt0ZOQ52t38JhUmSXV4xaD48DzxfDV4Klt9g=",
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "81f56e1aed4e17b822af5cb382a8f524e35f3eae",
+        "rev": "333d7898a840314e41d3cc9d2a264a1b9732bb7b",
         "type": "github"
       },
       "original": {
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "81f56e1aed4e17b822af5cb382a8f524e35f3eae",
+        "rev": "333d7898a840314e41d3cc9d2a264a1b9732bb7b",
         "type": "github"
       }
     },
@@ -897,11 +897,11 @@
         "rust-overlay": "rust-overlay_4"
       },
       "locked": {
-        "lastModified": 1790169836,
-        "narHash": "sha256-jX6hWM+o+39GzucvOPXcn6NPnLpkKre2scn3p+GNvIE=",
+        "lastModified": 1791657757,
+        "narHash": "sha256-H9155EIxD9XFAGrMtk7hwAbQmhhE3OiNuz3bX+G4bXU=",
         "owner": "Yazelix",
         "repo": "zjstatus",
-        "rev": "1ec6eaf0324e5cebb03a2d14a4cd4ffcbb525fe2",
+        "rev": "0338e5eaef2316ce6776237ae2c2d17cc4112859",
         "type": "github"
       },
       "original": {

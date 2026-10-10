@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,773 code/configuration lines** and **6,109 documentation/text
+Yazelix owns **31,791 code/configuration lines** and **6,122 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -167,12 +167,18 @@ mode-scoped labels hide secondary hints while preserving their bindings.
 Locked uses the same separator; installed checks verify key passthrough and unlocking.
 Modifier badges and minor-mode labels use compact brace outlines without interior padding.
 Native tab verification distinguishes foreground highlighting from styling and
-backgrounds, and checks stable text and mouse targets across three widths
-with visible and hidden floating panes.
+backgrounds, waits for requested highlights, and checks stable text and mouse
+targets across three widths with visible and hidden floating panes.
 The shared package-root owner, managed-tool bindings, watcher ownership and
 relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
+The native startup patch retains background permission callbacks until the
+first client connects, then replays them.
+The isolated [mouse selection patch](prototypes/zellij-distribution/zellij-mouse-selection.patch)
+lets a fresh tab click start a gesture after a tab switch redirected the release.
+Drop it when upstream accepts fresh presses during stale selection; the attached
+client check covers repeated clicks without delaying releases.
 The startup-picker check uses physical keys and waits for the intended tab's
 completed handoff or rejected-open notification before continuing.
 Its control commands share a writable isolated cache and short socket directory;
@@ -185,6 +191,7 @@ argument/output/exit status.
 The bottom-hint startup preference adds configuration, layout propagation and
 session regression checks; the native background controller keeps the choice
 across tab closure and consumes its initial value once.
+Snapshot polls allow 20s under CPU limits; idle captures handle zero terminal output.
 Product checks use Rust and a Bash archive probe. Python runs GitHub automation.
 Preserving the native scenarios
 increases check source lines while removing their Python build input.

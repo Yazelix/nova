@@ -1,0 +1,11 @@
+--- a/source-git-0/zellij-server-0.46.0/src/tab/mouse_handler.rs
++++ b/source-git-0/zellij-server-0.46.0/src/tab/mouse_handler.rs
+@@ -1725,7 +1725,7 @@
+             });
+         }
+ 
+-        if ctx.selecting_with_mouse {
++        if ctx.selecting_with_mouse && event.event_type != MouseEventType::Press {
+             return Ok(match event.event_type {
+                 MouseEventType::Motion if event.left => MouseAction::UpdateSelection {
+                     position: event.position,
