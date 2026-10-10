@@ -717,6 +717,47 @@ keybinds clear-defaults=true {
         ..base
     };
     c.verify(true, focused_work);
+    c.action(&["close-pane", "--pane-id", &third_work.to_string()]);
+    c.required_work.remove(&third_work);
+    for family in ["single_closed_no_hints", "single_open_no_hints"] {
+        c.action(&["apply-tiled-swap-layout", family]);
+        if !c
+            .panes()
+            .iter()
+            .any(|p| !p.is_plugin && p.id == second_work && p.is_focused)
+        {
+            c.action(&["focus-pane-id", &second_work.to_string()]);
+        }
+        let second_focused = View {
+            focus: Some(second_work),
+            ..base
+        };
+        let order = work_order(&c.verify(true, second_focused), 0);
+        for _ in 0..3 {
+            c.tmux(&["send-keys", "-t", "proof:0", "M-B"]);
+            assert_eq!(
+                work_order(&c.verify(false, second_focused), 0),
+                order,
+                "restoring hints reordered the two-pane stack"
+            );
+            c.pipe("toggle_bottom_hints");
+            c.verify(true, second_focused);
+        }
+    }
+    c.action(&[
+        "new-pane",
+        "--no-focus",
+        "--name",
+        "work-three",
+        "--",
+        shell,
+        "-c",
+        "printf WORK_THREE; sleep 9999",
+    ]);
+    let data = c.wait_for(|p| p.iter().any(|p| p.title == "work-three"));
+    let third_work = data.iter().find(|p| p.title == "work-three").unwrap().id;
+    c.required_work.insert(third_work);
+    c.action(&["focus-pane-id", &work.to_string()]);
     let order = work_order(&c.panes(), 0);
     c.pipe("toggle_bottom_hints");
     assert_eq!(

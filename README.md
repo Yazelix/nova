@@ -69,8 +69,8 @@ including `lucca` for `/home/lucca/`, without a special home icon or label.
 bottom hint rows throughout the current session. Hiding them frees one row for
 work panes; sidebar and layout switches retain the choice. New tabs inherit it,
 and fresh sessions start with hints visible unless `bottom_hints.start_hidden`
-is `true`. Attaching preserves the session's current choice. Toggling preserves pane order,
-including manually rearranged stacks and splits.
+is `true`. Attaching preserves the session's current choice. Toggling preserves pane order
+and work-pane focus, including manually rearranged stacks and splits.
 Open managed popups resize with the hint row, preserving their running process
 and keyboard focus.
 Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,791 code/configuration lines** and **6,173 documentation/text
+Yazelix owns **31,832 code/configuration lines** and **6,177 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -174,6 +174,7 @@ relocation check account for the runtime-root implementation's growth.
 Agent guidance covers full-launcher startup, socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
 It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
+Two-pane stack checks protect focus when restoring hints with either sidebar state.
 The native startup patch retains background permission callbacks until the
 first client connects, then replays them.
 The isolated [mouse selection patch](prototypes/zellij-distribution/zellij-mouse-selection.patch)

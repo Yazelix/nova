@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Restoring bottom hints preserves the focused work pane in a two-pane stack,
+  including when the sidebar is collapsed.
+
 - Packaged Zellij pins upstream `333d7898`, retiring Nova's pane-order patch.
   A minimal startup patch preserves background plugin permission callbacks,
   and the pane orchestrator ignores CLI EOF messages so queries answer once.
