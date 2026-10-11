@@ -2040,6 +2040,27 @@
         glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/accepted" bash ${./packaging/linux-relocate.sh}
         grep -E '^glibc [0-9]+\.[0-9]+$' "$TMPDIR/accepted/share/yazelix/native-inputs.txt"
         readelf -l "$TMPDIR/accepted/bin/coreutils" | grep -F '/lib64/ld-linux-x86-64.so.2'
+        test -n "$(find "$TMPDIR/accepted/lib/native" -type f -name '*.so*' -print -quit)"
+        mkdir failing-inspector
+        cat > failing-inspector/patchelf <<'EOF'
+        #!${pkgs.runtimeShell}
+        if [[ $1 == "$NOVA_FAIL_INSPECTION" ]]; then
+          if [[ $1 == --print-rpath ]]; then ${pkgs.patchelf}/bin/patchelf "$@"; fi
+          echo "injected inspection failure: $1" >&2
+          exit 42
+        fi
+        exec ${pkgs.patchelf}/bin/patchelf "$@"
+        EOF
+        chmod +x failing-inspector/patchelf
+        for operation in --print-needed --print-rpath; do
+          status=0
+          PATH="$PWD/failing-inspector:$PATH" NOVA_FAIL_INSPECTION="$operation" \
+            glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/rejected$operation" \
+            bash ${./packaging/linux-relocate.sh} > inspection.log 2>&1 || status=$?
+          echo "$operation exited $status (expected 42)"
+          test "$status" -eq 42
+          grep -F "injected inspection failure: $operation" inspection.log
+        done
         printf '%s\t%s\n' ${pkgs.ncurses.out} "$TMPDIR/missing-provider" > providers
         if libraryReplacements="$PWD/providers" glibcBaseline=2.39 out="$TMPDIR/missing" bash ${./packaging/linux-relocate.sh} > missing.log 2>&1; then
           echo 'ignored the selected library provider' >&2

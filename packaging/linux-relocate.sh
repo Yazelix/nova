@@ -21,8 +21,10 @@ for ((i=0; i<${#queue[@]}; i++)); do
         if [[ $headers == *DYNAMIC* ]]; then patchelf --remove-rpath "$binary"; fi
         continue
     fi
-    IFS=: read -ra dirs <<< "$(patchelf --print-rpath "$binary")"
-    mapfile -t needed < <(patchelf --print-needed "$binary")
+    rpath=$(patchelf --print-rpath "$binary")
+    needed_output=$(patchelf --print-needed "$binary")
+    IFS=: read -ra dirs <<< "$rpath"
+    mapfile -t needed <<< "$needed_output"
     search=
     for name in "${needed[@]}"; do
         case $name in

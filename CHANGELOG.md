@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Linux archive assembly stops when ELF dependency or search-path inspection fails,
+  including when the inspector emits output before failing.
+
 - Restoring bottom hints preserves the focused work pane in a two-pane stack,
   including when the sidebar is collapsed.
 

@@ -335,9 +335,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 31,832 |
-| Documentation and text | 6,177 |
-| Total | 38,009 |
+| Code and configuration | 31,855 |
+| Documentation and text | 6,182 |
+| Total | 38,037 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
@@ -390,7 +390,8 @@ artifact publication and installation remain separate work.
 The archive uses host Git with its configuration and hooks, retaining packaged
 Lazygit. This removes Git's helper translation and Perl/Python/Gettext copies;
 the Nix delivery retains its existing packaged Git.
-Linux CI checks the archive's glibc baseline and selected-library ownership.
+Linux CI checks the archive's glibc baseline, selected-library ownership and
+propagation of ELF inspection failures before or after output.
 
 Nova Rio coexistence adds package identity guards and consumes the child's
 independent-config check on Linux and Darwin; installation guidance records
