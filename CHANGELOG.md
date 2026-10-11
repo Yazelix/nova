@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Packaged Zellij uses upstream mouse-selection behavior; the cached startup
+  callback fix is the only native patch.
+
 - Linux archive assembly stops when ELF dependency or search-path inspection fails,
   including when the inspector emits output before failing.
 
@@ -14,7 +17,6 @@ User-visible runtime changes for Yazelix Nova live here.
   A minimal startup patch preserves background plugin permission callbacks,
   and the pane orchestrator ignores CLI EOF messages so queries answer once.
   The bar discards unused keymaps to prevent memory-limit crashes on attach.
-  Fresh tab clicks recover when an earlier tab switch redirected the release.
   Closed tabs retire their hint panes when pane snapshots arrive before tab metadata.
 
 - CLI sidebar toggles ignore the closing empty pipe message, preventing one

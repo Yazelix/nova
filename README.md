@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **31,855 code/configuration lines** and **6,182 documentation/text
+Yazelix owns **31,844 code/configuration lines** and **6,182 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Minor-mode hint formatting,
 native package tests and installed mode/exit coverage account for the hint
@@ -175,12 +175,8 @@ Agent guidance covers full-launcher startup, socket-path limits, cache isolation
 ordered-pane regressions and historical build artifact identity.
 It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
 Two-pane stack checks protect focus when restoring hints with either sidebar state.
-The native startup patch retains background permission callbacks until the
-first client connects, then replays them.
-The isolated [mouse selection patch](prototypes/zellij-distribution/zellij-mouse-selection.patch)
-lets a fresh tab click start a gesture after a tab switch redirected the release.
-Drop it when upstream accepts fresh presses during stale selection; the attached
-client check covers repeated clicks without delaying releases.
+The sole native Zellij patch retains background permission callbacks until the
+first client connects, then replays them. Mouse selection follows upstream behavior.
 The startup-picker check uses physical keys and waits for the intended tab's
 completed handoff or rejected-open notification before continuing.
 Its control commands share a writable isolated cache and short socket directory;

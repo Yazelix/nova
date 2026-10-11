@@ -6,10 +6,12 @@ Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 
 Upstream [PR #5687](https://github.com/zellij-org/zellij/pull/5687) preserves
-relative pane order when reapplying tiled layouts. The isolated
+relative pane order when reapplying tiled layouts. The sole native
 [`background startup patch`](zellij-background-startup.patch) retains startup
 callbacks until the first client connects, then replays them.
 Drop it when upstream preserves pending events across client registration.
+Mouse selection follows upstream, including the rare stale-selection case when
+the mouse is pressed in one tab and released in another.
 The bottom-hint check covers manual rearrangements, stacked and split work areas,
 background tabs, floating popups and new-pane placement.
 
