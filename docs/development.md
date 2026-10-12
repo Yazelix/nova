@@ -50,8 +50,9 @@ run. Equal latest update times or incomplete API results fail closed. The native
 macOS job and both build steps must succeed; a green idle scheduled run with
 skipped builds is invalid. A final refresh rejects a run changed during inspection.
 Logs and the job summary identify the accepted run URL, SHA, attempt and steps.
-Only this proof job adds `actions: read`; API errors and 60-second request deadlines
-fail the check. Ordinary CI runs the verifier's standard-library contract tests.
+Only this proof job adds `actions: read`; API errors retain GitHub's diagnostic,
+and 60-second request deadlines fail the check. Ordinary CI runs the verifier's
+standard-library contract tests.
 Three dependent Darwin jobs exercise the same reviewed override:
 
 1. `darwin-core` builds `yazelix-no-rio-no-helix-no-yazi` and publishes its closure.
@@ -372,9 +373,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 32,103 |
-| Documentation and text | 6,223 |
-| Total | 38,326 |
+| Code and configuration | 32,121 |
+| Documentation and text | 6,225 |
+| Total | 38,346 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

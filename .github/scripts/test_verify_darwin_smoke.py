@@ -1,7 +1,10 @@
 import copy
 import json
 import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import verify_darwin_smoke as proof
@@ -34,7 +37,7 @@ class DarwinSmokeContract(unittest.TestCase):
             f"{base}/workflows/darwin_package_smoke.yml": [workflow],
             runs_url: [{"total_count": 1, "workflow_runs": [run]}],
             jobs_url: [{"total_count": 1, "jobs": [job]}],
-            f"{base}/runs/10": [run],
+            f"{base}/runs/10": [copy.deepcopy(run)],
         }
 
         result = proof.verify(sha, fixture.__getitem__)
@@ -46,6 +49,7 @@ class DarwinSmokeContract(unittest.TestCase):
         # A native scheduled run is valid; its idle/no-op form is not.
         scheduled = copy.deepcopy(fixture)
         scheduled[runs_url][0]["workflow_runs"][0]["event"] = "schedule"
+        scheduled[f"{base}/runs/10"][0]["event"] = "schedule"
         proof.verify(sha, scheduled.__getitem__)
 
         for record, key, value in [
@@ -82,10 +86,8 @@ class DarwinSmokeContract(unittest.TestCase):
                     "run": data[runs_url][0]["workflow_runs"][0],
                     "job": data[jobs_url][0]["jobs"][0],
                     "step": data[jobs_url][0]["jobs"][0]["steps"][0],
+                    "refresh": data[f"{base}/runs/10"][0],
                 }
-                # The API refresh is an independent snapshot.
-                data[f"{base}/runs/10"] = [copy.deepcopy(run)]
-                records["refresh"] = data[f"{base}/runs/10"][0]
                 records[record][key] = value
                 with self.assertRaises((ValueError, KeyError, TypeError)):
                     proof.verify(sha, data.__getitem__)
@@ -159,6 +161,22 @@ class DarwinSmokeContract(unittest.TestCase):
                 run.side_effect = error
                 with self.assertRaises(subprocess.SubprocessError):
                     proof.github_api("repos/Yazelix/nova/actions/runs")
+
+        # Exercise the real CLI so captured child stderr cannot hide the cause.
+        with tempfile.TemporaryDirectory() as directory:
+            gh = Path(directory) / "gh"
+            gh.write_text("#!/bin/sh\n"
+                          "printf '%s\\n' 'gh: Resource not accessible by integration (HTTP 403)' >&2\n"
+                          "exit 1\n")
+            gh.chmod(0o755)
+            result = subprocess.run(
+                [sys.executable, "-B", proof.__file__, "a" * 40],
+                env={"PATH": directory}, capture_output=True, text=True, timeout=10,
+            )
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("Darwin smoke proof rejected", result.stderr)
+        self.assertIn("Resource not accessible by integration (HTTP 403)", result.stderr)
 
 
 if __name__ == "__main__":

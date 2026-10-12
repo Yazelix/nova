@@ -18,7 +18,7 @@ NATIVE_STEPS = (
 def github_api(endpoint):
     result = subprocess.run(
         ["gh", "api", "--hostname", "github.com", "--paginate", "--slurp", endpoint],
-        check=True, capture_output=True, text=True, timeout=60,
+        check=True, stdout=subprocess.PIPE, text=True, timeout=60,
     )
     return json.loads(result.stdout)
 
