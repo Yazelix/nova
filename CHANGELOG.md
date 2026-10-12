@@ -20,6 +20,12 @@ User-visible runtime changes for Yazelix Nova live here.
   Metadata and source inventories stop when directories cannot be read.
   Archives record component and private-library origins for source delivery.
   Source capture verifies its finished bytes before finalizing the output.
+  Offline asset preparation binds verified archives, complete source parts,
+  notices, a target manifest and checksums for release review.
+  Annotated version tags bind reviewed hashes to bounded provenance and
+  immutable draft/upload/publish automation with public installation checks.
+  A Nova-only read-only App checks immutable settings before draft creation
+  and publication; preparation and attestation do not receive its key.
 
 - Tab clicks recover when an earlier tab switch redirected the mouse release.
   The native attached-client check forces this sequence before rapid clicks.

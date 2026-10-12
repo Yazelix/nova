@@ -393,9 +393,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 33,544 |
-| Documentation and text | 7,141 |
-| Total | 40,685 |
+| Code and configuration | 34,520 |
+| Documentation and text | 7,280 |
+| Total | 41,800 |
 
 The tab performance report records local proofs. The existing tab-focus check
 covers full keymap reload and minor modes in two clients without adding a
@@ -413,6 +413,13 @@ additional release-review lines; both helpers reuse one graph traversal and bund
 Component declarations reuse the archive's command selection. Native-origin
 records and source selection/checks account for source-delivery LOC growth;
 the existing bundler verifies completed bytes before finalizing its output.
+Offline release preparation and archive/packet association checks account for
+additional tooling lines; publication and redistribution review stay explicit.
+Annotated-tag approval, exact-gate checks and bounded publication/provenance
+jobs account for release automation growth. Nix remains the artifact owner.
+A repository-scoped read-only App owns immutable-setting access; its key is
+limited to publication. Credential-routing and setting-change checks cover
+the boundary without adding another API client or package dependency.
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

@@ -1,0 +1,202 @@
+name: Portable Release
+
+on:
+  push:
+    tags: ['nova-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: portable-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository_id == '746026727' && (github.event_name == 'push' || contains(fromJSON('["refs/heads/edge","refs/heads/main","refs/heads/stable"]'), github.ref))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      tag: ${{ steps.assets.outputs.tag }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Require publication authority and gates before a tag build
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/publish_release.py preflight . "$GITHUB_REF_NAME" "$GITHUB_SHA"
+
+      - name: Free hosted runner space
+        run: sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/az
+
+      - uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          determinate: false
+          extra-conf: |
+            accept-flake-config = true
+            max-jobs = 1
+            cores = 2
+
+      - name: Build and install the exact Git-pinned archive
+        run: |
+          flake="git+file://$GITHUB_WORKSPACE?rev=$GITHUB_SHA"
+          output=$(nix build "$flake#yazelix-no-rio-archive" --out-link "$RUNNER_TEMP/archive-result" --print-out-paths --print-build-logs)
+          nix build "$flake#checks.x86_64-linux.archive_glibc_baseline" --no-link --print-build-logs
+          mkdir installed
+          tar --no-same-owner --same-permissions -xzf "$output"/*.tar.gz -C installed
+          python3 -B packaging/archive_metadata.py installed --release
+          jq --exit-status --arg sha "$GITHUB_SHA" '.revision == $sha' installed/share/yazelix/package.json
+          nix path-info --derivation "$output" > "$RUNNER_TEMP/archive-derivation"
+
+      - name: Prove the installed payload without Nix or the checkout
+        run: |
+          docker build --tag nova-archive-proof --file checks/linux-archive.Dockerfile checks
+          docker image inspect nova-archive-proof
+          docker run --rm --read-only --user 1000:1000 --cpus 2 --memory 1g --pids-limit 256 --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,exec,nosuid,size=256m,mode=1777 --mount "type=bind,src=$GITHUB_WORKSPACE/installed,dst=/opt/nova,readonly" --mount "type=bind,src=$GITHUB_WORKSPACE/checks/linux-archive.sh,dst=/check.sh,readonly" nova-archive-proof bash -c 'dpkg-query -W; bash /check.sh /opt/nova'
+
+      - name: Capture complete component sources and original language notices
+        run: |
+          drv=$(cat "$RUNNER_TEMP/archive-derivation")
+          nix derivation show --recursive "$drv" > "$RUNNER_TEMP/archive-graph.json"
+          python3 -B .github/scripts/runtime_sources.py "$RUNNER_TEMP/archive-graph.json" "$drv" installed "$RUNNER_TEMP/component-sources.tar.gz" --release
+          python3 -B .github/scripts/runtime_notices.py "$RUNNER_TEMP/archive-graph.json" "$drv" "$RUNNER_TEMP/language-runtime-notices.tar.gz" --realise
+
+      - name: Prepare assets and apply exact tag approval when publishing
+        id: assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(jq --raw-output .version installed/share/yazelix/package.json)
+          tag="nova-v$version"
+          archive=$(find "$RUNNER_TEMP/archive-result/" -maxdepth 1 -name '*.tar.gz')
+          python3 -B .github/scripts/release_assets.py installed "$archive" "$RUNNER_TEMP/component-sources.tar.gz" "$RUNNER_TEMP/language-runtime-notices.tar.gz" "$tag" assets
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            test "$tag" = "$GITHUB_REF_NAME"
+            python3 -B .github/scripts/publish_release.py approve assets "$tag" "$GITHUB_SHA"
+          fi
+          cat assets/nova-release.json >> "$GITHUB_STEP_SUMMARY"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: portable-assets
+          path: assets/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  attest:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: portable-assets
+          path: assets
+      - name: Verify prepared bytes before attestation
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          operation=verify
+          if [ "$GITHUB_EVENT_NAME" = push ]; then operation=check; fi
+          python3 -B .github/scripts/publish_release.py "$operation" assets "$TAG" "$GITHUB_SHA"
+      - name: Attest every delivered asset
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: assets/*
+          create-storage-record: false
+      - name: Preserve and verify provenance
+        env:
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir provenance
+          cp "$BUNDLE" provenance/provenance.sigstore.json
+          python3 -B .github/scripts/publish_release.py provenance assets "$TAG" "$GITHUB_SHA" --bundle provenance/provenance.sigstore.json --ref "$GITHUB_REF"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: portable-provenance
+          path: provenance/provenance.sigstore.json
+          retention-days: 1
+
+  publish:
+    needs: [prepare, attest]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: read
+      attestations: read
+    env:
+      TAG: ${{ needs.prepare.outputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: portable-assets
+          path: assets
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: portable-provenance
+          path: provenance
+      - name: Obtain a repository-scoped read-only settings token
+        id: guard
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.NOVA_RELEASE_GUARD_CLIENT_ID }}
+          private-key: ${{ secrets.NOVA_RELEASE_GUARD_PRIVATE_KEY }}
+          owner: Yazelix
+          repositories: nova
+          permission-administration: read
+      - name: Create draft, attach verified assets, then publish immutably
+        env:
+          NOVA_RELEASE_GUARD_TOKEN: ${{ steps.guard.outputs.token }}
+        run: python3 -B .github/scripts/publish_release.py publish assets "$TAG" "$GITHUB_SHA" --bundle provenance/provenance.sigstore.json
+      - name: Verify public downloads and their provenance
+        run: |
+          mkdir downloaded downloaded-provenance
+          for path in assets/* provenance/provenance.sigstore.json; do
+            name=$(basename "$path")
+            destination=downloaded
+            if [ "$name" = provenance.sigstore.json ]; then destination=downloaded-provenance; fi
+            curl --fail --location --retry 5 --retry-all-errors --retry-delay 5 --output "$destination/$name" "https://github.com/Yazelix/nova/releases/download/$TAG/$name"
+          done
+          python3 -B .github/scripts/publish_release.py verify downloaded "$TAG" "$GITHUB_SHA"
+          python3 -B .github/scripts/publish_release.py provenance downloaded "$TAG" "$GITHUB_SHA" --bundle downloaded-provenance/provenance.sigstore.json --ref "$GITHUB_REF"
+      - name: Prove the publicly downloaded installation
+        run: |
+          mkdir downloaded-installation
+          archive=$(jq --raw-output '.targets["x86_64-unknown-linux-gnu"].archive.name' downloaded/nova-release.json)
+          tar --no-same-owner --same-permissions -xzf "downloaded/$archive" -C downloaded-installation
+          python3 -B packaging/archive_metadata.py downloaded-installation --release
+          jq --exit-status --arg sha "$GITHUB_SHA" '.revision == $sha' downloaded-installation/share/yazelix/package.json
+          docker build --tag nova-archive-proof --file checks/linux-archive.Dockerfile checks
+          docker image inspect nova-archive-proof
+          docker run --rm --read-only --user 1000:1000 --cpus 2 --memory 1g --pids-limit 256 --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,exec,nosuid,size=256m,mode=1777 --mount "type=bind,src=$GITHUB_WORKSPACE/downloaded-installation,dst=/opt/nova,readonly" --mount "type=bind,src=$GITHUB_WORKSPACE/checks/linux-archive.sh,dst=/check.sh,readonly" nova-archive-proof bash -c 'dpkg-query -W; bash /check.sh /opt/nova'

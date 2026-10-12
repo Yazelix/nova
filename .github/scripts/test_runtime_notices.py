@@ -99,6 +99,30 @@ class RuntimeNoticesTests(unittest.TestCase):
                     runtime_notices.write(graph, "root.drv", output)
                 self.assertFalse(output.exists())
 
+    def test_realisation_finishes_before_notice_capture(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            graph, *archives = self.inputs(root)
+            original = {path: path.read_bytes() for path in archives}
+            for path in archives:
+                path.unlink()
+
+            def realise(*args, **kwargs):
+                for path, content in original.items():
+                    path.write_bytes(content)
+
+            output = root / "notices.tar.gz"
+            with patch.object(runtime_notices, "STORE", root), patch.object(
+                    runtime_notices.subprocess, "run", side_effect=realise) as preparation:
+                runtime_notices.write(graph, "root.drv", output, realise=True)
+                with self.assertRaises(FileExistsError):
+                    runtime_notices.write(graph, "root.drv", output, realise=True)
+                self.assertEqual(preparation.call_count, 1)
+            with tarfile.open(output) as archive:
+                manifest = json.load(archive.extractfile("SOURCE-MANIFEST.json"))
+            self.assertEqual({r["archive"]: r["sha256"] for r in manifest["notice_archives"]},
+                             {p.name: hashlib.sha256(b).hexdigest() for p, b in original.items()})
+
 
 if __name__ == "__main__":
     unittest.main()

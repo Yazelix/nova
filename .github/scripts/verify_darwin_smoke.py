@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import os
 import re
 import subprocess
 import sys
@@ -15,10 +16,11 @@ NATIVE_STEPS = (
 )
 
 
-def github_api(endpoint):
+def github_api(endpoint, token=None):
     result = subprocess.run(
         ["gh", "api", "--hostname", "github.com", "--paginate", "--slurp", endpoint],
         check=True, stdout=subprocess.PIPE, text=True, timeout=60,
+        env=os.environ | {"GH_TOKEN": token} if token is not None else None,
     )
     return json.loads(result.stdout)
 

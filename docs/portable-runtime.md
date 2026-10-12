@@ -364,6 +364,9 @@ Source delivery must cover the exact selected programs and libraries, Nova's
 packaging changes, pinned recipes, patches and vendor inputs. A successful
 library replacement probe alone cannot establish complete source delivery.
 
+Hosted capture uses `--realise` to realise and GC-root those selected original
+notice archives before reading them. Offline capture leaves the store unchanged.
+
 ## NPR-SOURCES-001: component origins and source capture
 
 The Linux archive records its assembly selection in
@@ -407,6 +410,124 @@ The source manifest retains `redistribution_review: required`. Origin selection
 is not license clearance: applicable notices, static/embedded coverage and
 source/relink obligations must be reviewed for the exact published contents.
 The separate Rust/Go notice helper remains a conservative review supplement.
+
+## Release asset preparation
+
+The offline preparer consumes an installed candidate, its original runtime
+archive, the complete component source kit and its language-runtime notice
+packet. It prepares review files without publishing:
+
+```nu
+python3 -B .github/scripts/release_assets.py /path/to/installed /path/to/runtime.tar.gz /path/to/component-sources.tar.gz /path/to/language-runtime-notices.tar.gz nova-v1.3.0 /path/to/new-assets
+```
+
+The tag must match the packaged version. Dirty candidates fail. The preparer
+copies inputs into a private temporary directory before verification, compares
+every runtime archive member with the verified installation, and verifies the
+complete source and notice packets. Their package identity, archive derivation
+and language-runtime providers must agree. Existing destinations are refused.
+
+`nova-release.json` schema 1 maps the supported target to its archive name,
+size, SHA-256, intended immutable download URL, variant, host compatibility,
+entrypoints and file index. The source record lists ordered 1,900-MiB parts,
+individual hashes, and the reconstructed archive's size and hash. Parts preserve
+the complete source archive and stay below GitHub's strict 2-GiB asset limit.
+The directory also contains `SHA256SUMS`, the notice packet and
+`SOURCE-DELIVERY.md`. Temporary preparation needs space for both whole source
+inputs and their delivery parts. A prepared URL does not imply publication.
+
+Redistribution review remains pending in the manifest; GitHub owns release exposure.
+Preparation supplies no GitHub OIDC provenance or immutable-release guarantee.
+`SOURCE-DELIVERY.md` gives the exact-revision Nix archive build command and maps
+the preserved Nova recipes, component materials and build flags. It describes
+testing a dynamic replacement in a private runtime copy; static and embedded
+changes require rebuilding their consuming program. Nix is a build requirement,
+not a portable-runtime requirement. These instructions do not claim an offline
+source rebuild or complete replacement/relink clearance.
+Native/static/embedded notices, corresponding-source/build instructions and
+applicable replacement/relink obligations remain publication gates. The current
+399,098,483-byte runtime and 3,358,139,438-byte source kit provide a review
+baseline; growth above 10% in either requires explanation before approval.
+
+## NOVA-RELEASE-ASSETS-001: reviewed tag and publication
+
+`Portable Release` prepares the existing Linux no-Rio flake artifact, installs
+those exact bytes and runs `checks/linux-archive.sh` in an unprivileged, read-only
+Ubuntu 24.04 container without Nix or the checkout. It captures complete sources
+and notices through their existing owners. Manual dispatch on Edge/Main/Stable
+is a dry run: it uploads `portable-assets` and `portable-provenance` for one day
+and creates no release. Download review assets before that retention expires.
+
+An annotated `nova-v<version>` tag records approval as a JSON tag message:
+
+```json
+{
+  "contract": "NOVA-RELEASE-ASSETS-001",
+  "revision": "<full reviewed commit SHA>",
+  "assets": {
+    "runtime": "<targets.x86_64-unknown-linux-gnu.archive.sha256>",
+    "sources": "<sources.sha256, covering the complete reconstructed archive>",
+    "language_runtime_notices": "<language_runtime_notices.sha256>"
+  },
+  "redistribution_review": "required",
+  "installed_artifact_review": "required",
+  "review": ""
+}
+```
+
+Replace the hashes from that revision's `nova-release.json`. Set both reviews
+to `approved` only after reviewing the exact files. The review text records the
+native/static/embedded notice decision, applicable corresponding-source/build
+instructions and replacement/relink evidence, installed proof and any explained
+size growth. This template deliberately fails approval. Source manifests retain
+their original capture state; `RELEASE-APPROVAL.json` records the later decision
+and annotated tag identity. Original license scopes remain authoritative.
+
+Push the authorized annotated tag only after the exact revision belongs to Main
+and its Linux CI, both cache publication jobs and Version Gate succeed. A tag
+push triggers publication; choosing this approval format does not authorize a
+tag, public release, channel promotion or repository settings change.
+
+The workflow has three bounded jobs: read-only preparation (120 minutes), OIDC
+attestation (20 minutes), and tag-only publication (45 minutes). GitHub scopes
+permissions to jobs, so build processes receive neither release-write nor OIDC
+credentials. There are no fork, pull-request, schedule or variant-matrix builds,
+new caches, or long-lived provenance signing keys. Global concurrency serializes
+publication. The pinned GitHub attestation action signs every asset, including
+the manifest, approval and checksums; a separate Sigstore bundle accompanies
+them. The bundle is verified cryptographically rather than included in its own
+attested checksum inventory.
+
+Publication requires GitHub's immutable-release setting, the annotated approval
+and all exact-revision gates. The setting's API requires Administration read
+access, which the ordinary workflow token lacks. A private GitHub App installed
+only on `Yazelix/nova` supplies Administration read and implicit Metadata read;
+it cannot change the setting or write releases. Store its client ID in the
+`NOVA_RELEASE_GUARD_CLIENT_ID` Actions variable and its private key in the
+`NOVA_RELEASE_GUARD_PRIVATE_KEY` Actions secret.
+
+Only the publication job receives the key. The pinned
+`actions/create-github-app-token` action requests a Nova-only token with explicit
+Administration read access. Tokens expire after one hour and the action revokes
+them when the job finishes. Preparation and attestation use the ordinary workflow
+token. Publication checks the immutable setting before creating a draft and
+again immediately before publishing; missing credentials, API failures or a
+disabled setting stop it. Enabling immutable releases remains a separate
+maintainer action before the first portable publication.
+
+The publisher creates a draft, uploads all assets without replacement, checks
+their server-reported sizes and SHA-256 digests, repeats approval/gate checks,
+then publishes and requires GitHub to report an immutable release. Existing
+releases, including interrupted drafts, are refused; inspect an interrupted
+draft explicitly instead of retrying an overwrite. Publication does not change
+the Latest designation or any Git channel. Public URLs are downloaded again,
+checksums and workflow/ref/revision-bound provenance are verified, and the
+downloaded installation runs the same fresh no-Nix proof. A failure after
+publication is reported; automation never deletes or rewrites a release.
+
+Source capture is not a generated SPDX/CycloneDX SBOM. No existing generator
+owns that format here, so this slice adds no SBOM framework. The source manifest,
+component origins and build graph remain inspectable coverage evidence.
 
 ## NPR-STATE-001: package and user ownership
 

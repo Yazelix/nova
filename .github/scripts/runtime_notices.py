@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import tarfile
 import tempfile
 from pathlib import Path, PurePosixPath
@@ -40,7 +41,9 @@ def collect(source, directory, required):
     return {"archive": source.name, "sha256": digest, "notices": sorted(found)}
 
 
-def write(document, root, output):
+def write(document, root, output, realise=False):
+    if output.exists() or output.is_symlink():
+        raise FileExistsError(output)
     selected = reachable(document, root)
     environments = {key: d["env"] | d.get("structuredAttrs", {}) for key, d in selected.items()}
     providers, archives = [], {}
@@ -79,6 +82,9 @@ def write(document, root, output):
         providers.append(provider | {"name": name, "derivation": key, "archive": source.name})
     if not providers:
         raise ValueError("no language-runtime providers selected")
+    if realise:
+        subprocess.run(["nix-store", "--realise", "--add-root", str(output.absolute()) + ".inputs",
+                        "--indirect", *map(str, sorted(archives))], check=True, stdout=subprocess.DEVNULL)
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary) / "language-runtime-notices"
         records = [collect(source, directory, required) for source, required in sorted(archives.items())]
@@ -95,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("graph", type=Path, help="nix derivation show --recursive JSON")
     parser.add_argument("root", help="exact archive derivation path")
     parser.add_argument("output", type=Path, help="new .tar.gz destination")
+    parser.add_argument("--realise", action="store_true", help="realise and GC-root selected notice inputs before capture")
     args = parser.parse_args()
-    write(json.loads(args.graph.read_text()), args.root, args.output)
+    write(json.loads(args.graph.read_text()), args.root, args.output, args.realise)
     print("Preserved language-runtime notices; redistribution review remains required.")
