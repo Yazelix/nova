@@ -83,25 +83,35 @@ class RuntimeSourcesTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             store = Path(temporary) / "store"
             vendor = store / "vendor"
-            vendor.mkdir(parents=True)
+            store.mkdir()
             crate = store / "crate-source"
-            (vendor / "dependency").symlink_to(crate)
             standalone = store / "fix.patch"
             standalone.write_text("original patch\n")
             sources = {vendor.name: vendor, standalone.name: standalone}
+            graph = {"vendor.drv": {"env": {}, "outputs": {
+                "out": {"path": vendor.name}, "dev": {"path": "unused-output"}}},
+                "crate.drv": {"env": {"out": str(crate)}, "outputs": {"out": {"hash": "fixed"}}}}
             calls = []
 
             def realize(command, **kwargs):
                 calls.append(command)
-                if str(crate) in command:
+                if str(store / "vendor.drv") + "!out" in command:
+                    vendor.mkdir()
+                    (vendor / "dependency").symlink_to(crate)
+                elif str(store / "crate.drv") + "!out" in command:
                     crate.mkdir()
                     (crate / "LICENSE").write_text("original crate notice\n")
+                else:
+                    self.fail("an unavailable generated source needs its producing derivation")
+                self.assertNotIn(str(store / "vendor.drv") + "!dev", command)
 
             output = Path(temporary) / "sources.tar.gz"
-            with patch.object(runtime_sources, "STORE", store), patch.object(runtime_sources.subprocess, "run", realize):
-                runtime_sources.prepare(sources, output)
+            with patch.object(runtime_sources, "STORE", store), patch.object(grammar_sources, "STORE", store), patch.object(
+                    grammar_sources.subprocess, "run", realize):
+                runtime_sources.prepare(sources, output, graph)
             self.assertEqual(set(sources), {"vendor", "crate-source", "fix.patch"})
             self.assertEqual(len(calls), 2)
+            self.assertIn(str(standalone), calls[0])
             self.assertNotEqual(calls[0][calls[0].index("--add-root") + 1], calls[1][calls[1].index("--add-root") + 1])
             grammar_sources.bundle({}, sources, output)
             with tarfile.open(output) as archive:

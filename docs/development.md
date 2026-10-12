@@ -393,9 +393,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,529 |
-| Documentation and text | 7,288 |
-| Total | 41,817 |
+| Code and configuration | 34,559 |
+| Documentation and text | 7,297 |
+| Total | 41,856 |
 
 The tab performance report records local proofs. The existing tab-focus check
 observes keymap reload and independent modes in two clients without adding a
@@ -413,6 +413,8 @@ additional release-review lines; both helpers reuse one graph traversal and bund
 Component declarations reuse the archive's command selection. Native-origin
 records and source selection/checks account for source-delivery LOC growth;
 the existing bundler verifies completed bytes before finalizing its output.
+Source and notice preparation share recorded-output realization; linked-vendor
+and notice checks cover missing inputs without adding another source inventory.
 Offline release preparation and archive/packet association checks account for
 additional tooling lines; publication and redistribution review stay explicit.
 Annotated-tag approval, exact-gate checks and bounded publication/provenance

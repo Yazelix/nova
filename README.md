@@ -152,7 +152,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,529 code/configuration lines** and **7,288 documentation/text
+Yazelix owns **34,559 code/configuration lines** and **7,297 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -167,6 +167,7 @@ missing inputs and reproducibility across umasks.
 The source inventory requires redistribution review before publication.
 Archive assembly records copied and embedded components and private-library
 origins; source capture checks the completed archive before finalizing it.
+Source and notice inputs rebuild from their recorded derivations when absent.
 Offline asset preparation binds the verified runtime, complete source parts,
 notice packet, manifest and checksums without granting publication clearance.
 Reviewed annotated tags bind release approval to those exact hashes;

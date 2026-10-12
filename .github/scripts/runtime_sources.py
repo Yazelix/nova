@@ -4,13 +4,12 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "packaging"))
 from archive_metadata import verify
-from grammar_sources import STORE, bundle, reachable, scan_error
+from grammar_sources import STORE, bundle, reachable, realise_inputs, scan_error
 
 
 def store_references(value):
@@ -100,12 +99,11 @@ def inventory(document, root, declaration, origins, identity):
             "build_graph": graph}, sources
 
 
-def prepare(sources, output):
+def prepare(sources, output, graph):
     pending, batch = set(sources), 0
     while pending:
-        subprocess.run(["nix-store", "--realise", "--add-root", str(output.absolute()) + f".inputs-{batch}",
-                        "--indirect", *map(str, sorted(sources[name] for name in pending))],
-                       check=True, stdout=subprocess.DEVNULL)
+        realise_inputs((sources[name] for name in pending),
+                       Path(str(output.absolute()) + f".inputs-{batch}"), graph)
         found = set()
         for name in sorted(pending):
             if not sources[name].is_dir():
@@ -139,6 +137,6 @@ if __name__ == "__main__":
     origins = (directory / "archive-origins.txt").read_text().splitlines()
     manifest, sources = inventory(json.loads(args.graph.read_text()), args.archive_derivation,
                                   declaration, origins, identity)
-    prepare(sources, args.output)
+    prepare(sources, args.output, manifest["build_graph"])
     bundle(manifest, sources, args.output)
     print(f"Verified {len(manifest['components'])} component records and {len(sources)} source roots; redistribution review required.")

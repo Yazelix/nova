@@ -146,7 +146,8 @@ def approve(directory, tag, sha, api=github_api):
         "The annotated tag records the maintainer's approval in RELEASE-APPROVAL.json.")
         .replace("Corresponding-source/build instructions, prominent native-library notices and applicable "
                  "replacement/relink obligations require review before publication.",
-                 "The maintainer's source/build, notice and replacement/relink review is recorded in RELEASE-APPROVAL.json."))
+                 "The maintainer's source/build, notice and replacement/relink review is recorded in RELEASE-APPROVAL.json.")
+        + "\n## Maintainer source and notice review\n\n" + record["approval"]["review"] + "\n")
     checksums(directory)
 
 

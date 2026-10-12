@@ -5,12 +5,11 @@ import hashlib
 import json
 import os
 import re
-import subprocess
 import tarfile
 import tempfile
 from pathlib import Path, PurePosixPath
 
-from grammar_sources import bundle, reachable, scan_error
+from grammar_sources import bundle, reachable, realise_inputs, scan_error
 
 STORE = Path("/nix/store")
 
@@ -83,8 +82,7 @@ def write(document, root, output, realise=False):
     if not providers:
         raise ValueError("no language-runtime providers selected")
     if realise:
-        subprocess.run(["nix-store", "--realise", "--add-root", str(output.absolute()) + ".inputs",
-                        "--indirect", *map(str, sorted(archives))], check=True, stdout=subprocess.DEVNULL)
+        realise_inputs(archives, Path(str(output.absolute()) + ".inputs"), selected)
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary) / "language-runtime-notices"
         records = [collect(source, directory, required) for source, required in sorted(archives.items())]

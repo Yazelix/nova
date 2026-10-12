@@ -365,7 +365,8 @@ packaging changes, pinned recipes, patches and vendor inputs. A successful
 library replacement probe alone cannot establish complete source delivery.
 
 Hosted capture uses `--realise` to realise and GC-root those selected original
-notice archives before reading them. Offline capture leaves the store unchanged.
+notice archives before reading them, rebuilding missing inputs through the
+recorded graph's producing derivations. Offline capture leaves the store unchanged.
 
 ## NPR-SOURCES-001: component origins and source capture
 
@@ -400,6 +401,8 @@ The helper verifies the installed file index and revision agreement with the
 build graph. `--release` requires a clean immutable source revision; omit it only
 for development preparation. Input realization and indirect GC-root creation
 finish before capture begins, including linked Nix-store vendor sources.
+Generated inputs use their producing derivation and selected output from the
+recorded graph, so missing custom vendor trees can build without a substitute.
 Roots use the output filename plus `.inputs-<batch>`;
 retain them while that source artifact needs verification. Existing output is
 never replaced. The shared bundler verifies every archived regular file and
@@ -482,6 +485,7 @@ instructions and replacement/relink evidence, installed proof and any explained
 size growth. This template deliberately fails approval. Source manifests retain
 their original capture state; `RELEASE-APPROVAL.json` records the later decision
 and annotated tag identity. Original license scopes remain authoritative.
+The approved review text appears in `SOURCE-DELIVERY.md` and the release body.
 
 Push the authorized annotated tag only after the exact revision belongs to Main
 and its Linux CI, both cache publication jobs and Version Gate succeed. A tag

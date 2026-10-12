@@ -90,6 +90,7 @@ class PublicationTests(unittest.TestCase):
             self.assertNotIn("publication", accepted)
             record = json.loads((output / "RELEASE-APPROVAL.json").read_text())
             self.assertEqual(record["approval"], review)
+            self.assertIn(review["review"], (output / "SOURCE-DELIVERY.md").read_text())
             release.check_approval(output, manifest["tag"], manifest["revision"], self.api)
             (output / manifest["targets"][release.TARGET]["archive"]["name"]).write_bytes(b"changed")
             with self.assertRaises(ValueError):

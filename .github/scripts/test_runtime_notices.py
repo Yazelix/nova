@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -9,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import runtime_notices
+import grammar_sources
 
 
 class RuntimeNoticesTests(unittest.TestCase):
@@ -104,16 +106,23 @@ class RuntimeNoticesTests(unittest.TestCase):
             root = Path(temporary)
             graph, *archives = self.inputs(root)
             original = {path: path.read_bytes() for path in archives}
-            for path in archives:
+            producers = set()
+            for index, path in enumerate(archives):
                 path.unlink()
+                key = f"notice-source-{index}.drv"
+                graph[key] = {"env": {"out": str(path)}, "outputs": {"out": {"hash": "fixed"}},
+                              "inputs": {"drvs": {}}}
+                graph["root.drv"]["inputs"]["drvs"][key] = {}
+                producers.add(str(root / key) + "!out")
 
-            def realise(*args, **kwargs):
+            def realise(command, **kwargs):
+                self.assertEqual(set(command[command.index("--indirect") + 1:]), producers)
                 for path, content in original.items():
                     path.write_bytes(content)
 
             output = root / "notices.tar.gz"
-            with patch.object(runtime_notices, "STORE", root), patch.object(
-                    runtime_notices.subprocess, "run", side_effect=realise) as preparation:
+            with patch.object(runtime_notices, "STORE", root), patch.object(grammar_sources, "STORE", root), patch.object(
+                    subprocess, "run", side_effect=realise) as preparation:
                 runtime_notices.write(graph, "root.drv", output, realise=True)
                 with self.assertRaises(FileExistsError):
                     runtime_notices.write(graph, "root.drv", output, realise=True)

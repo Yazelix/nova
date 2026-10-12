@@ -9,6 +9,7 @@ import os
 import posixpath
 import re
 import stat
+import subprocess
 import tarfile
 import tempfile
 import tomllib
@@ -35,6 +36,18 @@ def reachable(document, root):
         children = derivation.get("inputs", {}).get("drvs", derivation.get("inputDrvs", {}))
         pending.extend(Path(child).name for child in children)
     return selected
+
+
+def realise_inputs(paths, root, graph):
+    producers = {}
+    for key, node in graph.items():
+        env = node["env"] | node.get("structuredAttrs", {})
+        for name, record in node.get("outputs", {}).items():
+            if path := record.get("path") or env.get(name):
+                producers[Path(path).name] = f"{STORE / Path(key).name}!{name}"
+    subprocess.run(["nix-store", "--realise", "--add-root", str(root), "--indirect",
+                    *(producers.get(path.name, str(path)) for path in sorted(paths))],
+                   check=True, stdout=subprocess.DEVNULL)
 
 
 def inventory(document, root, config, revision):
