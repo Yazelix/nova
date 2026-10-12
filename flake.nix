@@ -31,7 +31,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     novaHelixFileWatcher = {
-      url = "github:Yazelix/nova-helix-file-watcher/5d7e0d3586816f65d6dad82bee5b36b4864c5b58";
+      url = "github:Yazelix/nova-helix-file-watcher/4dd2a426aef7125b39f1e5fb29846e9d5716e3cc";
       flake = false;
     };
     yazelixForest = {
@@ -2097,6 +2097,18 @@
           export ZELLIJ_SOCKET_DIR="$TMPDIR/s"
           mkdir -p "$XDG_CACHE_HOME" "$ZELLIJ_SOCKET_DIR"
           ${pkgs.coreutils}/bin/timeout --kill-after=10s 75s ${proof}/bin/nova-startup-picker-cancellation-check
+          touch "$out"
+        '';
+      helix_file_watcher_runtime = let
+        proof = kinestra.lib.${system}.mkRecorder {
+          name = "nova-helix-file-watcher-check";
+          recipe = ./checks/helix-file-watcher.rs;
+          runtimeInputs = [pkgs.xterm pkgs.tmux];
+          environment.YZX_BIN = "${yzx}/bin/yzx";
+        };
+      in
+        pkgs.runCommand "nova-helix-file-watcher-check" {} ''
+          ${pkgs.coreutils}/bin/timeout --kill-after=10s 90s ${proof}/bin/nova-helix-file-watcher-check
           touch "$out"
         '';
       pane_move_ordering = let

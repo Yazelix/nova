@@ -119,6 +119,24 @@ The Linux-only `pane_move_ordering` check uses the same private display to verif
 circular work-pane movement, rapid opposite moves and fixed UI panes through
 packaged Rio and Zellij.
 
+Autonomous GUI verification uses the pinned Kinestra recorder's private display,
+including installed-launcher probes. Launch applications and send input through
+the recorder so desktop focus and the user's typing cannot affect the test.
+Do not fall back to host `gtk-launch`, desktop focus changes, or host keyboard
+automation when isolation fails. Visible desktop testing requires an explicit
+user request for that interaction.
+
+The Linux-only `helix_file_watcher_runtime` check opens a fresh managed
+`yzx run hx` in a private X11 terminal with isolated config, Steel state and
+tmux socket. It observes an initial external write before replacing the file,
+then requires both the atomic replacement and a later write to appear in Helix.
+This checks default watcher activation and reloads; Rio and picker startup have
+separate integration checks. Failures retain the last pane capture and screenshot.
+
+```sh
+nix build .#checks.x86_64-linux.helix_file_watcher_runtime --no-link --print-build-logs
+```
+
 ## Edge, main, and stable
 
 All development commits land on `edge`, including fixes, reverts,
@@ -373,9 +391,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 32,121 |
-| Documentation and text | 6,232 |
-| Total | 38,353 |
+| Code and configuration | 32,269 |
+| Documentation and text | 6,268 |
+| Total | 38,537 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **32,121 code/configuration lines** and **6,232 documentation/text
+Yazelix owns **32,269 code/configuration lines** and **6,268 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -176,9 +176,13 @@ backgrounds, waits for requested highlights, and checks stable text and mouse
 targets across three widths with visible and hidden floating panes.
 The pinned watcher shares parent-directory subscriptions across open files,
 keeping reloads active across atomic saves without recursively watching projects.
+An isolated installed-editor check covers watcher activation, atomic replacements
+and later writes without sharing desktop focus or keyboard input.
 The shared package-root owner, managed-tool bindings, watcher ownership and
 relocation check account for the runtime-root implementation's growth.
-Agent guidance covers full-launcher startup, socket-path limits, cache isolation,
+Agent guidance requires private-display GUI checks so testing cannot steal desktop
+focus or receive user keystrokes. It also covers full-launcher startup,
+socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
 It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
 Two-pane stack checks protect focus when restoring hints with either sidebar state.
