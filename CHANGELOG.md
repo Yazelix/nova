@@ -9,6 +9,15 @@ User-visible runtime changes for Yazelix Nova live here.
   reload independently; unsaved buffers retain their edits and show a warning.
   Temporary file absence no longer stops reloads for other open files.
 
+- Development Linux archives include package identity and a hashed file index,
+  with target and `no-rio` variant in the filename. Uncommitted builds record no
+  immutable revision and fail release verification. Assembly checks exact host
+  library names, declared libgcc symbol requirements and the glibc floor. File
+  indexes reject invalid numeric types for schemas and permission modes.
+  Metadata and source inventories stop when directories cannot be read.
+  Archives record component and private-library origins for source delivery.
+  Source capture verifies its finished bytes before finalizing the output.
+
 - Tab clicks recover when an earlier tab switch redirected the mouse release.
   The native attached-client check forces this sequence before rapid clicks.
 

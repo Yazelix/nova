@@ -1,5 +1,6 @@
 set -euo pipefail
-: "${payload:?}" "${out:?}" "${glibcBaseline:?}"
+: "${payload:?}" "${out:?}" "${glibcBaseline:?}" "${interpreter:?}" "${hostLibraries:?}" "${libgccSymbolVersions:?}"
+read -r -a host_libraries <<< "$hostLibraries"
 cp -R "$payload" "$out"
 chmod -R u+w "$out"
 mkdir -p "$out/lib/native"
@@ -15,7 +16,7 @@ for ((i=0; i<${#queue[@]}; i++)); do
     [[ ! ${seen[$binary]+set} ]] || continue
     seen[$binary]=1
     headers=$(readelf -l "$binary")
-    if [[ $headers == *INTERP* ]]; then patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 "$binary"; fi
+    if [[ $headers == *INTERP* ]]; then patchelf --set-interpreter "$interpreter" "$binary"; fi
     dynamic=$(readelf -d "$binary")
     if [[ $dynamic != *"(NEEDED)"* ]]; then
         if [[ $headers == *DYNAMIC* ]]; then patchelf --remove-rpath "$binary"; fi
@@ -27,9 +28,9 @@ for ((i=0; i<${#queue[@]}; i++)); do
     mapfile -t needed <<< "$needed_output"
     search=
     for name in "${needed[@]}"; do
-        case $name in
-            ld-linux-x86-64.so.2|libc.so.6|libm.so.6|libmvec.so.1|libdl.so.2|libpthread.so.0|librt.so.1|libresolv.so.2|libanl.so.1|libutil.so.1|libgcc_s.so.1) continue ;;
-        esac
+        for host in "${host_libraries[@]}"; do
+            [[ $name != "$host" ]] || continue 2
+        done
         [[ $name != */* ]] || { echo "absolute dependency: $binary -> $name" >&2; exit 1; }
         source=
         for directory in "${dirs[@]}"; do
@@ -48,6 +49,8 @@ for ((i=0; i<${#queue[@]}; i++)); do
             done
             target="$out/lib/native/${source#/nix/store/}"
             if [[ ! ${copied[$source]+set} ]]; then
+                origin=${source#/nix/store/}
+                printf '%s\n' "${origin%%/*}" >> "$out/share/yazelix/archive-origins.txt"
                 copied[$source]=$target
                 origins[$target]=$source
                 install -D -m 755 "$source" "$target"
@@ -68,9 +71,17 @@ printf "%s\n" "processed ${#queue[@]} files; ${#copied[@]} private libraries" >&
 
 # Required symbol versions determine the native floor, not provenance strings.
 : > "$TMPDIR/glibc-versions"
+: > "$TMPDIR/gcc-versions"
 for binary in "${!seen[@]}"; do
-    readelf --version-info "$binary" | sed -nE 's/.*Name: GLIBC_([0-9.]+) .*/\1/p' >> "$TMPDIR/glibc-versions"
+    versions=$(readelf --version-info "$binary")
+    sed -nE 's/.*Name: GLIBC_([0-9.]+) .*/\1/p' <<< "$versions" >> "$TMPDIR/glibc-versions"
+    sed -nE 's/.*Name: (GCC_[^ ]+) .*/\1/p' <<< "$versions" >> "$TMPDIR/gcc-versions"
 done
+while IFS= read -r symbol; do
+    [[ " $libgccSymbolVersions " == *" $symbol "* ]] || {
+        echo "undeclared host libgcc symbol: $symbol" >&2; exit 1
+    }
+done < <(sort -u "$TMPDIR/gcc-versions")
 minimum=$(sort -V "$TMPDIR/glibc-versions" | tail -1)
 test -n "$minimum"
 if [[ $(printf '%s\n' "$glibcBaseline" "$minimum" | sort -V | tail -1) != "$glibcBaseline" ]]; then
@@ -82,6 +93,7 @@ printf 'glibc %s\n' "$minimum" > "$inputs"
 sort -u "$out/share/yazelix/native-inputs.txt" >> "$inputs"
 find "$out/lib" "$out/share" \( -type f -o -type l \) -name '*.so*' | sed "s|^$out/||" | sort >> "$inputs"
 mv "$inputs" "$out/share/yazelix/native-inputs.txt"
+sort -u -o "$out/share/yazelix/archive-origins.txt" "$out/share/yazelix/archive-origins.txt"
 while IFS= read -r -d "" link; do
     [[ $(readlink "$link") != /* && $(realpath -e "$link") == "$out/"* ]] || {
         echo "invalid owned symlink: $link" >&2; exit 1

@@ -393,9 +393,22 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 32,317 |
-| Documentation and text | 6,274 |
-| Total | 38,591 |
+| Code and configuration | 33,514 |
+| Documentation and text | 6,424 |
+| Total | 39,938 |
+
+Portable archive identity/index generation and mutation checks account for
+packaging LOC growth. The archive factory owns the host compatibility policy;
+the relocator checks that policy and the index preserves existing file modes.
+Unreadable directories fail inventories; host SONAME checks match whole names.
+Grammar source preservation and its pin/link/reproducibility checks account for
+release-review LOC growth. A source inventory remains subject to redistribution
+review before it can accompany a public binary release.
+Rust/Go notice preservation and failure/reproducibility checks account for
+additional release-review lines; both helpers reuse one graph traversal and bundler.
+Component declarations reuse the archive's command selection. Native-origin
+records and source selection/checks account for source-delivery LOC growth;
+the existing bundler verifies completed bytes before finalizing its output.
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

@@ -48,11 +48,11 @@ target-side Nix or `/nix/store` virtualization is outside this contract.
 ## Linux archive factory
 
 `nix build .#yazelix-no-rio-archive` produces the development Edge archive
-`yazelix-nova-<version>-x86_64-linux.tar.gz`. Nix is a build requirement;
+`yazelix-nova-<version>-x86_64-unknown-linux-gnu-no-rio.tar.gz`. Nix is a build requirement;
 the extracted runtime does not use Nix. The output exists only on
 `x86_64-linux` and preserves the managed no-Rio composition and its embedded
-Zellij plugins. Publication, indexed metadata, licensing notices and an
-installer belong to `.4` and `.5`.
+Zellij plugins. The archive carries package identity and a hashed file index.
+Publication, complete licensing notices and an installer belong to `.4` and `.5`.
 The archive is a build output and has no executable flake app entry.
 
 The factory uses existing `patchelf` and `readelf` tools with a narrow
@@ -275,6 +275,16 @@ record and native proof before publication. Consumers reject an unsupported
 target or compatibility record; required constraint changes need a schema
 version understood by those consumers.
 
+The Linux archive factory owns the interpreter, allowed host SONAMEs and
+libgcc symbol-version list. Its relocator matches whole host SONAMEs and rejects
+undeclared libgcc requirements. The metadata records glibc 2.39, host Git and
+`/usr/bin/env` with argument splitting. Python is a build/maintainer tool only.
+
+Version and channel come from the existing packaged runtime identity. A clean
+Git flake supplies the source revision; dirty and `path:` development builds
+record `revision: null`. Such builds remain useful development artifacts but
+fail release verification. A base commit must not identify modified source.
+
 The file index covers payload regular files and symlinks with unique normalized
 root-relative paths. Regular-file records contain SHA-256 and permission mode;
 symlink records contain the literal target. Verification checks both declared
@@ -284,11 +294,119 @@ archive digest covers both; installers verify it before trusting the index.
 Packaging rejects absolute index paths or `..` path components, special filesystem
 entries and setuid/setgid payload files.
 
+`files.json` uses schema version 1 and a `files` object keyed by path. Each record
+has `type: file` with a SHA-256 and integer Unix permission mode, or
+`type: symlink` with its literal `target`. Directories are not file records.
+The factory preserves existing file modes and adds only the two metadata files.
+Extraction must retain indexed modes; a restrictive umask or an extractor that
+adds write permissions changes the indexed tree. For GNU tar, extract into an
+existing directory and run the maintainer verifier:
+
+```sh
+tar --no-same-owner --same-permissions -xzf /path/to/archive.tar.gz -C /path/to/root
+python3 -B packaging/archive_metadata.py /path/to/root --release
+```
+
+The verifier checks identity agreement, the index digest, integer schema versions
+and permission modes, file bytes, literal symlink targets, missing files,
+unexpected files and unsafe entries.
+Unreadable directories fail the inventory; an incomplete scan cannot pass
+verification or produce package metadata.
+Omit `--release` when checking an uncommitted development build.
+
 The existing bar identity can remain a derived view of the same package
 producer. Version, channel and revision must agree with the artifact manifest;
 helpers must not maintain a second identity source. `.4` also carries `.6`'s
 source/license inventory and resolves notice/source obligations for the exact
 published contents. The inventory alone is not redistribution clearance.
+
+The maintainer helper `.github/scripts/grammar_sources.py` creates a grammar
+source bundle for this review. It consumes the recursive Nix derivation graph,
+the exact archive derivation, that candidate's pinned Helix source, and its Nova
+revision. Only reachable grammar derivations are selected; missing sources,
+unreadable directories, stale pins and duplicate grammar identities fail before
+output.
+Shared source trees are stored once. `SOURCE-MANIFEST.json` records each grammar's
+origin and derivation, hashes every regular source file, and retains link targets.
+The bundle preserves original notices, headers, README and package declarations.
+Links to selected content are mapped to its archive placement, retaining their
+original targets in the manifest. This also handles links that leave and re-enter
+the original source. Foreign and dangling links are inactive metadata, so they
+cannot expose the extraction host.
+The archive is reproducible and an existing destination is never replaced.
+Its `redistribution_review: required` field keeps it distinct from cleared release
+notices or a complete corresponding-source distribution. Native/static dependency
+coverage and the applicable source-delivery obligations still require review.
+
+The offline helper `.github/scripts/runtime_notices.py` preserves Rust and Go
+notice material from the same recursive graph and archive derivation:
+
+```nu
+let archive_drv = (nix eval --raw .#yazelix-no-rio-archive.drvPath)
+nix derivation show --recursive $archive_drv | save --force archive-build-graph.json
+python3 -B .github/scripts/runtime_notices.py archive-build-graph.json $archive_drv language-runtime-notices.tar.gz
+```
+
+Its pinned input archives must already exist in the Nix store. Rust standard
+library packages supply their top-level notices; the matching Linux compiler
+archive supplies `COPYRIGHT-library.html` and license texts. Go's source archive
+supplies its original notices, including vendored notices and `PATENTS`.
+The packet records provider derivations, source-archive hashes and file hashes.
+Missing inputs or required notices, a Go source/version mismatch and unsafe
+notice entries prevent output. Generated permissions are fixed so the packet
+reproduces across umasks; existing output is never replaced.
+
+These are reachable build-graph candidates, including build-time candidates;
+they are not a census of shipped components. The packet retains
+`redistribution_review: required`. It does not replace native/static/embedded
+source review, applicable corresponding source, build scripts or relink material.
+Source delivery must cover the exact selected programs and libraries, Nova's
+packaging changes, pinned recipes, patches and vendor inputs. A successful
+library replacement probe alone cannot establish complete source delivery.
+
+## NPR-SOURCES-001: component origins and source capture
+
+The Linux archive records its assembly selection in
+`share/yazelix/archive-components.json`: command packages, copied data and
+embedded plugins, plus complete upstream and Nova recipe source roots.
+The exact Nova source root belongs to the final archive derivation, so source
+delivery edits do not invalidate the native payload's cached relocation.
+The declaration reuses the assembly's command list. Preview/delegate tools,
+font inputs and relocated private libraries add their selected store origins to
+`share/yazelix/archive-origins.txt`. Both records use store basenames and are
+covered by the package's file index.
+
+The maintainer source helper consumes these records and the exact archive's
+recursive derivation graph. It resolves producing derivations, follows selected
+`buildInputs`/`propagatedBuildInputs`, preserves complete `src`/`srcs`, patches,
+Cargo vendor trees and Go modules, and follows source references in generated
+composition recipes. It excludes unrelated and native build-tool derivations.
+The graph remains in the source manifest as recipe evidence. Embedded Zellij
+plugins are declared explicitly, including zjstatus and the Nova Bar widget;
+full upstream source roots supplement filtered compile inputs.
+
+After extracting the archive with GNU tar preserving its permissions:
+
+```sh
+let archive_drv = (nix eval --raw .#yazelix-no-rio-archive.drvPath)
+nix derivation show --recursive $archive_drv | save --force archive-build-graph.json
+python3 -B .github/scripts/runtime_sources.py archive-build-graph.json $archive_drv /path/to/installed /path/to/new-sources.tar.gz --release
+```
+
+The helper verifies the installed file index and revision agreement with the
+build graph. `--release` requires a clean immutable source revision; omit it only
+for development preparation. Input realization and indirect GC-root creation
+finish before capture begins, including linked Nix-store vendor sources.
+Roots use the output filename plus `.inputs-<batch>`;
+retain them while that source artifact needs verification. Existing output is
+never replaced. The shared bundler verifies every archived regular file and
+selected link against its manifest, then finalizes the destination atomically.
+Changed inputs, incomplete capture and checksum failures leave no final archive.
+
+The source manifest retains `redistribution_review: required`. Origin selection
+is not license clearance: applicable notices, static/embedded coverage and
+source/relink obligations must be reviewed for the exact published contents.
+The separate Rust/Go notice helper remains a conservative review supplement.
 
 ## NPR-STATE-001: package and user ownership
 

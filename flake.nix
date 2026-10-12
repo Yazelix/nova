@@ -1050,6 +1050,101 @@
         rootYaziToml = pkgs.replaceVars ./defaults/yazi/yazi.toml {
           opener = ''"$YZX_OPEN"'';
         };
+        portablePackages =
+          [
+            pkgs.coreutils
+            pkgs.lazygit
+            pkgs.jq
+            pkgs.fzf
+            pkgs.nushell
+            pkgs.bashInteractive
+            pkgs.zsh
+            pkgs.fish
+            pkgs.starship
+            pkgs.carapace
+            pkgs.atuin
+            pkgs.zoxide
+            pkgs.gawk
+            pkgs.gnused
+            pkgs.ncurses
+            tokenusage
+            zjRadarCliPackage
+            yzxPackage
+            yzxAgent
+            yzxConfig
+            yzxZellijConfig
+            yzxMenu
+            tutor
+            yzxShell
+            yzxNuShell
+            yzxEnvSupervisor
+            yzxWelcome
+            yazelixScreenPackage
+            yzxZellij
+            yazi
+            yzxOpenCore
+            yzxYaziMaterializer
+            managedEditor
+            editor
+            configUi
+            git
+            yzxBarRender
+            yzxOpenTerminal
+            yzxHelixBridgeRegister
+          ]
+          ++ pkgs.lib.optional (!nativeArchive) pkgs.git
+          ++ pkgs.lib.optional withManagedYazi pkgs.yazi;
+        archiveComponents = pkgs.writeText "nova-archive-components.json" (builtins.toJSON {
+          schema_version = 1;
+          components = map (package: {
+            output = builtins.baseNameOf (toString package);
+          }) (portablePackages ++ [
+            command
+            pkgs.yazi-unwrapped
+            yzxYaziConfig
+            yzxYaziStartupConfig
+            yaziBistroPackage
+            helixRuntime
+            yazelixHelixPackage
+            yazelixHelixSteelPackage
+            novaHelixFileWatcherPackage
+            novaBarPackage
+            novaBar.packages.${system}.nova_bar_widget
+            zjstatus.packages.${system}.default
+            yazelixZellijPopupPackage
+            yazelixZellijPaneOrchestratorPackage
+            zjRadarPackage
+            novaZjhintsPackage
+            pkgs.ncurses
+            pkgs.file
+            pkgs.fontconfig.out
+            pkgs.fish
+            pkgs.cacert
+            pkgs.openssl.out
+          ]);
+          sources = map (source: builtins.baseNameOf (toString source)) [
+            nixpkgs.outPath
+            linuxLibc.outPath
+            yazelixHelix.outPath
+            yazelixForest
+            notifyHx
+            glyphHx
+            novaHelixFileWatcher
+            zellijSource
+            yazelixZellijPopup.outPath
+            novaBar.outPath
+            zjhintsUpstream
+            yazelixZellijPaneOrchestrator.outPath
+            zjRadar.outPath
+            yazelixScreen.outPath
+            autoLayoutYazi
+            starshipYazi
+            gitYazi
+            yaziBistro.outPath
+            yaziSchemas
+            zjstatus.outPath
+          ];
+        });
         withDesktop = withRio && pkgs.stdenv.hostPlatform.isLinux;
         desktop = pkgs.makeDesktopItem {
           name = "yzx-${channel}";
@@ -1097,54 +1192,15 @@
               # A path-contract fixture, still linked to native Nix dependencies.
               rm "$out/bin/yzx"
               install -m 755 ${command}/bin/yzx "$out/bin/yzx"
-              for package in ${pkgs.lib.concatStringsSep " " (map toString [
-                  pkgs.coreutils
-                  pkgs.lazygit
-                  pkgs.jq
-                  pkgs.fzf
-                  pkgs.nushell
-                  pkgs.bashInteractive
-                  pkgs.zsh
-                  pkgs.fish
-                  pkgs.starship
-                  pkgs.carapace
-                  pkgs.atuin
-                  pkgs.zoxide
-                  pkgs.gawk
-                  pkgs.gnused
-                  pkgs.ncurses
-                  tokenusage
-                  zjRadarCliPackage
-                  yzxPackage
-                  yzxAgent
-                  yzxConfig
-                  yzxZellijConfig
-                  yzxMenu
-                  tutor
-                  yzxShell
-                  yzxNuShell
-                  yzxEnvSupervisor
-                  yzxWelcome
-                  yazelixScreenPackage
-                  yzxZellij
-                  yazi
-                  yzxOpenCore
-                  yzxYaziMaterializer
-                  managedEditor
-                  editor
-                  configUi
-                  git
-                  yzxBarRender
-                  yzxOpenTerminal
-                  yzxHelixBridgeRegister
-                ]
-                ++ pkgs.lib.optional (!nativeArchive) pkgs.git
-                ++ pkgs.lib.optional withManagedYazi pkgs.yazi)}; do
+              for package in ${pkgs.lib.concatStringsSep " " (map toString portablePackages)}; do
                 for binary in "$package"/bin/*; do
                   test ! -e "$binary" || cp -Lf --remove-destination "$binary" "$out/libexec/yazelix/"
                 done
               done
               install -m 755 ${novaBarPackage}/${novaBarPackage.widgetPath} "$out/libexec/yazelix/nova-bar-widget"
+              ${pkgs.lib.optionalString nativeArchive ''
+                install -D -m 644 ${archiveComponents} "$out/share/yazelix/archive-components.json"
+              ''}
               ln -s yzx-zellij "$out/libexec/yazelix/zellij"
               for command in yzx-shell yzx-env-supervisor yzx-hx; do
                 sed -i '1c#!${pkgs.coreutils}/bin/env sh' "$out/libexec/yazelix/$command"
@@ -1267,6 +1323,8 @@
           pkgs = archive.pkgs;
           inherit (archive) glibcBaseline libraryReplacements;
           version = novaVersion;
+          revision = self.rev or null;
+          sourceRoot = self.outPath;
           runtime = (runtimeFor system archive.pkgs).mkYzx {
             channel = "edge";
             withRio = false;
@@ -2025,13 +2083,18 @@
     } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
       archive_glibc_baseline = pkgs.runCommand "nova-archive-glibc-baseline-check" {
         nativeBuildInputs = [pkgs.patchelf pkgs.binutils];
+        inherit (self.packages.${system}.yazelix-no-rio-archive.compatibility) interpreter;
+        hostLibraries = pkgs.lib.concatStringsSep " " self.packages.${system}.yazelix-no-rio-archive.compatibility.allowed_sonames;
+        libgccSymbolVersions = pkgs.lib.concatStringsSep " " self.packages.${system}.yazelix-no-rio-archive.compatibility.symbol_versions."libgcc_s.so.1";
       } ''
         export payload="$TMPDIR/payload"
         mkdir -p "$payload/bin" "$payload/share/yazelix"
         cp ${pkgs.coreutils}/bin/coreutils "$payload/bin/coreutils"
         chmod -x "$payload/bin/coreutils"
         cp ${pkgs.ncurses}/bin/tset "$payload/bin/tset"
+        cp ${pkgs.stdenv.cc.cc.lib}/lib/libstdc++.so.6 "$payload/bin/libstdc++.so.6"
         touch "$payload/share/yazelix/native-inputs.txt"
+        touch "$payload/share/yazelix/archive-origins.txt"
         if glibcBaseline=0.0 out="$TMPDIR/rejected" bash ${./packaging/linux-relocate.sh} > rejected.log 2>&1; then
           echo 'accepted an ELF above the glibc baseline' >&2
           exit 1
@@ -2039,8 +2102,16 @@
         grep -F 'baseline is 0.0' rejected.log
         glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/accepted" bash ${./packaging/linux-relocate.sh}
         grep -E '^glibc [0-9]+\.[0-9]+$' "$TMPDIR/accepted/share/yazelix/native-inputs.txt"
+        if libgccSymbolVersions=GCC_0.0 glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/rejected-gcc" bash ${./packaging/linux-relocate.sh} > gcc.log 2>&1; then
+          echo 'accepted an undeclared host libgcc symbol' >&2
+          exit 1
+        fi
+        grep -F 'undeclared host libgcc symbol:' gcc.log
         readelf -l "$TMPDIR/accepted/bin/coreutils" | grep -F '/lib64/ld-linux-x86-64.so.2'
         test -n "$(find "$TMPDIR/accepted/lib/native" -type f -name '*.so*' -print -quit)"
+        for origin in "$TMPDIR/accepted/lib/native"/*; do
+          grep -Fxq "$(basename "$origin")" "$TMPDIR/accepted/share/yazelix/archive-origins.txt"
+        done
         mkdir failing-inspector
         cat > failing-inspector/patchelf <<'EOF'
         #!${pkgs.runtimeShell}
@@ -2067,6 +2138,13 @@
           exit 1
         fi
         grep -F "missing compatible library: $TMPDIR/missing-provider/" missing.log
+        chmod u+w "$payload/bin/coreutils"
+        patchelf --add-needed 'libc.so.6 libm.so.6' "$payload/bin/coreutils"
+        if glibcBaseline=${pkgs.lib.versions.majorMinor pkgs.glibc.version} out="$TMPDIR/rejected-soname" bash ${./packaging/linux-relocate.sh} > soname.log 2>&1; then
+          echo 'accepted a compound host SONAME' >&2
+          exit 1
+        fi
+        grep -F -- '-> libc.so.6 libm.so.6 (' soname.log
         touch "$out"
       '';
       bottom_hints = pkgs.runCommand "nova-bottom-hints-check" {
