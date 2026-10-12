@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   release-gate:
-    needs: [linux-profile-smoke, macos-package-smoke, darwin-core, darwin-editor, darwin-integration]
+    needs: [darwin-smoke-proof, linux-profile-smoke, darwin-core, darwin-editor, darwin-integration]
     if: always() && github.repository_id == '746026727'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -34,7 +34,27 @@ jobs:
             -f description='Native release checks' > /dev/null
           test "$state" = success
 
+  darwin-smoke-proof:
+    if: github.repository_id == '746026727' && contains(fromJSON('["refs/heads/edge","refs/heads/main","refs/heads/stable"]'), github.ref)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Require exact-revision native Darwin smoke
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/verify_darwin_smoke.py "$GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"
+
   linux-profile-smoke:
+    needs: darwin-smoke-proof
     runs-on: ubuntu-latest
     timeout-minutes: 90
     defaults:
@@ -108,45 +128,8 @@ jobs:
             --override-input nixpkgs "$(cat checks/newer-nixpkgs.txt)" \
             .#checks.x86_64-linux.home_manager
 
-  macos-package-smoke:
-    runs-on: macos-15
-    timeout-minutes: 90
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v22
-        with:
-          determinate: false
-          extra-conf: |
-            accept-flake-config = true
-            max-jobs = 1
-            cores = 2
-
-      - name: Build aarch64-darwin packages and checks
-        run: |
-          for package in \
-            yazelix \
-            yazelix-no-helix \
-            yazelix-no-yazi \
-            yazelix-no-helix-no-yazi; do
-            path="$(nix build --no-link --no-write-lock-file --print-out-paths --print-build-logs ".#packages.aarch64-darwin.$package")"
-            test ! -e "$path/share/applications"
-          done
-          nix build --no-link --no-write-lock-file --print-build-logs \
-            .#checks.aarch64-darwin.desktop_channels \
-            .#checks.aarch64-darwin.home_manager \
-            .#checks.aarch64-darwin.host_yazi_contracts \
-            .#checks.aarch64-darwin.rio_contracts \
-            .#checks.aarch64-darwin.no_helix_contracts
-
   darwin-core:
+    needs: darwin-smoke-proof
     runs-on: macos-15
     timeout-minutes: 90
     env:
@@ -199,6 +182,7 @@ jobs:
           skipPush: true
 
       - name: Restore exact prerequisite closures without building
+        if: github.job != 'darwin-core'
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
         shell: bash
