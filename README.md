@@ -151,7 +151,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **32,269 code/configuration lines** and **6,268 documentation/text
+Yazelix owns **32,317 code/configuration lines** and **6,274 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -186,8 +186,10 @@ socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
 It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
 Two-pane stack checks protect focus when restoring hints with either sidebar state.
-The sole native Zellij patch retains background permission callbacks until the
-first client connects, then replays them. Mouse selection follows upstream behavior.
+The native Zellij startup patch retains background permission callbacks until the
+first client connects, then replays them. A one-line mouse-selection correction
+keeps fresh tab clicks working after a tab switch redirects the preceding release;
+the attached-client check forces that sequence before ordinary rapid clicks.
 The startup-picker check uses physical keys and waits for the intended tab's
 completed handoff or rejected-open notification before continuing.
 Its control commands share a writable isolated cache and short socket directory;

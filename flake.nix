@@ -731,7 +731,7 @@
             src = ./prototypes/zellij-distribution;
             hash = "sha256-MDnAwJ2hGIzOvItk55ACuWX5+NFCjzhVG1FhaWKQKaU=";
           };
-          patches = [./prototypes/zellij-distribution/zellij-background-startup.patch];
+          patches = [./prototypes/zellij-distribution/zellij-background-startup.patch ./prototypes/zellij-distribution/zellij-mouse-selection.patch];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";

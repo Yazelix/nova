@@ -134,6 +134,20 @@ fn main() {
         &(attach.clone() + "; printf '\\nEXIT:%s\\n' $?; sleep 30"),
     ]);
     wait_tabs(&terminal, 1);
+    // A tab switch can redirect the release; the next press must start a fresh gesture.
+    terminal.tmux(&["send-keys", "-t", "clients:0", "-l", "\x1b[<0;13;1M"]);
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [2],
+        "held tab press did not select tab 2",
+        "clients:0",
+    );
+    terminal.tmux(&["send-keys", "-t", "clients:0", "-l", "\x1b[<0;13;1m"]);
+    terminal.tmux(&["send-keys", "-t", "clients:0", "M-1"]);
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [1],
+        "did not return after cross-tab release",
+        "clients:0",
+    );
     let expected = " [1 poe2]  [2 eon café]  [3 界面 space]";
     for (width, floating) in [
         (80, "hide-floating-panes"),
@@ -142,12 +156,30 @@ fn main() {
     ] {
         terminal.action(&[floating, "--tab-id", "0"]);
         terminal.resize("clients:0", width, 40);
+        terminal.resize("clients:1", width, 40);
+        terminal.wait(
+            || {
+                terminal
+                    .capture("clients:0", false)
+                    .lines()
+                    .last()
+                    .unwrap_or_default()
+                    .chars()
+                    .count()
+                    == width
+            },
+            &format!("pane never rendered at {width} columns"),
+            "clients:0",
+        );
         for index in [1, 2, 3, 2, 1] {
             terminal.tmux(&["send-keys", "-t", "clients:0", &format!("M-{index}")]);
             terminal.wait(
                 || {
                     selected(&terminal, 0, &rgb) == [index]
                         && terminal.capture("clients:0", false).starts_with(expected)
+                        && terminal
+                            .capture("clients:0", false)
+                            .contains(["ONE", "TWO", "THREE"][index - 1])
                 },
                 "focus changed tab text or positions",
                 "clients:0",
@@ -162,8 +194,13 @@ fn main() {
                 &format!("\x1b[<0;{column};1M\x1b[<0;{column};1m"),
             ]);
             terminal.wait(
-                || selected(&terminal, 0, &rgb) == [index],
-                "tab mouse target moved after focus changes",
+                || {
+                    selected(&terminal, 0, &rgb) == [index]
+                        && terminal
+                            .capture("clients:0", false)
+                            .contains(["ONE", "TWO", "THREE"][index - 1])
+                },
+                &format!("tab mouse target moved: width={width}, tab={index}, column={column}"),
                 "clients:0",
             );
             assert!(terminal.capture("clients:0", false).starts_with(expected));

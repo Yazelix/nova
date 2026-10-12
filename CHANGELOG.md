@@ -9,8 +9,8 @@ User-visible runtime changes for Yazelix Nova live here.
   reload independently; unsaved buffers retain their edits and show a warning.
   Temporary file absence no longer stops reloads for other open files.
 
-- Packaged Zellij uses upstream mouse-selection behavior; the cached startup
-  callback fix is the only native patch.
+- Tab clicks recover when an earlier tab switch redirected the mouse release.
+  The native attached-client check forces this sequence before rapid clicks.
 
 - Linux archive assembly stops when ELF dependency or search-path inspection fails,
   including when the inspector emits output before failing.

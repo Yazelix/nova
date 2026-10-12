@@ -341,7 +341,9 @@ nix build .#checks.x86_64-linux.attached_tab_focus .#checks.x86_64-linux.bottom_
 `TEST-LANGUAGE-001`: maintained product checks use Rust; Python is confined to
 GitHub automation in `.github/scripts`. The native attached-client and bottom-hint
 checks share a headless tmux driver with isolated state, bounded polling and process
-cleanup. Their interactive scenarios run on `x86_64-linux`; the Rio TOML assertion
+cleanup. Tab checks force a redirected mouse release, match highlights to pane
+contents, and wait for both attached clients to resize. Their interactive scenarios
+run on `x86_64-linux`; the Rio TOML assertion
 also runs in the Darwin package gate. Parsing uses the same serde, serde_json and
 toml versions as the config crate. Linux CI runs both native interaction checks.
 
@@ -391,9 +393,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 32,269 |
-| Documentation and text | 6,268 |
-| Total | 38,537 |
+| Code and configuration | 32,317 |
+| Documentation and text | 6,274 |
+| Total | 38,591 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.
