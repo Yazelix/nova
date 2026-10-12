@@ -152,14 +152,14 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,520 code/configuration lines** and **7,280 documentation/text
+Yazelix owns **34,529 code/configuration lines** and **7,288 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
 Version Gate reuses exact-commit native Darwin smoke; a small API verifier and
 contract tests reject missing, stale, failed or skipped native proof before builds.
 API failures preserve GitHub's diagnostic in the workflow log.
-The tab-focus check covers full keymap reload and minor modes in two clients.
+The tab-focus check observes keymap reload and independent modes in two clients.
 Release review preserves exact selected grammar sources and original notices;
 a reproducible source-bundle helper checks pins, link safety and overwrite refusal.
 Pinned Rust/Go notice packets preserve original bytes and hashes; checks cover

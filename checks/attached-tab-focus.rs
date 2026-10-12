@@ -101,7 +101,11 @@ fn main() {
         .replace("__SHELL__", &args[2]),
     )
     .unwrap();
-    let config = fs::read_to_string(&terminal.config).unwrap();
+    let config = fs::read_to_string(&terminal.config).unwrap().replacen(
+        "\"{tabs}\"",
+        "\"{tabs}{mode}\"\n    mode_normal \" MODE:NORMAL \"\n    mode_pane \" MODE:PANE \"",
+        1,
+    );
     terminal.config = terminal.root.path.join("config.kdl");
     fs::write(&terminal.config, &config).unwrap();
     let active = config
@@ -242,10 +246,15 @@ fn main() {
         "reloaded keybinding did not reach the client and bar",
         "clients:0",
     );
-    terminal.tmux(&["send-keys", "-t", "clients:0", "C-p"]);
-    sleep(0.2);
-    terminal.tmux(&["send-keys", "-t", "clients:0", "Escape"]);
-    sleep(0.2);
+    for (key, mode) in [("C-p", "MODE:PANE"), ("Escape", "MODE:NORMAL")] {
+        terminal.tmux(&["send-keys", "-t", "clients:0", key]);
+        terminal.wait(
+            || terminal.capture("clients:0", false).contains(mode),
+            &format!("first client's bar never showed {mode}"),
+            "clients:0",
+        );
+        assert!(terminal.capture("clients:1", false).contains("MODE:NORMAL"));
+    }
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-1"]);
     terminal.wait(
         || selected(&terminal, 0, &rgb) == [1],
