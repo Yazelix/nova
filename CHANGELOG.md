@@ -4,6 +4,11 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Managed Helix keeps hot reloading after its own saves and external atomic
+  replacements, including restored files with older timestamps. Clean aliases
+  reload independently; unsaved buffers retain their edits and show a warning.
+  Temporary file absence no longer stops reloads for other open files.
+
 - Packaged Zellij uses upstream mouse-selection behavior; the cached startup
   callback fix is the only native patch.
 

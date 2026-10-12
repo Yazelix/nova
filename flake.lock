@@ -379,17 +379,17 @@
     "novaHelixFileWatcher": {
       "flake": false,
       "locked": {
-        "lastModified": 1790465371,
-        "narHash": "sha256-5LSiLVyG6yGeMFjif9U5ScppZ5lER+Q6v4h34x6STyQ=",
+        "lastModified": 1791826787,
+        "narHash": "sha256-Vmr9YGaSusXnGInrYy5SIC+R5MRtqVyOd3jsrViGJqE=",
         "owner": "Yazelix",
         "repo": "nova-helix-file-watcher",
-        "rev": "ffe02646ec291f869025d55cb9f01ee9bd061f94",
+        "rev": "5d7e0d3586816f65d6dad82bee5b36b4864c5b58",
         "type": "github"
       },
       "original": {
         "owner": "Yazelix",
         "repo": "nova-helix-file-watcher",
-        "rev": "ffe02646ec291f869025d55cb9f01ee9bd061f94",
+        "rev": "5d7e0d3586816f65d6dad82bee5b36b4864c5b58",
         "type": "github"
       }
     },

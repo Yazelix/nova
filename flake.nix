@@ -31,7 +31,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     novaHelixFileWatcher = {
-      url = "github:Yazelix/nova-helix-file-watcher/ffe02646ec291f869025d55cb9f01ee9bd061f94";
+      url = "github:Yazelix/nova-helix-file-watcher/5d7e0d3586816f65d6dad82bee5b36b4864c5b58";
       flake = false;
     };
     yazelixForest = {
