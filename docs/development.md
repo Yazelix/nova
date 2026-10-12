@@ -2,8 +2,20 @@
 
 ## CI
 
-Normal CI runs Linux checks and the Darwin no-Helix evaluation guard on push,
-pull request, and manual dispatch
+Normal CI runs Linux checks and the Darwin no-Helix evaluation guard on
+development-branch pushes (including `edge`), pull requests, and manual dispatch.
+Pushes to promotion-only `main` and `stable` reuse the exact commit's successful
+`linux` check from `edge`; they do not start another CI run. Required checks and
+their trusted GitHub Actions source remain enforced. A different SHA or a failed,
+cancelled, or skipped check cannot supply the required proof.
+Manual dispatch remains available when proof is missing or a rerun is justified.
+For example, to check the current Main revision:
+
+```sh
+gh workflow run ci.yml --repo Yazelix/nova --ref main
+```
+
+Verify the run's exact head SHA before using its result for promotion.
 The Home Manager evaluation guard overrides nixpkgs with the reviewed revision
 in `checks/newer-nixpkgs.txt` on Linux and Darwin, exercising the consumer
 `follows` path with the existing configuration and package-override cases.
@@ -96,8 +108,9 @@ commit directly to the promotion channels, or skip a channel.
 
 `main` is promotion-only accepted development. After an `edge` revision is
 accepted and verified, advance `main` to that exact revision without merging or
-cherry-picking. CI and cache publishing run on `main`, and users who select it
-accept more frequent updates than `stable`:
+cherry-picking. The successful exact-SHA Edge CI check satisfies Main's required
+`linux` check; cache publishing runs on `main`. Users who select Main accept more
+frequent updates than `stable`:
 
 ```sh
 git fetch origin edge main
@@ -336,8 +349,8 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 31,844 |
-| Documentation and text | 6,182 |
-| Total | 38,026 |
+| Documentation and text | 6,197 |
+| Total | 38,041 |
 
 The packaged Helix check covers default watcher startup and an explicit
 `helix.file_watcher = false` opt-out.

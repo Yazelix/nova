@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches-ignore: ["main", "stable"]
   pull_request:
   workflow_dispatch:
 
