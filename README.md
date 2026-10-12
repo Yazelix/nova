@@ -115,6 +115,7 @@ Source, Edge, and maintainer references stay with the code:
 - [Portable runtime contract](docs/portable-runtime.md) (implementation target)
 - [Installation and package reference](docs/installation.md)
 - [Development and verification](docs/development.md)
+- [Tab performance investigation](performance.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent-status evidence](docs/agent-status-references.md)
 - [Changelog](CHANGELOG.md)
@@ -151,13 +152,14 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **33,514 code/configuration lines** and **6,424 documentation/text
+Yazelix owns **33,544 code/configuration lines** and **7,141 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
 Version Gate reuses exact-commit native Darwin smoke; a small API verifier and
 contract tests reject missing, stale, failed or skipped native proof before builds.
 API failures preserve GitHub's diagnostic in the workflow log.
+The tab-focus check covers full keymap reload and minor modes in two clients.
 Release review preserves exact selected grammar sources and original notices;
 a reproducible source-bundle helper checks pins, link safety and overwrite refusal.
 Pinned Rust/Go notice packets preserve original bytes and hashes; checks cover

@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Radar and Bar receive mode changes without repeatedly decoding unused
+  keymaps. Tab bindings and hints retain the full configuration.
+
 - Managed Helix keeps hot reloading after its own saves and external atomic
   replacements, including restored files with older timestamps. Clean aliases
   reload independently; unsaved buffers retain their edits and show a warning.

@@ -393,9 +393,13 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 33,514 |
-| Documentation and text | 6,424 |
-| Total | 39,938 |
+| Code and configuration | 33,544 |
+| Documentation and text | 7,141 |
+| Total | 40,685 |
+
+The tab performance report records local proofs. The existing tab-focus check
+covers full keymap reload and minor modes in two clients without adding a
+packaged benchmark surface. Radar and Bar own the lightweight event change.
 
 Portable archive identity/index generation and mutation checks account for
 packaging LOC growth. The archive factory owns the host compatibility policy;

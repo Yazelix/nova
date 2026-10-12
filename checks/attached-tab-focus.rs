@@ -1,7 +1,7 @@
 use std::{env, fs, path::Path};
 #[allow(dead_code)]
 mod tmux;
-use tmux::{Terminal, sleep};
+use tmux::{sleep, Terminal};
 
 fn highlighted(row: &str, rgb: &[u16; 3]) -> Vec<usize> {
     let mut active = false;
@@ -73,7 +73,7 @@ fn wait_tabs(terminal: &Terminal, window: usize) {
 
 fn main() {
     let args = env::args().collect::<Vec<_>>();
-    let terminal = Terminal::new(Path::new(&args[1]), "nova-tabfocus-proof");
+    let mut terminal = Terminal::new(Path::new(&args[1]), "nova-tabfocus-proof");
     let layout = terminal.root.path.join("layout.kdl");
     fs::write(
         &layout,
@@ -102,6 +102,8 @@ fn main() {
     )
     .unwrap();
     let config = fs::read_to_string(&terminal.config).unwrap();
+    terminal.config = terminal.root.path.join("config.kdl");
+    fs::write(&terminal.config, &config).unwrap();
     let active = config
         .lines()
         .find(|line| line.trim_start().starts_with("tab_active "))
@@ -224,6 +226,34 @@ fn main() {
     }
     assert_eq!(selected(&terminal, 1, &rgb), [2]);
     assert!(terminal.capture("clients:1", false).contains("TWO"));
+    let binding = "bind \"Alt 9\" { GoToTab 9; }";
+    assert!(config.contains(binding), "full packaged keymap is missing");
+    fs::write(
+        &terminal.config,
+        config.replace(binding, "bind \"Alt 9\" { GoToTab 3; }"),
+    )
+    .unwrap();
+    terminal.wait(
+        || {
+            terminal.tmux(&["send-keys", "-t", "clients:0", "M-9"]);
+            selected(&terminal, 0, &rgb) == [3]
+                && terminal.capture("clients:0", false).contains("THREE")
+        },
+        "reloaded keybinding did not reach the client and bar",
+        "clients:0",
+    );
+    terminal.tmux(&["send-keys", "-t", "clients:0", "C-p"]);
+    sleep(0.2);
+    terminal.tmux(&["send-keys", "-t", "clients:0", "Escape"]);
+    sleep(0.2);
+    terminal.tmux(&["send-keys", "-t", "clients:0", "M-1"]);
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [1],
+        "minor-mode return lost numbered navigation",
+        "clients:0",
+    );
+    assert_eq!(selected(&terminal, 1, &rgb), [2]);
+    assert!(terminal.capture("clients:1", false).contains("TWO"));
     terminal.tmux(&["send-keys", "-t", "clients:1", "C-q"]);
     terminal.wait(
         || terminal.capture("clients:1", false).contains("EXIT:0"),
@@ -241,7 +271,7 @@ fn main() {
     assert_eq!(selected(&terminal, 2, &rgb), [2]);
     assert!(terminal.capture("clients:2", false).contains("TWO"));
     println!(
-        "three outlined tabs kept text and mouse targets stable with visible and hidden floating panes at 80/120/180 columns; two clients kept independent highlights across attach and reattach"
+        "three outlined tabs kept text and mouse targets stable with visible and hidden floating panes at 80/120/180 columns; two clients kept independent highlights across keymap reload, minor modes, attach and reattach"
     );
 }
 
