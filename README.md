@@ -152,7 +152,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,842 code/configuration lines** and **7,620 documentation/text
+Yazelix owns **34,842 code/configuration lines** and **7,629 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -164,7 +164,7 @@ An isolated hints patch and regression tests cover catalog delivery, direct-pane
 readiness, compatibility consumers, resize and nested focus. This accounts for
 performance-fix LOC growth without an output cache or another dependency.
 Four Cargo lines restore the native root's release optimizations; the performance
-report records matched artifacts, startup benefit and longer build cost.
+report records matched artifacts, startup benefit, build cost and exact acceptance proof.
 Shared-plugin research records memory savings, failed fresh activation and
 conditional timing; the installed rendering model remains unchanged.
 Release review preserves exact selected grammar sources and original notices;

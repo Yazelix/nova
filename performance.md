@@ -14,7 +14,8 @@ package is `/nix/store/28fsc8501n6s991v9b0v1lhsxqfqcpbj-yazelix`.
 The exact activated desktop launcher passes fresh private-display anima-to-editor
 handoff, creation, numbered/walking switches and minor modes. The user reports
 it is substantially faster and feels good; this is qualitative manual evidence,
-not a measured combined speedup. Exact Linux CI passes; Darwin acceptance is pending.
+not a measured combined speedup. Exact Linux CI and Darwin Package Smoke pass;
+the native release-profile candidate is accepted on Edge.
 Home Manager owns the desktop package; a separately named `yazelix-edge` profile
 selector does not update it. Current delivery proof:
 `/home/lucca/.local/state/codex/proofs/nova-native-profile-20261013.0zf4p9r2/desktop-vknit_rs`.
@@ -151,7 +152,7 @@ No heavy builds overlapped the measurements. Host one-minute load ranged from
 
 Fresh terminal startup improved consistently by about 71 ms at the median
 (14% for this endpoint), and the executable is 10.3% smaller. Keep the two
-settings as a candidate for those benefits. The measured build cost increased
+settings for those benefits. The measured build cost increased
 by 3m23s (52%); each variant was built once with warm dependencies, so this is
 not a general clean-build prediction. Peak build memory was not measured.
 
@@ -166,8 +167,14 @@ The startup clock begins after detached terminal launch dispatch; action clocks
 begin before input dispatch. Captures include IPC/polling overhead and do not
 prove presentation order. These two-tab fixtures use small histories; Rio
 presentation, many tabs, long-lived sessions and Darwin performance remain
-unmeasured. Shared production acceptance still requires exact Linux/Darwin gates.
-The user's desktop remains on the manually improved Radar/Bar revision.
+unmeasured. The native release-profile candidate is accepted on Edge at
+`47fe1ecd8dbdc6009a6d4294436b52d5e8eeafa8`:
+[Linux CI](https://github.com/Yazelix/nova/actions/runs/38332459290) and
+[Darwin Package Smoke](https://github.com/Yazelix/nova/actions/runs/38332456177)
+both completed successfully for that revision, including native Darwin builds.
+Home Manager installs the measured package in the Edge desktop entry. The user
+reports that this combined hints/profile build feels substantially faster.
+That feedback does not attribute the improvement to either change alone.
 
 Local package, attached-tab-focus and bottom-hints checks pass. Flake evaluation
 and all-system output shape pass; a full local `nix flake check` was not run.
@@ -915,7 +922,7 @@ decoder benefit separately from instance deduplication and render batching.
 | Option | Owner and concrete change | Expected value | Cost and proof boundary |
 | --- | --- | --- | --- |
 | Remove avoidable plugin work | Radar/Bar `InitialKeybinds` is installed; hints catalog, unused broadcasts and readiness/subscriptions are implemented above | Reduces decoding and render amplification while retaining the UI | Hints acceptance is pending. Output caching was rejected. Preserve reload, nested sessions and compatibility-pipe consumers. |
-| Restore native release optimizations | Native root fat LTO and one codegen unit are measured above; no hints profile change | Consistent fresh terminal-startup gain and smaller executable; tab-creation/walking benefit remains uncertain | Two Cargo settings, 3m23s longer measured build. Shared acceptance is pending exact Linux/Darwin proof. |
+| Restore native release optimizations | Native root fat LTO and one codegen unit are measured above; no hints profile change | Consistent fresh terminal-startup gain and smaller executable; tab-creation/walking benefit remains uncertain | Accepted on Edge with exact Linux/Darwin checks and installed desktop proof. Two Cargo settings, 3m23s longer measured build. |
 | Adopt native shared instances | Migrate one expensive plugin to `ZellijSharedPlugin`; delete its controller/view protocol when equivalent | Removes per-tab Wasm initialization, frame messages and duplicate state delivery through an existing host owner | Medium to large child change. Prove client-local selection, slot lifecycle, resize, click targets and compatibility policy. |
 | Reduce legacy frame fan-out | Radar/Bar: skip unchanged frames, use visibility, refresh immediately on activation | Less pipe decoding and rendering, especially with many tabs | Medium. Equality must include interaction targets. Prove first frame, activation and multiple clients. Avoid building a second visibility owner if migrating to shared instances. |
 | Upgrade Wasmi | Native Zellij: evaluate Wasmi/WASI 2.x with correct features | Faster interpreter without replacing the plugin model | Medium upstream/fork work. Nova pins 1.1.0; migration is not a version-only edit. Upstream benchmark gains do not predict Nova latency. |
@@ -940,7 +947,7 @@ fixing redundant callbacks in Nova.
 
 ## Next experiment and decision boundary
 
-Finish exact-revision acceptance of the hints and native-profile candidates
+Finish exact-revision acceptance of the hints candidate
 before choosing one plugin's shared-instance prototype. Hints output caching
 has been rejected; the native profile comparison remains separate from plugin
 changes. Retain the full keymap/UI
@@ -973,7 +980,8 @@ Defer extra executor threads and engine replacement until measurements justify t
   many projects, agent activity, and actual tab count remain unmeasured.
 - Terminal captures prove native output, not the instant Rio presents pixels.
   Radar/Bar has rebuilt-distribution, private GUI and user desktop delivery proof.
-  Hints and native-profile candidates are separate from that installed revision.
+  The current Edge desktop includes hints and native-profile changes, with
+  delivery evidence recorded above. Hints acceptance remains with its owning bead.
   There is no timed GUI comparison or Darwin performance measurement. Temporary
   instrumented builds support experiments only and are absent from production artifacts.
 - Shared `/tmp` logs contained top-bar panics, but the isolated reproductions
@@ -983,5 +991,6 @@ Defer extra executor threads and engine replacement until measurements justify t
   An early “native-only” attempt retained the inline bar controller and is
   labeled invalid in the proof directory.
 
-The isolated candidate is mechanically verified on Linux; cross-platform
-acceptance and the user's desktop activation remain outstanding.
+The native release-profile candidate has exact Linux/Darwin package checks,
+installed Edge desktop proof and qualitative manual dogfood. Darwin interaction
+and performance remain unverified.

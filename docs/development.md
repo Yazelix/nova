@@ -394,8 +394,8 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 34,842 |
-| Documentation and text | 7,620 |
-| Total | 42,462 |
+| Documentation and text | 7,629 |
+| Total | 42,471 |
 
 The tab performance report records local proofs. The existing tab-focus check
 observes keymap reload and independent modes in two clients without adding a
@@ -405,7 +405,7 @@ its event-order, remap, readiness, compatibility and nested-focus regressions
 account for performance-fix LOC growth. Derived output caching was rejected.
 Four Cargo lines restore the native application's release optimization settings.
 The performance report separates measured startup/size gains from uncertain
-tab-creation/walking gains and records the additional build cost.
+tab-creation/walking gains and records build cost and exact acceptance.
 
 Portable archive identity/index generation and mutation checks account for
 packaging LOC growth. The archive factory owns the host compatibility policy;
