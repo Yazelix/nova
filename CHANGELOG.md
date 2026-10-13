@@ -4,6 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The Codex usage widget keeps a clean `codex` label after failed refreshes.
+  Cached values and retry timing are preserved.
+
 - The native runtime uses fat LTO and one codegen unit. Matched Linux artifacts
   show faster fresh terminal startup and a smaller executable, with longer builds;
   tab-creation and walking gains remain uncertain.
