@@ -152,7 +152,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,842 code/configuration lines** and **7,602 documentation/text
+Yazelix owns **34,842 code/configuration lines** and **7,620 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -210,6 +210,8 @@ focus or receive user keystrokes. It also covers full-launcher startup,
 socket-path limits, cache isolation,
 ordered-pane regressions and historical build artifact identity.
 It also covers build reuse, bounded CPU budgets, timeout diagnosis and settled CPU measurements.
+Home Manager owns Edge desktop updates; documentation and planning pushes do
+not reactivate packages.
 Two-pane stack checks protect focus when restoring hints with either sidebar state.
 The native Zellij startup patch retains background permission callbacks until the
 first client connects, then replays them. A one-line mouse-selection correction
