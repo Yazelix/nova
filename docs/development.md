@@ -26,9 +26,11 @@ public help, managed command discovery, and child argument/output/exit status.
 Edge Linux full-package launcher outputs, and representative Home Manager closures
 from `main` and manual dispatch. Both jobs push the requested output closures
 synchronously, including substituted outputs. Missing credentials or failed
-uploads fail the job. `Version Gate` is manual. Its Linux job installs all four
-profile shapes, runs release contracts, and builds the complete Home Manager
-check with the reviewed nixpkgs override. `Darwin Package Smoke` owns the
+uploads fail the job. `Version Gate` is manual. `linux-profile-smoke` installs all
+four profile shapes and runs release contracts and installed commands.
+`linux-compatibility` builds the complete Home Manager check with the reviewed
+nixpkgs override in a separate job, giving this independent dependency graph its
+own timeout. Both jobs are required. `Darwin Package Smoke` owns the
 locked-input Darwin packages, Home Manager, Rio, no-Helix, and host-Yazi checks.
 Version Gate's `darwin-smoke-proof` verifies that completed native work for the
 exact candidate before starting any expensive release job. Missing proof fails
@@ -79,13 +81,14 @@ published; common store paths are deduplicated under the existing cache policy.
 Logs include exact paths, closure sizes, elapsed build time and runner disk use.
 Closure size is an upper bound on added cache storage, not measured cache growth.
 
-Version Gate permits one active and one pending run. Four native jobs have
+Version Gate permits one active and one pending run. Five native jobs have
 90-minute limits; the proof job and `release-gate` each have five minutes, bounding
-configured runner time at 370 minutes per invocation. The separate smoke producer
+configured runner time at 460 minutes per invocation. The separate smoke producer
 retains its 90-minute cap and can supply proof across channel promotions of the
 same SHA. These are configured bounds, not measured savings. Linux keeps two Nix
-build jobs, Darwin one, with two cores each. Stage limits retain the existing cap until native timings
-support tighter bounds. The aggregate requires all five jobs to succeed, even
+build jobs per runner, Darwin one, with two cores each. Stage limits retain their
+90-minute caps until native timings support tighter bounds. The aggregate requires
+all six prerequisites to succeed, even
 after a dependency fails; failed, cancelled, or skipped work cannot satisfy it.
 Manual workflow checks do not appear in GitHub's protection status summary.
 The aggregate publishes its result as the `release-gate` commit status for the
@@ -393,9 +396,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,842 |
-| Documentation and text | 7,632 |
-| Total | 42,474 |
+| Code and configuration | 34,864 |
+| Documentation and text | 7,637 |
+| Total | 42,501 |
 
 The tab performance report records local proofs. The existing tab-focus check
 observes keymap reload and independent modes in two clients without adding a

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   release-gate:
-    needs: [darwin-smoke-proof, linux-profile-smoke, darwin-core, darwin-editor, darwin-integration]
+    needs: [darwin-smoke-proof, linux-profile-smoke, linux-compatibility, darwin-core, darwin-editor, darwin-integration]
     if: always() && github.repository_id == '746026727'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -120,6 +120,28 @@ jobs:
           grep -F 'Yazelix Nova doctor' "$RUNNER_TEMP/yzx-doctor.txt"
           grep -F 'ok    Configuration    settings valid' "$RUNNER_TEMP/yzx-doctor.txt"
           grep -F 'Yazelix Nova tutor lessons' "$RUNNER_TEMP/yzx-tutor-list.txt"
+
+  linux-compatibility:
+    needs: darwin-smoke-proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          determinate: false
+          extra-conf: |
+            accept-flake-config = true
+            max-jobs = 2
+            cores = 2
 
       - name: Build Home Manager with newer nixpkgs
         run: |
