@@ -54,8 +54,8 @@ in 160 ms; it eventually converged. Another candidate selected the new tab in
 867 ms. Controls selected it in 423 and 898 ms. These instrumented trials had
 system load 5.13–10.02 on 16 logical CPUs, with concurrent release archive I/O.
 The outlier is retained; it cannot be silently excluded or attributed to disk
-activity without evidence. The bounded
-production follow-up below checks recurrence without changing deadlines.
+activity without evidence. The bounded production follow-up below checks
+recurrence without changing deadlines.
 
 ### Uninstrumented Nix-plugin comparison
 
@@ -66,11 +66,14 @@ The existing native package remained
 `/nix/store/8ycc2pycq5wmqj7qp2h3gv6191f2r0xf-yazelix`. Each probe used explicit
 file-plugin URLs and retained all 59 bindings plus native defaults.
 There were no overlapping heavy builds; one-minute load was 5.33–7.39 on 16 CPUs.
+Creation values share a clock started before dispatching the new-tab action;
+they are not additional delays after the body. Switch values start before input.
+Endpoints use separate captures; their polling times do not prove presentation order.
 
 | Observed endpoint | Control, two runs | Candidate, two runs |
 | --- | ---: | ---: |
 | New-tab body | 166–181 ms | 130–136 ms |
-| First visible plugin text after body | 236–303 ms | 186–193 ms |
+| New-tab bar label | 433–560 ms | 186–193 ms |
 | Correct new-tab bar selection | 437–565 ms | 172–197 ms |
 | New-tab hints | 236–303 ms | 186–211 ms |
 | New-tab Radar | 489–539 ms | 186–212 ms |
@@ -84,7 +87,7 @@ remains unresolved. Body-switch medians did not consistently improve: control
 observations with polling and IPC overhead, not Rio presentation timings,
 macOS performance, a latency guarantee or proof of a complete UI fix.
 
-Candidate hints package:
+Measured hints package:
 `/nix/store/aiy8mc85bk739fyh1j80zqrnfpp7wa0f-nova-zjhints-0.5.0`.
 Wasm SHA-256: `5e8509f993e981e1c4ea59becb87e6ab5bbbda9dea6e55450697b89b734904bc`.
 `production-analysis.json` records independent body/plugin/selection observations.

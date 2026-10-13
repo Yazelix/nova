@@ -118,12 +118,10 @@
              self.initialized = true;
          }
  
-@@ -3398,6 +3421,150 @@
- mod tests {
-     use super::*;
+@@ -3400,6 +3423,154 @@
      use std::collections::HashMap;
-+
-+    #[test]
+ 
+     #[test]
 +    fn performance_catalog_survives_event_order_modes_and_empty_reload() {
 +        let mode = ModeInfo {
 +            base_mode: Some(InputMode::Normal),
@@ -133,18 +131,23 @@
 +            let mut state = State::default();
 +            if !catalog_first {
 +                state.update(Event::ModeUpdate(mode.clone()));
++                state.render(1, 120);
 +            }
 +            assert_eq!(
 +                state.update(Event::InitialKeybinds(guest_keybinds())),
 +                !catalog_first
 +            );
-+            state.update(Event::ModeUpdate(mode.clone()));
++            assert_eq!(state.update(Event::ModeUpdate(mode.clone())), catalog_first);
++            state.render(1, 120);
++            assert!(!state.update(Event::InitialKeybinds(guest_keybinds())));
 +            assert!(rendered_bar(&state).contains("pane"));
 +            let pane_mode = ModeInfo {
 +                mode: InputMode::Pane,
 +                ..mode.clone()
 +            };
-+            state.update(Event::ModeUpdate(pane_mode.clone()));
++            assert!(state.update(Event::ModeUpdate(pane_mode.clone())));
++            state.render(1, 120);
++            assert!(!state.update(Event::ModeUpdate(pane_mode)));
 +            assert_eq!(
 +                rendered_bar(&state).split_whitespace().collect::<Vec<_>>(),
 +                ["x", "close"]
@@ -152,13 +155,12 @@
 +            let mut remapped = guest_keybinds();
 +            remapped[1].1[0].0 = key(BareKey::Char('q'));
 +            assert!(state.update(Event::InitialKeybinds(remapped)));
-+            state.update(Event::ModeUpdate(pane_mode));
 +            assert_eq!(
 +                rendered_bar(&state).split_whitespace().collect::<Vec<_>>(),
 +                ["q", "close"]
 +            );
++            state.render(1, 120);
 +            assert!(state.update(Event::InitialKeybinds(vec![])));
-+            state.update(Event::ModeUpdate(mode.clone()));
 +            assert!(rendered_bar(&state).trim().is_empty());
 +        }
 +    }
@@ -266,6 +268,8 @@
 +        );
 +        assert!(pipe_names_from_config(&config(&[("pipe_name", "")])).is_empty());
 +    }
- 
-     #[test]
++
++    #[test]
      fn search_options_keep_distinct_meanings_after_remapping() {
+         for bindings in [
+             [
