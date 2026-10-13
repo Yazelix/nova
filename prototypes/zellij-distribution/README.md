@@ -5,6 +5,10 @@ at upstream commit `333d7898a840314e41d3cc9d2a264a1b9732bb7b`. It embeds
 Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 
+The native wrapper owns the effective release profile: fat LTO and one codegen
+unit match the pinned Zellij workspace's optimization settings. Cargo ignores
+profiles in dependencies. Nix strips the installed executable.
+
 Upstream [PR #5687](https://github.com/zellij-org/zellij/pull/5687) preserves
 relative pane order when reapplying tiled layouts. The native
 [`background startup patch`](zellij-background-startup.patch) retains startup

@@ -393,9 +393,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,838 |
-| Documentation and text | 7,414 |
-| Total | 42,252 |
+| Code and configuration | 34,842 |
+| Documentation and text | 7,509 |
+| Total | 42,351 |
 
 The tab performance report records local proofs. The existing tab-focus check
 observes keymap reload and independent modes in two clients without adding a
@@ -403,6 +403,9 @@ packaged benchmark surface. Radar and Bar own their lightweight event changes.
 The isolated hints patch uses the existing catalog event and direct-pane config;
 its event-order, remap, readiness, compatibility and nested-focus regressions
 account for performance-fix LOC growth. Derived output caching was rejected.
+Four Cargo lines restore the native application's release optimization settings.
+The performance report separates measured startup/size gains from uncertain
+tab-creation/walking gains and records the additional build cost.
 
 Portable archive identity/index generation and mutation checks account for
 packaging LOC growth. The archive factory owns the host compatibility policy;

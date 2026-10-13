@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- The native runtime uses fat LTO and one codegen unit. Matched Linux artifacts
+  show faster fresh terminal startup and a smaller executable, with longer builds;
+  tab-creation and walking gains remain uncertain.
+
 - Bottom hints reuse the binding catalog across mode changes and stop unused
   compatibility broadcasts and startup retries in Nova's direct pane.
   Hints retain their appearance, bindings and nested-session behavior.

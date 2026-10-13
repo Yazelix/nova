@@ -10,3 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 zellij = { git = "https://github.com/zellij-org/zellij", rev = "333d7898a840314e41d3cc9d2a264a1b9732bb7b" }
+
+[profile.release]
+lto = true
+codegen-units = 1

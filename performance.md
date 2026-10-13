@@ -3,13 +3,94 @@
 Investigation: 2026-10-12. Scope: the Nova Edge desktop launcher on Linux.
 The investigation owner is `yazelix-5vl-tab-performance-investigation-yia1`;
 the first implementation owner is `yazelix-5vl-tab-mode-events-mbhl`;
-the hints follow-up owner is `yazelix-5vl-hints-tab-work-jvpj`.
+the hints follow-up owner is `yazelix-5vl-hints-tab-work-jvpj`;
+the native build-profile comparison owner is `yazelix-5vl-native-release-profile-4bea`.
 
-Radar and Bar now avoid repeated keymap decoding in mode events. An isolated
-installed candidate has passed local interaction checks and improves the small
-paired samples below, but a visible delay remains. Linux/Darwin acceptance gates
-are pending. The user's Home Manager desktop entry still points to the original
-artifact: its profile has no separately named `yazelix-edge` element to upgrade.
+Radar and Bar avoid repeated keymap decoding in mode events. Exact revision
+`e52bcefa` passed Linux and native Darwin checks and is installed through the
+user's Home Manager Edge desktop entry. Its fresh private-display launch passes
+anima handoff, creation, numbered/walking switches and minor modes. The user
+reports it is noticeably better; this is qualitative manual evidence, not a
+latency measurement. The hints follow-up below is implemented but not installed.
+Home Manager owns the desktop package; a separately named `yazelix-edge` profile
+selector does not update it. Delivery proof:
+`/home/lucca/.local/state/codex/proofs/nova-desktop-delivery-20261012.i_xj01jl/activation-ufqqy98k`.
+
+## Native release-profile comparison
+
+Owner: `yazelix-5vl-native-release-profile-4bea`. The native wrapper sets
+`lto = true` and `codegen-units = 1` at the application root, matching pinned
+Zellij's release optimization settings. [Cargo's profile rules](https://doc.rust-lang.org/cargo/reference/profiles.html)
+make that root the effective owner; dependency-workspace profiles are ignored.
+The control already uses release optimization level 3, 16 codegen units and
+Cargo's local thin LTO. This is not a debug-to-release comparison.
+[Wasmi's embedding guidance](https://github.com/wasmi-labs/wasmi/blob/main/docs/usage.md)
+supports testing fat LTO and one codegen unit, but does not establish Nova latency.
+Nix retains ownership of stripping; no plugin profile, compiler, engine or
+dependency changes are combined with this experiment.
+
+The control is exact Edge source `a6623698f18212f294c8fb6af1a91a4bd5157444`.
+Both full Nix packages include the pending hints fix, so neither represents a
+comparison against the user's installed `e52bcefa` desktop package. Rust is
+1.96.0 and Wasmi remains 1.1.0. All 16 extracted embedded Wasm plugins are
+byte-identical. Native inputs differ only in the wrapper source and output;
+vendor derivations resolve to the same immutable vendor artifact.
+
+Both packages were installed into isolated Nix profiles. Eight fresh terminal
+sessions ran control/candidate/candidate/control, then the reversed order.
+Every session retained 59 explicit bindings, native defaults and the full UI;
+it created a second tab and ran eight numbered, eight walking and eight click
+switches. The probe verified each server's executable through `/proc`.
+No heavy builds overlapped the measurements. Host one-minute load ranged from
+0.64 to 3.01 on 16 logical CPUs; background I/O pressure remained observable.
+
+| Endpoint | Control | Candidate |
+| --- | ---: | ---: |
+| Native/package build wall time, one trial each | 6m27s | 9m50s |
+| Stripped native executable | 76,362,024 bytes | 68,493,544 bytes |
+| Fresh `enter` body, median (range), four sessions | 501 ms (486–512) | 430 ms (419–448) |
+| New-tab body, median | 93 ms | 91 ms |
+| Correct new-tab bar selection, median | 134 ms | 117 ms |
+| All new-tab endpoints observed, median (range) | 275 ms (251–297) | 271 ms (237–279) |
+| Numbered switch correct-bar median, 32 switches | 42 ms | 36 ms |
+| Walking switch correct-bar median, 32 switches | 43 ms | 41 ms |
+| Click switch correct-bar median, 32 switches | 54 ms | 51 ms |
+| Observed live-thread CPU during ~3s after creation, median | 555 ms | 505 ms |
+| Settled native-server CPU, median of twelve 2s windows | 0.5% of one core | 0.5% of one core |
+
+Fresh terminal startup improved consistently by about 71 ms at the median
+(14% for this endpoint), and the executable is 10.3% smaller. Keep the two
+settings as a candidate for those benefits. The measured build cost increased
+by 3m23s (52%); each variant was built once with warm dependencies, so this is
+not a general clean-build prediction. Peak build memory was not measured.
+
+New-tab completion and switch ranges overlap. Walking/click body medians were
+slightly worse (control 26/31 ms, candidate 28/34 ms); the reversed run order did not
+confirm a consistent walking/click improvement. There is no clear idle gain.
+The CPU sums cover threads alive at the final sample, with 10 ms ticks; exited
+threads can be absent. Executor-pool names do not identify individual plugin
+callbacks. Do not interpret these samples as an overall UI speedup.
+
+The startup clock begins after detached terminal launch dispatch; action clocks
+begin before input dispatch. Captures include IPC/polling overhead and do not
+prove presentation order. These two-tab fixtures use small histories; Rio
+presentation, many tabs, long-lived sessions and Darwin performance remain
+unmeasured. Shared production acceptance still requires exact Linux/Darwin gates.
+The user's desktop remains on the manually improved Radar/Bar revision.
+
+Local package, attached-tab-focus and bottom-hints checks pass. Flake evaluation
+and all-system output shape pass; a full local `nix flake check` was not run.
+The isolated installed Edge `launch` passes anima-to-workspace handoff, creation,
+numbered/walking switches and minor modes through pinned private-display Kinestra.
+Screenshots show populated Radar, Bar and hints. This is GUI correctness proof,
+not a timed presentation comparison or manual desktop dogfood.
+
+Proof, commands, inputs, raw captures and analysis:
+`/home/lucca/.local/state/codex/proofs/nova-native-profile-20261013.0zf4p9r2`.
+Control native SHA-256:
+`7b47f2b2b136a27fd08e2eadab8a4afac56f2fc1b32c82605b3e933b8c649707`.
+Candidate native SHA-256:
+`ec19a96362ad2dc3978fe137663d6e2a14bde135f49e30e6ad849eef54effc6e`.
 
 ## Bottom-hints follow-up
 
@@ -742,8 +823,8 @@ decoder benefit separately from instance deduplication and render batching.
 
 | Option | Owner and concrete change | Expected value | Cost and proof boundary |
 | --- | --- | --- | --- |
-| Remove avoidable plugin work | Radar/Bar `InitialKeybinds` is implemented above; next isolate hints binding/output caching, unused broadcasts and readiness/subscriptions | Addresses remaining decoding and render amplification while retaining the UI | Small to medium child/integration changes. Hints experiments remain variable. Preserve reload, nested sessions and compatibility-pipe consumers. |
-| Restore native release optimizations | Nova distribution wrapper: LTO and one codegen unit; separately try the same for hints | Addresses the interpreter that dominates sampled CPU; preserves features | Small source change, slower builds/linking. Benchmark exact artifacts; no measured speedup yet. |
+| Remove avoidable plugin work | Radar/Bar `InitialKeybinds` is installed; hints catalog, unused broadcasts and readiness/subscriptions are implemented above | Reduces decoding and render amplification while retaining the UI | Hints acceptance is pending. Output caching was rejected. Preserve reload, nested sessions and compatibility-pipe consumers. |
+| Restore native release optimizations | Native root fat LTO and one codegen unit are measured above; no hints profile change | Consistent fresh terminal-startup gain and smaller executable; tab-creation/walking benefit remains uncertain | Two Cargo settings, 3m23s longer measured build. Shared acceptance is pending exact Linux/Darwin proof. |
 | Adopt native shared instances | Migrate one expensive plugin to `ZellijSharedPlugin`; delete its controller/view protocol when equivalent | Removes per-tab Wasm initialization, frame messages and duplicate state delivery through an existing host owner | Medium to large child change. Prove client-local selection, slot lifecycle, resize, click targets and compatibility policy. |
 | Reduce legacy frame fan-out | Radar/Bar: skip unchanged frames, use visibility, refresh immediately on activation | Less pipe decoding and rendering, especially with many tabs | Medium. Equality must include interaction targets. Prove first frame, activation and multiple clients. Avoid building a second visibility owner if migrating to shared instances. |
 | Upgrade Wasmi | Native Zellij: evaluate Wasmi/WASI 2.x with correct features | Faster interpreter without replacing the plugin model | Medium upstream/fork work. Nova pins 1.1.0; migration is not a version-only edit. Upstream benchmark gains do not predict Nova latency. |
@@ -768,9 +849,10 @@ fixing redundant callbacks in Nova.
 
 ## Next experiment and decision boundary
 
-After this slice passes acceptance, isolate hints caching, publication and
-subscriptions before combining changes. Compare native build profiles separately,
-then consider one plugin's shared-instance prototype. Retain the full keymap/UI
+Finish exact-revision acceptance of the hints and native-profile candidates
+before choosing one plugin's shared-instance prototype. Hints output caching
+has been rejected; the native profile comparison remains separate from plugin
+changes. Retain the full keymap/UI
 and test reload, minor modes, nested sessions, permission startup, tab closure and
 multiple clients alongside creation and all three switch methods.
 
@@ -799,10 +881,10 @@ Defer extra executor threads and engine replacement until measurements justify t
 - Tests used disposable state and small histories. The user’s long-lived session,
   many projects, agent activity, and actual tab count remain unmeasured.
 - Terminal captures prove native output, not the instant Rio presents pixels.
-  The final installed candidate has a rebuilt native distribution and automated
-  private GUI correctness proof, but no timed GUI comparison, Darwin performance
-  measurement or user desktop update. Temporary instrumented builds support
-  experiments only and are absent from production artifacts.
+  Radar/Bar has rebuilt-distribution, private GUI and user desktop delivery proof.
+  Hints and native-profile candidates are separate from that installed revision.
+  There is no timed GUI comparison or Darwin performance measurement. Temporary
+  instrumented builds support experiments only and are absent from production artifacts.
 - Shared `/tmp` logs contained top-bar panics, but the isolated reproductions
   have no corresponding crashes. They do not establish the cause of this report.
 - The first synthetic harness counted an intentional one-second attachment
