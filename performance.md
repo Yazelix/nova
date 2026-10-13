@@ -2,13 +2,108 @@
 
 Investigation: 2026-10-12. Scope: the Nova Edge desktop launcher on Linux.
 The investigation owner is `yazelix-5vl-tab-performance-investigation-yia1`;
-the implementation owner is `yazelix-5vl-tab-mode-events-mbhl`.
+the first implementation owner is `yazelix-5vl-tab-mode-events-mbhl`;
+the hints follow-up owner is `yazelix-5vl-hints-tab-work-jvpj`.
 
 Radar and Bar now avoid repeated keymap decoding in mode events. An isolated
 installed candidate has passed local interaction checks and improves the small
 paired samples below, but a visible delay remains. Linux/Darwin acceptance gates
 are pending. The user's Home Manager desktop entry still points to the original
 artifact: its profile has no separately named `yazelix-edge` element to upgrade.
+
+## Bottom-hints follow-up
+
+Owner: `yazelix-5vl-hints-tab-work-jvpj`. The isolated
+[lightweight event patch](prototypes/zellij-distribution/zjhints-lightweight-events.patch)
+uses the existing SDK's `InitialKeybinds` for the complete catalog and keeps it
+across lightweight metadata events. Either startup event order, remaps and an
+empty replacement catalog are covered. Native reconfiguration remains the owner
+of catalog delivery; there is no new SDK, dependency or Nova config field.
+
+Nova's direct pane sets the existing `pipe_name` to `""`. This disables unused
+compatibility broadcasts and the session subscription. It settles after actual
+mode metadata arrives, including empty/base Locked output. Unset and custom
+names retain the child's publication and compatibility retries. Focus state is
+still tracked, but it redraws hints only when the host is descended into a guest.
+Width, theme, mode and nested-session updates still request the relevant redraw.
+Permission startup keeps the pane selectable until the permission result and
+does not render hints before permission-gated metadata arrives.
+
+Separable catalog/direct-pane/output-cache variants were built with Rust 1.96.0
+against the existing installed native binary. The output cache was rejected:
+both trials made ten derivations in ten renders, giving zero cache hits. Skipping
+irrelevant redraws needs no derived-output state or invalidation framework.
+
+Two final traced pairs retain all 59 explicit bindings and native defaults.
+Each creates a tab, runs 24 numbered/walking/click switches, reloads a remapped
+Alt+9 binding, and checks Pane/Normal hints and Radar's session identity.
+
+| Diagnostic endpoint | Control | Candidate |
+| --- | ---: | ---: |
+| Settled hints mode payload | 88,936 bytes | 830 bytes |
+| Mode events requesting redraw during settled switches | 24 | 0 |
+| Completed hints renders in captured run | 294 | 10 |
+| Compatibility publications | 588 | 0 |
+| Session events delivered to hints | 144 | 0 |
+| Separate catalog deliveries, including reload | 0 | 4 |
+
+Counts describe captured trace prefixes, not an overall UI speedup. Native
+forced renders can still derive hints; no output cache is claimed. The traced
+candidate had one 17.1-second new-plugin startup outlier after its body appeared
+in 160 ms; it eventually converged. Another candidate selected the new tab in
+867 ms. Controls selected it in 423 and 898 ms. These instrumented trials had
+system load 5.13–10.02 on 16 logical CPUs, with concurrent release archive I/O.
+The outlier is retained; it cannot be silently excluded or attributed to disk
+activity without evidence. The bounded
+production follow-up below checks recurrence without changing deadlines.
+
+### Uninstrumented Nix-plugin comparison
+
+After the archive work and Nix build finished, a control/candidate/candidate/control
+sequence used the production Nix Wasm for all three plugins. Hints were installed
+in an isolated profile; candidate source matched the applied patch exactly.
+The existing native package remained
+`/nix/store/8ycc2pycq5wmqj7qp2h3gv6191f2r0xf-yazelix`. Each probe used explicit
+file-plugin URLs and retained all 59 bindings plus native defaults.
+There were no overlapping heavy builds; one-minute load was 5.33–7.39 on 16 CPUs.
+
+| Observed endpoint | Control, two runs | Candidate, two runs |
+| --- | ---: | ---: |
+| New-tab body | 166–181 ms | 130–136 ms |
+| First visible plugin text after body | 236–303 ms | 186–193 ms |
+| Correct new-tab bar selection | 437–565 ms | 172–197 ms |
+| New-tab hints | 236–303 ms | 186–211 ms |
+| New-tab Radar | 489–539 ms | 186–212 ms |
+| Numbered switch correct-bar median | 103–119 ms | 40–46 ms |
+| Walking switch correct-bar median | 103–129 ms | 46–51 ms |
+| Click switch correct-bar median | 116–122 ms | 39–66 ms |
+
+The 17-second outlier did not recur in these two candidate sessions; its cause
+remains unresolved. Body-switch medians did not consistently improve: control
+19–26 ms, candidate 24–41 ms across methods/runs. These are small Linux terminal
+observations with polling and IPC overhead, not Rio presentation timings,
+macOS performance, a latency guarantee or proof of a complete UI fix.
+
+Candidate hints package:
+`/nix/store/aiy8mc85bk739fyh1j80zqrnfpp7wa0f-nova-zjhints-0.5.0`.
+Wasm SHA-256: `5e8509f993e981e1c4ea59becb87e6ab5bbbda9dea6e55450697b89b734904bc`.
+`production-analysis.json` records independent body/plugin/selection observations.
+
+The Nix Wasm build and all 148 native renderer/model tests pass, including catalog
+ordering, reload, empty/Locked readiness, default pipe retries, resize and nested
+focus. Existing `bottom_hints` and `attached_tab_focus` checks pass against the
+installed file-plugin fixture: every minor mode, fitting, popup/focus, hide/restore,
+pane order and multiple/mirrored clients remain covered. A fresh uncached file
+plugin displays its permission prompt, accepts a keyboard grant and renders
+Normal/Pane hints. Flake shape and all-system output evaluation pass.
+Full rebuilt-distribution,
+installed-launcher, fresh private-display and exact Linux/Darwin acceptance
+proof remain separate from these existing-native/file-plugin probes.
+
+Raw source, variant identities, logs, snapshots, elapsed times and analysis:
+`/home/lucca/.local/state/codex/proofs/nova-hints-performance-20261012.nm_auw6j`.
+`ablation-analysis.json` preserves exploratory variants; `final-analysis.json`
+preserves the final traced pairs and the negative startup result.
 
 ## Lightweight mode-event implementation
 

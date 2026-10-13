@@ -1,0 +1,271 @@
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -15,6 +15,8 @@
+ #[derive(Default)]
+ struct State {
+     initialized: bool,
++    keybinds_received: bool,
++    mode_received: bool,
+     /// The zjstatus pipe names each render is published on. See
+     /// [`pipe_names_from_config`].
+     pipe_names: Vec<String>,
+@@ -997,9 +999,11 @@
+ /// An explicit `pipe_name` is used on its own: someone who has named their
+ /// pipe has a zjstatus config reading that name and no other. Left unset,
+ /// both the current default and the pre-rename one go out, so a config
+-/// written against either keeps rendering.
++/// written against either keeps rendering. An explicit empty name disables
++/// publication.
+ fn pipe_names_from_config(configuration: &BTreeMap<String, String>) -> Vec<String> {
+     match configuration.get("pipe_name") {
++        Some(name) if name.is_empty() => vec![],
+         Some(name) => vec![name.clone()],
+         None => vec![DEFAULT_PIPE_NAME.to_string(), LEGACY_PIPE_NAME.to_string()],
+     }
+@@ -1187,23 +1191,40 @@
+         // is safe for an already-granted plugin too: `request_permission`
+         // replies immediately from the permission cache rather than staying
+         // silent, so the event always comes.
+-        subscribe(&[
++        let mut events = vec![
+             EventType::ModeUpdate,
+-            EventType::SessionUpdate,
++            EventType::InitialKeybinds,
+             EventType::PaneUpdate,
+             EventType::PermissionRequestResult,
+             EventType::TabUpdate,
+             EventType::NestedSessionModeUpdate,
+             EventType::NestedSessionKeybinds,
+-        ]);
++        ];
++        if !self.pipe_names.is_empty() {
++            events.push(EventType::SessionUpdate);
++        }
++        subscribe(&events);
+     }
+ 
+     fn update(&mut self, event: Event) -> bool {
+         let mut should_render = !self.initialized;
+         match event {
+-            Event::ModeUpdate(mode_info) => {
+-                if self.mode_info != mode_info {
+-                    should_render = true;
++            Event::InitialKeybinds(keybinds) => {
++                should_render |= !self.keybinds_received || self.mode_info.keybinds != keybinds;
++                self.keybinds_received = true;
++                self.mode_info.keybinds = keybinds;
++            }
++            Event::ModeUpdate(mut mode_info) => {
++                should_render |= !self.mode_received;
++                self.mode_received = true;
++                if self.keybinds_received {
++                    // Compare metadata without walking the cached catalog on every mode update.
++                    let keybinds = std::mem::take(&mut self.mode_info.keybinds);
++                    mode_info.keybinds.clear();
++                    should_render |= self.mode_info != mode_info;
++                    mode_info.keybinds = keybinds;
++                } else {
++                    should_render |= self.mode_info != mode_info;
+                 }
+                 self.mode_info = mode_info;
+                 self.base_mode_is_locked = self.mode_info.base_mode == Some(InputMode::Locked);
+@@ -1220,7 +1241,7 @@
+                 let focus = focus_by_tab(&manifest);
+                 if focus != self.focus_by_tab {
+                     self.focus_by_tab = focus;
+-                    should_render = true;
++                    should_render |= self.is_host_descended();
+                 }
+                 self.forget_closed_nested_guests(&manifest);
+             }
+@@ -1234,7 +1255,7 @@
+                 });
+                 if active_tab != self.active_tab {
+                     self.active_tab = active_tab;
+-                    should_render = true;
++                    should_render |= self.is_host_descended();
+                 }
+             }
+             // A nested session in one of this session's panes reporting its
+@@ -1277,10 +1298,13 @@
+             }
+             _ => {}
+         };
+-        should_render
++        should_render && self.mode_received
+     }
+ 
+     fn render(&mut self, _rows: usize, _cols: usize) {
++        if !self.mode_received {
++            return;
++        }
+         let mode_info = &self.mode_info;
+         let dim = self.dim_amount();
+ 
+@@ -1346,11 +1370,10 @@
+             }
+         };
+ 
+-        // HACK: Because we're not sure when zjstatus will be ready to receive messages,
+-        // we'll repeatedly send messages until the user has switched to a different mode,
+-        // at which point we'll assume that zjstatus has been initialized. The render function
+-        // does not seem to be called too frequently, so this should be fine.
+-        if !output.is_empty() && Some(mode_info.mode) != mode_info.base_mode {
++        // Compatibility pipes retry until a non-base mode; direct panes are ready even empty.
++        if self.pipe_names.is_empty()
++            || (!output.is_empty() && Some(mode_info.mode) != mode_info.base_mode)
++        {
+             self.initialized = true;
+         }
+ 
+@@ -3398,6 +3421,150 @@
+ mod tests {
+     use super::*;
+     use std::collections::HashMap;
++
++    #[test]
++    fn performance_catalog_survives_event_order_modes_and_empty_reload() {
++        let mode = ModeInfo {
++            base_mode: Some(InputMode::Normal),
++            ..Default::default()
++        };
++        for catalog_first in [false, true] {
++            let mut state = State::default();
++            if !catalog_first {
++                state.update(Event::ModeUpdate(mode.clone()));
++            }
++            assert_eq!(
++                state.update(Event::InitialKeybinds(guest_keybinds())),
++                !catalog_first
++            );
++            state.update(Event::ModeUpdate(mode.clone()));
++            assert!(rendered_bar(&state).contains("pane"));
++            let pane_mode = ModeInfo {
++                mode: InputMode::Pane,
++                ..mode.clone()
++            };
++            state.update(Event::ModeUpdate(pane_mode.clone()));
++            assert_eq!(
++                rendered_bar(&state).split_whitespace().collect::<Vec<_>>(),
++                ["x", "close"]
++            );
++            let mut remapped = guest_keybinds();
++            remapped[1].1[0].0 = key(BareKey::Char('q'));
++            assert!(state.update(Event::InitialKeybinds(remapped)));
++            state.update(Event::ModeUpdate(pane_mode));
++            assert_eq!(
++                rendered_bar(&state).split_whitespace().collect::<Vec<_>>(),
++                ["q", "close"]
++            );
++            assert!(state.update(Event::InitialKeybinds(vec![])));
++            state.update(Event::ModeUpdate(mode.clone()));
++            assert!(rendered_bar(&state).trim().is_empty());
++        }
++    }
++
++    #[test]
++    fn performance_direct_pane_settles_even_with_empty_or_locked_hints() {
++        for mode in [InputMode::Normal, InputMode::Locked] {
++            let mut state = State::default();
++            state.update(Event::ModeUpdate(ModeInfo {
++                mode,
++                base_mode: Some(mode),
++                ..Default::default()
++            }));
++            state.render(1, 120);
++            assert!(!state.update(Event::SessionUpdate(vec![], vec![])));
++            assert!(state.update(Event::InitialKeybinds(guest_keybinds())));
++            state.render(1, 120);
++            assert!(!state.update(Event::SessionUpdate(vec![], vec![])));
++        }
++    }
++
++    #[test]
++    fn performance_default_pipe_consumer_keeps_its_startup_retry() {
++        let mut state = State {
++            pipe_names: pipe_names_from_config(&BTreeMap::new()),
++            ..Default::default()
++        };
++        state.update(Event::InitialKeybinds(guest_keybinds()));
++        let mut mode = ModeInfo {
++            base_mode: Some(InputMode::Normal),
++            ..Default::default()
++        };
++        state.update(Event::ModeUpdate(mode.clone()));
++        state.render(1, 120);
++        assert!(state.update(Event::SessionUpdate(vec![], vec![])));
++        mode.mode = InputMode::Pane;
++        state.update(Event::ModeUpdate(mode));
++        state.render(1, 120);
++        assert!(!state.update(Event::SessionUpdate(vec![], vec![])));
++    }
++
++    #[test]
++    fn performance_focus_skips_unchanged_host_hints_and_tracks_nested_focus() {
++        let mut state = State {
++            auto_width: true,
++            hide_when_nested: true,
++            ..Default::default()
++        };
++        let mut mode = ModeInfo {
++            base_mode: Some(InputMode::Normal),
++            ..Default::default()
++        };
++        state.update(Event::InitialKeybinds(guest_keybinds()));
++        state.update(Event::ModeUpdate(mode.clone()));
++        state.render(1, 120);
++        assert!(!state.update(Event::TabUpdate(vec![only_tab()])));
++        let mut pane = guest_pane(GUEST_PANE, true);
++        pane.pane_columns = 120;
++        assert!(state.update(Event::PaneUpdate(manifest(vec![pane.clone()]))));
++        state.render(1, 120);
++        assert!(!state.update(Event::PaneUpdate(manifest(vec![pane.clone()]))));
++        assert!(rendered_bar(&state).contains("pane"));
++        pane.pane_columns = 1;
++        assert!(state.update(Event::PaneUpdate(manifest(vec![pane.clone()]))));
++        assert!(rendered_bar(&state).trim().is_empty());
++        pane.pane_columns = 120;
++        assert!(state.update(Event::PaneUpdate(manifest(vec![pane]))));
++        state.update(guest_mode_update(GUEST_PANE, InputMode::Pane));
++        state.update(guest_keybinds_event(GUEST_PANE));
++        state.update(guest_mode_update(OTHER_GUEST_PANE, InputMode::Normal));
++        state.update(guest_keybinds_event(OTHER_GUEST_PANE));
++        mode.session_dimmed = Some(true);
++        assert!(state.update(Event::ModeUpdate(mode.clone())));
++        state.render(1, 120);
++        assert!(rendered_bar(&state).contains("close"));
++        assert!(state.update(Event::PaneUpdate(manifest(vec![
++            guest_pane(GUEST_PANE, false),
++            guest_pane(OTHER_GUEST_PANE, true)
++        ]))));
++        state.render(1, 120);
++        assert!(rendered_bar(&state).contains("pane"));
++        assert!(!state.update(Event::PaneUpdate(manifest(vec![
++            guest_pane(GUEST_PANE, false),
++            guest_pane(OTHER_GUEST_PANE, true)
++        ]))));
++        mode.session_ancestry = vec!["host".to_owned()];
++        assert!(state.update(Event::ModeUpdate(mode.clone())));
++        assert!(rendered_bar(&state).is_empty());
++        mode.host_fullscreen = Some(true);
++        assert!(state.update(Event::ModeUpdate(mode.clone())));
++        assert!(rendered_bar(&state).contains("pane"));
++        mode.style.colors.text_unselected.base = PaletteColor::Rgb((1, 2, 3));
++        assert!(state.update(Event::ModeUpdate(mode)));
++    }
++
++    #[test]
++    fn performance_empty_pipe_name_disables_publication_only_explicitly() {
++        assert_eq!(
++            pipe_names_from_config(&config(&[])),
++            vec!["zjhints", "zjstatus_hints"]
++        );
++        assert_eq!(
++            pipe_names_from_config(&config(&[("pipe_name", "custom")])),
++            vec!["custom"]
++        );
++        assert!(pipe_names_from_config(&config(&[("pipe_name", "")])).is_empty());
++    }
+ 
+     #[test]
+     fn search_options_keep_distinct_meanings_after_remapping() {

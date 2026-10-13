@@ -5,6 +5,7 @@ layout {
 
     pane_template name="bottom_hints" borderless=true {
         plugin location="nova_hints" {
+            pipe_name ""
             show_mode true
             mode_format " #[fg=#ef7a73,bold]{{mode}}  "
             mode_format_normal ""

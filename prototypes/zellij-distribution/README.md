@@ -60,6 +60,15 @@ chord aliases and symbol aliases retain their existing presentation.
 Nova's two `Alt [` and
 `Alt ]` content bindings share one `[] layout` hint.
 
+The isolated [lightweight event patch](zjhints-lightweight-events.patch) keeps
+`InitialKeybinds` as the catalog owner across mode updates and native reloads.
+Nova's direct pane sets the existing `pipe_name` to an empty string: it publishes
+no compatibility messages, omits unused session events and becomes ready even
+when base-mode hints are empty. Unset and custom pipe names retain publication
+and startup retries. Focus changes redraw nested hints when the host is descended.
+The patch can disappear when upstream supplies these catalog/direct-pane paths.
+An output cache was rejected after two traced trials produced no cache hits.
+
 Build the exact Edge package with `nix build .#yazelix-edge --no-link`. The
 standalone components are `.#nova-zellij-distribution` and `.#nova-zjhints`.
 The zjhints package runs its native renderer tests before installing the Wasm.

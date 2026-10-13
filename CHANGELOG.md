@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- Bottom hints reuse the binding catalog across mode changes and stop unused
+  compatibility broadcasts and startup retries in Nova's direct pane.
+  Hints retain their appearance, bindings and nested-session behavior.
+
 - Radar and Bar receive mode changes without repeatedly decoding unused
   keymaps. Tab bindings and hints retain the full configuration.
 

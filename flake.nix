@@ -680,7 +680,10 @@
       novaZjhintsSource = pkgs.applyPatches {
         name = "nova-zjhints-source";
         src = zjhintsUpstream;
-        patches = [./prototypes/zellij-distribution/zjhints-group-modifiers.patch];
+        patches = [
+          ./prototypes/zellij-distribution/zjhints-group-modifiers.patch
+          ./prototypes/zellij-distribution/zjhints-lightweight-events.patch
+        ];
       };
       novaZjhintsToolchain = fenix.packages.${system}.combine [
         fenix.packages.${system}.stable.cargo
