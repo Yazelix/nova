@@ -396,9 +396,9 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,864 |
-| Documentation and text | 7,637 |
-| Total | 42,501 |
+| Code and configuration | 34,875 |
+| Documentation and text | 7,646 |
+| Total | 42,521 |
 
 The tab performance report records local proofs. The existing tab-focus check
 observes keymap reload and independent modes in two clients without adding a

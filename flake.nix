@@ -212,9 +212,20 @@
       packageHelper = ''"''${YZX_PACKAGE_HELPER:-${yzxPackage}/bin/yzx-package}"'';
       ownedShell = nix: relative: ''"$(${packageHelper} ${pkgs.lib.escapeShellArg (toString nix)} ${pkgs.lib.escapeShellArg relative})"'';
       rioPackage = rioPackageFor pkgs;
+      symbolsNerdFont = pkgs.nerd-fonts.symbols-only.overrideAttrs (old: {
+        version = "3.5.0";
+        src = pkgs.fetchurl {
+          url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/NerdFontsSymbolsOnly.tar.xz";
+          hash = "sha256-t+8ig0YrQ18f6R1yncQS1dvjQmndLH9OHYA+QQXI2IM=";
+        };
+        passthru = old.passthru // {releaseVersion = "3.5.0";};
+        meta = old.meta // {
+          changelog = "https://github.com/ryanoasis/nerd-fonts/blob/v3.5.0/changelog.md";
+        };
+      });
       yzxRioToml = pkgs.replaceVars ./defaults/rio/config.toml {
         jetbrainsMonoDir = "${pkgs.jetbrains-mono}/share/fonts/truetype";
-        symbolsNerdDir = "${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols";
+        symbolsNerdDir = "${symbolsNerdFont}/share/fonts/truetype/NerdFonts/Symbols";
         notoSymbolsDir = "${pkgs.noto-fonts}/share/fonts/noto";
         notoEmojiDir = "${pkgs.noto-fonts-color-emoji}/share/fonts/noto";
       };

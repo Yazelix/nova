@@ -437,6 +437,12 @@ overrides under runtime state without setting top-level `format`, so Starship
 retains its native `$all` layout. Zellij layers its sparse file over packaged
 configuration directly. Untouched defaults follow upgrades
 
+The Codex quota symbol uses Symbols Nerd Font 3.5 or newer (U+EC81). Rio's
+packaged default includes it; other terminals need matching glyph coverage.
+Existing Rio configurations keep their font paths. When upgrading the packaged
+Symbols font from 3.4, update only that entry in `fonts.additional-dirs` to the
+new package's Symbols directory, preserving other font choices.
+
 Rio owns the full schema and validation for `rio/config.toml`. When that path
 does not already exist, Yazelix copies the packaged config and any missing
 `nova-dark`/`nova-light` themes; an existing theme file is never replaced.

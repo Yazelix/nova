@@ -4,8 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
-- The Codex usage widget keeps a clean `codex` label after failed refreshes.
-  Cached values and retry timing are preserved.
+- Quota widgets use Eon's provider symbols: the OpenAI blossom for Codex and
+  `C` for Claude. Rio includes Symbols Nerd Font 3.5 for the blossom.
+  Cached values and retry timing are preserved after failed refreshes.
 
 - The native runtime uses fat LTO and one codegen unit. Matched Linux artifacts
   show faster fresh terminal startup and a smaller executable, with longer builds;
