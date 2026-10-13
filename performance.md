@@ -4,17 +4,108 @@ Investigation: 2026-10-12. Scope: the Nova Edge desktop launcher on Linux.
 The investigation owner is `yazelix-5vl-tab-performance-investigation-yia1`;
 the first implementation owner is `yazelix-5vl-tab-mode-events-mbhl`;
 the hints follow-up owner is `yazelix-5vl-hints-tab-work-jvpj`;
-the native build-profile comparison owner is `yazelix-5vl-native-release-profile-4bea`.
+the native build-profile comparison owner is `yazelix-5vl-native-release-profile-4bea`;
+the rendering-model decision owner is `yazelix-5vl-shared-plugin-rendering-2vjp`.
 
-Radar and Bar avoid repeated keymap decoding in mode events. Exact revision
-`e52bcefa` passed Linux and native Darwin checks and is installed through the
-user's Home Manager Edge desktop entry. Its fresh private-display launch passes
-anima handoff, creation, numbered/walking switches and minor modes. The user
-reports it is noticeably better; this is qualitative manual evidence, not a
-latency measurement. The hints follow-up below is implemented but not installed.
+The Home Manager Edge desktop entry resolves to exact revision
+`47fe1ecd8dbdc6009a6d4294436b52d5e8eeafa8`, including lightweight Radar/Bar
+mode events, the hints follow-up and native release-profile settings. Its
+package is `/nix/store/28fsc8501n6s991v9b0v1lhsxqfqcpbj-yazelix`.
+The exact activated desktop launcher passes fresh private-display anima-to-editor
+handoff, creation, numbered/walking switches and minor modes. The user reports
+it is substantially faster and feels good; this is qualitative manual evidence,
+not a measured combined speedup. Exact Linux CI passes; Darwin acceptance is pending.
 Home Manager owns the desktop package; a separately named `yazelix-edge` profile
-selector does not update it. Delivery proof:
-`/home/lucca/.local/state/codex/proofs/nova-desktop-delivery-20261012.i_xj01jl/activation-ufqqy98k`.
+selector does not update it. Current delivery proof:
+`/home/lucca/.local/state/codex/proofs/nova-native-profile-20261013.0zf4p9r2/desktop-vknit_rs`.
+The sections below retain the conditions and narrower conclusions of earlier
+experiments; references to an older installed revision describe those trials.
+
+## Shared-plugin rendering decision
+
+Owner: `yazelix-5vl-shared-plugin-rendering-2vjp`. The selected outcome is
+**retain the current rendering model for the installed candidate**. Shared
+hints demonstrate a scaling benefit, but the prototype fails immediate initial
+activation and does not preserve the nested-session API. No runtime, child pin,
+compatibility floor, desktop entry or user configuration changes in this pass.
+This is Linux research and platform-neutral documentation, not shared-runtime
+acceptance. Prerequisite Linux/Darwin delivery checks remain separate.
+
+One fresh installed `enter` session grew from 2 to 8 to 16 tabs at 240x40 cells.
+Native-server RSS grew from 157 to 226 to 362 MiB; walking-switch correct-bar
+medians were 34, 41 and 93 ms. Each tab added Radar, Bar and hints panes; pane
+counts do not distinguish shared slots from Wasm instances. This single curve
+establishes a remaining scaling cost, not its attribution or a general forecast.
+
+The smallest comparative slice uses the existing hints renderer. All three
+file-plugin variants use native SDK source `333d7898`, identical Cargo locks,
+Rust 1.96.0 and the same installed native executable. The legacy control keeps
+the ordinary registration macro. A decoder-only control keeps its per-tab
+lifecycle but substitutes the shared macro's byte reader and event decoder.
+The shared variant keeps renderer state per client and collapse state per slot;
+the [native host](https://github.com/zellij-org/zellij/pull/5662) owns visibility,
+slot lifecycle and rendering targets.
+
+Changing SDK alone fails to compile the existing nested-session handlers:
+upstream uses session paths, generations and a synchronous keybinding response
+instead of the fork's event/request interface. Both controls and the shared
+prototype exclude those handlers identically for this top-level comparison.
+That exclusion is a measurement boundary, not an accepted behavior change.
+
+Fresh shared startup leaves hints blank even with cached permissions. Moving
+permission requests to client connection or first-slot registration does not
+restore initial activation within 20 seconds plus one bounded 20-second extension.
+A minimal shared plugin reports permission granted with no mode; a real Pane
+then Normal transition supplies the mode. The pinned host records deduplication
+state before checking event permission (`plugins/shared.rs:462-495`). Together,
+these observations support an initial-state replay gap; this pass does not
+establish a complete native fix. Blank-frame timing values are invalid and excluded.
+
+The comparison below explicitly performs the same Pane/Normal bootstrap in
+every variant before measuring. Four runs use shared/control/control/shared;
+two subsequent runs isolate decoding. No heavy builds overlap these runs.
+Each checkpoint exercises eight numbered, eight walking and eight click switches.
+All fixtures retain the full top-level UI, 59 explicit bindings and native defaults.
+They use disposable homes and empty zoxide histories, without an agent workload.
+
+| Endpoint at 16 tabs, two runs per variant | Legacy control | Faster decoder only | Shared hints |
+| --- | ---: | ---: | ---: |
+| Native-server RSS | 355.6–355.8 MiB | 325.2–325.7 MiB | 196.8–198.1 MiB |
+| Observed new-tab endpoints | 553–569 ms | 460–490 ms | 327–386 ms |
+| Numbered-switch correct-bar median | 95–105 ms | 85–99 ms | 64–109 ms |
+| Walking-switch correct-bar median | 88–95 ms | 91–107 ms | 78–112 ms |
+| Click-switch correct-bar median | 92–105 ms | 97–103 ms | 78–120 ms |
+
+Sharing saves about 158 MiB of native-server RSS at 16 tabs relative to the
+matched legacy control; decoding alone saves about 30 MiB. Creation endpoints
+improve, but switch latency has no consistent large-tab benefit. At two tabs,
+shared numbered/walking medians are 64–83 ms versus legacy 42–53 ms: this prototype
+does not improve the small-session interaction the user already finds fast.
+The 5.6-second control body-startup outlier remains in the raw records.
+
+Creation clocks include native CLI dispatch and polling until body text, the
+destination bar highlight, a Radar header and Normal hints are present. They
+do not prove Radar row freshness, presentation order or Rio latency. Switch
+inputs wait for readiness and are not rapid-input tests. Host load and background
+I/O vary; two runs per variant do not establish a latency guarantee. RSS and
+idle samples describe the native server, not Rio or all workspace processes.
+
+Frame equality alone cannot remove the per-tab Wasm contexts measured here.
+Radar already gates unchanged render inputs; a changed active-tab marker also
+changes its frame. A custom visibility service would duplicate the native owner.
+Retain controller/view Radar and Bar and direct per-tab hints. Reconsider one
+shared migration only after permission/initial-state replay and the child's
+nested-session API preserve the existing contract. A future candidate still
+needs independent-client, permission-denial, resize, hide/restore, popup, nested
+and lifecycle checks, exact Linux/Darwin gates and fresh installed GUI proof.
+Those checks were not run for a prototype already rejected at first activation.
+
+Commands, source, artifact identities, raw captures, failures and reproducible
+analysis: `/home/lucca/.local/state/codex/proofs/nova-shared-rendering-20261013._aks6_vq`.
+`analysis.json` separates recovered measurements from failed fresh startup;
+`minimal-shared-1/minimal-before-input-screen.txt` and the following mode captures
+preserve the smallest failure discriminator. The native executable SHA-256 is
+`ec19a96362ad2dc3978fe137663d6e2a14bde135f49e30e6ad849eef54effc6e`.
 
 ## Native release-profile comparison
 
