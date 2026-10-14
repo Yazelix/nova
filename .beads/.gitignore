@@ -45,3 +45,9 @@ redirect
 # bv (beads viewer) lock file
 .bv.lock
 .write.lock
+
+# frankensqlite runtime sidecars (local-only, per-machine)
+.br-wal-index-*/
+*.db-fsqlite-*
+*.db-wal-cert*
+*.db.fsqlite-migration-state
