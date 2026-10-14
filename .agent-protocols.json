@@ -2,7 +2,7 @@
   "schema": 1,
   "source": {
     "repository": "https://github.com/Yazelix/starcompass",
-    "commit": "4af5a3265acd425d1359f56f805221fc264a9e1a"
+    "commit": "58caf6831da6acdbabc96b2e9f083327cb24674c"
   },
   "profiles": [
     "orchestrator",
@@ -12,8 +12,8 @@
   "protocols": [
     {
       "id": "AP-SCOPE-001",
-      "version": 3,
-      "sha256": "cae30f9031beea4f831a89445f35807f50618e0f2cb0432f3b94bec40da9aeef"
+      "version": 4,
+      "sha256": "8d84dc6fca6097b2055eb3ca8467565709e4c474a18c3030ae3064cc612bdfab"
     },
     {
       "id": "AP-CONTRACT-001",

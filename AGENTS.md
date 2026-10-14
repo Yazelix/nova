@@ -8,13 +8,13 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `4af5a3265acd425d1359f56f805221fc264a9e1a`
+- Source commit: `58caf6831da6acdbabc96b2e9f083327cb24674c`
 - Profiles: `orchestrator`, `release`, `fork`
 - Manifest: `.agent-protocols.json` (schema 1)
 
 | Protocol | Version | SHA-256 |
 | --- | ---: | --- |
-| `AP-SCOPE-001` | 3 | `cae30f9031beea4f831a89445f35807f50618e0f2cb0432f3b94bec40da9aeef` |
+| `AP-SCOPE-001` | 4 | `8d84dc6fca6097b2055eb3ca8467565709e4c474a18c3030ae3064cc612bdfab` |
 | `AP-CONTRACT-001` | 4 | `cdf2e5d69cefd34ceeeaa6b7511b21f921e2be50c17d3c01b85120b20234cff7` |
 | `AP-REFERENCE-001` | 3 | `186fa74aa530c9c76ae507685461dff2b1506ecb5087230ded51f02cecb9231a` |
 | `AP-MINIMAL-001` | 4 | `612bc9c62a20adf7332724d4663af0a0e591d624de2a76b1c257a9ed428db1f6` |
@@ -43,17 +43,17 @@ No local exceptions.
 
 ### AP-SCOPE-001 — User-owned scope
 
-The user owns scope. Inspection, audit, diagnosis, explanation, and
-recommendation authorize no implementation, external-state, or durable-planning
-write. Implement only a chosen outcome.
+The user owns scope. Inspection, audit, diagnosis, explanation, and advice
+authorize no implementation, external-state, or durable-planning write.
+Implement only a chosen outcome.
 
-Do not silently add features, compatibility promises, public surfaces,
-migrations, repositories, or planning items. Preserve user-owned inputs and
-artifacts; replace or delete an exact target only when the outcome requires it.
-Otherwise write a distinct result. State consequential assumptions and stop
-when a missing scope choice would materially change the result. “Finish” adds
-persistence, not authority. Report out-of-scope findings unless the user chose
-a durable destination.
+Never silently add features, compatibility promises, public surfaces,
+migrations, repositories, or planning items. Preserve user inputs and
+artifacts; replace or delete an exact target only when required, else write a
+distinct result. State consequential assumptions; stop when a missing scope
+choice would materially change the result. Recommend and justify an answer to
+every choice. “Finish” adds persistence, not authority. Report out-of-scope
+findings unless the user chose a durable home.
 
 ### AP-CONTRACT-001 — Contract-driven changes
 

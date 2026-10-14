@@ -1,7 +1,7 @@
 use std::{env, fs, path::Path};
 #[allow(dead_code)]
 mod tmux;
-use tmux::{sleep, Terminal};
+use tmux::{Terminal, sleep};
 
 fn highlighted(row: &str, rgb: &[u16; 3]) -> Vec<usize> {
     let mut active = false;
