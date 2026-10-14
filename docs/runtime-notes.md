@@ -3,33 +3,6 @@
 These notes preserve runtime details that are too specific for the README but
 matter when changing launch, config, editor, shell, or popup behavior.
 
-## Config UI
-
-`yzx config` validates the optional root config and seeds the complete native
-`rio/config.toml` when that path is missing. Runtime preparation uses the same
-one-time seed.
-
-Packages with the `no-rio` suffix skip that initialization entirely. Their
-`yzx enter` path starts the managed workspace in the current terminal, while
-`yzx launch` returns an instruction to use `enter` instead.
-
-The UI leaves these sparse sources absent until you save a field:
-
-```text
-~/.config/yazelix/config.toml
-~/.config/yazelix/zellij/config.kdl
-~/.config/yazelix/starship.toml
-```
-
-Legacy `mars/config.toml` and `cursors.toml` files are preserved but ignored.
-
-The Helix and advanced native files stay lazy. Opening a file-action row creates
-its starter file. The `helix/init.scm` row creates only that file; the
-`helix/helix.scm` row also creates `init.scm` for an explicit Steel module.
-
-While editing a text field, `Ctrl+e` opens the staged value in the configured
-editor environment and returns the edited text to the row. `Enter` saves.
-
 ## Managed Appearance
 
 Root `appearance.mode` is the managed dark/light authority. Ratconfig uses it
@@ -94,13 +67,11 @@ An explicit top-level `scroll_mode_sync true` restores Zellij's automatic
 Scroll mode entry in new sessions. Explicit `pane_frame_style` and
 `stacked_pane_list` values also replace the corresponding packaged defaults;
 omitting them inherits Nova's values.
-Nova's root `appearance.straight_border_style` setting independently selects
-single or double glyphs when those native rounded corners are disabled. Only
-the generated runtime KDL receives the Zellij extension.
 Ratconfig uses the same 41 identities from the pinned Zellij assets for both
 theme fields, with a flake check keeping the inventory aligned. The inherited
 pair is `theme_dark "ansi"` and `theme_light "gruvbox-light"`; resetting a
-field removes only its sparse override. Custom names found on either member
+field removes only its sparse override, and removing the final assignment
+removes the sidecar. Custom names found on either member
 join the shared pool shown by both pickers.
 
 The former static `theme` field is not part of the managed model. An existing
@@ -160,8 +131,9 @@ load_plugins {
 }
 ```
 
-Plugin ids owned by Yazelix, such as `yzpp`, `nova_hints` and
-`yazelix_pane_orchestrator`, cannot be redeclared. Plugin keybindings are not
+Plugin ids owned by Yazelix (`nova_hints`, `yzpp`,
+`yazelix_pane_orchestrator`, `radar`, and `radar_controller`) cannot be
+redeclared. Plugin keybindings are not
 managed by this sidecar.
 
 ## Sidebar Provider
@@ -418,18 +390,15 @@ The managed `clc` and `clp` aliases provide shorter copy and paste forms.
 Nushell owns platform clipboard access and errors; Nova does not translate
 remote or headless sessions to a client clipboard.
 
-`shell.atuin = true` sources Nova's build-generated Atuin integration after the
-selected shell's user startup layer. `yzx-nu` composes Nushell after user
-`nu/config.nu`; `yzx-shell` uses `~/.bashrc`, the effective Zsh `.zshenv` and
-`.zshrc`, or Fish's `config.fish`. An existing shell-specific Atuin search
-function skips the managed source. Nova uses the locked packaged binary, binds
-contextual history search to `Ctrl+r`, leaves Up-arrow with native history, and
-disables Atuin AI bindings. `ATUIN_NOBIND` suppresses managed bindings while
-retaining lifecycle hooks. A managed init failure reaches stderr without
-preventing shell startup. `shell.atuin = false` omits Nova's hooks and bindings
-without changing either history store. See
-[Configuration](configuration.md#atuin-history) for explicit one-time imports
-and the native-config ownership boundary.
+`shell.atuin = true` sources Nova's build-generated, locked Atuin init files
+after the selected shell's user startup layer. `yzx-nu` appends the Nushell
+form after user `nu/config.nu`; `yzx-shell` composes the others through Bash's
+explicit rc file, a temporary Zsh `ZDOTDIR` layer, or Fish's post-config
+command. An existing shell-specific Atuin search function skips the managed
+source, leaving user initialization as the sole hook owner. A managed init
+failure reaches stderr without preventing shell startup. Bindings, imports,
+and the opt-out are described in
+[Configuration](configuration.md#atuin-history).
 
 Managed Nu always sets `STARSHIP_CONFIG` to a runtime-effective file. That file
 starts with Nova's sparse `[character].format = ":: "` marker and recursively
@@ -474,6 +443,14 @@ unless the user also provides `helix/helix.scm`; that explicit module replaces
 the packaged one. The packaged module provides `:yzx-new-shell`, which opens a
 new Yazelix terminal pane at the current file directory or workspace.
 
+Packaged Steel also starts the fork's bounded authenticated loopback transport.
+Yazelix owns token generation, atomic private registry publication and lookup
+under validated session path components, same-session/tab instance selection
+that prefers the caller's own Helix pane, and the TCP client. The fork passes
+authenticated actions to Steel on the editor thread without owning Zellij, Yazi,
+or registry policy. Closed bridges, stale-token authentication failures, and
+invalid or mismatched response frames leave later registry candidates eligible.
+
 ## Tab Workspace
 
 The pane orchestrator owns one canonical workspace root per tab. The first
@@ -486,17 +463,13 @@ root. After success, only the originating managed Yazi follows the primary
 target's directory; the canonical workspace, shell panes, and hidden agent stay
 unchanged.
 
-`Tab` and `Z` open the same recent-folder search in startup and
-persistent-popup Yazi. `Tab` or `Esc` returns to browse mode. Search `Enter`
-emits native `cd` in both roles and leaves the canonical root unchanged.
-Startup search `Ctrl O` sends the selected directory through the existing
-retarget/editor transaction and closes the picker only after success. Startup
-search ignores `Alt Enter`, as does startup browse mode. In the persistent
-popup, search `Alt Enter` sets the selected directory as the exact canonical
-root without moving Yazi or opening an editor; browse `Alt Enter` uses the
-hovered directory, or the current directory when hovering a file or nothing,
-with the same workspace-only result. `Shift Tab` spots the hovered file while
-browsing. The orchestrator updates the tab label; existing shells, Yazi, and
+The search and tab-folder keys are listed under
+[Editor and file opens](configuration.md#editor-and-file-opens). Search `Enter`
+emits native `cd` and leaves the canonical root unchanged. Startup search
+`Ctrl O` sends the selected directory through the existing retarget/editor
+transaction and closes the picker only after success. Popup `Alt Enter` sets
+the exact canonical root without moving Yazi or opening an editor.
+The orchestrator updates the tab label; existing shells, Yazi, and
 editor processes keep their own cwd. A later ordinary startup open provides the
 same first-editor handoff. Explicit popup workspace
 choices inside Git keep the chosen subdirectory; ordinary implicit file-open
@@ -508,31 +481,15 @@ canonical root changes.
 
 ## Yazi
 
-Managed Yazi accepts native TOML, optional Lua and keymap sidecars, and a
-user-owned asset tree:
-
-```text
-~/.config/yazelix/yazi/yazi.toml
-~/.config/yazelix/yazi/theme.toml
-~/.config/yazelix/yazi/package.toml
-~/.config/yazelix/yazi/starship.toml
-~/.config/yazelix/yazi/init.lua
-~/.config/yazelix/yazi/keymap.toml
-~/.config/yazelix/yazi/plugins/*.yazi/
-~/.config/yazelix/yazi/flavors/*.yazi/
-```
-
-Native TOML tables merge recursively. User scalars and arrays replace packaged
-values; only `plugin.prepend_fetchers` uses replace-plus-managed-Git semantics,
-which keeps user fetchers while restoring the two managed Git fetchers exactly
-once. Broken config paths, invalid TOML, and incomplete flavors stop Yazi launch.
-The managed edit opener is always restored. Normal `~/.config/yazi` is not read.
-
-Optional `yazi/starship.toml` is a complete replacement for Nova's packaged
-compact Starship header config, not a merge layer. Its presence alone activates
-materialization. The materializer requires readable TOML and links it into the
-effective config as `yazelix_starship.toml`; omission retains the packaged file.
-The workspace popup uses that same effective path.
+[Configuration](configuration.md#native-config-files) lists the managed Yazi
+files and their merge semantics. Only `plugin.prepend_fetchers` uses
+replace-plus-managed-Git semantics: user fetchers are kept while the two managed
+Git fetchers are restored exactly once. The presence of `yazi/starship.toml`
+alone activates materialization; the materializer requires readable TOML and
+links it into the effective config as `yazelix_starship.toml`, the same path the
+workspace popup uses. Plugin and flavor directories also activate
+materialization independently of `init.lua`. The materializer copies
+`theme.toml` only when runtime appearance projection requires it.
 
 Automation can materialize that config without starting Yazi, Zellij, Rio, an
 editor, or the full Yazelix runtime:
@@ -570,34 +527,3 @@ projection, source/state overlap, and output construction. Yazi remains
 responsible for semantic config checks, Lua and plugin behavior, and external
 commands. Run `yazi --debug` with the printed `YAZI_CONFIG_HOME` when automation
 needs those checks.
-
-Plugin and flavor directories activate materialization independently of
-`init.lua` and are linked into the runtime config. Packaged plugin names cannot
-be overridden. A user flavor with a packaged name takes precedence over the
-packaged copy. Yazi Bistro supplies the packaged flavor catalog and its
-dark/light classification. User-installed, unclassified flavors join both
-Ratconfig pools. `theme.toml` remains the native source for explicit choices
-and unrelated theme settings; the materializer copies it only when runtime
-appearance projection is required. Ratconfig renders its simple values and the
-sparse `yazi.toml` layer in the Yazi tab. `package.toml` passes through as
-opaque `ya pkg` metadata, but Yazelix never runs the package manager. Create
-asset directories in this tree or symlink them from another checkout.
-
-Example managed Yazi plugin layout:
-
-```text
-~/.config/yazelix/yazi/plugins/foo.yazi/main.lua
-~/.config/yazelix/yazi/flavors/foo.yazi/flavor.toml
-~/.config/yazelix/yazi/init.lua
-~/.config/yazelix/yazi/theme.toml
-```
-
-```lua
-require("foo"):setup()
-```
-
-```toml
-[flavor]
-dark = "foo"
-light = "foo"
-```

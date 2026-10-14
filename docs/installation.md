@@ -144,7 +144,9 @@ Add `-no-helix`, `-no-yazi`, or both to compose the reduced variants.
 `x86_64-darwin` remains an exposed, evaluated flake output rather than a
 build-tested target. The current label is **build-tested on macOS, with
 observational interactive beta use and no known regression; the individual
-workflow checklist and Rio GUI remain unverified**
+workflow checklist and Rio GUI remain unverified**. On macOS, interactive
+`help`, `status`, and `doctor` are also unverified. App bundles, Homebrew,
+Ghostty packaging, and broad terminal matrices are outside this repository
 
 ## Host terminals and SSH
 

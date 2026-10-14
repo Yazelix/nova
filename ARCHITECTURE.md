@@ -28,14 +28,8 @@ managed no-Rio artifact and its root owner. Current installation uses Nix.
 
 ## Platforms
 
-| Surface | Support |
-| --- | --- |
-| Eight Rio/managed-Helix/managed-Yazi package and app combinations | `x86_64` / `aarch64` × Linux / Darwin |
-| Headless / SSH floor | `enter` in a capable interactive host terminal; managed TUI only |
-| macOS build evidence | Real `aarch64-darwin` runner builds the four Rio variants and the Home Manager closure; no desktop entry |
-| macOS interactive floor | `help`, `status`, `doctor`, `enter`, managed workspace, and host-editor delegation remain unverified |
-| macOS full-package `launch` | Rio is packaged; GUI behavior remains unverified |
-| Out of repo | App bundles, Homebrew, Ghostty packaging, broad terminal matrices |
+[Installation](docs/installation.md#capability-matrix) owns the supported
+systems, package variants, and per-platform evidence.
 
 ## Commands
 
@@ -90,92 +84,28 @@ One owner per concern. Paths are the durable map.
 
 ### Config UI
 
-`crates/yzx-config/` is the Ratconfig host.
+`crates/yzx-config/` is the Ratconfig host. It supplies one stable source/path
+identity per field, reviewed recommendation allowlists, sparse persistence,
+exact native-file actions, Home Manager read-only guidance, and source
+diagnostics; Ratconfig owns views, filtering, search, and editing. It resolves
+override intent separately from baseline and effective values and completes
+reloads by field identity. Rio and Helix keep their own schemas. It also
+serves hidden package-internal reads for launch and custom-popup KDL rendering,
+including the internal `agent.popup.kdl` path that routes custom agent argv
+through the packaged launcher.
+[Configuration](docs/configuration.md) describes the user-visible behavior.
+`KEY_BINDINGS` is the human key reference; `defaults/zellij/config.kdl` is the
+runtime owner.
 
-- Supplies one stable source/path identity per field and reviewed root, Zellij,
-  and Helix recommendation allowlists. Ratconfig owns Overview/All filtering,
-  meaningful reduction thresholds, attention-state visibility, toggling, and
-  All-scope search
-- Exposes Rio as one exact native-file action. Rio owns its schema, validation,
-  and reload behavior; Nova reserves only top-level `force-theme`
-- Joins the packaged Helix baseline with observed native `config.toml` and
-  `languages.toml` values as read-only generic rows. Helix publishes no stable
-  machine-readable config catalog, so Yazelix does not mirror one or infer edit
-  authority from TOML shape; exact file actions remain the persistence surface
-- Resolves sparse override intent separately from baseline and effective values,
-  declares editor capabilities independently of display types, and completes
-  reloads by field identity rather than stale row position
-- Seeds the complete native Rio TOML and any absent referenced adaptive themes
-  at first use; root, Zellij, and Starship stay sparse
-- Routes edits and true unset operations to the right file; Rio's user surface,
-  Helix/Advanced open-file rows, and Keys remain read-only
-- Resolves known config targets against the packaged Nix store root so
-  Home Manager-owned sources stay read-only with exact module-option guidance
-- Keeps localized invalid values as field intent. Wholly unsafe root documents
-  become source diagnostics with an exact `config.toml` file action instead of
-  preventing the UI from opening
-- Hidden package-internal reads for launch + custom-popup KDL render
-- `agent.popup.kdl` is an internal render path that routes custom managed agent
-  argv through the packaged launcher
-- `KEY_BINDINGS` is the human key reference; `defaults/zellij/config.kdl` is the runtime owner
+#### Nova root schema
 
-#### Nova root schema inventory
-
-Packaged `defaults/config.toml` owns every default below. The optional user file
-stores only explicit overrides; `CONFIG_FIELDS` and `root_config.rs` own the
-bounded catalog, validation, and sparse persistence unless another owner is named.
-The root validator derives fixed leaves from that catalog, rejects unknown paths
-before runtime or Ratconfig use, and delegates only `popups.<id>` to its dynamic
-field validator.
-
-`ROOT_CONFIG_RECOMMENDED_PATHS` contains `appearance.mode`, `shell.program`,
-`shell.atuin`, `editor.command`, `agent.command`, the two ordinary welcome controls, the
-managed action keys, and `bar.widgets`. Diagnostics (`open.log_level`), argument
-and duration fine tuning, and popup geometry are All-only until they require
-attention.
-Configured custom popup leaves use Ratconfig's generic TOML rows and belong to
-All; because every discovered leaf is explicit, Ratconfig also keeps it visible
-in Overview. Absent optional leaves and unconfigured popup ids are not synthesized
-
-| Root path | Type | Default | Effect | Applies |
-| --- | --- | --- | --- | --- |
-| `appearance.mode` | string enum | `dark` | Integrated Ratconfig, Rio, Zellij/bar, and new-Yazi appearance; writable Rio config uses native reload, while read-only Rio config freezes the current session and applies the saved mode everywhere on the next session | live as one unit or next session as one unit |
-| `open.log_level` | string enum | `info` | `YZX_OPEN_LOG` diagnostics for managed opens | new opens |
-| `shell.program` | string enum | `nu` | Packaged shell for new panes | new panes |
-| `shell.atuin` | boolean | `true` | Atuin history and `Ctrl+r` search in managed shells | new shells |
-| `editor.command` | executable string | `yzx-hx` | Yazi opens, config text edits, and Git clients | new opens |
-| `forest.enabled` | boolean | `true` | Nova-managed Forest lifecycle in managed Helix | next launch |
-| `forest.side` | string enum | `right` | Forest placement in managed Helix | next launch |
-| `agent.command` | executable string or `auto` | `auto` | Managed agent popup command | next launch |
-| `agent.args` | string array | `[]` | Arguments for a custom agent command | next launch |
-| `welcome.enabled` | boolean | `true` | Enables the pre-Zellij splash | next launch |
-| `welcome.style` | string enum | `random` | Selects the packaged splash style | next launch |
-| `welcome.duration_seconds` | integer, 1–60 | `3` | Sets splash duration | next launch |
-| `popup.side_margin` | non-negative integer | `1` | Left/right managed popup margin in cells | next launch |
-| `popup.vertical_margin` | non-negative integer | `0` | Top/bottom managed popup margin in cells | next launch |
-| `keybindings.config` | key chord or `false` | `Alt Shift K` | Config popup trigger | next launch |
-| `keybindings.agent` | key chord or `false` | `Alt Shift L` | Agent popup trigger | next launch |
-| `keybindings.git` | key chord or `false` | `Alt Shift J` | Git popup trigger | next launch |
-| `keybindings.menu` | key chord or `false` | `Alt Shift M` | Menu popup trigger | next launch |
-| `keybindings.screen` | key chord or `false` | `Alt Shift A` | Random full-screen visual trigger | next launch |
-| `keybindings.sidebar` | key chord or `false` | `Alt Shift H` | Radar visibility | next launch |
-| `keybindings.sidebar_focus` | key chord or `false` | `Ctrl y` | Forest open/refocus in managed Helix | next launch |
-| `bar.widgets` | ordered string array | `editor`, `shell`, `term`, `codex_usage`, `cpu`, `ram` | Top-bar tray order; `BAR_WIDGET_VALUES` and `bar_widgets` own validation | next launch |
-
-`custom_popups.rs` owns the dynamic `[popups.<id>]` namespace. An id starts
-with an ASCII letter or `_`, then uses ASCII letters, digits, `_`, or `-`; the
-packaged ids `config`, `agent`, `git`, `menu`, and `yazi` are reserved.
-
-| Dynamic path | Type | Required/default | Meaning |
-| --- | --- | --- | --- |
-| `popups.<id>.command` | non-empty executable string without whitespace | required | Popup executable; arguments stay separate |
-| `popups.<id>.args` | non-empty string array | `[]` | Structured argv |
-| `popups.<id>.title` | non-empty string | `<id>_popup` | Unique pane title; packaged popup titles are reserved |
-| `popups.<id>.keybinding` | key chord | required | Unique trigger that cannot collide with packaged bindings |
-| `popups.<id>.keep_alive` | boolean | `false` | Hides rather than closes the popup when toggled |
-
-Custom popups apply on the next launch. No other fields are accepted inside a
-custom popup entry.
+Packaged `defaults/config.toml` owns every root default; the optional user file
+stores only explicit overrides. `CONFIG_FIELDS` and `root_config.rs` own the
+bounded catalog, validation, and sparse persistence. The validator derives fixed
+leaves from that catalog, rejects unknown paths before runtime or Ratconfig use,
+and delegates only `popups.<id>` to `custom_popups.rs`.
+`ROOT_CONFIG_RECOMMENDED_PATHS` selects the Overview recommendations.
+[Configuration](docs/configuration.md#main-settings) lists every field.
 
 ### Packaged layout and tools
 
@@ -222,17 +152,10 @@ graph.
 `yzx-shell` reads `shell.program` via `yzx-config`, then runs packaged `nu`
 (through `yzx-nu`) or plain `bash` / `zsh` / `fish`.
 
-Nix generates locked Atuin init files for Nushell, Bash, Zsh, and Fish.
-`yzx-nu` appends the Nushell form after packaged config, successful host Mise
-output, and user `nu/config.nu`. `yzx-shell` composes the other forms after
-their native user startup files through Bash's explicit rc file, a temporary
-Zsh `ZDOTDIR` layer, or Fish's post-config command. A shell-specific Atuin
-search function makes user initialization the sole hook owner. The generated
-forms disable Up-arrow and AI bindings, keep `Ctrl+r`, and honor
-`ATUIN_NOBIND`. Managed init errors reach stderr without preventing shell
-startup. Atuin owns its history database and native config. Carapace owns
-Nushell external completion. Nova owns package selection, startup composition,
-and the default-on policy.
+Nix generates locked Atuin init files for every shell; Atuin owns its history
+database and native config, and Carapace owns Nushell external completion. Nova
+owns package selection, startup composition, and the default-on policy
+([Runtime Notes](docs/runtime-notes.md#shell-history-nushell-and-starship)).
 
 ---
 
@@ -269,8 +192,8 @@ Packaged first, unless a surface opts into native replacement.
   yazi/{yazi.toml,theme.toml,package.toml,starship.toml,init.lua,keymap.toml,plugins/,flavors/}
 ```
 
-Override root with `YAZELIX_CONFIG_HOME`.
-Runtime state defaults to `$XDG_DATA_HOME/yazelix` or `YAZELIX_STATE_DIR`.
+[Configuration](docs/configuration.md#config-root) owns the config root and
+state directory overrides.
 
 | Surface | Layering |
 | --- | --- |
@@ -283,76 +206,9 @@ Runtime state defaults to `$XDG_DATA_HOME/yazelix` or `YAZELIX_STATE_DIR`.
 | Zellij | Packaged → guarded scalar sidecar → runtime materialize under state dir |
 | Host `~/.config/{helix,yazi,starship}` | Not loaded by default |
 
-### Zellij sidecars
-
-`zellij/config.kdl` is a **first-token denylist**, not a full KDL parser. Uncommented
-top-level ownership nodes are rejected, including:
-
-`keybinds`, `default_shell`, `default_layout`, `layout_dir`, `layout`, `plugins`,
-`load_plugins`, `support_kitty_keyboard_protocol`, `env`, `session_name`,
-`attach_to_session`.
-
-The sidecar is optional and sparse. Ratconfig displays ten effective scalar
-defaults without creating it, including separate dark and light theme pickers
-derived from the same 41 identities embedded by the pinned Zellij package.
-Packaged configuration owns the inherited `ansi` / `gruvbox-light` pair, while
-custom native names remain accepted per field. Assignment presence is explicit
-intent, and removing the final assignment removes the sidecar. A legacy static
-`theme` assignment remains untouched in the user file but is diagnosed and
-omitted from runtime materialization.
-
-Yazelix recommends six high-use fields in the Zellij Overview and leaves four
-fine-tuning fields in All. Ratconfig keeps explicit, invalid, externally
-managed, and diagnosed values in Overview and searches the All inventory.
-Safe opaque leaves remain byte-for-byte unchanged and are reached through the
-exact `zellij/config.kdl` file action without a synthetic field or informational
-diagnostic per leaf. Advanced diagnostics are reserved for ignored, invalid,
-structurally unsafe, or integration-owned state. Guarded diagnostics name the
-Yazelix integration owner. This uses Ratconfig's existing views, search, file
-actions, and diagnostics without extending its API or Yazelix's typed schema.
-
-`zellij/plugins.kdl` accepts only `plugins` / `load_plugins` and must not
-redeclare Yazelix-owned plugin ids (`yzpp`, `yazelix_pane_orchestrator`,
-`radar`, or `radar_controller`).
-
-Inside a managed session, `yzx config` Zellij scalar saves and resets also patch
-`$YAZELIX_STATE_DIR/zellij/config.kdl` (watched active file) without wiping
-launch patches. Pane frames, rounded corners, copy-on-select, and clipboard
-target reconfigure the active session; mouse mode, scrollback size, styled
-underlines, and startup tips need a new session. Live-capable root appearance
-uses Zellij's native dark/light action for the addressed session. Zellij
-sends the resulting mode event to the bar, which chooses its internal palette.
-
-### Helix
-
-- `yzx-hx` writes effective config under `$YAZELIX_STATE_DIR/helix/config.toml`
-  each launch: packaged template deep-merged with optional sparse overrides from
-  `~/.config/yazelix/helix/config.toml`, then `keys.normal.A-r` reclaimed
-  for the internal `yzx reveal` binding.
-- If the user Helix dir has `config.toml`, `languages.toml`, and/or a Steel pair
-  (`helix.scm` + `init.scm`), that directory is native config. Packaged Steel
-  remains active unless the complete user pair is composed through the private
-  overlay below.
-- Packaged Steel exposes `:yzx-new-shell` and starts the fork's bounded
-  authenticated loopback transport. Yazelix owns token generation, atomic
-  private registry publication and lookup under validated session path components,
-  same-session/tab instance selection that prefers the caller's own Helix pane,
-  and the TCP client; the fork passes authenticated actions to Steel on the
-  editor thread without owning Zellij, Yazi, or registry policy. Closed bridges,
-  stale-token authentication failures, and invalid or mismatched response frames
-  leave later registry candidates eligible.
-- An explicit user Steel pair runs through a private state overlay. Its
-  `helix.scm` remains the command module and its `init.scm` loads after the
-  packaged bridge init, so user plugins compose without replacing the managed
-  bridge.
-- Packaged bindings: `Alt r` reveal (reserved), `Ctrl r` reload (user-overridable).
-- Ratconfig recommends eight packaged or integration-owned rows and searches
-  every packaged or explicitly observed native row. It makes no complete-schema
-  claim and routes edits to exact Helix files.
-- `hx` and `yzx-hx` select managed Helix; other `editor.command` values skip its
-  bridge.
-- The no-Helix package replaces both managed names with an unavailable command;
-  another executable name or an absolute host Helix path stays host-owned.
+[Runtime Notes](docs/runtime-notes.md) owns the
+[Zellij sidecar](docs/runtime-notes.md#zellij-sidecars) and
+[Helix](docs/runtime-notes.md#helix) mechanisms.
 
 ### Git editor boundary
 
@@ -468,19 +324,7 @@ the managed Zellij/Yazi workspace and selected editor without starting Rio or us
 variables; terminal-specific graphics and clipboard behavior remain host-owned.
 Diagnostics stop before Rio/Zellij handoff.
 
-**C2:** The first config or runtime preparation copies the complete packaged
-Rio config and its adaptive themes only when `rio/config.toml` is absent.
-Ratconfig exposes only the exact file; later edits are user-owned except for
-Nova's top-level `force-theme` projection. With a writable file, `yzx launch`
-omits Rio's theme override and a Ratconfig save updates Rio through its native
-watcher, Zellij through its native action, and the bar through Zellij's mode
-event. Each new managed Yazi reads the active session mode and projects the
-selected flavor into generated `theme.toml`, leaving user and Home Manager
-sources unchanged. With a read-only Rio file, the session captures one mode,
-Rio receives it at launch, and every managed component waits for the next
-session before changing. The packaged light fallback and flavor classification
-remain owned by Yazi Bistro. A custom complete Rio file must provide an
-adaptive theme pair to participate.
+**C2:** See [Managed Appearance](docs/runtime-notes.md#managed-appearance).
 
 **C9:** Protocol/packaging (a), shared role wiring (b), user custom (c),
 agent hide + bootstrap (d), Git close-on-toggle + editor env (e). Agent

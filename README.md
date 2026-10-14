@@ -115,7 +115,7 @@ Source, Edge, and maintainer references stay with the code:
 - [Portable runtime contract](docs/portable-runtime.md) (implementation target)
 - [Installation and package reference](docs/installation.md)
 - [Development and verification](docs/development.md)
-- [Tab performance investigation](performance.md)
+- [Tab performance investigation](docs/tab-performance.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent-status evidence](docs/agent-status-references.md)
 - [Changelog](CHANGELOG.md)
@@ -152,6 +152,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,883 code/configuration lines** and **7,146 documentation/text
+Yazelix owns **34,883 code/configuration lines** and **6,178 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.
