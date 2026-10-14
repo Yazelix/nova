@@ -551,15 +551,16 @@ each command on one line, or show multiple complete commands on separate lines.
 
 ### LOC and Documentation
 
-Update the README LOC scorecard whenever project files change. Update
-`CHANGELOG.md` when user-visible runtime behavior, commands, keymaps, packaged
-tools, or runtime contracts change.
+Update the LOC scorecard counts in the README and `docs/development.md`
+whenever project files change. Update `CHANGELOG.md` when user-visible runtime
+behavior, commands, keymaps, packaged tools, or runtime contracts change.
 
 The website is the canonical user guide for the current Stable release.
 Point the README's prominent documentation link directly to
 `https://nova.yazelix.com/docs/`.
 
-If LOC grows, make the added behavior visible in the scorecard and justify it.
+If LOC grows, justify the added behavior in the commit message and owning Bead.
+The scorecards hold counts and method only, not growth narratives.
 Formatting rules outrank LOC pressure; for Rust, keep `rustfmt` output rather
 than compressing code manually.
 

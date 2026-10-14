@@ -1,0 +1,9 @@
+{
+  "schema_version": "br.wal_index.quarantine.v1",
+  "database_path": "/home/lucca/pjs/yazelix-dir/nova/.beads/beads.db",
+  "reason": "initialized-zero-page-wal-index",
+  "main_sha256": "7b4e3f67dfd41cf9def7457823bbcece09309efb773bafddd2c011a7ff5785b5",
+  "wal_sha256": "11514a8841b08464c04a0e3497b11ef4112d5669ba4b316611dd1438897f9768",
+  "shm_sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+  "retained_index": "/home/lucca/pjs/yazelix-dir/nova/.beads/.br-wal-index-EP5GM6/poisoned-shm"
+}
