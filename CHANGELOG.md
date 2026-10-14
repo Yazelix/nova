@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- When Zellij fails to start under `yzx launch`, for example because a session
+  name is too long, its error stays visible in the Rio window until Enter is
+  pressed. Previously the window closed right after the welcome animation.
+
 - Quota widgets show only Eon's provider symbols: the OpenAI blossom for Codex
   and `C` for Claude. Rio uses the JetBrains Mono Nerd Font 3.5 symbol face to
   align icons with the text. The text font stays JetBrains Mono.

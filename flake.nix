@@ -407,10 +407,25 @@
               printf 'yzx welcome: failed to render welcome screen\n' >&2
             fi
           fi
+          hold_on_failure=false
+          if [ "''${1:-}" = --hold-on-failure ]; then
+            hold_on_failure=true
+            shift
+          fi
           if [ "$#" -eq 0 ]; then
             exit 0
           fi
-          exec "$@"
+          if [ "$hold_on_failure" = false ]; then
+            exec "$@"
+          fi
+          # Rio closes with its child, so keep a failed startup visible.
+          status=0
+          "$@" || status=$?
+          if [ "$status" -ne 0 ]; then
+            printf '\nyzx launch: %s exited with status %s\nPress Enter to close this window.\n' "''${1##*/}" "$status" >&2
+            read -r _ || true
+          fi
+          exit "$status"
         '';
       };
       yzxZellijConfig = rustBin "yzx-zellij-config" ./runtime/yzx-zellij-config.rs;

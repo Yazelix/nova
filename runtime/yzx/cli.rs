@@ -226,6 +226,7 @@ fn exec_managed(graphical: bool, zellij_args: Vec<OsString>) -> Result<(), AppEr
         apply_rio_launch_appearance(&mut command, &runtime.appearance_mode, live_appearance);
         command
             .arg(package_path(YZX_WELCOME)?)
+            .arg("--hold-on-failure")
             .arg(package_path(ZELLIJ)?);
     } else {
         command.arg(package_path(ZELLIJ)?);

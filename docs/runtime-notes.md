@@ -47,6 +47,14 @@ session. `--session NAME` requests a fresh named session, while `attach NAME`
 requires a live target. Attach and switching preserve the target state without
 reapplying the managed layout.
 
+Rio closes with its child, so under `yzx launch` the welcome helper runs Zellij
+as a child instead of replacing itself. When Zellij exits unsuccessfully, for
+example after rejecting a session name or finding an existing session, its
+message stays on screen with the exit status until Enter is pressed. Normal
+quit, detach, and cancelling the only startup picker exit successfully and close
+the window immediately. `yzx enter` keeps the direct handoff, because the host
+terminal already keeps Zellij's output.
+
 The managed Zellij config sets `default_layout "layout"` and points
 `layout_dir` at the directory containing the active `layout.kdl` and
 `layout.swap.kdl`. Runtime appearance, shell, or widget projection rewrites

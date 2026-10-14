@@ -499,6 +499,8 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "\"$1\" < /dev/tty &",
         "wait \"$child\"",
     }
+    expect_contains(&yzx_launcher, "--hold-on-failure", "bin/yzx launch handoff");
+    expect_welcome_failure_hold(&embedded_store_path(&yzx_launcher, "/bin/yzx-welcome"));
 
     let temp = TempDir::new();
     let status_case = RuntimeCase::new(&temp.path, "status");
@@ -1431,6 +1433,36 @@ fn expect_pinned_radar_health_contract(yzx: &Path) {
         &String::from_utf8_lossy(&disabled.stdout),
         "warn hooks feature:",
         "pinned Radar disabled-hooks report",
+    );
+}
+
+fn expect_welcome_failure_hold(welcome: &Path) {
+    let run = |args: &[&str]| {
+        let mut child = Command::new(welcome)
+            .args(args)
+            .env("YZX_WELCOME_ENABLED", "false")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child.stdin.take().unwrap().write_all(b"\n").unwrap();
+        child.wait_with_output().unwrap()
+    };
+    let held = run(&["--hold-on-failure", "false"]);
+    assert_eq!(held.status.code(), Some(1), "held failure keeps its status");
+    expect_contains(
+        &String::from_utf8_lossy(&held.stderr),
+        "yzx launch: false exited with status 1\nPress Enter to close this window.",
+        "held welcome failure",
+    );
+    let exec = run(&["false"]);
+    assert_eq!(exec.status.code(), Some(1), "enter keeps the child status");
+    assert!(exec.stderr.is_empty(), "enter must not hold or annotate failures");
+    let success = run(&["--hold-on-failure", "true"]);
+    assert!(
+        success.status.success() && success.stderr.is_empty(),
+        "a successful launch child must not prompt"
     );
 }
 
