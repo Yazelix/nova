@@ -161,8 +161,8 @@ contract tests reject missing, stale, failed or skipped native proof before buil
 API failures preserve GitHub's diagnostic in the workflow log.
 Linux profiles/contracts and newer-nixpkgs compatibility use separate required
 jobs, keeping independent builds within their own 90-minute limits.
-Quota provider symbols share one formatter; the pinned Symbols Nerd Font update
-supplies the OpenAI blossom without an image renderer or another runtime dependency.
+Quota provider symbols share one formatter and palettes contain only live fields.
+The pinned Symbols Nerd Font supplies the OpenAI blossom without another renderer.
 The tab-focus check observes keymap reload and independent modes in two clients.
 An isolated hints patch and regression tests cover catalog delivery, direct-pane
 readiness, compatibility consumers, resize and nested focus. This accounts for
