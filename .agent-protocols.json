@@ -2,7 +2,7 @@
   "schema": 1,
   "source": {
     "repository": "https://github.com/Yazelix/starcompass",
-    "commit": "95c29fa76a971726b65e1d1dc06c518d525c46a2"
+    "commit": "4af5a3265acd425d1359f56f805221fc264a9e1a"
   },
   "profiles": [
     "orchestrator",
@@ -12,98 +12,103 @@
   "protocols": [
     {
       "id": "AP-SCOPE-001",
-      "version": 1,
-      "sha256": "b3f7e012df0708d4baf8957e3c315878a9eb8cd7fddf637dfde1506609d08444"
+      "version": 3,
+      "sha256": "cae30f9031beea4f831a89445f35807f50618e0f2cb0432f3b94bec40da9aeef"
     },
     {
       "id": "AP-CONTRACT-001",
-      "version": 2,
-      "sha256": "f8a3b323f95816ee6d56d136c2ad19c691860155a4e58f57a62a4fb4dfc78cbb"
+      "version": 4,
+      "sha256": "cdf2e5d69cefd34ceeeaa6b7511b21f921e2be50c17d3c01b85120b20234cff7"
     },
     {
       "id": "AP-REFERENCE-001",
-      "version": 2,
-      "sha256": "ecb28af3796a9964dd98c037463a33b7444d9c39a0365783fb0e9ae9fc007b9c"
+      "version": 3,
+      "sha256": "186fa74aa530c9c76ae507685461dff2b1506ecb5087230ded51f02cecb9231a"
     },
     {
       "id": "AP-MINIMAL-001",
-      "version": 2,
-      "sha256": "3f4ebb1ab87f50ed5c9f041fb60d94cc7ded264ab04e56413fd1da343baa38f3"
+      "version": 4,
+      "sha256": "612bc9c62a20adf7332724d4663af0a0e591d624de2a76b1c257a9ed428db1f6"
     },
     {
       "id": "AP-DEPENDENCY-001",
-      "version": 1,
-      "sha256": "a389ff9054708574c52ec5e5dd7fc3e2d13b125d2218c70062f50a86761981ca"
+      "version": 2,
+      "sha256": "ded49add538b82de0a9c522bc8a34720f4ebbb47f39fc2f7ddb25e7aad1700d3"
     },
     {
       "id": "AP-OWNERSHIP-001",
-      "version": 1,
-      "sha256": "bdc09117f79b0d8dbe78e2dd8673a2463398aa31880fe27209fd6cc47f58bbf7"
+      "version": 2,
+      "sha256": "d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053"
     },
     {
       "id": "AP-TEST-001",
-      "version": 1,
-      "sha256": "363da7c542521be22233a4cc3373c0d3c3c5a9a0cf37f633cd5029545f4a3bee"
+      "version": 3,
+      "sha256": "58b5837cb679e958192b366bb15d6e34649f5a91ff9f4accdc7edb4ef5cdb873"
     },
     {
       "id": "AP-PROOF-001",
-      "version": 1,
-      "sha256": "1af235a56e9711d55362d869fa4057f1658d0aa7fe766030be0897ee5fd7c02b"
+      "version": 6,
+      "sha256": "01fc3712fd369189b934b0503173e6a8963be64b7f18869abfaef3cca53866f7"
     },
     {
       "id": "AP-PLAN-001",
-      "version": 6,
-      "sha256": "04b96c47978d49d2e6584f89626bca42b6cb39df537fa3e5abd6da0bdc2edfda"
+      "version": 11,
+      "sha256": "fcb7c8d2b99c6641a7cd1244072eda6230f1ccfc3a4aa47c29cf2525fcb1376d"
     },
     {
       "id": "AP-CI-001",
-      "version": 1,
-      "sha256": "78f1662259cd83f33d22ff4ddd0859ab0d4f704ba4f38756eef40a8b9b787bec"
+      "version": 3,
+      "sha256": "c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba"
     },
     {
       "id": "AP-ORCHESTRATOR-001",
-      "version": 1,
-      "sha256": "6228280f59c46dae79e45986d3848f071fd57699c8ce548ec2f7e503689e09c8"
+      "version": 2,
+      "sha256": "f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad"
     },
     {
       "id": "AP-FRONTIER-001",
-      "version": 1,
-      "sha256": "60e397fa4862afe902792501ffc6d2a82c94479877196b4278e7283a20111fe0"
+      "version": 2,
+      "sha256": "0777c74645955a26dc3829812ff26fa1a00a017c3b4cc1ac6740284f2664566c"
     },
     {
       "id": "AP-PORTABILITY-001",
-      "version": 1,
-      "sha256": "d2800376013bbe1ade3449f835daf8780e60d4c08a79a7f733d4a651c4d6d887"
+      "version": 2,
+      "sha256": "a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0"
     },
     {
       "id": "AP-EXCEPTION-001",
-      "version": 1,
-      "sha256": "f66749229dbbc005e1c3103bfed86cf95169d7b32466c72fd8442e841cadb268"
+      "version": 2,
+      "sha256": "2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395"
     },
     {
       "id": "AP-GIT-001",
-      "version": 3,
-      "sha256": "16d27b0df7ccc94880bb31020e822e32b37503f43c2cf7a69de333300cbfdacf"
+      "version": 5,
+      "sha256": "f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9"
     },
     {
       "id": "AP-DELIVERY-001",
-      "version": 1,
-      "sha256": "5e424f8f1adf9dc86864e3c0e209b47ed577e17baa74e3ac2219e2209a4ff80b"
+      "version": 3,
+      "sha256": "b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee"
     },
     {
       "id": "AP-PROMOTION-001",
+      "version": 2,
+      "sha256": "07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93"
+    },
+    {
+      "id": "AP-SESSION-001",
       "version": 1,
-      "sha256": "d75780b1ee1dd658f32c80ff5edda5bff342212569029d0eb3bdc382f471d66e"
+      "sha256": "f8bdac637027895ec8d1ad4f192e13808d095a809d091b76eadadaf936b2a340"
     },
     {
       "id": "AP-FORK-001",
-      "version": 1,
-      "sha256": "c8137dfbdc699c78cf7d8cd8a7dff7280b4013a84ed65c9234e7fb6511ca4563"
+      "version": 2,
+      "sha256": "11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e"
     },
     {
       "id": "AP-FORK-002",
-      "version": 1,
-      "sha256": "d896c5c45cf1615da683fa7503365d8d58286d4b7198ffc49ef9b9a0631b9ef1"
+      "version": 2,
+      "sha256": "4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d"
     }
   ],
   "exceptions": [],
