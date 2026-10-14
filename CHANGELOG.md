@@ -4,8 +4,9 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
-- Quota widgets use Eon's provider symbols: the OpenAI blossom for Codex and
-  `C` for Claude. Rio includes Symbols Nerd Font 3.5 for the blossom.
+- Quota widgets show only Eon's provider symbols: the OpenAI blossom for Codex
+  and `C` for Claude. Rio uses the JetBrains Mono Nerd Font 3.5 symbol face to
+  align icons with the text. The text font stays JetBrains Mono.
   Cached values and retry timing are preserved after failed refreshes.
 
 - The native runtime uses fat LTO and one codegen unit. Matched Linux artifacts

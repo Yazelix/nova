@@ -152,7 +152,7 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **34,875 code/configuration lines** and **7,646 documentation/text
+Yazelix owns **34,878 code/configuration lines** and **7,649 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets. Promotion channels reuse exact-commit
 Linux CI; development-branch pushes, pull requests and manual recovery retain checks.
@@ -162,7 +162,7 @@ API failures preserve GitHub's diagnostic in the workflow log.
 Linux profiles/contracts and newer-nixpkgs compatibility use separate required
 jobs, keeping independent builds within their own 90-minute limits.
 Quota provider symbols share one formatter and palettes contain only live fields.
-The pinned Symbols Nerd Font supplies the OpenAI blossom without another renderer.
+JetBrains Mono's patched symbol face aligns icons without another renderer.
 The tab-focus check observes keymap reload and independent modes in two clients.
 An isolated hints patch and regression tests cover catalog delivery, direct-pane
 readiness, compatibility consumers, resize and nested focus. This accounts for

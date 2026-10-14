@@ -212,12 +212,15 @@
       packageHelper = ''"''${YZX_PACKAGE_HELPER:-${yzxPackage}/bin/yzx-package}"'';
       ownedShell = nix: relative: ''"$(${packageHelper} ${pkgs.lib.escapeShellArg (toString nix)} ${pkgs.lib.escapeShellArg relative})"'';
       rioPackage = rioPackageFor pkgs;
-      symbolsNerdFont = pkgs.nerd-fonts.symbols-only.overrideAttrs (old: {
-        version = "3.5.0";
+      symbolsNerdFont = pkgs.nerd-fonts.jetbrains-mono.overrideAttrs (old: {
+        version = "3.5.0+2.304";
         src = pkgs.fetchurl {
-          url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/NerdFontsSymbolsOnly.tar.xz";
-          hash = "sha256-t+8ig0YrQ18f6R1yncQS1dvjQmndLH9OHYA+QQXI2IM=";
+          url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/JetBrainsMono.tar.xz";
+          hash = "sha256-AieyIDYKb4Gbnq2SND6BErNHMwVHglYa9Qz7oeivq2M=";
         };
+        postUnpack = ''
+          find . -name '*.ttf' ! -name 'JetBrainsMonoNerdFont-Regular.ttf' -delete
+        '';
         passthru = old.passthru // {releaseVersion = "3.5.0";};
         meta = old.meta // {
           changelog = "https://github.com/ryanoasis/nerd-fonts/blob/v3.5.0/changelog.md";
@@ -225,7 +228,7 @@
       });
       yzxRioToml = pkgs.replaceVars ./defaults/rio/config.toml {
         jetbrainsMonoDir = "${pkgs.jetbrains-mono}/share/fonts/truetype";
-        symbolsNerdDir = "${symbolsNerdFont}/share/fonts/truetype/NerdFonts/Symbols";
+        symbolsNerdDir = "${symbolsNerdFont}/share/fonts/truetype/NerdFonts/JetBrainsMono";
         notoSymbolsDir = "${pkgs.noto-fonts}/share/fonts/noto";
         notoEmojiDir = "${pkgs.noto-fonts-color-emoji}/share/fonts/noto";
       };
