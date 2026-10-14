@@ -296,93 +296,47 @@ fork behavior and the upstream boundary most likely to invalidate it.
 Yazelix Nova is a clean architecture track for a Yazelix-like runtime with the
 fewest practical lines of code and the simplest ownership model.
 
-### Nova Boundary
-
-Do not mechanically port Yazelix Classic. Review the relevant sources of truth
-and decide explicitly what survives.
-
-Current runtime chain:
-
-```text
-yzx -> Nova Rio -> Yazelix Zellij fork
-```
-
-The project interface is a Nix/Lix-compatible flake. `yzx` is the sole public
-command name. Do not broaden Home Manager, layouts, config generation, plugins,
-pane policy, or legacy compatibility unless the user chooses that scope.
+Do not mechanically port Yazelix Classic; decide explicitly what survives. The
+runtime chain is `yzx -> Nova Rio -> Yazelix Zellij fork`. The project
+interface is a Nix/Lix-compatible flake, and `yzx` is the sole public command.
+Do not broaden Home Manager, layouts, config generation, plugins, pane policy,
+or legacy compatibility unless the user chooses that scope.
 
 ### Git Channels
 
-Keep one linear history with this ancestry invariant:
+Keep one linear history with `stable ⊆ main ⊆ edge`. Every tracked change,
+including fixes, reverts, documentation, and Beads updates, originates on
+`edge`; work there directly. `main` (accepted development) and `stable` (user
+channel) are promotion-only: after reviewing every change since the target's
+current revision, push the exact verified revision with
+`git push origin <sha>:main` or `git push origin <sha>:stable`. If unaccepted
+work precedes a wanted fix, accept it, revert it on `edge`, or defer.
 
-```text
-stable ⊆ main ⊆ edge
-```
-
-All tracked changes originate on `edge`, including fixes, reverts,
-documentation, and Beads updates. Work directly on `edge` by default.
-
-Promote whole revisions, never selected commits. Review every accumulated
-change since the target channel's current revision. No cherry-picks, merge
-commits, direct channel commits, or skipped stages. If an urgent fix follows
-unaccepted work, accept that work too, revert it on `edge`, or defer promotion.
-
-`edge` is the active development and experimental dogfood channel. `main` is a
-promotion-only accepted-development channel. After an `edge` revision is
-accepted and verified for `main`, advance `main` to that exact revision with:
-
-```sh
-git push origin <sha>:main
-```
-
-`stable` is the promotion-only user channel. Advance it only when the user
-explicitly requests promotion. A candidate must be a fast-forward from the
-current `stable`, belong to `main`, pass the protected `linux`, both cache
-publication checks, and `release-gate`, and have fresh-session dogfood
-for user-visible runtime interaction changes. Do not promote a commit with a
-known P0 or P1 regression. Promote the exact verified revision with:
-
-```sh
-git push origin <sha>:stable
-```
-
-Ordinary Stable promotions wait at least seven days after the last promotion,
-including an urgent promotion. Explicitly requested urgent fixes may bypass
-only this wait, never verification or whole-candidate acceptance. Routine docs
-and planning wait for the next eligible promotion. Record the candidate, proof,
-actual promotion time, and any urgency reason in the owning Bead.
-
-GitHub requires linear history and status checks, including for administrators,
-on `main` and `stable`. Ancestry through the immediate predecessor, cadence,
-scope acceptance, and dogfood are maintainer checks before the push.
-Never delete `stable`.
+Advance `stable` only when the user explicitly requests it. The candidate needs
+green `linux`, both cache publication checks, and `release-gate`, fresh-session
+dogfood for user-visible interaction changes, and no known P0 or P1 regression.
+Ordinary promotions wait seven days after the last one; an explicitly requested
+urgent fix may skip only that wait. Record the candidate, proof, actual
+promotion time, and any urgency reason in the owning Bead. Never delete
+`stable`. `docs/development.md` owns the full procedure and ancestry commands.
 
 ### Beads
 
-Use `br` for all issue work. Serialize writes and finish with
-`br sync --flush-only`.
-
-Use `bv --robot-triage` as the graph-aware planning entry point. Use only
-`bv --robot-*` commands; bare `bv` opens an interactive TUI. `bv` decides what
-to work on, while `br` creates, updates, and closes issues. Before claiming a
-recommendation, verify it with `br show <id> --json` or `br ready --json`.
+Use `br` for all issue work; serialize writes and finish with
+`br sync --flush-only`. `bv --robot-triage` is the planning entry point; use
+only `bv --robot-*` commands, because bare `bv` opens an interactive TUI.
+Verify a recommendation with `br show <id> --json` or `br ready --json` before
+claiming it.
 
 ### Hosted Check Handoffs
 
-Do not spend an active agent run watching a long hosted check. Treat a check as
-long when its workflow design or recent history indicates that it normally
-takes more than about 30 minutes, including the staged `Version Gate`.
-
-After dispatching a long check, verify that it started for the intended workflow,
-ref, and exact revision. Record the run URL, revision, required conclusion,
-current state, and success or failure follow-up in the current owning Bead. If
-the check has no owning Bead, create one follow-up Bead for that handoff. Finish
-with `br sync --flush-only`, return control to the user, and let a later run
-inspect the result and continue or close the Bead. Do not perform a dependent
-promotion or release before the required check succeeds.
-
-Short and medium hosted checks expected to finish within about 30 minutes may
-be watched in the active run.
+Do not spend a run watching a hosted check that normally takes more than about
+30 minutes, including the staged `Version Gate`; shorter checks may be watched.
+After dispatching a long check, verify that it started for the intended
+workflow, ref, and exact revision. Record its run URL, revision, required
+conclusion, and follow-up in the owning Bead, creating one handoff Bead if none
+owns it; sync and return control. Never perform a dependent promotion or
+release before the required check succeeds.
 
 ### Command Formatting
 
@@ -393,131 +347,98 @@ each command on one line, or show multiple complete commands on separate lines.
 ### LOC and Documentation
 
 Update the LOC scorecard counts in the README and `docs/development.md`
-whenever project files change. Update `CHANGELOG.md` when user-visible runtime
-behavior, commands, keymaps, packaged tools, or runtime contracts change.
+whenever project files change. Justify LOC growth in the commit message and
+owning Bead; the scorecards hold counts and method only. Update `CHANGELOG.md`
+when user-visible runtime behavior, commands, keymaps, packaged tools, or
+runtime contracts change. Formatting rules outrank LOC pressure; keep `rustfmt`
+output for Rust.
 
-The website is the canonical user guide for the current Stable release.
-Point the README's prominent documentation link directly to
+The website is the canonical user guide for the current Stable release. Point
+the README's prominent documentation link directly to
 `https://nova.yazelix.com/docs/`.
 
-If LOC grows, justify the added behavior in the commit message and owning Bead.
-The scorecards hold counts and method only, not growth narratives.
-Formatting rules outrank LOC pressure; for Rust, keep `rustfmt` output rather
-than compressing code manually.
+### Local Verification
 
-### Nova Verification
+`docs/development.md` lists the local gates and focused checks. You may use more
+than two CPU cores: size the budget from current CPU, memory, and load, leave
+room for interactive use, and avoid overlapping heavy builds. Nix `--cores` is
+per build, `--max-jobs` multiplies it, and client `taskset` does not constrain
+the Nix daemon.
 
-For runtime flake changes, normally verify:
-
-```sh
-nix flake check
-nix flake show --all-systems
-nix build .#yazelix --no-link --print-build-logs
-nix profile add --refresh /home/lucca/pjs/yazelix-dir/yazelix --profile <tmp>
-```
-
-### Efficient Local Verification
-
-The user permits more than two CPU cores for future work. Choose a bounded
-budget from available CPU, memory and current load, leaving room for interactive
-use. Avoid overlapping heavy builds. Nix `--cores` is per build and `--max-jobs`
-multiplies concurrency; client `taskset` does not constrain the Nix daemon.
-
-Start with the smallest check that can reject the change. For plugin-only
-iterations, run model tests and build the Wasm plugin against the existing native
-binary before rebuilding the distribution. Batch full Nix builds after related
-fixes converge, then verify the exact installed candidate with embedded plugins.
-Keep candidate artifacts GC-rooted while they are still needed for verification.
+For plugin-only iterations, run model tests and build the Wasm plugin against
+the existing native binary before rebuilding the distribution. Batch full Nix
+builds after related fixes converge, and keep candidate artifacts GC-rooted
+while they are still needed.
 
 A readiness timeout alone does not prove a runtime defect. Capture the last
-valid snapshot, screen and elapsed time; use one bounded longer observation to
-distinguish delayed convergence from persistent wrong state before changing code
-or increasing deadlines. Keep quick-click input timing separate from readiness
-waits. Quiet terminal capture may validly produce no output or capture file.
+valid snapshot, screen, and elapsed time, then make one bounded longer
+observation before changing code or deadlines. Keep quick-click input timing
+separate from readiness waits; quiet terminal capture may validly produce no
+output. Native-server CPU does not describe Rio or whole-session cost.
 
-Measure idle CPU only after startup and interaction queues settle, across several
-windows. Identify the measured process; native-server CPU does not describe Rio
-or whole-session cost. Repeated full builds or inconclusive probes are a signal
-to narrow the reproducer and reassess the hypothesis. Use hosted gates for costly
-platform validation and follow the existing handoff rule for long checks.
+### Runtime and GUI Checks
 
-### Runtime Handoff and Regression Checks
-
-Run automated GUI checks on a private display through the pinned Kinestra
-recorder. Launch the application and send input through that recorder; never
-fall back to the user's desktop or host keyboard automation. A request to test
-or update Nova does not authorize a visible desktop test. Use the user's display
-only when they explicitly request that interaction. If isolation fails, retain
-the diagnostic and stop that test.
+Run automated GUI checks only on a private display through the pinned Kinestra
+recorder, which launches the application and sends its input. Never fall back
+to the user's desktop or host keyboard automation; if isolation fails, keep the
+diagnostic and stop that test. Use the user's display or launch GUI sessions
+only when the user explicitly asks for that or reports manual dogfooding; a
+request to test or update Nova does not authorize a visible desktop test.
 
 Before handing a test command to the user, run that exact installed launcher
-with its actual environment, paths, config and arguments in a fresh session.
-Verify the full anima-to-workspace handoff. `--version` or a direct native-binary
-probe does not exercise the launcher and cannot substitute for this check.
-For Rio handoffs, exercise `launch`; an `enter` probe does not cover that path.
+with its actual environment, paths, config, and arguments in a fresh session
+through the full anima-to-workspace handoff. `--version` and direct
+native-binary probes do not exercise the launcher; only `launch` covers Rio.
 
-Isolate Zellij's session cache as well as its socket and Nova state directories.
-After a disposable probe, remove only its own dead session record before handing
-over the same name. A leftover resurrection record previously made the next
-`launch --session bottom-bar-test` exit after anima even with a valid socket path.
+Known regression traps:
 
-Keep isolated Unix socket directories short and check the complete socket path
-in bytes, including Zellij's namespace and session name, against the target
-platform limit. A proof-directory socket base previously produced a 119-byte
-path on Linux and caused startup to exit after anima; short test paths hid it.
-
-For pane-order regressions, compare ordered stable pane IDs through repeated
-toggles and manual rearrangements, including with a popup open. Presence sets,
-geometry and focus checks previously passed while panes rotated on each restore.
-
-When testing historical source in a shared Cargo target, use a fresh build
-directory or force the relevant target to rebuild, then verify artifact identity.
-Older archive timestamps previously reused an unrelated Wasm artifact.
+- Isolate Zellij's session cache as well as its socket and Nova state
+  directories. Remove only a probe's own dead session record before reusing its
+  name; a leftover resurrection record made the next launch exit after anima.
+- Check the complete socket path in bytes, including Zellij's namespace and
+  session name, against the platform limit; a 119-byte Linux path made startup
+  exit after anima while short test paths hid it.
+- For pane order, compare ordered stable pane IDs through repeated toggles and
+  manual rearrangements, including with a popup open; presence, geometry, and
+  focus checks passed while panes rotated.
+- When building historical source in a shared Cargo target, force a fresh build
+  and verify artifact identity; old timestamps reused an unrelated Wasm
+  artifact.
 
 ### Linux and Darwin Gates
 
-Classify every change before implementation as shared, explicitly
-platform-specific, or platform-neutral. Treat Nix evaluation and packaging,
-dependencies, Home Manager, config materialization, and runtime command, shell,
-filesystem, process, or PTY behavior as shared unless the contract says
-otherwise.
+Classify every change before implementation as shared, platform-specific, or
+platform-neutral. Nix evaluation and packaging, dependencies, Home Manager,
+config materialization, and runtime command, shell, filesystem, process, or PTY
+behavior are shared unless a contract says otherwise. Shared changes need
+Darwin evidence before acceptance or promotion:
 
-Shared changes must not be accepted or promoted from Linux evidence alone:
+- `edge`: green Linux CI and `Darwin Package Smoke` on the exact revision.
+  Dispatch Darwin when its scheduled run misses that revision or after changing
+  its workflow.
+- `main`: green CI plus `Publish Nix Cache`'s `publish_x86_64_linux` and
+  `publish_aarch64_darwin`.
+- Release candidates: `Version Gate`'s `release-gate` plus both protected cache
+  checks. Skipped work is not proof.
 
-- On `edge`, require green Linux CI and `Darwin Package Smoke` on the exact
-  revision. Dispatch the Darwin workflow when its scheduled run does not cover
-  that revision; dispatch it after changing the workflow itself.
-- On `main`, require green CI plus both `Publish Nix Cache` jobs:
-  `publish_x86_64_linux` and `publish_aarch64_darwin`.
-- For a release candidate, require `Version Gate`'s `release-gate`, which
-  requires Linux and every Darwin job to succeed, and the protected Linux and
-  Darwin cache checks before promoting `stable`. Skipped work is not proof.
-
-`nix flake show --all-systems` and Darwin derivation evaluation on Linux prove
-flake shape only; they do not replace a real `aarch64-darwin` build. Linux-only
-verification is allowed only for an explicitly Linux-only surface,
-platform-neutral documentation or planning, or an optional capability that is
-unavailable or disabled on Darwin by contract. Record that boundary and reason,
-and keep shared flake evaluation green when the shared graph changes.
+`nix flake show --all-systems` and Darwin evaluation on Linux prove flake shape,
+not an `aarch64-darwin` build. Linux-only evidence suffices only for an
+explicitly Linux-only surface, platform-neutral documentation or planning, or a
+capability disabled on Darwin by contract; record that boundary and keep shared
+flake evaluation green.
 
 ### Installed Edge Updates
 
-Home Manager owns the user's `Yazelix Nova (Edge)` desktop entry. Its
-configuration in `/home/lucca/.config/home-manager` selects the `yazelix`
-input's `yazelix-edge` package.
+Home Manager in `/home/lucca/.config/home-manager` owns the user's
+`Yazelix Nova (Edge)` desktop entry through the `yazelix` input's
+`yazelix-edge` package. After a runtime or package change reaches `edge` and
+passes its required checks, update only that input to the verified candidate.
+Review the lockfile and activation diff, build the activation closure, and
+verify the selected package before activating; preserve unrelated Home Manager
+edits. Then verify the locked Nova revision and the actual `yzx-edge.desktop`
+Exec against the installed artifact from a fresh session; shell PATH or a
+separate Nix profile does not prove the desktop launcher.
 
-After a runtime or package change is pushed to `edge` and its required checks
-pass, update only that Home Manager input to the verified candidate. Review the
-lockfile and activation diff, build the activation closure and verify the selected
-package before activation. Preserve unrelated Home Manager edits.
-
-After activation, verify the locked Nova revision and the actual
-`yzx-edge.desktop` Exec against that candidate's installed artifact. Follow the
-fresh-session proof rules above; shell PATH or a separate Nix profile does not
-prove the desktop launcher.
-
-Documentation- and Beads-only pushes do not require a package update. Do not
-add or refresh a separate `yazelix-edge` profile for this installation. Do not
-update the user's Stable installation unless explicitly requested.
-
-Do not launch GUI sessions unless the user asks or reports manual dogfooding.
+Documentation- and Beads-only pushes need no package update. Never add a
+separate `yazelix-edge` profile or update the Stable installation unless
+explicitly requested.
