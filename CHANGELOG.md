@@ -4,6 +4,10 @@ User-visible runtime changes for Yazelix Nova live here.
 
 ## Unreleased
 
+- On macOS, Zellij starts again instead of exiting with `Lost connection to the
+  Zellij server`. Its system libcurl is now curl 8.21.0, built from the same
+  nixpkgs recipe, instead of curl 8.20.0, which its HTTP client rejects.
+
 - When Zellij fails to start under `yzx launch`, for example because a session
   name is too long, its error stays visible in the Rio window until Enter is
   pressed. Previously the window closed right after the welcome animation.

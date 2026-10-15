@@ -752,6 +752,21 @@
         '';
         meta.license = pkgs.lib.licenses.mit;
       };
+      # Zellij links a system libcurl on macOS, and isahc rejects curl 8.20.0
+      # (curl/curl#21558). Keep nixpkgs' recipe, which preserves its CA handling,
+      # and delete this once the pin moves past 8.20.0. runtime_root constructs
+      # isahc's client through a remote attach.
+      distributionCurl =
+        if pkgs.curl.version == "8.20.0"
+        then
+          pkgs.curl.overrideAttrs (_: {
+            version = "8.21.0";
+            src = pkgs.fetchurl {
+              url = "https://curl.se/download/curl-8.21.0.tar.xz";
+              hash = "sha256-qhtmpw6s6D3GJFCHRWRsCK5WHeUSq0A63/uTrIf8cuY=";
+            };
+          })
+        else pkgs.curl;
       yazelixDistributionPackage = novaZjhintsRust.buildRustPackage {
         pname = "nova-zellij-distribution";
         version = "0.1.0";
@@ -772,7 +787,7 @@
         YZX_HINTS_WASM = "${novaZjhintsPackage}/bin/nova-zjhints.wasm";
         OPENSSL_NO_VENDOR = "1";
         nativeBuildInputs = [pkgs.pkg-config];
-        buildInputs = [pkgs.openssl] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.curl];
+        buildInputs = [pkgs.openssl] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [distributionCurl];
         doCheck = false;
         installPhase = ''
           install -Dm755 target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/yzx-zellij "$out/bin/yzx-zellij"

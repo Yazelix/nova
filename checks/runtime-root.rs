@@ -186,6 +186,30 @@ fn main() {
             .arg(case.state_dir.join("zellij/config.kdl"))
             .args(["setup", "--check"]);
         successful_output(&mut zellij_check, "materialized Zellij config");
+        // A remote attach constructs isahc's client, which panics on a rejected
+        // libcurl before connecting; a closed loopback port gives the ordinary error.
+        let curl = command(&[
+            "run",
+            "yzx-zellij",
+            "attach",
+            "--token",
+            "probe",
+            "https://127.0.0.1:9/probe",
+        ])
+        .env("HOME", temp.path.join("home"))
+        .env("NO_PROXY", "*")
+        .env("no_proxy", "*")
+        .output()
+        .unwrap();
+        let curl_output = format!(
+            "{}{}",
+            String::from_utf8_lossy(&curl.stdout),
+            String::from_utf8_lossy(&curl.stderr)
+        );
+        assert!(
+            curl.status.code() == Some(2) && curl_output.contains("Connection failed:"),
+            "remote attach must reach the HTTP client: {curl_output:?}"
+        );
         for text in [&zellij, &layout] {
             assert!(text.contains(&root.join("libexec/yazelix").display().to_string()));
             assert!(!text.contains("__YZX_RUNTIME_ROOT__"));
