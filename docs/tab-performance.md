@@ -143,7 +143,7 @@ Proof: `nova-native-profile-20261013.0zf4p9r2`.
 ## Bottom-hints follow-up
 
 Owner: `yazelix-5vl-hints-tab-work-jvpj`. The isolated
-[lightweight event patch](../prototypes/zellij-distribution/zjhints-lightweight-events.patch)
+[lightweight event patch](../crates/zellij-distribution/zjhints-lightweight-events.patch)
 uses the existing SDK's `InitialKeybinds` for the complete catalog and keeps it
 across lightweight metadata events. Either startup event order, remaps and an
 empty replacement catalog are covered. Native reconfiguration remains the owner

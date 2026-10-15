@@ -1,7 +1,8 @@
 # Nova Zellij distribution
 
-Edge builds this small distribution from the merged [Zellij PR #5630](https://github.com/zellij-org/zellij/pull/5630)
-at upstream commit `333d7898a840314e41d3cc9d2a264a1b9732bb7b`. It embeds
+Nova builds this small distribution from unreleased upstream Zellij main at
+commit `333d7898a840314e41d3cc9d2a264a1b9732bb7b`, after
+[PR #5630](https://github.com/zellij-org/zellij/pull/5630) merged its plugin API. It embeds
 Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 

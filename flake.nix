@@ -710,8 +710,8 @@
         name = "nova-zjhints-source";
         src = zjhintsUpstream;
         patches = [
-          ./prototypes/zellij-distribution/zjhints-group-modifiers.patch
-          ./prototypes/zellij-distribution/zjhints-lightweight-events.patch
+          ./crates/zellij-distribution/zjhints-group-modifiers.patch
+          ./crates/zellij-distribution/zjhints-lightweight-events.patch
         ];
       };
       novaZjhintsToolchain = fenix.packages.${system}.combine [
@@ -770,15 +770,15 @@
       yazelixDistributionPackage = novaZjhintsRust.buildRustPackage {
         pname = "nova-zellij-distribution";
         version = "0.1.0";
-        src = ./prototypes/zellij-distribution;
+        src = ./crates/zellij-distribution;
         cargoDeps = pkgs.applyPatches {
           src = novaZjhintsRust.fetchCargoVendor {
             pname = "nova-zellij-distribution";
             version = "0.1.0";
-            src = ./prototypes/zellij-distribution;
+            src = ./crates/zellij-distribution;
             hash = "sha256-MDnAwJ2hGIzOvItk55ACuWX5+NFCjzhVG1FhaWKQKaU=";
           };
-          patches = [./prototypes/zellij-distribution/zellij-background-startup.patch ./prototypes/zellij-distribution/zellij-mouse-selection.patch];
+          patches = [./crates/zellij-distribution/zellij-background-startup.patch ./crates/zellij-distribution/zellij-mouse-selection.patch];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";

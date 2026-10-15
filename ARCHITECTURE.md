@@ -123,7 +123,7 @@ and delegates only `popups.<id>` to `custom_popups.rs`.
 | Child | Domain |
 | --- | --- |
 | Nova Rio | Terminal and native configuration schema |
-| Nova Zellij distribution | Merged upstream Zellij PR #5630 with embedded plugins |
+| Nova Zellij distribution | Unreleased upstream Zellij main with two carried patches and embedded plugins |
 | Nova Helix | Editor fork |
 | Yazelix Forest | Managed Helix file tree and its native interaction behavior |
 | zj-radar | Session and agent-attention rail, command pipe, and producer CLI |
@@ -340,7 +340,7 @@ Helix merge/Steel/`Alt r` (c), Keys/Advanced (d).
 **Pros:** small public surface; concrete semantic config; one Nix-composed
 runtime; Rio isolated; Rust where process/files matter; layout checks in build.
 
-**Cons:** `flake.nix` is heavy; unmerged Zellij PR dependency; Yazi
+**Cons:** `flake.nix` is heavy; unreleased upstream Zellij main plus carried patches; Yazi
 integration surface; user layering is intentionally incomplete.
 
 **Current bet:** one owner per contract beats minimal file count. Nix is the

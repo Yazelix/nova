@@ -320,9 +320,10 @@ checks, and every dogfood profile refresh. The profile does not retain overrides
 Publish matching child revisions and lock them before verifying without overrides.
 Check popup open/hide and sidebar toggle together in a fresh installed session.
 
-The [Nova Zellij distribution](../prototypes/zellij-distribution/README.md)
-embeds the packaged plugins through the merged PR #5630 API. Edge uses it by
-default; Main and Stable retain their own revisions until promoted.
+The [Nova Zellij distribution](../crates/zellij-distribution/README.md)
+builds `yzx-zellij` from unreleased upstream Zellij main with Nova's carried
+patches and embeds the packaged plugins through the API merged in PR #5630.
+Each channel uses the revision it was promoted with.
 The Zellij API revision is pinned in its `Cargo.toml` and `Cargo.lock`;
 `zellijSource` supplies the matching theme inventory for a flake check.
 
@@ -396,6 +397,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,970 |
-| Documentation and text | 6,194 |
-| Total | 41,164 |
+| Code and configuration | 34,969 |
+| Documentation and text | 6,196 |
+| Total | 41,165 |
