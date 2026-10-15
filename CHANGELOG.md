@@ -50,8 +50,9 @@ User-visible runtime changes for Yazelix Nova live here.
   A Nova-only read-only App checks immutable settings before draft creation
   and publication; preparation and attestation do not receive its key.
 
-- Tab clicks recover when an earlier tab switch redirected the mouse release.
-  The native attached-client check forces this sequence before rapid clicks.
+- Tab clicks use upstream Zellij's mouse handling again, without Nova's patch.
+  After switching tabs with a mouse click and returning with the keyboard, the
+  first click in that tab can be ignored; clicking again works.
 
 - Linux archive assembly stops when ELF dependency or search-path inspection fails,
   including when the inspector emits output before failing.

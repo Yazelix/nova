@@ -15,10 +15,6 @@ relative pane order when reapplying tiled layouts. The native
 [`background startup patch`](zellij-background-startup.patch) retains startup
 callbacks until the first client connects, then replays them.
 Drop it when upstream preserves pending events across client registration.
-The isolated [mouse-selection patch](zellij-mouse-selection.patch) lets a fresh
-press start a gesture when a tab switch redirected the preceding release.
-Drop it when upstream accepts fresh presses during stale selection. The attached
-client check forces that sequence before checking ordinary rapid clicks.
 The bottom-hint check covers manual rearrangements, stacked and split work areas,
 background tabs, floating popups and new-pane placement.
 
