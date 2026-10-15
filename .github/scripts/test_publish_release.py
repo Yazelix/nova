@@ -54,6 +54,23 @@ class PublicationTests(unittest.TestCase):
         if self.routes["/immutable-releases"][0]["enabled"] is not True:
             raise ValueError("immutable releases are disabled")
 
+    def test_only_an_approval_annotation_requests_portable_publication(self):
+        with tempfile.TemporaryDirectory() as root:
+            _, manifest, _ = self.candidate(Path(root))
+            tag, annotation = manifest["tag"], self.routes["/git/tags/" + "a" * 40][0]
+            self.assertTrue(release.portable(tag, self.api))
+            for message in ["Yazelix Nova 1.3.0", json.dumps({"contract": "other"}), "[]"]:
+                annotation["message"] = message
+                self.assertFalse(release.portable(tag, self.api))
+            annotation["message"] = json.dumps({"contract": "NOVA-RELEASE-ASSETS-001"})
+            self.assertTrue(release.portable(tag, self.api))
+            with self.assertRaises((KeyError, ValueError)):
+                release.annotation(tag, manifest["revision"], self.api)
+            self.routes["/git/ref/tags/" + tag][0]["object"]["type"] = "commit"
+            self.assertFalse(release.portable(tag, self.api))
+            with self.assertRaises(ValueError):
+                release.portable("v1.3.0", self.api)
+
     def test_guard_uses_only_the_dedicated_token_and_fails_without_it(self):
         with patch.dict(os.environ, {"GITHUB_ACTIONS": "true", "GH_TOKEN": "ordinary-token"}, clear=True):
             with patch.object(release, "github_api") as api:

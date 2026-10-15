@@ -14,8 +14,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  classify:
+    if: github.repository_id == '746026727' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      portable: ${{ steps.tag.outputs.portable }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Skip plain Stable version tags; route approval tags to publication
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/publish_release.py classify . "$GITHUB_REF_NAME" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
   prepare:
-    if: github.repository_id == '746026727' && (github.event_name == 'push' || contains(fromJSON('["refs/heads/edge","refs/heads/main","refs/heads/stable"]'), github.ref))
+    needs: classify
+    if: ${{ !cancelled() && github.repository_id == '746026727' && (needs.classify.outputs.portable == 'true' || github.event_name == 'workflow_dispatch' && contains(fromJSON('["refs/heads/edge","refs/heads/main","refs/heads/stable"]'), github.ref)) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     outputs:

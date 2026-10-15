@@ -1,8 +1,16 @@
 # Changelog
 
-User-visible runtime changes for Yazelix Nova live here.
+User-visible runtime changes for Yazelix Nova live here. Each Stable promotion
+is a release: promotion closes `## Unreleased` into that version's section.
+Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
+
+- Tab clicks use upstream Zellij's mouse handling again, without Nova's patch.
+  After switching tabs with a mouse click and returning with the keyboard, the
+  first click in that tab can be ignored; clicking again works.
+
+## 1.3.0
 
 - On macOS, Zellij starts again instead of exiting with `Lost connection to the
   Zellij server`. Its system libcurl is now curl 8.21.0, built from the same
@@ -17,54 +25,30 @@ User-visible runtime changes for Yazelix Nova live here.
   align icons with the text. The text font stays JetBrains Mono.
   Cached values and retry timing are preserved after failed refreshes.
 
-- The native runtime uses fat LTO and one codegen unit. Matched Linux artifacts
-  show faster fresh terminal startup and a smaller executable, with longer builds;
-  tab-creation and walking gains remain uncertain.
+- On Linux, fresh terminal startup is faster and the native runtime executable
+  is smaller.
 
-- Bottom hints reuse the binding catalog across mode changes and stop unused
-  compatibility broadcasts and startup retries in Nova's direct pane.
-  Hints retain their appearance, bindings and nested-session behavior.
-
-- Radar and Bar receive mode changes without repeatedly decoding unused
-  keymaps. Tab bindings and hints retain the full configuration.
+- Bottom hints, Radar and the top bar do less work on each mode change. Hint
+  appearance, bindings and nested-session behavior are unchanged.
 
 - Managed Helix keeps hot reloading after its own saves and external atomic
   replacements, including restored files with older timestamps. Clean aliases
   reload independently; unsaved buffers retain their edits and show a warning.
   Temporary file absence no longer stops reloads for other open files.
 
-- Development Linux archives include package identity and a hashed file index,
-  with target and `no-rio` variant in the filename. Uncommitted builds record no
-  immutable revision and fail release verification. Assembly checks exact host
-  library names, declared libgcc symbol requirements and the glibc floor. File
-  indexes reject invalid numeric types for schemas and permission modes.
-  Metadata and source inventories stop when directories cannot be read.
-  Archives record component and private-library origins for source delivery.
-  Source capture verifies its finished bytes before finalizing the output.
-  Missing source/vendor and notice inputs rebuild from their recorded derivations.
-  Offline asset preparation binds verified archives, complete source parts,
-  notices, a target manifest and checksums for release review.
-  Annotated version tags bind reviewed hashes to bounded provenance and
-  immutable draft/upload/publish automation with public installation checks.
-  The approved source/notice review appears in the delivery guide and release body.
-  A Nova-only read-only App checks immutable settings before draft creation
-  and publication; preparation and attestation do not receive its key.
-
-- Tab clicks use upstream Zellij's mouse handling again, without Nova's patch.
-  After switching tabs with a mouse click and returning with the keyboard, the
-  first click in that tab can be ignored; clicking again works.
-
-- Linux archive assembly stops when ELF dependency or search-path inspection fails,
-  including when the inspector emits output before failing.
+- Tab clicks recover when an earlier tab switch redirected the mouse release.
 
 - Restoring bottom hints preserves the focused work pane in a two-pane stack,
   including when the sidebar is collapsed.
 
-- Packaged Zellij pins upstream `333d7898`, retiring Nova's pane-order patch.
-  A minimal startup patch preserves background plugin permission callbacks,
-  and the pane orchestrator ignores CLI EOF messages so queries answer once.
-  The bar discards unused keymaps to prevent memory-limit crashes on attach.
-  Closed tabs retire their hint panes when pane snapshots arrive before tab metadata.
+- Nova builds `yzx-zellij` from upstream Zellij, pinned to unreleased main
+  `333d7898`, with its plugins embedded. Built-in plugins need no permission
+  cache entries, and sessions from the earlier Zellij binary stay separate.
+  The default bottom bar is `nova-zjhints`, with grouped modifier hints and no
+  mode badge. A minimal startup patch preserves background plugin permission
+  callbacks; pane-orchestrator CLI queries answer once; the bar discards unused
+  keymaps to prevent memory-limit crashes on attach; and closed tabs retire
+  their hint panes when pane snapshots arrive before tab metadata.
 
 - CLI sidebar toggles ignore the closing empty pipe message, preventing one
   request from immediately reversing itself.
@@ -112,39 +96,12 @@ User-visible runtime changes for Yazelix Nova live here.
 - Managed Yazi waits for valid pane dimensions before starting, preventing a
   cold Zellij PTY from making the startup picker exit immediately.
 
-- The development `x86_64-linux` flake output `yazelix-no-rio-archive` builds
-  a relocatable no-Rio archive with managed Helix, Yazi and shell/preview tools.
-  It uses the host glibc (2.39 or newer), private libraries and packaged assets;
-  Current dependency versions use compatible runtime providers compiled against
-  pinned glibc 2.39 build inputs; assembly rejects higher ELF requirements.
-  missing required inputs fail before dispatch. The archive requires host Git;
-  Lazygit, Yazi and shell prompts use the user's Git installation and configuration.
-  Portable child helpers select their packaged interpreter through managed PATH,
-  including when host PATH lacks Bash.
-  Public archive downloads and an installer
-  remain pending. The archive output has no runnable flake app entry.
-
-- Runtime paths share one package-root owner. Relocation fixtures exercise
-  managed helpers, Helix/Steel/watcher assets, Yazi, Nu and generated Zellij
-  configuration; missing or escaping package inputs fail with a diagnostic.
-  Nova-managed watcher links follow a moved root without replacing user libraries.
-  Failed watcher staging preserves the previous link and ownership record.
-  Portable tutor commands use Nushell quoting for roots containing spaces or quotes.
-  Nix and Home Manager retain their delivery bindings; installation requires Nix.
-
-- Packaged Helix uses pinned source snapshots for Codeberg and SourceHut grammars.
-
 - Radar's Codex hooks and sidebar broadcasts reach the bundled Zellij session
   even when another Zellij version is installed on the host. Its compatibility
   check recognizes the bundled client's upstream version.
   Managed Codex launches use its supported `--no-daemon` option so hooks retain
   the invoking pane's environment instead of the shared server's environment.
   Literal arguments after `--` do not suppress the runner option.
-
-- The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
-  artifact's root, metadata, host boundary and required delivery evidence.
-  Public portable installation remains pending; current release installations
-  still require Nix.
 
 - `bottom_hints.start_hidden = true` starts fresh sessions without the bottom
   key-hint row. The default is `false`. Existing toggles still work; later tabs
@@ -156,18 +113,15 @@ User-visible runtime changes for Yazelix Nova live here.
   `nova` command. Desktop launchers, help, tutorials and config hints use `yzx`.
   Existing config/state directories, environment variables and helper names persist.
 
-- Pane orchestration uses the public upstream Zellij SDK at the packaged native
-  revision, so source builds do not require access to the private Nova fork.
-
 - Hiding and restoring bottom hints preserves work-pane order, including manual
   rearrangements, background tabs and an open floating popup.
 
 - Acknowledged hint toggles settle the active layout before a subsequent pane
   mutation, preserving work-pane frames.
 
-- Bottom hints use compact `C`, `C-A`, `A` and `A-S` modifier headers and the
-  labels `sess.`, `move` and `full`. `C-A hl/jk move` combines tab reordering
-  with `h/l` and vertical pane reordering with `j/k` in Normal mode.
+- Bottom hints use the labels `sess.`, `move` and `full`. `C-A hl/jk move`
+  combines tab reordering with `h/l` and vertical pane reordering with `j/k` in
+  Normal mode.
   Alt-Shift defaults follow `M F B H J K L`, keeping menu first and HJKL together.
   Managed menu, config, Git, agent, sidebar
   and hint-toggle shortcuts appear with their configured keys; disabled keys
@@ -215,19 +169,6 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - In sessions with multiple attached clients, the top bar keeps each client's
   own active tab highlighted while switching tabs.
-
-- Edge uses `yzx-zellij` built from merged upstream Zellij PR #5630 at
-  `81f56e1`, with Nova's plugins embedded. The merged source adds an upstream
-  client-attachment plugin race fix and a per-socket session probe timeout;
-  Nova's attach-only report remains unverified. Its default bottom bar is the
-  `nova-zjhints` fork with grouped modifier hints, stronger warm-red keys, and
-  no mode badge. Built-in plugins need no pre-seeded permission cache entries.
-  Existing sessions from the earlier Zellij binary remain separate from new
-  `yzx-zellij` sessions.
-  The row has a one-column leading inset; when three modifier groups remain,
-  spare width is divided evenly between their gaps. Muted gray labels
-  share the keys' plain background, with one-cell gaps between hints. Modifier
-  headers use true red on a subtle charcoal background.
 
 - Nova's default Zellij keymap frees `Alt n` for Helix and removes the inherited
   `Ctrl b` Tmux-mode entry. `Alt m` remains the new-pane shortcut.
@@ -292,9 +233,9 @@ User-visible runtime changes for Yazelix Nova live here.
 - The configured session widget renders from Zellij's current-session snapshot
   when the initial mode event omits the session name.
 
-- Nova rebuilds its Zellij fork on upstream 0.46.0 and writes `appearance.mode`
-  to upstream's `explicit_theme_hue`, replacing the fork-only startup flag while
-  preserving automatic and manually selected light or dark appearances.
+- `appearance.mode` sets upstream Zellij's `explicit_theme_hue`, replacing the
+  former fork-only startup flag while preserving automatic and manually
+  selected light or dark appearances.
 
 - The existing `zjstatus::notify::<message>` pipe renders a five-second notice
   over the active tab's top-right bar corner. Notices replace each other without
@@ -321,8 +262,6 @@ User-visible runtime changes for Yazelix Nova live here.
 - Right-side widgets disappear from left to right as tabs need room. Surviving
   widgets remain anchored, and the corner version badge yields last.
 
-## 1.3.0 (candidate)
-
 - Radar keeps one stateful background controller per session. Per-tab sidebar
   panes exchange only bounded size, frame and mouse messages with it, so new
   tabs render Radar in hundreds of milliseconds without multiplying its event
@@ -348,13 +287,6 @@ User-visible runtime changes for Yazelix Nova live here.
   Managed commands and panes resolve it without the installed profile on PATH.
   Use `yzx enter` or `yzx launch` for managed Nova workspace startup.
 
-- Popup shares Nova Bar's Fenix input and root nixpkgs, removing its separate
-  toolchain package graph. Rust remains at 1.95.0; the Popup WASM is rebuilt
-  with the shared packaging environment and retains its existing build recipe.
-
-- Nova shares equivalent Fenix and flake-utils inputs across child packages,
-  reducing duplicate lockfile graphs while preserving packaged build outputs.
-
 - Packaged Yazi and `ya` use 26.9.1 with paired schemas. Zellij preserves
   distinct Kitty image crops and their source offsets, and refreshes scaled
   images when terminal cell dimensions change. Rio waits for pending Vulkan
@@ -364,15 +296,12 @@ User-visible runtime changes for Yazelix Nova live here.
   Sixel previews continue displaying while browsing differently sized images:
   Zellij retires covered and erased rasters without reusing live image IDs.
 
-- Radar's Nix packages use explicit names, removing Crane's placeholder-name
-  warnings during evaluation and builds.
-
 - Agent popup toggles recognize running agents after a runtime update, preserving
   their titles and processes instead of opening duplicate panes.
 
 - Home Manager consumers can follow newer nixpkgs without requiring its stock
   Zellij version to match Nova's build recipe. Nova retains its pinned Zellij
-  fork; CI evaluates representative Linux and Darwin Home Manager configurations
+  build; CI evaluates representative Linux and Darwin Home Manager configurations
   with a reviewed nixpkgs revision containing Zellij 0.45.1.
 
 - `yzx doctor` and `yzx status`, including verbose and JSON output, inspect
@@ -409,12 +338,7 @@ User-visible runtime changes for Yazelix Nova live here.
 
 - `yzx anima aquarium` plays Anima's original native reef scene, including the
   shared browsing keys, fading credit card, and welcome timer. The welcome
-  configuration accepts `aquarium`; classic `asciiquarium` remains available.
-
-- Nova Helix ships the nine pinned Codeberg grammar source trees with their
-  original contents and licenses. Nix evaluation and grammar builds use these
-  verified local snapshots, avoiding Codeberg HTTP 504 failures without disabling
-  languages. Linux and Darwin CI reject live Codeberg grammar fetches.
+  configuration accepts `aquarium`.
 
 - Aquarium joins Anima's previous/next cycle before Boids: Predator. Arrow keys,
   `h`/`l`, and `p`/`n` cross between Aquarium and native animations in the CLI,
@@ -425,7 +349,7 @@ User-visible runtime changes for Yazelix Nova live here.
   executable's inventory, defaults, and validation. Edits preserve unrelated
   values and comments; resets remove overrides. Validation errors show the failing
   TOML excerpt without dumping unrelated settings. New Rio configs enable background
-  blur at 0.88 opacity where supported. The ignored `bell.visual` starter entry
+  blur where supported. The ignored `bell.visual` starter entry
   is omitted; this Rio version supports only the audio-bell setting.
 
 - Random Anima selection includes Friends and Enemies, Physarum, Chladni, and
@@ -472,7 +396,37 @@ User-visible runtime changes for Yazelix Nova live here.
   `Right`/`l`/`n` navigation in native animations. Nova's welcome choices match
   the packaged styles; retired style overrides report a configuration error.
 
+### Packaging and development
+
+- The development `x86_64-linux` output `yazelix-no-rio-archive` builds a
+  relocatable no-Rio archive with managed Helix, Yazi and shell/preview tools.
+  It uses the host glibc (2.39 or newer), private libraries and packaged assets,
+  and requires host Git. Archives carry package identity and a hashed file index;
+  assembly rejects higher ELF requirements, unreadable inputs and failed ELF
+  inspection. Public downloads and an installer remain pending; installation
+  still requires Nix.
+
+- Release tooling prepares reviewed source, notice, manifest and checksum assets
+  and publishes immutable portable releases only from an approved annotated tag.
+  The [portable runtime contract](docs/portable-runtime.md) defines the no-Rio
+  artifact's root, metadata, host boundary and delivery evidence.
+
+- Runtime paths share one package-root owner, so managed helpers,
+  Helix/Steel/watcher assets, Yazi, Nu and generated Zellij configuration follow
+  a relocated root. Portable tutor commands quote roots containing spaces or
+  quotes.
+
+- Nova Helix ships pinned Codeberg and SourceHut grammar source trees with their
+  original contents and licenses, so Nix evaluation and grammar builds avoid live
+  forge fetches without disabling languages.
+
+- Pane orchestration uses the public upstream Zellij SDK, so source builds do not
+  need the private Nova fork. Child packages share equivalent Fenix and
+  flake-utils inputs, and Radar's Nix packages use explicit names.
+
 ## 1.2.0
+
+Shipped on Stable without a release tag.
 
 - Top-bar tabs use native names, selection, bells, and layout indicators without
   execution dots or completion checkmarks. Radar owns activity presentation;

@@ -201,6 +201,39 @@ Skip promotion when no candidate meets the contract. To roll back, commit the
 revert on `edge`, verify it, promote it to `main`, and then promote it through
 the same stable path. Do not move `stable` backward.
 
+### Stable releases
+
+Every Stable promotion is a release. Edge and Main are rolling channels: they
+carry no tags, and once a candidate bumps the version they report it with their
+channel label, such as `1.4.0 Edge` while Stable reports `1.3.0`. `yzx --version`
+omits the Git revision.
+
+Prepare the release in the Edge candidate, so the promoted revision already
+carries it:
+
+- Set `novaVersion` in `flake.nix`. Bump the minor version when the promotion
+  contains user-visible features, configuration fields, keymap or behavior
+  changes, and the patch version when it contains only fixes, including urgent
+  fixes. Major versions are reserved for an explicitly chosen breaking release.
+- Rename `## Unreleased` in `CHANGELOG.md` to `## X.Y.Z` and start a new empty
+  `## Unreleased` above it.
+
+After pushing the candidate to `stable`, tag that exact revision and publish its
+GitHub release with the version's changelog section and the sponsorship footer:
+
+```sh
+git tag -a nova-vX.Y.Z <sha> -m "Yazelix Nova X.Y.Z"
+git push origin nova-vX.Y.Z
+gh release create nova-vX.Y.Z --repo Yazelix/nova --verify-tag --title "Yazelix Nova X.Y.Z" --notes-file <notes.md>
+```
+
+A plain version tag publishes no portable assets: Portable Release classifies
+the tag and skips unless its annotation is a portable approval
+([portable runtime](portable-runtime.md#nova-release-assets-001-reviewed-tag-and-publication)).
+Each version has one release owner, either the maintainer's plain release or
+Portable Release publishing that version's assets, never both. Record the
+version, tag and release URL in the promotion Bead.
+
 ### Release notes
 
 End each GitHub release body with this sponsorship footer, once:
@@ -397,6 +430,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,944 |
-| Documentation and text | 6,193 |
-| Total | 41,137 |
+| Code and configuration | 34,997 |
+| Documentation and text | 6,184 |
+| Total | 41,181 |

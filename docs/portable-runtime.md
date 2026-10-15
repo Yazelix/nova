@@ -489,11 +489,15 @@ The approved review text appears in `SOURCE-DELIVERY.md` and the release body.
 
 Push the authorized annotated tag only after the exact revision belongs to Main
 and its Linux CI, both cache publication jobs and Version Gate succeed. A tag
-push triggers publication; choosing this approval format does not authorize a
-tag, public release, channel promotion or repository settings change.
+push with this approval triggers publication; choosing this approval format
+does not authorize a tag, public release, channel promotion or repository
+settings change. The workflow's `classify` job skips plain Stable version tags,
+whose annotation is not this JSON; an annotation that names the contract always
+goes through the fail-closed preflight.
 
-The workflow has three bounded jobs: read-only preparation (120 minutes), OIDC
-attestation (20 minutes), and tag-only publication (45 minutes). GitHub scopes
+The workflow has four bounded jobs: tag classification (5 minutes), read-only
+preparation (120 minutes), OIDC attestation (20 minutes), and tag-only
+publication (45 minutes). GitHub scopes
 permissions to jobs, so build processes receive neither release-write nor OIDC
 credentials. There are no fork, pull-request, schedule or variant-matrix builds,
 new caches, or long-lived provenance signing keys. Global concurrency serializes

@@ -15,6 +15,7 @@ from verify_darwin_smoke import github_api, listed, require_success
 REPO = "repos/Yazelix/nova"
 TARGET = "x86_64-unknown-linux-gnu"
 WORKFLOW = "Yazelix/nova/.github/workflows/portable_release.yml"
+TAG = r"nova-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?"
 GATES = {"ci.yml": ["linux"],
          "publish_nix_cache.yml": ["publish_x86_64_linux", "publish_aarch64_darwin"],
          "version_gate.yml": ["release-gate"]}
@@ -67,8 +68,23 @@ def verify_assets(directory):
     return manifest
 
 
+def portable(tag, api):
+    """Plain version tags mark Stable releases; only an approval annotation requests publication."""
+    if not re.fullmatch(TAG, tag):
+        raise ValueError("expected a Nova version tag")
+    reference, = api(f"{REPO}/git/ref/tags/{tag}")
+    if reference["object"]["type"] != "tag":
+        return False
+    record, = api(f"{REPO}/git/tags/{reference['object']['sha']}")
+    try:
+        message = json.loads(record["message"])
+    except json.JSONDecodeError:
+        return False
+    return isinstance(message, dict) and message.get("contract") == "NOVA-RELEASE-ASSETS-001"
+
+
 def annotation(tag, sha, api):
-    if not re.fullmatch(r"nova-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?", tag):
+    if not re.fullmatch(TAG, tag):
         raise ValueError("expected a Nova version tag")
     reference, = api(f"{REPO}/git/ref/tags/{tag}")
     if reference["object"]["type"] != "tag":
@@ -211,14 +227,16 @@ def publish(directory, bundle, tag, sha, api=github_api, guard=immutable_enabled
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["preflight", "approve", "check", "publish", "verify", "provenance"])
+    parser.add_argument("operation", choices=["classify", "preflight", "approve", "check", "publish", "verify", "provenance"])
     parser.add_argument("directory", type=Path)
     parser.add_argument("tag")
     parser.add_argument("sha")
     parser.add_argument("--bundle", type=Path)
     parser.add_argument("--ref")
     args = parser.parse_args()
-    if args.operation == "preflight":
+    if args.operation == "classify":
+        print("portable=" + str(portable(args.tag, github_api)).lower())
+    elif args.operation == "preflight":
         annotation(args.tag, args.sha, github_api)
         gates(args.tag, args.sha, github_api)
     elif args.operation == "approve":
