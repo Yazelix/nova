@@ -288,7 +288,9 @@ fail release verification. A base commit must not identify modified source.
 The file index covers payload regular files and symlinks with unique normalized
 root-relative paths. Regular-file records contain SHA-256 and permission mode;
 symlink records contain the literal target. Verification checks both declared
-entries and unexpected payload files. Only `share/yazelix/package.json` and
+entries and unexpected payload files. The archive stores hard-linked payload
+files, such as those deduplicated by Nix store optimisation, as full copies.
+Only `share/yazelix/package.json` and
 `share/yazelix/files.json` are excluded to avoid a digest cycle. `.4`'s immutable
 archive digest covers both; installers verify it before trusting the index.
 Packaging rejects absolute index paths or `..` path components, special filesystem

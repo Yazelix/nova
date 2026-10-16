@@ -132,5 +132,5 @@ in
     chmod u+w "$TMPDIR/indexed/share/yazelix"
     python3 ${./archive_metadata.py} "$TMPDIR/indexed" ${identity}
     chmod --reference=${payload}/share/yazelix "$TMPDIR/indexed/share/yazelix"
-    tar --sort=name --mtime=@1 --owner=0 --group=0 --numeric-owner -C "$TMPDIR/indexed" -cf - . | gzip -n > "$out/yazelix-nova-${version}-x86_64-unknown-linux-gnu-no-rio.tar.gz"
+    tar --hard-dereference --sort=name --mtime=@1 --owner=0 --group=0 --numeric-owner -C "$TMPDIR/indexed" -cf - . | gzip -n > "$out/yazelix-nova-${version}-x86_64-unknown-linux-gnu-no-rio.tar.gz"
   ''
