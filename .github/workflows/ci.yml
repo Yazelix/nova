@@ -72,6 +72,7 @@ jobs:
             .#checks.x86_64-linux.yzx_yazi_materialization \
             .#checks.x86_64-linux.yzx_launcher_unit \
             .#checks.x86_64-linux.runtime_root \
+            .#checks.x86_64-linux.managed_session \
             .#checks.x86_64-linux.contracts \
             .#checks.x86_64-linux.helix_file_watcher_runtime \
             .#checks.x86_64-linux.attached_tab_focus \

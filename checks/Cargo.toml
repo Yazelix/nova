@@ -17,5 +17,9 @@ name = "nova-bottom-hints-check"
 path = "bottom-hints.rs"
 
 [[bin]]
+name = "nova-managed-session-check"
+path = "managed-session.rs"
+
+[[bin]]
 name = "nova-rio-config-check"
 path = "rio-config.rs"

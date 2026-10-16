@@ -1986,6 +1986,15 @@
       runtime_root = pkgs.runCommand "yzx-runtime-root" {} ''
         ${runtimeRootCheck}/bin/runtime-root-check ${yzxNoRio.runtimeRootFixture} ${pkgs.unixtools.script}/bin/script ${pkgs.lib.boolToString pkgs.stdenv.isDarwin} "$out"
       '';
+      managed_session = pkgs.runCommand "nova-managed-session-check" {
+        nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
+      } ''
+        # Darwin build directories can exceed the Unix socket path limit.
+        export TMPDIR="$(mktemp -d /tmp/nova.XXXXXX)"
+        ${pkgs.coreutils}/bin/timeout --kill-after=5s 240s ${runtimeChecks}/bin/nova-managed-session-check ${yzx} ${pkgs.bash}/bin/bash
+        rmdir "$TMPDIR"
+        touch "$out"
+      '';
       helix_grammar_sources = yazelixHelix.checks.${system}.codeberg_grammars;
       no_helix_contracts = pkgs.runCommand "yzx-no-helix-contracts" {} ''
         ${noHelixContractsCheck}/bin/no-helix-contracts-check \

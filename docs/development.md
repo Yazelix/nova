@@ -383,6 +383,11 @@ contents, and wait for both attached clients to resize. Their interactive scenar
 run on `x86_64-linux`; the Rio TOML assertion
 also runs in the Darwin package gate. Parsing uses the same serde, serde_json and
 toml versions as the config crate. Linux CI runs both native interaction checks.
+The same driver runs `managed_session` in Linux CI and Darwin Package Smoke: a
+fresh headless `yzx enter` must render the bar, Radar, hints and Yazi picker,
+toggle Radar and the menu popup through their plugins, and pass in-session
+`yzx status --json` and `yzx doctor` while the Zellij server stays alive.
+Failures print the screen and the Zellij log tail.
 
 Run their deterministic tests and formatting check with:
 
@@ -430,6 +435,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 34,997 |
-| Documentation and text | 6,184 |
-| Total | 41,181 |
+| Code and configuration | 35,202 |
+| Documentation and text | 6,189 |
+| Total | 41,391 |
