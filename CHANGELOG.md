@@ -10,6 +10,10 @@ Edge and Main collect the next version's changes under Unreleased.
   After switching tabs with a mouse click and returning with the keyboard, the
   first click in that tab can be ignored; clicking again works.
 
+- The Claude quota widget shows the Claude splat in terracotta (#D97757)
+  instead of a plain `C`, in dark and light appearance. It uses the packaged
+  JetBrains Mono Nerd Font 3.5 face, so no font change is needed.
+
 ## 1.3.0
 
 - On macOS, Zellij starts again instead of exiting with `Lost connection to the

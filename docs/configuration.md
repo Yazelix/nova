@@ -473,9 +473,10 @@ overrides under runtime state without setting top-level `format`, so Starship
 retains its native `$all` layout. Zellij layers its sparse file over packaged
 configuration directly. Untouched defaults follow upgrades
 
-The Codex quota symbol requires Nerd Fonts 3.5 or newer (U+EC81). Rio's packaged
-default uses the JetBrains Mono Nerd Font symbol face, matching the text font's
-metrics so icons sit centrally. Other terminals need matching glyph coverage.
+The Codex and Claude quota symbols require Nerd Fonts 3.5 or newer (U+EC81 and
+U+EC82). Rio's packaged default uses the JetBrains Mono Nerd Font symbol face,
+matching the text font's metrics so icons sit centrally. Other terminals need
+matching glyph coverage.
 Existing Rio configurations keep their font settings. Replace the owned Symbols
 font entry in `fonts.additional-dirs` with the package's JetBrainsMono directory,
 and change only the two private-use `symbol-map` families to `JetBrainsMono NF`.
