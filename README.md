@@ -122,10 +122,10 @@ Source, Edge, and maintainer references stay with the code:
 
 ## Development
 
-Enter the pinned development shell, then run the local gates:
+Run the full local gates; the
+[check map](docs/development.md#check-map) lists focused checks per owner path:
 
 ```sh
-nix develop
 nix flake check
 nix flake show --all-systems
 nix build .#yazelix --no-link --print-build-logs
@@ -152,6 +152,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **35,202 code/configuration lines** and **6,189 documentation/text
+Yazelix owns **35,202 code/configuration lines** and **6,203 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

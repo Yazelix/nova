@@ -1,5 +1,39 @@
 # Development
 
+## Check map
+
+Run the focused checks for each owner path you changed. Fast checks build no
+Nova package; focused checks build the package they test. A named check runs
+as `nix build .#checks.x86_64-linux.<name> --no-link`; on Apple Silicon use
+`aarch64-darwin`, except for checks marked Linux.
+
+| Owner path | Fast | Focused |
+| --- | --- | --- |
+| `runtime/yzx/`, `runtime/yzx-agent.rs`, `runtime/yzx-package.rs` | `yzx_launcher_unit` | `runtime_root`, `managed_session`, `contracts` |
+| `runtime/yzx-yazi.rs` | — | `yzx_yazi_materialization` |
+| `runtime/yzx-menu.rs`, `runtime/yzx-nu.rs`, `runtime/yzx-shell.sh`, `runtime/yzx-env-supervisor.sh` | — | `contracts`, `runtime_root` |
+| `runtime/yzx-zellij-config.rs` | `zellij_sidecar_guard_parity` | `contracts` |
+| `runtime/yzx-helix.sh`, `runtime/yzx-helix-init.scm`, `defaults/helix/` | — | `helix_contracts`, `helix_file_watcher_runtime` (Linux) |
+| `crates/yzx-config/`, `defaults/config.toml` | — (tests need Nix-provided Starship inputs) | `nix build .#yazelix` runs its tests; `key_reference_parity`, `contracts` |
+| `crates/yzx-open/` | crate tests | `contracts` |
+| `crates/yzx-tutor/` | crate tests | `key_reference_parity` |
+| `crates/yzx-yazi-config/`, `defaults/yazi/` | crate tests | `yzx_yazi_materialization`, `contracts`, `startup_picker_cancellation` (Linux) |
+| `crates/zellij-distribution/` | `zellij_theme_inventory_parity` | `runtime_root`, `managed_session` |
+| `defaults/zellij/` | — | `contracts`, `managed_session`, `zjstatus_native_tabs`, `bottom_hints`, `attached_tab_focus`, `pane_move_ordering` (last three Linux) |
+| `defaults/rio/` | — | `rio_contracts` |
+| `defaults/nu/` | — | `contracts`, `runtime_root` |
+| `checks/` | `cargo test --locked --manifest-path checks/Cargo.toml` and `cargo fmt --manifest-path checks/Cargo.toml --check` | the changed check |
+| `flake.nix` (package variants) | `nix flake check --no-build` | `desktop_channels`, `no_rio_contracts`, `no_helix_contracts`, `host_yazi_contracts` |
+| `home-manager/` | — | `home_manager` |
+| `packaging/` | — | `archive_glibc_baseline` (Linux); release assets are proven by Portable Release |
+| `.github/scripts/` | `python3 -B -m unittest discover -s .github/scripts -p 'test_*.py'` | — |
+| `.github/workflows/` | no local check | the dispatched workflow itself |
+
+Crate tests run with `cargo test --locked --manifest-path crates/<crate>/Cargo.toml`.
+The full tier is `nix flake check`, `nix flake show --all-systems`, and
+`nix build .#<package> --no-link` for each affected package variant. Shared
+changes still need the [platform gates](../AGENTS.md#linux-and-darwin-gates).
+
 ## CI
 
 Normal CI runs Linux checks and the Darwin no-Helix evaluation guard on
@@ -360,20 +394,7 @@ Each channel uses the revision it was promoted with.
 The Zellij API revision is pinned in its `Cargo.toml` and `Cargo.lock`;
 `zellijSource` supplies the matching theme inventory for a flake check.
 
-Useful local checks:
-
-```sh
-nix flake check
-nix flake show --all-systems
-nix build .#yazelix --no-link --print-build-logs
-nix build .#yazelix-no-helix --no-link --print-build-logs
-nix build .#yazelix-no-helix-no-yazi --no-link --print-build-logs
-nix build .#checks.x86_64-linux.rio_contracts --no-link
-nix build .#checks.x86_64-linux.host_yazi_contracts --no-link
-nix build .#checks.x86_64-linux.no_helix_contracts --no-link
-nix build .#checks.x86_64-linux.yzx_yazi_materialization --no-link
-nix build .#checks.x86_64-linux.attached_tab_focus .#checks.x86_64-linux.bottom_hints --no-link
-```
+The [check map](#check-map) lists the focused local checks.
 
 `TEST-LANGUAGE-001`: maintained product checks use Rust; Python is confined to
 GitHub automation in `.github/scripts`. The native attached-client and bottom-hint
@@ -388,13 +409,6 @@ fresh headless `yzx enter` must render the bar, Radar, hints and Yazi picker,
 toggle Radar and the menu popup through their plugins, and pass in-session
 `yzx status --json` and `yzx doctor` while the Zellij server stays alive.
 Failures print the screen and the Zellij log tail.
-
-Run their deterministic tests and formatting check with:
-
-```sh
-cargo test --locked --manifest-path checks/Cargo.toml
-cargo fmt --manifest-path checks/Cargo.toml --check
-```
 
 Run the release compatibility check locally on the matching native platform
 (replace `x86_64-linux` with `aarch64-darwin` on Apple Silicon):
@@ -436,5 +450,5 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 35,202 |
-| Documentation and text | 6,189 |
-| Total | 41,391 |
+| Documentation and text | 6,203 |
+| Total | 41,405 |
