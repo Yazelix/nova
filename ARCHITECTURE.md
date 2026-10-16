@@ -288,7 +288,7 @@ Detail lives in Owners, checks, and the notes below.
 | C5 | Managed Nu layering | `yzx-nu`, `defaults/nu/` | `yzx-contracts` | — |
 | C6 | Managed Yazi layering, public noninteractive materialization, fast zoxide-first startup with exact picker lifecycle, `yzx-open`, and zoxide | `defaults/yazi/`, `runtime/yzx-yazi.rs`, `runtime/yzx/`, `crates/yzx-yazi-config/`, `crates/yzx-open/`, pane orchestrator | host-Yazi contracts + materialization + open tests + isolated startup-picker check | Picker/Yazi UI |
 | C7 | Helix bridge window/tab isolation (`session` + `tab_id`) | `yzx-open`, flake | `yzx-open` tests | Multi-window |
-| C10 | Top bar tray, home-marker tabs, home-scoped new tabs, usage `tu` + cache | layout, config, runtime, tokenusage | layout + contracts | Visual bar |
+| C10 | Top bar tray, home-marker tabs, home-scoped new tabs, CodexBar quota + cache | layout, config, runtime, CodexBar | layout + contracts | Visual bar |
 | C12 | Welcome defaults and random pool | Anima, runtime, root config | screen tests + contracts | Animation |
 
 ### Popups (`C9*`)

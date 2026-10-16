@@ -92,10 +92,13 @@ Anima owns the animation set and random selection. `static`, `logo`, and
 The retired `game_of_life_oscillators` and `game_of_life_bloom` names are invalid;
 choose `game_of_life_tumblers` or reset `welcome.style` to `random` in Ratconfig.
 
-The Codex quota widget identifies periods from their reported duration and shows
-five-hour before weekly when both exist. Unavailable periods are omitted.
-Updated windows use a versioned cache so older open sessions cannot reintroduce
-incompatible quota periods
+Quota widgets use Eon's text and its CodexBar backend. Each window shows how far
+into it the reading is and the remaining percentage, five-hour before weekly,
+for example `3h/5h 74% · 6d4h/7d 42%`; a window without a reset shows only its
+length, such as `5h 100%`. Unavailable or already-reset periods are omitted.
+Codex reads its account through the installed `codex` CLI and Claude through
+its existing sign-in; CodexBar owns that access. Updated windows use a versioned
+cache so older open sessions cannot reintroduce incompatible quota periods
 
 `editor.command` accepts one executable name or path, not a shell command with
 arguments. In packages that include managed Helix, `hx` and `yzx-hx` select it.

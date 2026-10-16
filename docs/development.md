@@ -342,8 +342,8 @@ does not establish an active schedule. GitHub may delay scheduled runs, so a
 missing report does not replace the maintainer's monthly review.
 
 The report groups Yazi/ya integration pins and covers direct flake inputs plus
-Nova's explicit Yazi and tokenusage packages. GitHub supplies full releases and
-exact branch comparisons; crates.io supplies tokenusage's stable release.
+Nova's explicit Yazi and CodexBar packages. GitHub supplies full releases and
+exact branch comparisons.
 Comparison branches absent from commit-pinned URLs live in
 `.github/scripts/dependency_report.py`; current versions stay in their manifests.
 New pinned sources without comparison policy require review. The two explicit
@@ -449,6 +449,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 35,272 |
-| Documentation and text | 6,228 |
-| Total | 41,500 |
+| Code and configuration | 35,292 |
+| Documentation and text | 6,238 |
+| Total | 41,530 |

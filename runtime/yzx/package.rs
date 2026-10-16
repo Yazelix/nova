@@ -153,7 +153,7 @@ pub(crate) fn search_path(root: Option<&Path>, nix_prefix: &str) -> io::Result<O
                 "zj-radar",
                 "yzx-zellij",
                 "zellij",
-                "tu",
+                "codexbar",
             ] {
                 owned(Some(root), "", &format!("libexec/yazelix/{command}"))?;
             }

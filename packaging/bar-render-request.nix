@@ -35,10 +35,7 @@
     if portableRuntime
     then "__YZX_RUNTIME_ROOT__/share/yazelix"
     else "${runtimeIdentity}";
-  claude_usage_display = "both";
   claude_usage_periods = ["5h" "week"];
-  codex_usage_display = "quota";
   codex_usage_periods = ["5h" "week"];
-  opencode_go_usage_display = "both";
   opencode_go_usage_periods = ["5h" "week" "month"];
 }

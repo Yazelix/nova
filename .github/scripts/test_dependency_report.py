@@ -19,9 +19,8 @@ class DependencyReportContract(unittest.TestCase):
                   repo = "yazi";
                   tag = "v${finalAttrs.version}";
                 });''',
-                "packaging/tokenusage.nix": '''pname = "tokenusage";
-                version = "1.5.2";
-                src = pkgs.fetchCrate { inherit pname version; };''',
+                "packaging/codexbar.nix": '''version = "0.74.1";
+                url = "https://github.com/steipete/CodexBar/releases/download/v${version}/CodexBarCLI.tar.gz";''',
             }
             nodes = {"root": {"inputs": {}}}
             for name, repo, original in [
@@ -49,10 +48,10 @@ class DependencyReportContract(unittest.TestCase):
                 calls.append(url)
                 if "unavailable" in url:
                     raise OSError("HTTP 429: rate limited")
+                if url.endswith("CodexBar/releases/latest"):
+                    return {"tag_name": "v0.74.1", "draft": False, "prerelease": False}
                 if url.endswith("releases/latest"):
                     return {"tag_name": "v26.9.1", "draft": False, "prerelease": False}
-                if url.endswith("crates/tokenusage"):
-                    return {"crate": {"max_stable_version": "1.5.2"}}
                 if url.endswith("repos/example/default"):
                     return {"default_branch": "trunk"}
                 if "/commits/" in url:
@@ -103,12 +102,12 @@ class DependencyReportContract(unittest.TestCase):
             self.assertEqual(report.report(root, "c" * 40, io.StringIO(), prerelease), 1)
 
             # Unsupported source shapes and malformed API data must not claim current.
-            (root / "packaging/tokenusage.nix").write_text(sources["packaging/tokenusage.nix"].replace(
-                'version = "1.5.2";', 'version = computedVersion;'))
+            (root / "packaging/codexbar.nix").write_text(sources["packaging/codexbar.nix"].replace(
+                'version = "0.74.1";', 'version = computedVersion;'))
             output = io.StringIO()
             self.assertEqual(report.report(root, "c" * 40, output, api), 1)
             self.assertIn("INCOMPLETE", output.getvalue())
-            (root / "packaging/tokenusage.nix").write_text(sources["packaging/tokenusage.nix"])
+            (root / "packaging/codexbar.nix").write_text(sources["packaging/codexbar.nix"])
             self.assertEqual(report.report(root, "c" * 40, io.StringIO(), lambda _: {}), 1)
 
 

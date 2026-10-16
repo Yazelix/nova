@@ -6,6 +6,13 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Quota widgets use Eon's text and backend. Each window reads like
+  `3h/5h 74% · 6d4h/7d 42%`: time into the window, its length and the
+  remaining percentage. Token counts are gone. Codex and Claude quota come
+  from CodexBar, as in Eon; Claude's quota read no longer waits on the Claude
+  CLI and times out. OpenCode Go shows `5h`, `7d` and `30d` windows.
+  `tu` (tokenusage) is no longer included in Nova shells.
+
 - Tab clicks use upstream Zellij's mouse handling again, without Nova's patch.
   After switching tabs with a mouse click and returning with the keyboard, the
   first click in that tab can be ignored; clicking again works.

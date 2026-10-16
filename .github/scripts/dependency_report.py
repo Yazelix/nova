@@ -73,10 +73,10 @@ def inventory(root):
         raise ValueError("Yazi source no longer follows its literal release version")
     items.append(("Yazi / ya", "release", literal("owner", yazi) + "/" + literal("repo", yazi),
                   "v" + literal("version", yazi), "latest full release"))
-    crate = (root / "packaging/tokenusage.nix").read_text()
-    one(r'src = pkgs\.fetchCrate \{(.*?)\};', crate)
-    items.append((literal("pname", crate), "crate", "crates.io", literal("version", crate),
-                  "latest stable crate"))
+    codexbar = (root / "packaging/codexbar.nix").read_text()
+    one(r'(releases/download/v\$\{version\}/)', codexbar)
+    items.append(("CodexBar", "release", "steipete/CodexBar", "v" + literal("version", codexbar),
+                  "latest full release"))
     return sorted(items, key=lambda item: (item[0] not in YAZI, item[0].lower()))
 
 
@@ -89,38 +89,34 @@ def version(value):
 def compare(item, api):
     name, kind, repo, current, target = item
     quote = lambda value: urllib.parse.quote(value, safe="")
-    if kind == "crate":
-        available = api(f"https://crates.io/api/v1/crates/{quote(name)}")["crate"]["max_stable_version"]
-        link = f"https://crates.io/crates/{quote(name)}/{quote(available)}"
-    else:
-        if not re.fullmatch(r"[\w.-]+/[\w.-]+", repo):
-            raise ValueError("Invalid GitHub repository")
-        base = f"https://api.github.com/repos/{repo}"
-        if kind == "branch":
-            if not target:
-                raise ValueError("Review required: no comparison policy for pinned input")
-            if target == "@default":
-                target = api(base)["default_branch"]
-            available = api(base + "/commits/" + quote(target))["sha"]
-            if not all(re.fullmatch(r"[0-9a-f]{40}", sha) for sha in [current, available]):
-                raise ValueError("Invalid commit revision")
-            link = f"https://github.com/{repo}/compare/{current}...{available}"
-            if current == available:
-                result = "Matches branch"
-            else:
-                diff = api(f"{base}/compare/{current}...{available}?per_page=1")
-                result = {
-                    "identical": "Matches branch",
-                    "ahead": f"Branch ahead (+{diff['ahead_by']})",
-                    "behind": "Pin ahead of branch; review",
-                    "diverged": "Diverged; review",
-                }[diff["status"]]
-            return target, available, result, link
-        release = api(base + "/releases/latest")
-        if release["draft"] is not False or release["prerelease"] is not False:
-            raise ValueError("API did not return a published full release")
-        available = release["tag_name"]
-        link = f"https://github.com/{repo}/releases/tag/{quote(available)}"
+    if not re.fullmatch(r"[\w.-]+/[\w.-]+", repo):
+        raise ValueError("Invalid GitHub repository")
+    base = f"https://api.github.com/repos/{repo}"
+    if kind == "branch":
+        if not target:
+            raise ValueError("Review required: no comparison policy for pinned input")
+        if target == "@default":
+            target = api(base)["default_branch"]
+        available = api(base + "/commits/" + quote(target))["sha"]
+        if not all(re.fullmatch(r"[0-9a-f]{40}", sha) for sha in [current, available]):
+            raise ValueError("Invalid commit revision")
+        link = f"https://github.com/{repo}/compare/{current}...{available}"
+        if current == available:
+            result = "Matches branch"
+        else:
+            diff = api(f"{base}/compare/{current}...{available}?per_page=1")
+            result = {
+                "identical": "Matches branch",
+                "ahead": f"Branch ahead (+{diff['ahead_by']})",
+                "behind": "Pin ahead of branch; review",
+                "diverged": "Diverged; review",
+            }[diff["status"]]
+        return target, available, result, link
+    release = api(base + "/releases/latest")
+    if release["draft"] is not False or release["prerelease"] is not False:
+        raise ValueError("API did not return a published full release")
+    available = release["tag_name"]
+    link = f"https://github.com/{repo}/releases/tag/{quote(available)}"
     old, new = version(current), version(available)
     result = "Release available" if new > old else "Matches release"
     if new < old:
@@ -169,6 +165,6 @@ def report(root, revision, output, api=get_json):
 if __name__ == "__main__":
     root = Path(__file__).resolve().parents[2]
     subprocess.run(["git", "diff", "--exit-code", "HEAD", "--", "flake.nix", "flake.lock",
-                    "packaging/tokenusage.nix"], cwd=root, check=True)
+                    "packaging/codexbar.nix"], cwd=root, check=True)
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     sys.exit(report(root, revision, sys.stdout))

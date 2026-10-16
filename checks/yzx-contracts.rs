@@ -485,7 +485,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "/bin/ya",
         "/bin/yzx-zellij",
         "/bin/nrio",
-        "tokenusage",
+        "codexbar",
         "--theme-mode",
         "--project-rio-appearance",
         "--new-session-with-layout",

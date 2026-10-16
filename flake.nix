@@ -397,7 +397,7 @@
       zjRadarCliPackage = zjRadar.packages.${system}.zj-radar-cli;
       yazelixZellijPaneOrchestratorPackage =
         yazelixZellijPaneOrchestrator.packages.${system}.yazelix_zellij_pane_orchestrator;
-      tokenusage = import ./packaging/tokenusage.nix {inherit pkgs;};
+      codexbar = import ./packaging/codexbar.nix {inherit pkgs;};
       yazelixScreenPackage = yazelixScreen.packages.${system}.anima;
       yzxWelcome = pkgs.writeShellApplication {
         name = "yzx-welcome";
@@ -1067,7 +1067,7 @@
             pkgs.coreutils
             pkgs.git
             pkgs.lazygit
-            tokenusage
+            codexbar
             managedEditor
             yazi
             zjRadarCliPackage
@@ -1114,7 +1114,7 @@
             pkgs.gawk
             pkgs.gnused
             pkgs.ncurses
-            tokenusage
+            codexbar
             zjRadarCliPackage
             yzxPackage
             yzxAgent
