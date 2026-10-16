@@ -1703,7 +1703,7 @@
         grep -q 'layout: runtime (' status
         grep -q 'host_theme_mode "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'explicit_theme_hue "light"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
-        grep -q 'straight_border_style "double"' "$YAZELIX_STATE_DIR/zellij/config.kdl"
+        grep -Eq '^ +border_style "double"$' "$YAZELIX_STATE_DIR/zellij/config.kdl"
         grep -q 'bottom_hints name="bottom_hints_start_hidden"' "$YAZELIX_STATE_DIR/zellij/layout.kdl"
         "${yzx}/bin/yzx-zellij" --config "$YAZELIX_STATE_DIR/zellij/config.kdl" setup --check >/dev/null
         grep -Fq 'host_theme_light_tab_normal "#[fg=#5c5f77] [{index} {name}] "' "$YAZELIX_STATE_DIR/zellij/config.kdl"

@@ -4,7 +4,7 @@
 [appearance]
 # Product appearance projected to managed components.
 mode = "dark"
-# Line style used when Zellij's native rounded_corners setting is false.
+# Zellij pane border lines: single or double. rounded_corners rounds only single lines.
 straight_border_style = "single"
 
 [open]

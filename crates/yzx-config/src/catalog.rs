@@ -246,12 +246,12 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
     ConfigFieldSpec {
         field: FieldSpec::string_choice(
             STRAIGHT_BORDER_STYLE_PATH,
-            "Single or double Zellij pane borders when native rounded corners are disabled.",
+            "Single or double Zellij pane borders.",
             &["single", "double"],
             "single or double",
         ),
         apply_summary: "next session",
-        apply_detail: "Saved straight-border style applies to newly launched Yazelix sessions. Zellij's native rounded_corners setting takes precedence when enabled.",
+        apply_detail: "Saved border style applies to newly launched Yazelix sessions. Zellij's rounded_corners rounds only single borders.",
     },
     ConfigFieldSpec {
         field: FieldSpec::string_choice(

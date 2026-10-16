@@ -334,7 +334,7 @@ fn patch_straight_border_style(
             let insertion = offset + line.len();
             let indent = &line[..line.len() - line.trim_start().len()];
             return Ok(format!(
-                "{}{}    straight_border_style \"double\"\n{}",
+                "{}{}    border_style \"double\"\n{}",
                 &text[..insertion],
                 indent,
                 &text[insertion..]
@@ -348,7 +348,7 @@ fn patch_straight_border_style(
     }
 
     Ok(format!(
-        "{}\nui {{\n    pane_frames {{\n        straight_border_style \"double\"\n    }}\n}}\n",
+        "{}\nui {{\n    pane_frames {{\n        border_style \"double\"\n    }}\n}}\n",
         text.trim_end()
     ))
 }
@@ -838,8 +838,9 @@ mod tests {
         assert!(!patched.contains("Ctrl Shift E"));
     }
 
+    // Regression: the fork-only straight_border_style key was silently ignored by upstream Zellij.
     #[test]
-    fn straight_border_style_preserves_native_rounded_configuration() {
+    fn straight_border_style_projects_native_border_style() {
         let patch = |text: &str, style| match patch_straight_border_style(
             text.to_string(),
             Path::new("config.kdl"),
@@ -851,13 +852,13 @@ mod tests {
         let native = "ui {\n    pane_frames {\n        rounded_corners true\n    }\n}\n";
         assert_eq!(
             patch(native, "double"),
-            "ui {\n    pane_frames {\n        straight_border_style \"double\"\n        rounded_corners true\n    }\n}\n"
+            "ui {\n    pane_frames {\n        border_style \"double\"\n        rounded_corners true\n    }\n}\n"
         );
         assert_eq!(patch(native, "single"), native);
 
         let appended = patch("pane_frames true\n", "double");
         assert!(appended.ends_with(
-            "ui {\n    pane_frames {\n        straight_border_style \"double\"\n    }\n}\n"
+            "ui {\n    pane_frames {\n        border_style \"double\"\n    }\n}\n"
         ));
     }
 }

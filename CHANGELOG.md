@@ -6,6 +6,11 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- `appearance.straight_border_style = "double"` draws double pane borders
+  again. Since Nova moved to upstream Zellij the setting was silently ignored;
+  Nova now writes Zellij's own `border_style` setting. Double borders keep
+  square corners even when `rounded_corners` is on.
+
 - Quota widgets use Eon's text and backend. Each window reads like
   `3h/5h 74% · 6d4h/7d 42%`: time into the window, its length and the
   remaining percentage. Token counts are gone. Codex and Claude quota come
