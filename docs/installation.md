@@ -134,19 +134,20 @@ Add `-no-helix`, `-no-yazi`, or both to compose the reduced variants.
 
 | Surface | Linux | `aarch64-darwin` |
 | --- | --- | --- |
-| All eight package variants | Build- and profile-tested on `x86_64-linux`, with flake outputs also covering `aarch64-linux` | Exposed; Rio packages are build-tested on a real GitHub macOS runner, while Rio-free variants await hosted evidence |
-| Home Manager module | Activation closure build-tested on `x86_64-linux` | Activation closure build-tested on a real GitHub macOS runner |
-| `enter` with managed Zellij and Yazi plus the selected editor | Contract-tested and used interactively with managed Helix; host-editor delegation is contract-tested | Packaged, with interactive workflow unverified |
-| Full-package `launch` through Rio | Contract-tested and used interactively | Package build-tested, with Rio GUI unverified |
-| Host editor delegation | Contract-tested with the selected host editor remaining host-owned | Packaged, with interactive delegation unverified |
+| All eight package variants | Build- and profile-tested on `x86_64-linux`, with flake outputs also covering `aarch64-linux` | Built and contract-tested on a native GitHub macOS runner, including the four Rio-free variants |
+| Home Manager module | Activation closure build-tested on `x86_64-linux` | Activation closure build-tested on a native GitHub macOS runner |
+| `enter` with managed Zellij and Yazi plus the selected editor | Contract-tested and used interactively with managed Helix; host-editor delegation is contract-tested | A fresh session starts in native CI with plugins, layout, in-session `status` and `doctor` checked; interactive use comes from user reports |
+| Full-package `launch` through Rio | Contract-tested and used interactively | Package built and its Rio configuration validated by the pinned Rio; the Rio GUI has no automated interaction coverage |
+| Host editor delegation | Contract-tested with the selected host editor remaining host-owned | Contract-tested on the native runner |
 | Desktop entry | Packages that include Rio | None, as asserted by the macOS package and Home Manager builds |
 
-`x86_64-darwin` remains an exposed, evaluated flake output rather than a
-build-tested target. The current label is **build-tested on macOS, with
-observational interactive beta use and no known regression; the individual
-workflow checklist and Rio GUI remain unverified**. On macOS, interactive
-`help`, `status`, and `doctor` are also unverified. App bundles, Homebrew,
-Ghostty packaging, and broad terminal matrices are outside this repository
+Linux and macOS on Apple Silicon are supported. Linux is the maintainer's daily
+platform. macOS is verified by native CI that builds every package and the Home
+Manager closure and starts a real managed session, plus user reports; the Rio
+GUI on macOS has no automated interaction coverage. `x86_64-darwin` remains an
+exposed, evaluated flake output rather than a tested target. App bundles,
+Homebrew, Ghostty packaging, and broad terminal matrices are outside this
+repository
 
 ## Host terminals and SSH
 

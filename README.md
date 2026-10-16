@@ -86,9 +86,10 @@ If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
 yzx doctor
 ```
 
-Linux is the dogfooded platform. Native `aarch64-darwin` builds cover the Rio
-packages and Home Manager closure; interactive macOS behavior and the Rio GUI
-do not yet have complete release evidence. Use the
+Linux and macOS on Apple Silicon are supported. Linux is the maintainer's daily
+platform; macOS is verified by native CI that builds every package and starts a
+real session, plus user reports. The Rio GUI on macOS has no automated
+interaction coverage. Use the
 [website install guide](https://nova.yazelix.com/docs/#start) for Stable setup.
 The [repository installation reference](docs/installation.md) covers Main and
 Edge channels, all eight package variants, platform evidence, Home Manager,
@@ -152,6 +153,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **35,272 code/configuration lines** and **6,221 documentation/text
+Yazelix owns **35,272 code/configuration lines** and **6,226 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

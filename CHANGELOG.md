@@ -10,6 +10,9 @@ Edge and Main collect the next version's changes under Unreleased.
   After switching tabs with a mouse click and returning with the keyboard, the
   first click in that tab can be ignored; clicking again works.
 
+- macOS on Apple Silicon is fully supported. Native CI builds every package
+  and starts a real managed session before a shared change is accepted.
+
 - `Alt m` opens new panes at the tab's workspace root instead of the focused
   pane's directory, keeping their stacked or split placement. A shell that has
   `cd`'d into a subdirectory no longer decides where the next pane starts.
