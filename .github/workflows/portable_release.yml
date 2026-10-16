@@ -114,6 +114,8 @@ jobs:
 
   attest:
     needs: prepare
+    # A skipped classify (manual dry runs) must not skip attestation of prepared assets.
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
