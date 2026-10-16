@@ -13,11 +13,13 @@ const SOCKET_LIMIT: usize = 103;
 
 fn zellij_log(terminal: &Terminal) -> String {
     let tmp = terminal.root.path.join("tmp");
+    // The distribution logs to <TMPDIR>/<name>-<uid>/<name>-log/<name>.log.
+    let name = terminal.binary.file_name().unwrap().to_str().unwrap();
     fs::read_dir(&tmp)
         .into_iter()
         .flatten()
         .flatten()
-        .map(|entry| entry.path().join("zellij-log/zellij.log"))
+        .map(|entry| entry.path().join(format!("{name}-log/{name}.log")))
         .find_map(|log| fs::read_to_string(log).ok())
         .map(|log| {
             let lines = log.lines().collect::<Vec<_>>();
