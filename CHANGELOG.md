@@ -10,7 +10,8 @@ Edge and Main collect the next version's changes under Unreleased.
   `3h/5h 74% · 6d4h/7d 42%`: time into the window, its length and the
   remaining percentage. Token counts are gone. Codex and Claude quota come
   from CodexBar, as in Eon; Claude's quota read no longer waits on the Claude
-  CLI and times out. OpenCode Go shows `5h`, `7d` and `30d` windows.
+  CLI and times out. Claude refreshes every five minutes and Codex every
+  minute, as in Eon. OpenCode Go shows `5h`, `7d` and `30d` windows.
   `tu` (tokenusage) is no longer included in Nova shells.
 
 - Tab clicks use upstream Zellij's mouse handling again, without Nova's patch.
