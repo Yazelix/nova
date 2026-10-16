@@ -137,6 +137,10 @@ def bundle(manifest, sources, output):
                     archive.addfile(info, io.BytesIO(metadata))
                     for path, name in entries:
                         info = archive.gettarinfo(str(path), arcname=name)
+                        if info.islnk():
+                            # Store optimisation hard-links identical files; keep full copies.
+                            info.type, info.linkname = tarfile.REGTYPE, ""
+                            info.size = path.stat().st_size
                         info.uid = info.gid = 0
                         info.uname = info.gname = ""
                         info.mtime = 1

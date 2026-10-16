@@ -407,6 +407,8 @@ Roots use the output filename plus `.inputs-<batch>`;
 retain them while that source artifact needs verification. Existing output is
 never replaced. The shared bundler verifies every archived regular file and
 selected link against its manifest, then finalizes the destination atomically.
+Hard-linked inputs, such as files deduplicated by Nix store optimisation, are
+archived as full regular-file copies.
 Changed inputs, incomplete capture and checksum failures leave no final archive.
 
 The source manifest retains `redistribution_review: required`. Origin selection

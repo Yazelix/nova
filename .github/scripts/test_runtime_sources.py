@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import tarfile
 import tempfile
@@ -78,6 +79,24 @@ class RuntimeSourcesTests(unittest.TestCase):
             grammar_sources.bundle({}, {source.name: source}, output)
             saved = grammar_sources.verify_bundle(output)
             self.assertEqual(saved["sources"][0]["path"], "sources/source")
+
+    def test_store_optimised_hard_links_are_archived_as_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first, second = root / "first", root / "second"
+            first.mkdir()
+            second.mkdir()
+            (first / "parser.h").write_text("shared header\n")
+            os.link(first / "parser.h", second / "parser.h")
+            output = root / "sources.tar.gz"
+            grammar_sources.bundle({}, {"first": first, "second": second}, output)
+            grammar_sources.verify_bundle(output)
+            with tarfile.open(output) as archive:
+                members = {m.name: m for m in archive.getmembers() if m.name.endswith("parser.h")}
+                self.assertEqual(sorted(members), ["sources/first/parser.h", "sources/second/parser.h"])
+                self.assertTrue(all(m.isfile() for m in members.values()))
+                self.assertEqual(archive.extractfile(members["sources/second/parser.h"]).read(),
+                                 b"shared header\n")
 
     def test_vendor_link_inputs_are_realized_before_capture(self):
         with tempfile.TemporaryDirectory() as temporary:
