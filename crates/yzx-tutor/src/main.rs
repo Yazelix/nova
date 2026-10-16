@@ -331,7 +331,7 @@ fn render_panes_lesson(index: usize, lesson: &TutorLesson) -> String {
 ## Actions
 
 1. **Inside Yazelix:** Press `{focus_left}`, `{focus_down}`, `{focus_up}`, or `{focus_right}` to walk visible panes.
-2. **Inside Yazelix:** Press `{new_pane}` for a new stacked pane.
+2. **Inside Yazelix:** Press `{new_pane}` for a new stacked pane at the workspace root.
 3. **Inside Yazelix:** Press `{fullscreen}` to fullscreen the focused pane.
 4. **Inside Yazelix:** Press `{tab_left}` or `{tab_right}` to move the current tab, and `{pane_down}` or `{pane_up}` to move the current pane.
 

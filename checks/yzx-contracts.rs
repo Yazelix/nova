@@ -2635,7 +2635,7 @@ fn expect_keybinds(config: &str) {
         r#"name "content_layout_target""#,
         r#"shared_except "tmux" "locked" "scroll" "search" {"#,
         r#"unbind "Ctrl b""#,
-        r#"bind "Alt m" { NewPane; }"#,
+        r#"bind "Alt m" { MessagePlugin "yazelix_pane_orchestrator" { name "open_workspace_terminal"; }; }"#,
         r#"bind "Alt Shift W" { CloseTab; SwitchToMode "Normal"; }"#,
         r#"bind "Alt h" "Alt Left" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_left_or_tab"; }; }"#,
         r#"bind "Alt j" "Alt Down" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_down"; }; }"#,

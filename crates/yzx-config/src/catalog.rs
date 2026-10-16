@@ -193,7 +193,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Workspace"; "Ctrl q"; "Quit Yazelix session"; "Zellij"; "config.kdl"),
     key!("Panes"; "Ctrl p"; "Toggle pane mode"; "Zellij"; "config.kdl"),
     key!("Panes"; "Ctrl n"; "Toggle resize mode"; "Zellij"; "config.kdl"),
-    key!("Panes"; "Alt m"; "Open a new pane"; "Zellij"; "config.kdl"),
+    key!("Panes"; "Alt m"; "Open a new pane at the workspace root"; "Yazelix"; "config.kdl"),
     key!("Panes"; "Alt h / Alt Left"; "Move focus left or previous tab"; "Yazelix"; "config.kdl"),
     key!("Panes"; "Alt j / Alt Down"; "Move focus down circularly"; "Yazelix"; "config.kdl"),
     key!("Panes"; "Alt k / Alt Up"; "Move focus up circularly"; "Yazelix"; "config.kdl"),

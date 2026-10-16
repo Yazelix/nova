@@ -1,6 +1,6 @@
 use std::{
     env, fs,
-    path::Path,
+    path::{Path, PathBuf},
     time::{Duration, Instant},
 };
 #[allow(dead_code)]
@@ -83,6 +83,8 @@ fn main() {
         "Zellij socket path exceeds {SOCKET_LIMIT} bytes: {}",
         socket.display()
     );
+    let work = root.join("work");
+    fs::create_dir_all(work.join("sub")).unwrap();
     let yzx = package.join("bin/yzx");
     let yzx_text = quote(yzx.to_str().unwrap());
     terminal.tmux(&[
@@ -90,6 +92,8 @@ fn main() {
         "-d",
         "-s",
         "clients",
+        "-c",
+        work.to_str().unwrap(),
         "-x",
         "160",
         "-y",
@@ -141,6 +145,47 @@ fn main() {
         "popup plugin never closed the menu",
         |screen| !screen.contains("menu_popup"),
     );
+    // Alt m follows the tab's workspace root, not the focused shell's cwd.
+    let work = work.canonicalize().unwrap();
+    let focused_shell = || {
+        let panes = terminal.run(
+            &terminal.binary,
+            &["--session", SESSION, "action", "list-panes", "--json"],
+            None,
+        );
+        serde_json::from_str::<Vec<serde_json::Value>>(&panes)
+            .unwrap()
+            .into_iter()
+            .find(|pane| pane["is_focused"] == true && pane["is_plugin"] == false)
+            .map(|pane| {
+                (
+                    pane["id"].as_u64(),
+                    pane["pane_cwd"].as_str().map(PathBuf::from),
+                )
+            })
+    };
+    let new_pane_at = |previous: Option<u64>, context: &str| {
+        terminal.tmux(&["send-keys", "-t", "clients:0", "M-m"]);
+        let mut id = None;
+        wait(&terminal, 20, context, |_| {
+            let pane = focused_shell();
+            id = pane.as_ref().and_then(|(id, _)| *id);
+            pane.is_some_and(|(id, cwd)| id != previous && cwd.as_deref() == Some(&work))
+        });
+        id
+    };
+    let shell_pane = new_pane_at(None, "Alt m never opened a shell at the workspace root");
+    terminal.tmux(&["send-keys", "-t", "clients:0", "cd sub", "Enter"]);
+    wait(
+        &terminal,
+        20,
+        "shell never reported its subdirectory",
+        |_| focused_shell().is_some_and(|(_, cwd)| cwd.as_deref() == Some(&work.join("sub"))),
+    );
+    new_pane_at(
+        shell_pane,
+        "Alt m followed the focused shell instead of the workspace root",
+    );
     let probe = root.join("probe");
     fs::create_dir(&probe).unwrap();
     let probe_text = quote(probe.to_str().unwrap());
@@ -186,7 +231,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu, and in-session status and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu, Alt m opened shells at the workspace root, and in-session status and doctor succeeded",
         rendered.as_secs_f32()
     );
 }

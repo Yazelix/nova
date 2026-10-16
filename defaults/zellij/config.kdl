@@ -134,7 +134,7 @@ keybinds {
     }
     shared_except "locked" {
         unbind "Alt i" "Alt o" "Alt n" "Ctrl g"
-        bind "Alt m" { NewPane; }
+        bind "Alt m" { MessagePlugin "yazelix_pane_orchestrator" { name "open_workspace_terminal"; }; }
         bind "Alt [" "Alt ]" {
             MessagePlugin "yazelix_pane_orchestrator" {
                 name "content_layout_target"

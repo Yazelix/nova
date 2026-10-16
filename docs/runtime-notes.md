@@ -487,6 +487,13 @@ popup requests carry the canonical root explicitly. A hidden agent is reused
 across pane focus and local navigation changes, and is replaced only after the
 canonical root changes.
 
+`Alt m` asks the orchestrator for a new shell pane at the canonical root, with
+native stacked or split placement and focus. Until a workspace is chosen, the
+root is the tab's bootstrap directory: the launch directory or the new tab's
+picker directory. Zellij reads plugin paths under `/host`, `/data`, `/cache` and
+`/tmp` as plugin mounts, so a root inside those directories opens at the
+session's launch directory instead.
+
 ## Yazi
 
 [Configuration](configuration.md#native-config-files) lists the managed Yazi

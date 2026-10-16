@@ -10,6 +10,10 @@ Edge and Main collect the next version's changes under Unreleased.
   After switching tabs with a mouse click and returning with the keyboard, the
   first click in that tab can be ignored; clicking again works.
 
+- `Alt m` opens new panes at the tab's workspace root instead of the focused
+  pane's directory, keeping their stacked or split placement. A shell that has
+  `cd`'d into a subdirectory no longer decides where the next pane starts.
+
 - The Claude quota widget shows the Claude splat in terracotta (#D97757)
   instead of a plain `C`, in dark and light appearance. It uses the packaged
   JetBrains Mono Nerd Font 3.5 face, so no font change is needed.
