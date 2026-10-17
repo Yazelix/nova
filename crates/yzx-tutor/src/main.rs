@@ -335,7 +335,7 @@ fn render_panes_lesson(index: usize, lesson: &TutorLesson) -> String {
 1. **Inside Yazelix:** Press `{focus_left}`, `{focus_down}`, `{focus_up}`, or `{focus_right}` to walk visible panes.
 2. **Inside Yazelix:** Press `{new_pane}` for a new stacked pane at the workspace root.
 3. **Inside Yazelix:** Press `{fullscreen}` to fullscreen the focused pane.
-4. **Inside Yazelix:** Press `{pane_left}`, `{pane_down}`, `{pane_up}`, or `{pane_right}` to move the current pane; left and right cross columns in the split arrangement. Press `{tab_left}` or `{tab_right}` to move the current tab.
+4. **Inside Yazelix:** Press `{pane_left}`, `{pane_down}`, `{pane_up}`, or `{pane_right}` to move the current pane; left and right cross columns in the split arrangement. Press `{tab_left}` or `{tab_right}` to move the current tab; this needs Rio or another terminal with the Kitty keyboard protocol.
 
 ## Mental model
 
