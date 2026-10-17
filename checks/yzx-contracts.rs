@@ -422,6 +422,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     );
     for license in [
         "share/licenses/zj-radar/LICENSE",
+        "share/licenses/codexbar/LICENSE",
         "share/licenses/yazelix-forest/LICENSE",
         "share/licenses/notify-hx/LICENSE",
         "share/licenses/glyph-hx/LICENSE",

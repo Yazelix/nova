@@ -1231,6 +1231,7 @@
               install -D -m 644 ${layout}/layout.kdl "$out/share/yazelix/layout.kdl"
               install -D -m 644 ${layout}/layout.swap.kdl "$out/share/yazelix/layout.swap.kdl"
               install -D -m 644 ${zjRadar}/LICENSE "$out/share/licenses/zj-radar/LICENSE"
+              install -D -m 644 ${codexbar}/share/licenses/codexbar/LICENSE "$out/share/licenses/codexbar/LICENSE"
               ln -s ${yzxYaziConfig} "$out/share/yazelix/yazi"
               install -D -m 644 ${yzxNuConfig}/config.nu "$out/share/yazelix/nu/config.nu"
               install -D -m 644 ${yzxNuConfig}/env.nu "$out/share/yazelix/nu/env.nu"
