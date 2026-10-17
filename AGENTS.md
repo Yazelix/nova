@@ -431,8 +431,10 @@ flake evaluation green.
 
 Home Manager in `/home/lucca/.config/home-manager` owns the user's
 `Yazelix Nova (Edge)` desktop entry through the `yazelix` input's
-`yazelix-edge` package. After a runtime or package change reaches `edge` and
-passes its required checks, update only that input to the verified candidate.
+`yazelix-edge` package. As soon as a runtime or package change reaches `edge`,
+update only that input to the pushed candidate. Never wait for hosted checks
+first: the sooner Lucca dogfoods, the sooner problems surface. Hosted checks
+still gate acceptance and promotion.
 Review the lockfile and activation diff, build the activation closure, and
 verify the selected package before activating; preserve unrelated Home Manager
 edits. Then verify the locked Nova revision and the actual `yzx-edge.desktop`
