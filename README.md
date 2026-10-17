@@ -74,10 +74,11 @@ and work-pane focus, including manually rearranged stacks and splits.
 Open managed popups resize with the hint row, preserving their running process
 and keyboard focus.
 Set `keybindings.bottom_hints` to remap the shortcut, or `false` to disable it.
-The hint row uses compact `C`, `C-A`, `A` and `A-S` modifier headers. Core
-workspace and Nova shortcuts take priority as the terminal narrows; managed
-hints follow shortcut remapping and disabling. `C-A hl/jk move` groups tab
-movement with `h/l` and vertical pane movement with `j/k`.
+The hint row uses compact `C`, `C-A`, `A`, `A-S` and `C-A-S` modifier headers.
+Core workspace and Nova shortcuts take priority as the terminal narrows; managed
+hints follow shortcut remapping and disabling. `C-A hjkl move` moves the focused
+pane: `j/k` within its column and `h/l` across the split arrangement's columns.
+`C-A-S HL move tab` reorders tabs and is the first hint dropped as space runs out.
 Alt-Shift hints keep menu first, followed by fullscreen, hints and the HJKL shortcuts.
 
 If startup fails, inspect Nova's owned runtime without opening Rio or Zellij:
@@ -153,6 +154,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **35,409 code/configuration lines** and **6,250 documentation/text
+Yazelix owns **35,565 code/configuration lines** and **6,260 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

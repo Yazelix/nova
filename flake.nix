@@ -2260,7 +2260,7 @@
         };
       in
         pkgs.runCommand "nova-pane-move-ordering-check" {} ''
-          ${pkgs.coreutils}/bin/timeout --kill-after=10s 75s ${proof}/bin/nova-pane-move-ordering-check
+          ${pkgs.coreutils}/bin/timeout --kill-after=10s 120s ${proof}/bin/nova-pane-move-ordering-check
           touch "$out"
         '';
     });

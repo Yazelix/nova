@@ -153,8 +153,9 @@ health check.
 The shared managed-Yazi keymap gives the persistent popup one Tab/Z search and
 both Shift-Tab encodings for Spot.
 The Linux-only `pane_move_ordering` check uses the same private display to verify
-circular work-pane movement, rapid opposite moves and fixed UI panes through
-packaged Rio and Zellij.
+circular work-pane movement, cross-column moves in the split arrangement, rapid
+opposite moves, no-op edges with an open popup, fixed UI panes, and
+`Ctrl Alt Shift H/L` tab movement through packaged Rio and Zellij.
 
 Autonomous GUI verification uses the pinned Kinestra recorder's private display,
 including installed-launcher probes. Launch applications and send input through
@@ -449,6 +450,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 35,409 |
-| Documentation and text | 6,250 |
-| Total | 41,659 |
+| Code and configuration | 35,565 |
+| Documentation and text | 6,260 |
+| Total | 41,825 |

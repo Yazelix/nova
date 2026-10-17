@@ -29,10 +29,12 @@ const KEY_YAZI_SEARCH: &str = "Tab";
 const KEY_YAZI_ZOXIDE: &str = "Z";
 const KEY_YAZI_OPEN: &str = "Ctrl O";
 const KEY_YAZI_WORKSPACE: &str = "Alt Enter";
-const KEY_TAB_LEFT: &str = "Ctrl Alt h";
-const KEY_TAB_RIGHT: &str = "Ctrl Alt l";
+const KEY_TAB_LEFT: &str = "Ctrl Alt Shift H";
+const KEY_TAB_RIGHT: &str = "Ctrl Alt Shift L";
+const KEY_PANE_LEFT: &str = "Ctrl Alt h";
 const KEY_PANE_DOWN: &str = "Ctrl Alt j";
 const KEY_PANE_UP: &str = "Ctrl Alt k";
+const KEY_PANE_RIGHT: &str = "Ctrl Alt l";
 const KEY_PANE_MODE: &str = "Ctrl p";
 const KEY_TAB_MODE: &str = "Ctrl Alt t";
 const KEY_RESIZE_MODE: &str = "Ctrl n";
@@ -333,7 +335,7 @@ fn render_panes_lesson(index: usize, lesson: &TutorLesson) -> String {
 1. **Inside Yazelix:** Press `{focus_left}`, `{focus_down}`, `{focus_up}`, or `{focus_right}` to walk visible panes.
 2. **Inside Yazelix:** Press `{new_pane}` for a new stacked pane at the workspace root.
 3. **Inside Yazelix:** Press `{fullscreen}` to fullscreen the focused pane.
-4. **Inside Yazelix:** Press `{tab_left}` or `{tab_right}` to move the current tab, and `{pane_down}` or `{pane_up}` to move the current pane.
+4. **Inside Yazelix:** Press `{pane_left}`, `{pane_down}`, `{pane_up}`, or `{pane_right}` to move the current pane; left and right cross columns in the split arrangement. Press `{tab_left}` or `{tab_right}` to move the current tab.
 
 ## Mental model
 
@@ -350,8 +352,10 @@ Next lesson: `yzx tutor modes`.
         fullscreen = key(KEY_FULLSCREEN),
         tab_left = key(KEY_TAB_LEFT),
         tab_right = key(KEY_TAB_RIGHT),
+        pane_left = key(KEY_PANE_LEFT),
         pane_down = key(KEY_PANE_DOWN),
         pane_up = key(KEY_PANE_UP),
+        pane_right = key(KEY_PANE_RIGHT),
     ))
 }
 
@@ -597,8 +601,10 @@ mod tests {
             KEY_NEW_PANE,
             KEY_TAB_LEFT,
             KEY_TAB_RIGHT,
+            KEY_PANE_LEFT,
             KEY_PANE_DOWN,
             KEY_PANE_UP,
+            KEY_PANE_RIGHT,
         ] {
             assert!(panes.contains(expected), "missing {expected}");
         }

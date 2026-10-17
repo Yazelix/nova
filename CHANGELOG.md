@@ -6,6 +6,12 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- `Ctrl Alt h` and `Ctrl Alt l` move the focused work pane into the left or
+  right column of the split arrangement. The pane stays focused and the other
+  panes keep their order. Moving out of the outermost column, in the stacked
+  arrangement, or with a popup open does nothing. Tab movement moves to
+  `Ctrl Alt Shift H` and `Ctrl Alt Shift L`.
+
 - `appearance.straight_border_style = "double"` draws double pane borders
   again. Since Nova moved to upstream Zellij the setting was silently ignored;
   Nova now writes Zellij's own `border_style` setting. Double borders keep
