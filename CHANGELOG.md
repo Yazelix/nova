@@ -26,9 +26,11 @@ Edge and Main collect the next version's changes under Unreleased.
 - macOS on Apple Silicon is fully supported. Native CI builds every package
   and starts a real managed session before a shared change is accepted.
 
-- `Alt m` opens new panes at the tab's workspace root instead of the focused
-  pane's directory, keeping their stacked or split placement. A shell that has
+- `Alt m` and pane mode's `n`, `d` and `r` (`Ctrl p` then the key) open new
+  panes at the tab's workspace root instead of the focused pane's directory,
+  keeping their stacked, split or directional placement. A shell that has
   `cd`'d into a subdirectory no longer decides where the next pane starts.
+  Pane mode's `s` still stacks in the focused pane's directory.
 
 - The Claude quota widget shows the Claude splat in terracotta (#D97757)
   instead of a plain `C`, in dark and light appearance. It uses the packaged

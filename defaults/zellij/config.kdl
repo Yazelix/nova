@@ -20,6 +20,9 @@ plugins {
         pipe_hint_bottom_hints "@bottomHintsKey@"
         pipe_hint_move_pane_down "Ctrl Alt j"
         pipe_hint_move_pane_up "Ctrl Alt k"
+        pipe_hint_new_pane "n"
+        pipe_hint_split_right "r"
+        pipe_hint_split_down "d"
         label_bottom_hints "hints"
         label_normal_move_pane_down "move"
         label_normal_move_pane_up "move"
@@ -80,6 +83,7 @@ plugins {
         quit_on_last_terminal_close true
         popup_plugin_url "yzpp"
         managed_agent_command_marker "/yzx-agent"
+        default_shell "@yzxShell@"
     }
 
     radar location="@zjRadar@" {
@@ -112,6 +116,9 @@ keybinds {
     }
     pane {
         bind "Ctrl p" { SwitchToMode "Normal"; }
+        bind "n" { MessagePlugin "yazelix_pane_orchestrator" { name "open_workspace_terminal"; }; SwitchToMode "Normal"; }
+        bind "d" { MessagePlugin "yazelix_pane_orchestrator" { name "open_workspace_terminal"; payload "down"; }; SwitchToMode "Normal"; }
+        bind "r" { MessagePlugin "yazelix_pane_orchestrator" { name "open_workspace_terminal"; payload "right"; }; SwitchToMode "Normal"; }
     }
     resize {
         bind "Ctrl n" { SwitchToMode "Normal"; }

@@ -145,7 +145,7 @@ fn main() {
         "popup plugin never closed the menu",
         |screen| !screen.contains("menu_popup"),
     );
-    // Alt m follows the tab's workspace root, not the focused shell's cwd.
+    // New-pane keys follow the tab's workspace root, not the focused shell's cwd.
     let work = work.canonicalize().unwrap();
     let focused_shell = || {
         let panes = terminal.run(
@@ -164,8 +164,10 @@ fn main() {
                 )
             })
     };
-    let new_pane_at = |previous: Option<u64>, context: &str| {
-        terminal.tmux(&["send-keys", "-t", "clients:0", "M-m"]);
+    let new_pane_at = |keys: &[&str], previous: Option<u64>, context: &str| {
+        let mut args = vec!["send-keys", "-t", "clients:0"];
+        args.extend(keys);
+        terminal.tmux(&args);
         let mut id = None;
         wait(&terminal, 20, context, |_| {
             let pane = focused_shell();
@@ -174,17 +176,43 @@ fn main() {
         });
         id
     };
-    let shell_pane = new_pane_at(None, "Alt m never opened a shell at the workspace root");
-    terminal.tmux(&["send-keys", "-t", "clients:0", "cd sub", "Enter"]);
-    wait(
-        &terminal,
-        20,
-        "shell never reported its subdirectory",
-        |_| focused_shell().is_some_and(|(_, cwd)| cwd.as_deref() == Some(&work.join("sub"))),
+    let enter_sub = || {
+        terminal.tmux(&["send-keys", "-t", "clients:0", "cd sub", "Enter"]);
+        // Keys typed before a new shell's first prompt can leave the command unsubmitted.
+        let mut submitted = Instant::now();
+        wait(
+            &terminal,
+            20,
+            "shell never reported its subdirectory",
+            |_| {
+                if focused_shell().is_some_and(|(_, cwd)| cwd.as_deref() == Some(&work.join("sub")))
+                {
+                    return true;
+                }
+                if submitted.elapsed() > Duration::from_secs(3) {
+                    terminal.tmux(&["send-keys", "-t", "clients:0", "Enter"]);
+                    submitted = Instant::now();
+                }
+                false
+            },
+        );
+    };
+    let shell_pane = new_pane_at(
+        &["M-m"],
+        None,
+        "Alt m never opened a shell at the workspace root",
     );
-    new_pane_at(
+    enter_sub();
+    let shell_pane = new_pane_at(
+        &["M-m"],
         shell_pane,
         "Alt m followed the focused shell instead of the workspace root",
+    );
+    enter_sub();
+    new_pane_at(
+        &["C-p", "r"],
+        shell_pane,
+        "pane-mode r followed the focused shell instead of the workspace root",
     );
     let probe = root.join("probe");
     fs::create_dir(&probe).unwrap();
@@ -231,7 +259,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu, Alt m opened shells at the workspace root, and in-session status and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu, Alt m and pane-mode r opened shells at the workspace root, and in-session status and doctor succeeded",
         rendered.as_secs_f32()
     );
 }

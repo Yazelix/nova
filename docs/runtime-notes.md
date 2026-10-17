@@ -487,12 +487,16 @@ popup requests carry the canonical root explicitly. A hidden agent is reused
 across pane focus and local navigation changes, and is replaced only after the
 canonical root changes.
 
-`Alt m` asks the orchestrator for a new shell pane at the canonical root, with
-native stacked or split placement and focus. Until a workspace is chosen, the
-root is the tab's bootstrap directory: the launch directory or the new tab's
+`Alt m` and pane mode's `n`, `d` and `r` ask the orchestrator for a new shell
+pane at the canonical root, with native stacked, split or directional placement
+and focus. `d` and `r` reuse Zellij's own down and right actions with the
+packaged shell, which Nova passes to the orchestrator as `default_shell`. Pane
+mode's `s` stays native and stacks in the focused pane's directory, because
+Zellij's plugin API drops a stacked pane's command. Until a workspace is chosen,
+the root is the tab's bootstrap directory: the launch directory or the new tab's
 picker directory. Zellij reads plugin paths under `/host`, `/data`, `/cache` and
-`/tmp` as plugin mounts, so a root inside those directories opens at the
-session's launch directory instead.
+`/tmp` as plugin mounts, so `Alt m` and `n` open a root inside those directories
+at the session's launch directory instead.
 
 ## Yazi
 
