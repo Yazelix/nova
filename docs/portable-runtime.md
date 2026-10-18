@@ -490,6 +490,9 @@ size growth. This template deliberately fails approval. Source manifests retain
 their original capture state; `RELEASE-APPROVAL.json` records the later decision
 and annotated tag identity. Original license scopes remain authoritative.
 The approved review text appears in `SOURCE-DELIVERY.md` and the release body.
+The release is titled `Yazelix Nova <version>`; its body is the version's
+`CHANGELOG.md` section, then `SOURCE-DELIVERY.md`, then the sponsorship footer.
+Preflight and publication fail closed when that changelog section is missing.
 
 Push the authorized annotated tag only after the exact revision belongs to Main
 and its Linux CI, both cache publication jobs and Version Gate succeed. A tag
@@ -531,8 +534,9 @@ The publisher creates a draft, uploads all assets without replacement, checks
 their server-reported sizes and SHA-256 digests, repeats approval/gate checks,
 then publishes and requires GitHub to report an immutable release. Existing
 releases, including interrupted drafts, are refused; inspect an interrupted
-draft explicitly instead of retrying an overwrite. Publication does not change
-the Latest designation or any Git channel. Public URLs are downloaded again,
+draft explicitly instead of retrying an overwrite. Publishing a version without
+a prerelease suffix marks it Latest and then requires GitHub to report it as
+Latest; publication changes no Git channel. Public URLs are downloaded again,
 checksums and workflow/ref/revision-bound provenance are verified, and the
 downloaded installation runs the same fresh no-Nix proof. A failure after
 publication is reported; automation never deletes or rewrites a release.

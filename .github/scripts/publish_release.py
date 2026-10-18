@@ -19,6 +19,16 @@ TAG = r"nova-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?"
 GATES = {"ci.yml": ["linux"],
          "publish_nix_cache.yml": ["publish_x86_64_linux", "publish_aarch64_darwin"],
          "version_gate.yml": ["release-gate"]}
+FOOTER = ("If Yazelix saves you time, you can support continued development on "
+          "[GitHub Sponsors](https://github.com/sponsors/luccahuguet).")
+
+
+def notes(changelog, version):
+    """A Stable release body leads with its version's CHANGELOG.md section."""
+    section = re.search(rf"^## {re.escape(version)}$\n(.*?)(?=^## |\Z)", changelog.read_text(), re.M | re.S)
+    if not section or not section.group(1).strip():
+        raise ValueError("CHANGELOG.md has no section for this version")
+    return section.group(1).strip()
 
 
 def review_hashes(manifest):
@@ -195,13 +205,16 @@ def immutable_enabled():
         raise ValueError("immutable releases must be enabled before publication")
 
 
-def publish(directory, bundle, tag, sha, api=github_api, guard=immutable_enabled):
+def publish(directory, bundle, tag, sha, api=github_api, guard=immutable_enabled, changelog=Path("CHANGELOG.md")):
     guard()
-    check_approval(directory, tag, sha, api)
+    version = check_approval(directory, tag, sha, api)["version"]
+    changes = notes(changelog, version)
     provenance(directory, bundle, sha, "refs/tags/" + tag)
-    body = (directory / "SOURCE-DELIVERY.md").read_text()
+    body = f"{changes}\n\n{(directory / 'SOURCE-DELIVERY.md').read_text().strip()}\n\n{FOOTER}\n"
+    latest = "-" not in version
     result = subprocess.run(["gh", "api", "--method", "POST", f"{REPO}/releases", "--input", "-"],
-                            input=json.dumps({"tag_name": tag, "target_commitish": sha, "name": tag,
+                            input=json.dumps({"tag_name": tag, "target_commitish": sha,
+                                              "name": "Yazelix Nova " + version,
                                               "body": body, "draft": True, "make_latest": "false"}),
                             text=True, stdout=subprocess.PIPE, check=True, timeout=60)
     draft = json.loads(result.stdout)
@@ -217,12 +230,14 @@ def publish(directory, bundle, tag, sha, api=github_api, guard=immutable_enabled
         raise ValueError("uploaded assets differ; draft remains unpublished")
     guard()
     result = subprocess.run(["gh", "api", "--method", "PATCH", f"{REPO}/releases/{draft['id']}", "--input", "-"],
-                            input=json.dumps({"draft": False, "make_latest": "false"}), text=True,
+                            input=json.dumps({"draft": False, "make_latest": str(latest).lower()}), text=True,
                             stdout=subprocess.PIPE, check=True, timeout=60)
     published = json.loads(result.stdout)
     print(published["html_url"], flush=True)
     if published["draft"] is not False or published["immutable"] is not True:
         raise ValueError("published release did not report immutable enforcement")
+    if latest and api(f"{REPO}/releases/latest")[0]["tag_name"] != tag:
+        raise ValueError("published Stable release did not become Latest")
 
 
 if __name__ == "__main__":
@@ -239,6 +254,7 @@ if __name__ == "__main__":
     elif args.operation == "preflight":
         annotation(args.tag, args.sha, github_api)
         gates(args.tag, args.sha, github_api)
+        notes(args.directory / "CHANGELOG.md", args.tag.removeprefix("nova-v"))
     elif args.operation == "approve":
         approve(args.directory, args.tag, args.sha)
     elif args.operation == "check":

@@ -17,6 +17,9 @@ class PublicationTests(unittest.TestCase):
         inputs = test_release_assets.ReleaseAssetsTests().candidate(directory)
         output = directory / "assets"
         manifest = release_assets.prepare(*inputs, "nova-v1.3.0", output)
+        self.changelog = directory / "CHANGELOG.md"
+        self.changelog.write_text("# Changelog\n\n## Unreleased\n\n## 1.3.0\n\n- Fixture change.\n\n"
+                                  "### Packaging\n\n- Fixture packaging.\n\n## 1.2.0\n\n- Older change.\n")
         sha, tag = manifest["revision"], manifest["tag"]
         review = {"contract": "NOVA-RELEASE-ASSETS-001", "revision": sha,
                   "assets": release.review_hashes(manifest),
@@ -31,6 +34,7 @@ class PublicationTests(unittest.TestCase):
             "/compare/" + sha + "...main": [{"status": "ahead"}],
             "/immutable-releases": [{"enabled": True}],
             "/releases?per_page=100": [[]],
+            "/releases/latest": [{"tag_name": tag}],
         }
         for index, (workflow, names) in enumerate(release.GATES.items(), 1):
             run = {"id": index, "workflow_id": index, "path": ".github/workflows/" + workflow,
@@ -165,25 +169,32 @@ class PublicationTests(unittest.TestCase):
 
             with patch.object(release.subprocess, "run", side_effect=command):
                 with self.assertRaises(OSError):
-                    release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard)
+                    release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard,
+                                    self.changelog)
                 self.assertFalse(any("PATCH" in call for call in calls))
                 with self.assertRaises(ValueError):
-                    release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard)
+                    release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard,
+                                    self.changelog)
             self.assertEqual(self.routes["/releases?per_page=100"][0][0]["draft"], True)
 
     def test_publication_requires_exact_server_inventory_before_publish(self):
-        for fault in [None, "server-bytes", "immutable-setting"]:
+        for fault in [None, "server-bytes", "immutable-setting", "changelog", "latest"]:
             with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
                 output, manifest, _ = self.candidate(Path(temporary))
                 release.approve(output, manifest["tag"], manifest["revision"], self.api)
                 bundle = Path(temporary) / "provenance.sigstore.json"
                 bundle.write_text("fixture")
-                events = []
+                if fault == "changelog":
+                    self.changelog.write_text("## Unreleased\n\n- Not closed.\n\n## 1.2.0\n\n- Older change.\n")
+                if fault == "latest":
+                    self.routes["/releases/latest"] = [{"tag_name": "nova-v1.2.0"}]
+                events, requests = [], []
 
                 def command(arguments, **kwargs):
                     if arguments[:3] == ["gh", "api", "--method"]:
                         method = arguments[3]
                         request = json.loads(kwargs["input"])
+                        requests.append(request)
                         if method == "POST":
                             events.append("draft")
                             draft = {"id": 42, "tag_name": manifest["tag"], "draft": True}
@@ -208,12 +219,24 @@ class PublicationTests(unittest.TestCase):
                     return type("Result", (), {"stdout": ""})()
 
                 with patch.object(release.subprocess, "run", side_effect=command):
+                    arguments = (output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard,
+                                 self.changelog)
                     if fault:
                         with self.assertRaises(ValueError):
-                            release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard)
+                            release.publish(*arguments)
                     else:
-                        release.publish(output, bundle, manifest["tag"], manifest["revision"], self.api, self.guard)
-                self.assertEqual(events, ["draft", "upload"] + ([] if fault else ["publish"]))
+                        release.publish(*arguments)
+                self.assertEqual(events, {"changelog": [], "latest": ["draft", "upload", "publish"]}.get(
+                    fault, ["draft", "upload"] + ([] if fault else ["publish"])))
+                if not fault:
+                    draft, published = requests
+                    self.assertEqual(draft["name"], "Yazelix Nova 1.3.0")
+                    self.assertTrue(draft["body"].startswith("- Fixture change.\n\n### Packaging"))
+                    self.assertNotIn("Older change", draft["body"])
+                    self.assertIn("Fixture review:", draft["body"])
+                    self.assertTrue(draft["body"].endswith(release.FOOTER + "\n"))
+                    self.assertEqual(draft["body"].count("GitHub Sponsors"), 1)
+                    self.assertEqual((draft["make_latest"], published["make_latest"]), ("false", "true"))
 
     def test_immutability_failure_prevents_writes(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -253,25 +253,27 @@ carries it:
 - Rename `## Unreleased` in `CHANGELOG.md` to `## X.Y.Z` and start a new empty
   `## Unreleased` above it.
 
-After pushing the candidate to `stable`, tag that exact revision and publish its
-GitHub release with the version's changelog section and the sponsorship footer:
+After pushing the candidate to `stable`, tag that exact revision with its
+portable approval. The annotation holds the hashes reviewed from the candidate's
+Portable Release dry run, in the
+[approval format](portable-runtime.md#nova-release-assets-001-reviewed-tag-and-publication):
 
 ```sh
-git tag -a nova-vX.Y.Z <sha> -m "Yazelix Nova X.Y.Z"
+git tag -a nova-vX.Y.Z <sha> -F <approval.json>
 git push origin nova-vX.Y.Z
-gh release create nova-vX.Y.Z --repo Yazelix/nova --verify-tag --title "Yazelix Nova X.Y.Z" --notes-file <notes.md>
 ```
 
-A plain version tag publishes no portable assets: Portable Release classifies
-the tag and skips unless its annotation is a portable approval
-([portable runtime](portable-runtime.md#nova-release-assets-001-reviewed-tag-and-publication)).
-Each version has one release owner, either the maintainer's plain release or
-Portable Release publishing that version's assets, never both. Record the
+Portable Release then creates the version's only GitHub release, titled
+`Yazelix Nova X.Y.Z` and marked Latest, with the portable assets. Its body is the
+version's changelog section, the source and notice review, and the sponsorship
+footer. Preflight fails before the build when `CHANGELOG.md` has no `## X.Y.Z`
+section. A plain version tag publishes nothing, so every Stable release uses the
+approval tag; releases through 1.3.0 were plain maintainer releases. Record the
 version, tag and release URL in the promotion Bead.
 
 ### Release notes
 
-End each GitHub release body with this sponsorship footer, once:
+Portable Release ends each release body with this sponsorship footer, once:
 
 ```markdown
 If Yazelix saves you time, you can support continued development on [GitHub Sponsors](https://github.com/sponsors/luccahuguet).
@@ -450,6 +452,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 35,583 |
-| Documentation and text | 6,273 |
-| Total | 41,856 |
+| Code and configuration | 35,622 |
+| Documentation and text | 6,279 |
+| Total | 41,901 |
