@@ -131,27 +131,9 @@
         "type": "github"
       }
     },
-    "flake-parts_2": {
-      "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib_2"
-      },
-      "locked": {
-        "lastModified": 1782949081,
-        "narHash": "sha256-vp6Y/Grm98ESt6ceOkWiHWyZRDV3J1RID4w+6NWK9yA=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "17c9d6cdfc60c64f4ee8d306f9bc0b4ccb51481e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
-        "systems": "systems_3"
+        "systems": "systems_2"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -287,21 +269,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-lib_2": {
-      "locked": {
-        "lastModified": 1782614948,
-        "narHash": "sha256-ePjCwr1sNm9NYUqywL7QfK3JnlS015msC+eBu2zKlp8=",
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "rev": "db3f255737b94216eb71cce308e2912cf6bc2d7c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1780030872,
@@ -315,22 +282,6 @@
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "e9a7635a57597d9754eccebdfc7045e6c8600e6b",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
-        "lastModified": 1781577229,
-        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
         "type": "github"
       }
     },
@@ -390,28 +341,6 @@
         "owner": "Yazelix",
         "repo": "nova-helix-file-watcher",
         "rev": "4dd2a426aef7125b39f1e5fb29846e9d5716e3cc",
-        "type": "github"
-      }
-    },
-    "recording-mars": {
-      "inputs": {
-        "flake-parts": "flake-parts_2",
-        "nixpkgs": "nixpkgs_3",
-        "rust-overlay": "rust-overlay_3",
-        "systems": "systems_2"
-      },
-      "locked": {
-        "lastModified": 1786291144,
-        "narHash": "sha256-F6wT7v1mpq6t4ADAh2aPfbTGuFZxhQ73w8BgIb8lt+E=",
-        "owner": "Yazelix",
-        "repo": "mars",
-        "rev": "21109e3ebc24b63da11bae644dfb9bab28ce0e18",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Yazelix",
-        "repo": "mars",
-        "rev": "21109e3ebc24b63da11bae644dfb9bab28ce0e18",
         "type": "github"
       }
     },
@@ -566,28 +495,6 @@
     "rust-overlay_3": {
       "inputs": {
         "nixpkgs": [
-          "yazelixScreen",
-          "recording-mars",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783144302,
-        "narHash": "sha256-NQnzmXwpEAd5tjMBh2+P/y9NknF+WHv5+6yoXoN4h/Y=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "fe5aee0952e8e1525533d61defd9e36513db811b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "rust-overlay_4": {
-      "inputs": {
-        "nixpkgs": [
           "zjstatus",
           "nixpkgs"
         ]
@@ -653,21 +560,6 @@
         "type": "github"
       }
     },
-    "systems_3": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
     "yazelixForest": {
       "flake": false,
       "locked": {
@@ -717,14 +609,16 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "recording-mars": "recording-mars"
+        "nova-rio": [
+          "rio"
+        ]
       },
       "locked": {
-        "lastModified": 1788730444,
-        "narHash": "sha256-ndCOVbQEf//ixsXBcxoQfcndEOpZWK+SusM/ZGoAWXM=",
+        "lastModified": 1792284952,
+        "narHash": "sha256-toCRMbHhq4MTdUr2PM/IMs+71TolBuWsMz7CVBQnqzc=",
         "owner": "Yazelix",
         "repo": "anima",
-        "rev": "b3133f057fa0029b3e06c85301161168c48bb799",
+        "rev": "bca96b173fef0013d23a210c38b02418a68821cd",
         "type": "github"
       },
       "original": {
@@ -894,7 +788,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "rust-overlay": "rust-overlay_4"
+        "rust-overlay": "rust-overlay_3"
       },
       "locked": {
         "lastModified": 1791843750,

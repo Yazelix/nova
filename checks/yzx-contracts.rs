@@ -309,7 +309,6 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         &anima_help, "yzx anima help";
         "yzx anima [STYLE]",
         "static",
-        "logo",
         "asciiquarium",
         "aquarium",
         "boids_schools",
@@ -325,12 +324,23 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "random",
         "--cell-style",
         "--duration-seconds",
+        "--exclude",
         "Animations, including Aquarium: Left/h/p = previous; Right/l/n = next",
     }
     let temp = TempDir::new();
     let styles = anima_help.split_once("Styles:\n").unwrap().1;
     for style in styles.split_once("\nNotes:").unwrap().0.split_whitespace() {
         write_config_home(&temp.path, format!("[welcome]\nstyle = {style:?}\n"));
+        if style == "accelerando" {
+            // Nova ships no Accelerando Terminal font, so it must reject this style.
+            let output = Command::new(yzx.join("libexec/yazelix/yzx-config"))
+                .args(["--get", "welcome.style"])
+                .env("YAZELIX_CONFIG_HOME", &temp.path)
+                .output()
+                .unwrap();
+            assert!(!output.status.success(), "welcome rejects accelerando");
+            continue;
+        }
         let selected = successful_stdout(
             Command::new(yzx.join("libexec/yazelix/yzx-config"))
                 .args(["--get", "welcome.style"])
@@ -501,7 +511,13 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
         "wait \"$child\"",
     }
     expect_contains(&yzx_launcher, "--hold-on-failure", "bin/yzx launch handoff");
-    expect_welcome_failure_hold(&embedded_store_path(&yzx_launcher, "/bin/yzx-welcome"));
+    let welcome = embedded_store_path(&yzx_launcher, "/bin/yzx-welcome");
+    expect_contains(
+        &fs::read_to_string(&welcome).unwrap(),
+        "--exclude accelerando",
+        "welcome excludes the unshipped Accelerando font",
+    );
+    expect_welcome_failure_hold(&welcome);
 
     let temp = TempDir::new();
     let status_case = RuntimeCase::new(&temp.path, "status");
@@ -1855,7 +1871,7 @@ fn expect_startup_diagnostics(yzx: &Path) {
         (
             "bad-welcome-style-config",
             "[open]\nlog_level = \"info\"\n\n[shell]\nprogram = \"nu\"\n\n[welcome]\nstyle = \"snow\"\n",
-            "welcome.style must be one of: static, logo, asciiquarium, aquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, physarum, chladni, plasma, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
+            "welcome.style must be one of: static, asciiquarium, aquarium, boids, boids_predator, boids_schools, friends_and_enemies, primordial, physarum, chladni, plasma, mandelbrot, matrix, game_of_life_gliders, game_of_life_tumblers, random",
             "invalid welcome style",
         ),
         (

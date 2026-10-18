@@ -79,6 +79,7 @@
       url = "github:Yazelix/anima";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.fenix.follows = "novaBar/fenix";
+      inputs.nova-rio.follows = "rio";
     };
     kinestra.follows = "yazelixScreen/kinestra";
     autoLayoutYazi = {
@@ -403,7 +404,7 @@
         name = "yzx-welcome";
         text = ''
           if [ "''${YZX_WELCOME_ENABLED:-true}" != false ]; then
-            if ! YAZELIX_SCREEN_COMMAND_NAME='yzx anima' ${ownedShell "${yazelixScreenPackage}/bin/anima" "libexec/yazelix/anima"} "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}"; then
+            if ! YAZELIX_SCREEN_COMMAND_NAME='yzx anima' ${ownedShell "${yazelixScreenPackage}/bin/anima" "libexec/yazelix/anima"} "''${YZX_WELCOME_STYLE:-random}" --duration-seconds "''${YZX_WELCOME_DURATION_SECONDS:-3}" --exclude accelerando; then
               printf 'yzx welcome: failed to render welcome screen\n' >&2
             fi
           fi

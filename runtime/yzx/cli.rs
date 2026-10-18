@@ -210,8 +210,10 @@ fn exec_reveal(args: Vec<OsString>) -> Result<(), AppError> {
 
 fn exec_anima(args: Vec<OsString>) -> Result<(), AppError> {
     let mut command = Command::new(package_path(YZX_SCREEN)?);
+    // Nova's terminals do not load the Accelerando Terminal font; the welcome excludes it too.
     command
         .args(args)
+        .args(["--exclude", "accelerando"])
         .env("YAZELIX_SCREEN_COMMAND_NAME", "yzx anima")
         .env("PATH", runtime_path()?);
     exec(command, "yzx anima")
