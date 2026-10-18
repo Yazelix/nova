@@ -57,6 +57,7 @@ class ReleaseAssetsTests(unittest.TestCase):
             runtime = manifest["targets"]["x86_64-unknown-linux-gnu"]["archive"]
             self.assertEqual((assets / runtime["name"]).read_bytes(), inputs[1].read_bytes())
             self.assertEqual(runtime["url"], "https://github.com/Yazelix/nova/releases/download/nova-v1.3.0/" + runtime["name"])
+            self.assertEqual((assets / manifest["installer"]["name"]).read_bytes(), release_assets.INSTALLER.read_bytes())
             combined = b"".join((assets / part["name"]).read_bytes() for part in manifest["sources"]["parts"])
             self.assertEqual(combined, inputs[2].read_bytes())
             self.assertEqual(hashlib.sha256(combined).hexdigest(), manifest["sources"]["sha256"])

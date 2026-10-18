@@ -16,6 +16,7 @@ from archive_metadata import INDEX, PACKAGE, digest, encode, verify
 from grammar_sources import verify_bundle
 
 PART_BYTES = 1900 * 1024 * 1024  # GitHub requires each release asset to be smaller than 2 GiB.
+INSTALLER = Path(__file__).resolve().parents[2] / "packaging/install.sh"
 
 
 def checksums(directory):
@@ -70,7 +71,8 @@ def prepare(installed, archive, sources, notices, tag, output):
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         directory = Path(temporary)
         runtime_name, notice_name = base + ".tar.gz", base + "-language-runtime-notices.tar.gz"
-        for source, name in [(archive, runtime_name), (sources, "component-sources.tar.gz"), (notices, notice_name)]:
+        for source, name in [(archive, runtime_name), (sources, "component-sources.tar.gz"), (notices, notice_name),
+                             (INSTALLER, "install.sh")]:
             shutil.copyfile(source, directory / name)
         verify_archive(directory / runtime_name, installed, identity)
         source_manifest = verify_bundle(directory / "component-sources.tar.gz")
@@ -110,7 +112,8 @@ def prepare(installed, archive, sources, notices, tag, output):
                     "tag": tag, "redistribution_review": "required",
                     "targets": {identity["target"]: {"archive": asset(runtime_name),
                         **{k: identity[k] for k in ["variant", "compatibility", "entrypoints", "file_index"]}}},
-                    "sources": source_record, "language_runtime_notices": asset(notice_name)}
+                    "sources": source_record, "language_runtime_notices": asset(notice_name),
+                    "installer": asset("install.sh")}
         (directory / "nova-release.json").write_bytes(encode(manifest))
         (directory / "SOURCE-DELIVERY.md").write_text(
             f"# Nova {version} source and notice review assets\n\n"

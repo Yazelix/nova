@@ -25,7 +25,7 @@ as `nix build .#checks.x86_64-linux.<name> --no-link`; on Apple Silicon use
 | `checks/` | `cargo test --locked --manifest-path checks/Cargo.toml` and `cargo fmt --manifest-path checks/Cargo.toml --check` | the changed check |
 | `flake.nix` (package variants) | `nix flake check --no-build` | `desktop_channels`, `no_rio_contracts`, `no_helix_contracts`, `host_yazi_contracts` |
 | `home-manager/` | — | `home_manager` |
-| `packaging/` | — | `archive_glibc_baseline` (Linux); release assets are proven by Portable Release |
+| `packaging/` | `python3 -B -m unittest discover -s .github/scripts -p 'test_install.py'` for `install.sh` | `archive_glibc_baseline` (Linux); release assets are proven by Portable Release |
 | `.github/scripts/` | `python3 -B -m unittest discover -s .github/scripts -p 'test_*.py'` | — |
 | `.github/workflows/` | no local check | the dispatched workflow itself |
 
@@ -452,6 +452,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 35,643 |
-| Documentation and text | 6,292 |
-| Total | 41,935 |
+| Code and configuration | 36,045 |
+| Documentation and text | 6,342 |
+| Total | 42,387 |

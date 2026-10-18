@@ -53,7 +53,7 @@ def verify_assets(directory):
             or not re.fullmatch(r"[0-9a-f]{40}", manifest["revision"])):
         raise ValueError("unsupported release identity")
     records = [manifest["targets"][TARGET]["archive"], manifest["language_runtime_notices"],
-               *manifest["sources"]["parts"]]
+               manifest["installer"], *manifest["sources"]["parts"]]
     names = [record["name"] for record in records]
     files = {"nova-release.json", "SHA256SUMS", "SOURCE-DELIVERY.md", *names}
     if manifest["redistribution_review"] == "approved":

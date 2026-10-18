@@ -6,6 +6,13 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Nova installs without Nix on x86_64 Linux. Each release publishes
+  `install.sh`, which verifies the release archive's checksum, installs it
+  under `~/.local/share/yazelix-nova` and links `yzx` into `~/.local/bin`
+  without editing shell startup files. `--version` pins or rolls back a
+  release; `--uninstall` removes it and keeps configuration and state. macOS
+  continues to install through Nix.
+
 ## 1.4.0
 
 - The welcome and `yzx anima` no longer show Accelerando, whose glyphs need a

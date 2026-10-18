@@ -52,7 +52,8 @@ target-side Nix or `/nix/store` virtualization is outside this contract.
 the extracted runtime does not use Nix. The output exists only on
 `x86_64-linux` and preserves the managed no-Rio composition and its embedded
 Zellij plugins. The archive carries package identity and a hashed file index.
-Publication, complete licensing notices and an installer belong to `.4` and `.5`.
+Publication and complete licensing notices belong to `.4`; the installer is
+[NOVA-INSTALL-001](#nova-install-001-shell-installer).
 The archive is a build output and has no executable flake app entry.
 
 The factory uses existing `patchelf` and `readelf` tools with a narrow
@@ -433,6 +434,8 @@ copies inputs into a private temporary directory before verification, compares
 every runtime archive member with the verified installation, and verifies the
 complete source and notice packets. Their package identity, archive derivation
 and language-runtime providers must agree. Existing destinations are refused.
+The preparer also copies the revision's `packaging/install.sh` as the
+`install.sh` asset, recorded under `installer` in `nova-release.json`.
 
 `nova-release.json` schema 1 maps the supported target to its archive name,
 size, SHA-256, intended immutable download URL, variant, host compatibility,
@@ -544,6 +547,46 @@ publication is reported; automation never deletes or rewrites a release.
 Source capture is not a generated SPDX/CycloneDX SBOM. No existing generator
 owns that format here, so this slice adds no SBOM framework. The source manifest,
 component origins and build graph remain inspectable coverage evidence.
+
+## NOVA-INSTALL-001: shell installer
+
+`packaging/install.sh` is the Nix-free installation frontend. Portable Release
+publishes it as the attested `install.sh` asset of each release; no release
+carries it yet. The planned entrypoint is
+`curl -LsSf https://nova.yazelix.com/install | sh`, a site redirect to
+`releases/latest/download/install.sh` that waits for the first such release.
+Before then, a checkout's script installs any published portable release:
+`sh packaging/install.sh --version 1.4.0`.
+
+- Target: `x86_64-linux` only. macOS exits with a message naming the Nix
+  install; other systems exit naming the supported target.
+- Selection: without `--version`, the latest release's `SHA256SUMS` names the
+  one `yazelix-nova-<version>-x86_64-unknown-linux-gnu-no-rio.tar.gz` and so the
+  version; every later download uses that version's tag URL. Host tools are
+  `sh`, `curl`, `tar`, `sha256sum`, `mktemp` and `getconf`; no JSON parser.
+- Host preflight: the release's `nova-release.json`, checked against
+  `SHA256SUMS`, supplies the glibc minimum. An older or non-glibc host, or a
+  manifest without a readable minimum, fails before the archive download.
+- Placement: versions live under
+  `${XDG_DATA_HOME:-~/.local/share}/yazelix-nova/versions/<version>`, or
+  `--install-root`. The archive must match its published SHA-256, extract,
+  name the expected version in `share/yazelix/package.json` and run
+  `bin/yzx --version` before `current` is atomically repointed. Any failure
+  leaves the selected version running and removes the temporary download.
+- Command: `~/.local/bin/yzx` (or `--bin-dir`) links to `current/bin/yzx` and
+  is never replaced when it points elsewhere. The installer edits no shell
+  startup file. When the bin directory is not on `PATH` it prints the line for
+  `$SHELL` (bash, zsh, fish, Nushell, else `~/.profile`) and the absolute path.
+- Lifecycle: re-running upgrades; an earlier `--version` rolls back. Old
+  versions stay until `--uninstall`, which removes only an installer-marked
+  root and a `yzx` link that points into it. Nova configuration and state are
+  outside that root and remain.
+- Truncation: the script runs only from its final `main "$@"` line.
+
+`.github/scripts/test_install.py` covers these rules against local fake
+releases, including truncated scripts, and lints the script with ShellCheck when
+available. Clean-machine proof installs the real archive in Ubuntu 24.04 without
+Nix and runs `checks/linux-archive.sh` against the installed `current`.
 
 ## NPR-STATE-001: package and user ownership
 
