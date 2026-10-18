@@ -6,6 +6,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+## 1.4.0
+
 - The welcome and `yzx anima` no longer show Accelerando, whose glyphs need a
   font Nova does not ship. It is left out of random picks and arrow browsing,
   and `welcome.style = "accelerando"` is rejected. Anima removed the `logo` and
