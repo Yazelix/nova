@@ -2,7 +2,7 @@
   "schema": 1,
   "source": {
     "repository": "https://github.com/Yazelix/starcompass",
-    "commit": "58caf6831da6acdbabc96b2e9f083327cb24674c"
+    "commit": "47c20b1701b4e2eae8be853d22f6a407104791e6"
   },
   "profiles": [
     "orchestrator",
@@ -47,13 +47,13 @@
     },
     {
       "id": "AP-PROOF-001",
-      "version": 6,
-      "sha256": "01fc3712fd369189b934b0503173e6a8963be64b7f18869abfaef3cca53866f7"
+      "version": 8,
+      "sha256": "a953744b74e4ac3b7d9ec71009939494e271395b39f7a55f371e7e4b32a909f3"
     },
     {
       "id": "AP-PLAN-001",
-      "version": 11,
-      "sha256": "fcb7c8d2b99c6641a7cd1244072eda6230f1ccfc3a4aa47c29cf2525fcb1376d"
+      "version": 12,
+      "sha256": "5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984"
     },
     {
       "id": "AP-CI-001",
@@ -97,8 +97,8 @@
     },
     {
       "id": "AP-SESSION-001",
-      "version": 1,
-      "sha256": "f8bdac637027895ec8d1ad4f192e13808d095a809d091b76eadadaf936b2a340"
+      "version": 2,
+      "sha256": "b901ad980f05bd52164e31b4745e87e0fa2f2e9cc0a616716670135df3d9fc82"
     },
     {
       "id": "AP-FORK-001",
