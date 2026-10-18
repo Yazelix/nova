@@ -8,9 +8,10 @@ Edge and Main collect the next version's changes under Unreleased.
 
 - The welcome and `yzx anima` no longer show Accelerando, whose glyphs need a
   font Nova does not ship. It is left out of random picks and arrow browsing,
-  and `welcome.style = "accelerando"` is rejected. The `logo` welcome style is
-  gone because Anima removed it; a config that still selects it fails
-  validation, so choose another style or reset `welcome.style` to `random`.
+  and `welcome.style = "accelerando"` is rejected. Anima removed the `logo` and
+  `static` card styles, so the welcome always plays an animation and
+  `yzx anima static` reports an unsupported style. A config that still selects
+  either style gets a random animation.
 
 - `Ctrl Alt h` and `Ctrl Alt l` move the focused work pane into the left or
   right column of the split arrangement. The pane stays focused and the other

@@ -87,13 +87,12 @@ config is read-only (see [Managed Appearance](runtime-notes.md#managed-appearanc
 and `shell.atuin` to new shells. Every other root setting, including the
 Popups fields below, applies on the next launch.
 
-Anima owns the animation set and random selection. `static` requires explicit
-selection; `random` excludes it. Nova does not ship the Accelerando Terminal
+Anima owns the animation set and random selection. Nova does not ship the Accelerando Terminal
 font, so `accelerando` is not a welcome style, and the welcome and `yzx anima`
 keep it out of random selection and arrow browsing.
-The retired `logo`, `game_of_life_oscillators` and `game_of_life_bloom` names
-are invalid; choose another style or reset `welcome.style` to `random` in
-Ratconfig.
+The removed `logo` and `static` card styles select `random`. The retired
+`game_of_life_oscillators` and `game_of_life_bloom` names are invalid; choose
+another style or reset `welcome.style` to `random` in Ratconfig.
 
 Quota widgets use Eon's text and its CodexBar backend. Each window shows how far
 into it the reading is and the remaining percentage, five-hour before weekly,

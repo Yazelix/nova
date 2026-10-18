@@ -24,7 +24,6 @@ pub(crate) const WELCOME_ENABLED_PATH: &str = "welcome.enabled";
 pub(crate) const WELCOME_STYLE_PATH: &str = "welcome.style";
 pub(crate) const WELCOME_DURATION_SECONDS_PATH: &str = "welcome.duration_seconds";
 pub(crate) const WELCOME_STYLE_VALUES: &[&str] = &[
-    "static",
     "asciiquarium",
     "aquarium",
     "boids",

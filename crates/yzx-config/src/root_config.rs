@@ -63,10 +63,20 @@ pub(crate) fn config_path_value(
         .cloned()
         .map_or_else(|| default_config_path_value(defaults, field_path), Ok)
 }
+// Anima removed the 1.3.0 `logo` and `static` card styles; configs that name them get `random`.
+fn current_value(field_path: &str, value: JsonValue) -> JsonValue {
+    match value.as_str() {
+        Some("logo" | "static") if field_path == WELCOME_STYLE_PATH => JsonValue::from("random"),
+        _ => value,
+    }
+}
 pub(crate) fn read_config_field(path: &Path, spec: &ConfigFieldSpec) -> Result<String> {
     let value = read_optional_toml_file_value(path, "config.toml")?;
     validate_root_config(&value)?;
-    let value = effective_config_path_value(&value, spec.field.path)?;
+    let value = current_value(
+        spec.field.path,
+        effective_config_path_value(&value, spec.field.path)?,
+    );
     validate_config_value(spec.field.path, &value)?;
     match spec.field.kind {
         "string" => Ok(spec.field.json_choice(&value)?.to_string()),
@@ -214,6 +224,7 @@ pub(crate) fn default_config_value(field_path: &str) -> Result<JsonValue> {
     default_config_path_value(&default_config()?, field_path)
 }
 pub(crate) fn validate_config_value(field_path: &str, value: &JsonValue) -> Result<()> {
+    let value = &current_value(field_path, value.clone());
     if field_path == BAR_WIDGETS_PATH {
         return bar_widgets(value).map(|_| ());
     }
