@@ -8,7 +8,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `a37e2b1b3f2fd88339e940378d18da4600bad853`
+- Source commit: `a65f9149d79c1eec47705ccdedef75a9e57d2bc0`
 - Profiles: `orchestrator`, `release`, `fork`
 - Manifest: `.agent-protocols.json` (schema 1)
 
@@ -21,7 +21,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-DEPENDENCY-001` | 2 | `ded49add538b82de0a9c522bc8a34720f4ebbb47f39fc2f7ddb25e7aad1700d3` |
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
-| `AP-PROOF-001` | 10 | `ee27b90b4d6436d3f578ff42a8f5d33c0e77a90a1106a9cf69f20bc90c351570` |
+| `AP-PROOF-001` | 11 | `310e1f798c3334e08402f9e42f447ae9352d171fc92888afb141c6b228f84e56` |
 | `AP-PLAN-001` | 12 | `5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984` |
 | `AP-CI-001` | 3 | `c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba` |
 | `AP-ORCHESTRATOR-001` | 2 | `f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad` |
@@ -33,7 +33,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-DELIVERY-001` | 3 | `b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee` |
 | `AP-PROMOTION-001` | 2 | `07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93` |
 | `AP-LICENSE-001` | 1 | `cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac` |
-| `AP-SESSION-001` | 3 | `9093eac70553ced8ef5cf176e0aa8fd58330b28361a5969162c0f7238af1bf6d` |
+| `AP-SESSION-001` | 4 | `51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7` |
 | `AP-FORK-001` | 2 | `11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e` |
 | `AP-FORK-002` | 2 | `4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d` |
 
@@ -149,7 +149,10 @@ or a summary loses detail; a temporary path is not proof. Unattended runs and
 waits close unused stdin, time out, check progress early, and never match
 themselves as the target; stalls fail.
 
-Review changes require another pass; convergence needs a full clean pass. Nits
+Finish every change to code, tests, or scripts with review by a fresh agent
+that did not write it, since authors miss their own leftovers; in Claude Code,
+use the converge skill. Docs-only and planning-only work skips it. A pass that
+changes anything requires another; convergence needs a full clean pass. Nits
 never block it, and text-only fixes restart a review at most twice per slice.
 
 ### AP-PLAN-001 — Durable planning state
@@ -274,8 +277,13 @@ user. Review does not require reuse.
 ### AP-SESSION-001 — Session continuity across compaction
 
 Compaction is lossy; avoid it. Write each user decision to its durable owner
-when it is made. Budget absolute context tokens, not window share; if the host
-reports none, estimate high:
+when it is made. Delegate work whose raw output matters only as a conclusion,
+such as broad searches, long logs and checks, or research, to a fresh
+subagent; subagents are authorized unless the user or local rules say
+otherwise.
+
+Budget absolute context tokens, not window share; if the host reports none,
+estimate high:
 
 - From 400k, add no scope or new steps: close the issue if it can close by
   600k, else bring work in progress to a verified state and hand off.
