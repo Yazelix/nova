@@ -2,7 +2,7 @@
   "schema": 1,
   "source": {
     "repository": "https://github.com/Yazelix/starcompass",
-    "commit": "47c20b1701b4e2eae8be853d22f6a407104791e6"
+    "commit": "a37e2b1b3f2fd88339e940378d18da4600bad853"
   },
   "profiles": [
     "orchestrator",
@@ -22,13 +22,13 @@
     },
     {
       "id": "AP-REFERENCE-001",
-      "version": 3,
-      "sha256": "186fa74aa530c9c76ae507685461dff2b1506ecb5087230ded51f02cecb9231a"
+      "version": 4,
+      "sha256": "906bcda869549979647d20e957ff48909fa5f36024f584be6657bdc058d58e72"
     },
     {
       "id": "AP-MINIMAL-001",
-      "version": 4,
-      "sha256": "612bc9c62a20adf7332724d4663af0a0e591d624de2a76b1c257a9ed428db1f6"
+      "version": 5,
+      "sha256": "a707f9f27a4ca42c4e78738830fdafd51d1c66acf80541590b9e32e016ddbe37"
     },
     {
       "id": "AP-DEPENDENCY-001",
@@ -42,13 +42,13 @@
     },
     {
       "id": "AP-TEST-001",
-      "version": 3,
-      "sha256": "58b5837cb679e958192b366bb15d6e34649f5a91ff9f4accdc7edb4ef5cdb873"
+      "version": 4,
+      "sha256": "1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad"
     },
     {
       "id": "AP-PROOF-001",
-      "version": 8,
-      "sha256": "a953744b74e4ac3b7d9ec71009939494e271395b39f7a55f371e7e4b32a909f3"
+      "version": 10,
+      "sha256": "ee27b90b4d6436d3f578ff42a8f5d33c0e77a90a1106a9cf69f20bc90c351570"
     },
     {
       "id": "AP-PLAN-001",
@@ -86,6 +86,11 @@
       "sha256": "f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9"
     },
     {
+      "id": "AP-PERF-001",
+      "version": 1,
+      "sha256": "500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d"
+    },
+    {
       "id": "AP-DELIVERY-001",
       "version": 3,
       "sha256": "b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee"
@@ -96,9 +101,14 @@
       "sha256": "07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93"
     },
     {
+      "id": "AP-LICENSE-001",
+      "version": 1,
+      "sha256": "cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac"
+    },
+    {
       "id": "AP-SESSION-001",
-      "version": 2,
-      "sha256": "b901ad980f05bd52164e31b4745e87e0fa2f2e9cc0a616716670135df3d9fc82"
+      "version": 3,
+      "sha256": "9093eac70553ced8ef5cf176e0aa8fd58330b28361a5969162c0f7238af1bf6d"
     },
     {
       "id": "AP-FORK-001",

@@ -8,7 +8,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `47c20b1701b4e2eae8be853d22f6a407104791e6`
+- Source commit: `a37e2b1b3f2fd88339e940378d18da4600bad853`
 - Profiles: `orchestrator`, `release`, `fork`
 - Manifest: `.agent-protocols.json` (schema 1)
 
@@ -16,12 +16,12 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | --- | ---: | --- |
 | `AP-SCOPE-001` | 4 | `8d84dc6fca6097b2055eb3ca8467565709e4c474a18c3030ae3064cc612bdfab` |
 | `AP-CONTRACT-001` | 4 | `cdf2e5d69cefd34ceeeaa6b7511b21f921e2be50c17d3c01b85120b20234cff7` |
-| `AP-REFERENCE-001` | 3 | `186fa74aa530c9c76ae507685461dff2b1506ecb5087230ded51f02cecb9231a` |
-| `AP-MINIMAL-001` | 4 | `612bc9c62a20adf7332724d4663af0a0e591d624de2a76b1c257a9ed428db1f6` |
+| `AP-REFERENCE-001` | 4 | `906bcda869549979647d20e957ff48909fa5f36024f584be6657bdc058d58e72` |
+| `AP-MINIMAL-001` | 5 | `a707f9f27a4ca42c4e78738830fdafd51d1c66acf80541590b9e32e016ddbe37` |
 | `AP-DEPENDENCY-001` | 2 | `ded49add538b82de0a9c522bc8a34720f4ebbb47f39fc2f7ddb25e7aad1700d3` |
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
-| `AP-TEST-001` | 3 | `58b5837cb679e958192b366bb15d6e34649f5a91ff9f4accdc7edb4ef5cdb873` |
-| `AP-PROOF-001` | 8 | `a953744b74e4ac3b7d9ec71009939494e271395b39f7a55f371e7e4b32a909f3` |
+| `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
+| `AP-PROOF-001` | 10 | `ee27b90b4d6436d3f578ff42a8f5d33c0e77a90a1106a9cf69f20bc90c351570` |
 | `AP-PLAN-001` | 12 | `5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984` |
 | `AP-CI-001` | 3 | `c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba` |
 | `AP-ORCHESTRATOR-001` | 2 | `f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad` |
@@ -29,9 +29,11 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-PORTABILITY-001` | 2 | `a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0` |
 | `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
 | `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
+| `AP-PERF-001` | 1 | `500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d` |
 | `AP-DELIVERY-001` | 3 | `b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee` |
 | `AP-PROMOTION-001` | 2 | `07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93` |
-| `AP-SESSION-001` | 2 | `b901ad980f05bd52164e31b4745e87e0fa2f2e9cc0a616716670135df3d9fc82` |
+| `AP-LICENSE-001` | 1 | `cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac` |
+| `AP-SESSION-001` | 3 | `9093eac70553ced8ef5cf176e0aa8fd58330b28361a5969162c0f7238af1bf6d` |
 | `AP-FORK-001` | 2 | `11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e` |
 | `AP-FORK-002` | 2 | `4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d` |
 
@@ -77,15 +79,6 @@ tests, and required subsystem references. Record the adopted, rejected, or
 unresolved mechanism; separate evidence from inference and revisit it after a
 material shape change. Memory, summaries, and reputation are discovery only.
 
-Apply source-license terms to their exact actors, uses, conditions,
-beneficiaries, and direction. Choosing a provider does not make a user act for
-it; an “including” example remains scoped by its condition. Inspection is
-distinct from copying, adaptation, redistribution, dependency selection, and
-incorporation, so a restriction on one does not spread to another. If an
-interpretation would block required evidence, identify the exact clause and
-roles and resolve material ambiguity with the user. Review does not require
-reuse.
-
 ### AP-MINIMAL-001 — Minimum sufficient implementation
 
 After identifying the contract, evidence, owner, flow, and boundaries, take the
@@ -105,11 +98,6 @@ Prefer deletion, direct ownership, and fewer files; use patch size only between
 equally correct system shapes. Never remove required behavior, trust-boundary
 validation, data-loss protection, security, accessibility, or the cheapest
 runnable check for non-trivial logic.
-
-When available, use upstream
-[Ponytail](https://github.com/DietrichGebert/ponytail/tree/16f29800fd2681bdf24f3eb4ccffe38be3baec6b)
-as a fallible code-shape bias after these constraints. Its absence does not
-suspend them, and its hooks do not prove compliance.
 
 ### AP-DEPENDENCY-001 — Dependency gate
 
@@ -136,33 +124,33 @@ and regressions whose expected behavior is known first; use contract-first
 integration checks for layout, runtime, architecture, forks, and dogfood.
 
 For consequential agent-instruction, prompt, or skill changes, run isolated
-representative tasks without supplying the expected conclusion. Structural
-checks prove structure, not agent behavior. Test observable effects; delete
-duplicate proof, implementation trivia, and scaffolding. Guard absence only
-when absence is a security, licensing, size, ownership, or known-regression
-contract.
+representative tasks without supplying the expected conclusion when the user
+authorizes a separate agent; otherwise validate in the active context and
+report agent behavior as unproven. Structural checks prove structure, not
+agent behavior. Test observable effects; delete duplicate proof,
+implementation trivia, and scaffolding. Guard absence only when absence is a
+security, licensing, size, ownership, or known-regression contract.
 
 ### AP-PROOF-001 — Explicit proof lifecycle
 
-Proof records revision, command/observation, environment, result/surface,
-and phase: proposed, implemented, mechanically verified, dogfooded, accepted,
-or promoted. Never widen/reuse after material change.
+Proof records the revision, command or observation, environment, and result
+with its surface. Never widen or reuse proof after a material change.
 
-Use the highest boundary exercising the changed contract. Add broader/lower
-suites only for changed owner, failure, trust, distinct delivery, or
-promotion—not availability, issue text, or prior phase. Exact downstream proof
-subsumes lower checks only for the identity/behavior exercised.
+Use the highest boundary that exercises the changed contract. Add broader or
+lower suites only for a changed owner, failure, trust boundary, distinct
+delivery, or promotion, not because a suite exists, an issue lists it, or it
+ran before. Exact downstream proof covers lower checks only for the identity
+and behavior it exercised.
 
-Run a complete suite once per unchanged candidate/environment. Metadata/docs/
-planning follow-ups reuse it; commands are evidence, not a checklist. Keep logs
-only when reproduction is costly, disputed, performance-sensitive, or lossily
-summarized; temporary paths are not proof. Unattended runs and waits close
-unused stdin, time out, check progress early, and never match themselves as the
-target; stalls fail.
+Run a complete suite once per unchanged candidate and environment; metadata,
+docs, and planning follow-ups reuse it. Commands are evidence, not a checklist.
+Keep logs only when reproduction is costly, disputed, or performance-sensitive,
+or a summary loses detail; a temporary path is not proof. Unattended runs and
+waits close unused stdin, time out, check progress early, and never match
+themselves as the target; stalls fail.
 
-Performance claims need a measured bottleneck, fixed workload/environment,
-baseline, oracle, and distribution/bound; retain constraining negatives. Review
-changes require another pass; convergence needs a full clean pass.
+Review changes require another pass; convergence needs a full clean pass. Nits
+never block it, and text-only fixes restart a review at most twice per slice.
 
 ### AP-PLAN-001 — Durable planning state
 
@@ -241,6 +229,12 @@ force-push, rewrite published history, or create a branch without authority.
 Verify intended diff before commit and remote state after push. Roll back with a
 reviewed revert unless local policy says otherwise.
 
+### AP-PERF-001 — Measured performance claims
+
+Performance claims need a measured bottleneck, a fixed workload and
+environment, a baseline, a correctness oracle, and a distribution or bound.
+Keep negative results that constrain them.
+
 ### AP-DELIVERY-001 — Installed artifact and fresh-session proof
 
 Source checks do not prove delivery. For packaging/install/activation/
@@ -266,24 +260,33 @@ regression, and explicit authority for user-facing promotion. Roll back with a
 development-channel revert, then verify and promote normally. Promotion changes
 exposure, not proof.
 
+### AP-LICENSE-001 — Exact license interpretation
+
+Apply source-license terms to their exact actors, uses, conditions,
+beneficiaries, and direction. A user who chooses a provider's tool does not act
+for that provider. An example introduced by “including” applies only within the
+condition it illustrates. Inspection is distinct from copying, adaptation,
+redistribution, dependency selection, and incorporation, so a restriction on one
+does not spread to another. If an interpretation would block required evidence,
+identify the exact clause and roles and resolve material ambiguity with the
+user. Review does not require reuse.
+
 ### AP-SESSION-001 — Session continuity across compaction
 
 Compaction is lossy; avoid it. Write each user decision to its durable owner
 when it is made. Budget absolute context tokens, not window share; if the host
 reports none, estimate high:
 
-- From 100k, delegate exploration, logs, and long checks to fresh subagents;
-  avoid broad reads.
-- From 180k, add no scope or new steps: close the issue if it can close by
-  250k, else bring work in progress to a verified state and hand off.
-- Past 250k, continue only to reach an imminent verified state or keep live
+- From 400k, add no scope or new steps: close the issue if it can close by
+  600k, else bring work in progress to a verified state and hand off.
+- Past 600k, continue only to reach an imminent verified state or keep live
   state that cannot be written down; record why on the issue.
-- At 400k or after any compaction, reread the issue and hand off.
+- Hand off before the host would compact. After any compaction, reread the
+  issue and hand off.
 
 A handoff is an issue comment: state, next step, and open decisions with
 reasons. The next session primes, e.g. "prime, then continue <issue> from its
-handoff". Start each issue fresh unless the session is uncompacted and under
-100k.
+handoff".
 
 ### AP-FORK-001 — Minimal isolated fork delta
 
