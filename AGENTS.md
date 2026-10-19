@@ -8,16 +8,16 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `a65f9149d79c1eec47705ccdedef75a9e57d2bc0`
+- Source commit: `129746d8d56fad641a1fbc99aa3844cf51468fef`
 - Profiles: `orchestrator`, `release`, `fork`
 - Manifest: `.agent-protocols.json` (schema 1)
 
 | Protocol | Version | SHA-256 |
 | --- | ---: | --- |
-| `AP-SCOPE-001` | 4 | `8d84dc6fca6097b2055eb3ca8467565709e4c474a18c3030ae3064cc612bdfab` |
-| `AP-CONTRACT-001` | 4 | `cdf2e5d69cefd34ceeeaa6b7511b21f921e2be50c17d3c01b85120b20234cff7` |
+| `AP-SCOPE-001` | 5 | `f68b0606986b0ac083a0c7949e1b2ab5d34150e0f906ddae226b9d5429ee115a` |
+| `AP-CONTRACT-001` | 5 | `4e3695ec39a6d1eb01a18930d0ce3ed3241078b4dfefbee4f2e295e74fd13d1f` |
 | `AP-REFERENCE-001` | 4 | `906bcda869549979647d20e957ff48909fa5f36024f584be6657bdc058d58e72` |
-| `AP-MINIMAL-001` | 5 | `a707f9f27a4ca42c4e78738830fdafd51d1c66acf80541590b9e32e016ddbe37` |
+| `AP-MINIMAL-001` | 6 | `8dde259c77ec251719dba23eb1090b10262bbc2fb000d4899690781eb6563e11` |
 | `AP-DEPENDENCY-001` | 2 | `ded49add538b82de0a9c522bc8a34720f4ebbb47f39fc2f7ddb25e7aad1700d3` |
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
@@ -49,13 +49,12 @@ The user owns scope. Inspection, audit, diagnosis, explanation, and advice
 authorize no implementation, external-state, or durable-planning write.
 Implement only a chosen outcome.
 
-Never silently add features, compatibility promises, public surfaces,
-migrations, repositories, or planning items. Preserve user inputs and
-artifacts; replace or delete an exact target only when required, else write a
-distinct result. State consequential assumptions; stop when a missing scope
-choice would materially change the result. Recommend and justify an answer to
-every choice. “Finish” adds persistence, not authority. Report out-of-scope
-findings unless the user chose a durable home.
+Never silently add features, migrations, repositories, or planning items.
+Preserve user inputs and artifacts; replace or delete an exact target only when
+required, else write a distinct result. State consequential assumptions; stop
+when a missing scope choice would materially change the result. Recommend and
+justify an answer to every choice. “Finish” adds persistence, not authority.
+Report out-of-scope findings unless the user chose a durable home.
 
 ### AP-CONTRACT-001 — Contract-driven changes
 
@@ -63,14 +62,12 @@ Before code shape, state the smallest observable contract: consumer, trigger,
 result, and important failures. Of the contracts consistent with the request
 and evidence, choose the fewest unsupported guarantees or restrictions; leave
 reasonable future behavior unspecified. Give it a stable ID only when later
-consumers need one.
+consumers need one. Choose the cheapest check that would falsify it.
 
 Keep docs, help, examples, and configuration aligned with current commands,
 paths, flags, defaults, and availability; label planned, partial, or gated
-behavior. Choose one source-of-truth owner, the cheapest falsifying check, and
-the smallest complete vertical slice. Update the contract first for an
-intentional behavior change. Implementation details are not contracts unless a
-component must rely on them.
+behavior. Update the contract first for an intentional behavior change.
+Implementation details are not contracts unless a component must rely on them.
 
 ### AP-REFERENCE-001 — Evidence before code shape
 
@@ -86,18 +83,16 @@ first sufficient option: no change; existing owner, helper, or pattern;
 standard library or native platform; accepted dependency that owns the
 behavior; minimum correct local code.
 
-Judge the whole lifecycle, including duplicate truth, coordination, coupling,
-migration and removal, portability, operations, proof, and agent context. Scope
-instructions narrowly; retain non-obvious constraints and reusable
-behavior-changing workflows, not generic or duplicated policy. Load details
-only when needed.
+Judge the whole lifecycle, including coordination, coupling, migration and
+removal, portability, operations, proof, and agent context. Scope instructions
+narrowly; retain non-obvious constraints and reusable behavior-changing
+workflows, not generic or duplicated policy. Load details only when needed.
 
-A patch is not minimal if it preserves a wrong or duplicate owner, treats a
-symptom below its shared cause, bypasses a boundary, or raises downstream cost.
-Prefer deletion, direct ownership, and fewer files; use patch size only between
-equally correct system shapes. Never remove required behavior, trust-boundary
-validation, data-loss protection, security, accessibility, or the cheapest
-runnable check for non-trivial logic.
+A patch is not minimal if it treats a symptom below its shared cause, bypasses
+a boundary, or raises downstream cost. Prefer deletion and fewer files; use
+patch size only between equally correct system shapes. Never remove required
+behavior, trust-boundary validation, data-loss protection, security,
+accessibility, or the cheapest runnable check for non-trivial logic.
 
 ### AP-DEPENDENCY-001 — Dependency gate
 
