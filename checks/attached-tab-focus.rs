@@ -140,6 +140,24 @@ fn main() {
         &(attach.clone() + "; printf '\\nEXIT:%s\\n' $?; sleep 30"),
     ]);
     wait_tabs(&terminal, 1);
+    // A held click leaves tab 1 by mouse and the keyboard returns. A bar that switches on
+    // press sends the release to tab 2, so tab 1 then ignores the loop's first click.
+    for button in ['M', 'm'] {
+        let event = format!("\x1b[<0;13;1{button}");
+        terminal.tmux(&["send-keys", "-t", "clients:0", "-l", &event]);
+        sleep(0.3);
+    }
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [2],
+        "held tab click did not select tab 2",
+        "clients:0",
+    );
+    terminal.tmux(&["send-keys", "-t", "clients:0", "M-1"]);
+    terminal.wait(
+        || selected(&terminal, 0, &rgb) == [1],
+        "keyboard did not return after a held tab click",
+        "clients:0",
+    );
     let expected = " [1 poe2]  [2 eon café]  [3 界面 space]";
     for (width, floating) in [
         (80, "hide-floating-panes"),
