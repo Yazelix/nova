@@ -5,6 +5,7 @@
     "commit": "129746d8d56fad641a1fbc99aa3844cf51468fef"
   },
   "profiles": [
+    "greenfield",
     "orchestrator",
     "release",
     "fork"
@@ -56,6 +57,21 @@
       "sha256": "5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984"
     },
     {
+      "id": "AP-SESSION-001",
+      "version": 4,
+      "sha256": "51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7"
+    },
+    {
+      "id": "AP-EXCEPTION-001",
+      "version": 2,
+      "sha256": "2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395"
+    },
+    {
+      "id": "AP-GIT-001",
+      "version": 5,
+      "sha256": "f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9"
+    },
+    {
       "id": "AP-CI-001",
       "version": 3,
       "sha256": "c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba"
@@ -76,16 +92,6 @@
       "sha256": "a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0"
     },
     {
-      "id": "AP-EXCEPTION-001",
-      "version": 2,
-      "sha256": "2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395"
-    },
-    {
-      "id": "AP-GIT-001",
-      "version": 5,
-      "sha256": "f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9"
-    },
-    {
       "id": "AP-PERF-001",
       "version": 1,
       "sha256": "500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d"
@@ -104,11 +110,6 @@
       "id": "AP-LICENSE-001",
       "version": 1,
       "sha256": "cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac"
-    },
-    {
-      "id": "AP-SESSION-001",
-      "version": 4,
-      "sha256": "51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7"
     },
     {
       "id": "AP-FORK-001",

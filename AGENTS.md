@@ -9,7 +9,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 
 - Source: `https://github.com/Yazelix/starcompass`
 - Source commit: `129746d8d56fad641a1fbc99aa3844cf51468fef`
-- Profiles: `orchestrator`, `release`, `fork`
+- Profiles: `greenfield`, `orchestrator`, `release`, `fork`
 - Manifest: `.agent-protocols.json` (schema 1)
 
 | Protocol | Version | SHA-256 |
@@ -23,17 +23,17 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
 | `AP-PROOF-001` | 11 | `310e1f798c3334e08402f9e42f447ae9352d171fc92888afb141c6b228f84e56` |
 | `AP-PLAN-001` | 12 | `5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984` |
+| `AP-SESSION-001` | 4 | `51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7` |
+| `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
+| `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
 | `AP-CI-001` | 3 | `c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba` |
 | `AP-ORCHESTRATOR-001` | 2 | `f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad` |
 | `AP-FRONTIER-001` | 2 | `0777c74645955a26dc3829812ff26fa1a00a017c3b4cc1ac6740284f2664566c` |
 | `AP-PORTABILITY-001` | 2 | `a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0` |
-| `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
-| `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
 | `AP-PERF-001` | 1 | `500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d` |
 | `AP-DELIVERY-001` | 3 | `b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee` |
 | `AP-PROMOTION-001` | 2 | `07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93` |
 | `AP-LICENSE-001` | 1 | `cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac` |
-| `AP-SESSION-001` | 4 | `51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7` |
 | `AP-FORK-001` | 2 | `11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e` |
 | `AP-FORK-002` | 2 | `4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d` |
 
@@ -174,6 +174,48 @@ Baseline/reference comments record only changed identities, dirty state,
 mechanism/stop decisions, and first check. Keep status/prerequisites honest; use
 the issue tool (beads_rust `br` when available), never its storage.
 
+### AP-SESSION-001 — Session continuity across compaction
+
+Compaction is lossy; avoid it. Write each user decision to its durable owner
+when it is made. Delegate work whose raw output matters only as a conclusion,
+such as broad searches, long logs and checks, or research, to a fresh
+subagent; subagents are authorized unless the user or local rules say
+otherwise.
+
+Budget absolute context tokens, not window share; if the host reports none,
+estimate high:
+
+- From 400k, add no scope or new steps: close the issue if it can close by
+  600k, else bring work in progress to a verified state and hand off.
+- Past 600k, continue only to reach an imminent verified state or keep live
+  state that cannot be written down; record why on the issue.
+- Hand off before the host would compact. After any compaction, reread the
+  issue and hand off.
+
+A handoff is an issue comment: state, next step, and open decisions with
+reasons. The next session primes, e.g. "prime, then continue <issue> from its
+handoff".
+
+### AP-EXCEPTION-001 — Explicit local exceptions
+
+Only an exception approved by the user or named authority may narrow, replace,
+or suspend an import. Record protocol ID, exact scope, reason, approver, date,
+and any expiry or review condition. Unrecorded conflicts are drift; additive
+detail is an overlay.
+
+### AP-GIT-001 — Safe repository history
+
+Repository history is shared user state. Inspect status and local policy;
+preserve unrelated or concurrent work and use the least destructive sufficient
+operation.
+
+Amend the unpublished task commit for same-task corrections; refresh downstream
+commits and generated artifacts. After external reliance (push, promotion,
+release, or pin), commit corrections separately. Never reset, discard,
+force-push, rewrite published history, or create a branch without authority.
+Verify intended diff before commit and remote state after push. Roll back with a
+reviewed revert unless local policy says otherwise.
+
 ### AP-CI-001 — Bounded continuous integration
 
 Before hosted automation, name its contract and why local proof is
@@ -206,26 +248,6 @@ Keep multi-OS contracts and state neutral; isolate system APIs, processes,
 paths, packaging, and events. Evaluate targets before foundational runtime,
 graphics, filesystem, or transport choices. Prove behavior on each platform,
 not by compilation; name unsupported targets.
-
-### AP-EXCEPTION-001 — Explicit local exceptions
-
-Only an exception approved by the user or named authority may narrow, replace,
-or suspend an import. Record protocol ID, exact scope, reason, approver, date,
-and any expiry or review condition. Unrecorded conflicts are drift; additive
-detail is an overlay.
-
-### AP-GIT-001 — Safe repository history
-
-Repository history is shared user state. Inspect status and local policy;
-preserve unrelated or concurrent work and use the least destructive sufficient
-operation.
-
-Amend the unpublished task commit for same-task corrections; refresh downstream
-commits and generated artifacts. After external reliance (push, promotion,
-release, or pin), commit corrections separately. Never reset, discard,
-force-push, rewrite published history, or create a branch without authority.
-Verify intended diff before commit and remote state after push. Roll back with a
-reviewed revert unless local policy says otherwise.
 
 ### AP-PERF-001 — Measured performance claims
 
@@ -268,28 +290,6 @@ redistribution, dependency selection, and incorporation, so a restriction on one
 does not spread to another. If an interpretation would block required evidence,
 identify the exact clause and roles and resolve material ambiguity with the
 user. Review does not require reuse.
-
-### AP-SESSION-001 — Session continuity across compaction
-
-Compaction is lossy; avoid it. Write each user decision to its durable owner
-when it is made. Delegate work whose raw output matters only as a conclusion,
-such as broad searches, long logs and checks, or research, to a fresh
-subagent; subagents are authorized unless the user or local rules say
-otherwise.
-
-Budget absolute context tokens, not window share; if the host reports none,
-estimate high:
-
-- From 400k, add no scope or new steps: close the issue if it can close by
-  600k, else bring work in progress to a verified state and hand off.
-- Past 600k, continue only to reach an imminent verified state or keep live
-  state that cannot be written down; record why on the issue.
-- Hand off before the host would compact. After any compaction, reread the
-  issue and hand off.
-
-A handoff is an issue comment: state, next step, and open decisions with
-reasons. The next session primes, e.g. "prime, then continue <issue> from its
-handoff".
 
 ### AP-FORK-001 — Minimal isolated fork delta
 
