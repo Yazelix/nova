@@ -22,7 +22,7 @@ class ReleaseAssetsTests(unittest.TestCase):
         (root / "bin/yzx").chmod(0o755)
         (root / "share/yazelix").mkdir(parents=True)
         (root / "share/yazelix/runtime_identity.json").write_text(
-            json.dumps({"version": "1.3.0", "channel": "edge"}))
+            json.dumps({"version": "1.3.0", "channel": "stable"}))
         archive_metadata.write(root, {"schema_version": 1, "revision": "a" * 40,
             "target": "x86_64-unknown-linux-gnu", "variant": "no-rio",
             "entrypoints": ["bin/yzx"], "compatibility": {"libc": "glibc", "minimum": "2.39"}})

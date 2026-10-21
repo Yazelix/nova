@@ -47,7 +47,7 @@ target-side Nix or `/nix/store` virtualization is outside this contract.
 
 ## Linux archive factory
 
-`nix build .#yazelix-no-rio-archive` produces the development Edge archive
+`nix build .#yazelix-no-rio-archive` produces the Stable-channel archive
 `yazelix-nova-<version>-x86_64-unknown-linux-gnu-no-rio.tar.gz`. Nix is a build requirement;
 the extracted runtime does not use Nix. The output exists only on
 `x86_64-linux` and preserves the managed no-Rio composition and its embedded
@@ -281,10 +281,12 @@ libgcc symbol-version list. Its relocator matches whole host SONAMEs and rejects
 undeclared libgcc requirements. The metadata records glibc 2.39, host Git and
 `/usr/bin/env` with argument splitting. Python is a build/maintainer tool only.
 
-Version and channel come from the existing packaged runtime identity. A clean
-Git flake supplies the source revision; dirty and `path:` development builds
-record `revision: null`. Such builds remain useful development artifacts but
-fail release verification. A base commit must not identify modified source.
+Version and channel come from the existing packaged runtime identity. Only
+Stable releases publish the archive, so it is built as `stable` and release
+verification rejects any other channel. A clean Git flake supplies the source
+revision; dirty and `path:` development builds record `revision: null`. Such
+builds remain useful development artifacts but fail release verification. A
+base commit must not identify modified source.
 
 The file index covers payload regular files and symlinks with unique normalized
 root-relative paths. Regular-file records contain SHA-256 and permission mode;

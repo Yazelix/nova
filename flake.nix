@@ -1375,7 +1375,6 @@
           revision = self.rev or null;
           sourceRoot = self.outPath;
           runtime = (runtimeFor system archive.pkgs).mkYzx {
-            channel = "edge";
             withRio = false;
             withManagedHelix = true;
             withManagedYazi = true;

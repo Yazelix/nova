@@ -55,6 +55,8 @@ def validate(root, identity, release=False):
     revision = identity["revision"]
     if revision is None and release:
         raise ValueError("release requires an immutable source revision")
+    if identity["channel"] != "stable" and release:
+        raise ValueError("release requires the stable channel")
     if revision is not None and not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("invalid source revision")
     if identity["target"] != "x86_64-unknown-linux-gnu" or identity["variant"] != "no-rio":
@@ -114,7 +116,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path)
     parser.add_argument("identity", type=Path, nargs="?")
-    parser.add_argument("--release", action="store_true", help="require an immutable source revision")
+    parser.add_argument("--release", action="store_true", help="require an immutable source revision and the stable channel")
     args = parser.parse_args()
     if args.identity:
         write(args.root, json.loads(args.identity.read_text()), args.release)

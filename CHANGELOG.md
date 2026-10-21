@@ -13,6 +13,9 @@ Edge and Main collect the next version's changes under Unreleased.
   release; `--uninstall` removes it and keeps configuration and state. macOS
   continues to install through Nix.
 
+- The release archive identifies itself as Stable: the bar badge of an
+  installed archive reads `STABLE` instead of `EDGE`.
+
 - Clicking a tab switches to it when the mouse button is released. After you
   leave a tab with a click and return with the keyboard, the first click there
   is no longer ignored.

@@ -139,6 +139,12 @@ class ArchiveMetadataTests(unittest.TestCase):
             self.assertIsNone(archive_metadata.verify(root)["revision"])
             with self.assertRaisesRegex(ValueError, "immutable"):
                 archive_metadata.verify(root, release=True)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            identity = self.payload(root)
+            with self.assertRaisesRegex(ValueError, "stable channel"):
+                archive_metadata.write(root, identity, release=True)
+            self.assertFalse((root / "share/yazelix/package.json").exists())
 
 
 if __name__ == "__main__":
