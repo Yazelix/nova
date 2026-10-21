@@ -6,6 +6,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+## 1.5.0
+
 - Nova installs without Nix on x86_64 Linux. Each release publishes
   `install.sh`, which verifies the release archive's checksum, installs it
   under `~/.local/share/yazelix-nova` and links `yzx` into `~/.local/bin`
