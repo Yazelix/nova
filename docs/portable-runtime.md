@@ -581,9 +581,10 @@ site redirect to `releases/latest/download/install.sh`.
 - Output: the version, a download line, then `✓ Installed` and the next steps
   `yzx enter`, `yzx tutor begin`, the docs URL and `yzx doctor`. Steps use the
   link's path when plain `yzx` would not run this install. A terminal gets a
-  redrawn progress bar sized from `nova-release.json`. Bold and color need a
-  terminal and no `NO_COLOR`. With default paths, lines fit 80 columns, and
-  paths under `$HOME` print as `~/...`. Errors go to stderr as
+  redrawn progress bar sized from `nova-release.json`, then an
+  `Unpacking and checking…` line that `✓ Installed` replaces. Bold and color
+  need a terminal and no `NO_COLOR`. With default paths, lines fit 80 columns,
+  and paths under `$HOME` print as `~/...`. Errors go to stderr as
   `nova-install: error: ...`. Provenance verification (`gh attestation verify`)
   is documented in `--help`, not printed.
 - Lifecycle: re-running upgrades; an earlier `--version` rolls back. Old

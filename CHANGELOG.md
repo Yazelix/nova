@@ -11,8 +11,8 @@ Edge and Main collect the next version's changes under Unreleased.
   installer names what a blocking `~/.local/bin/yzx` points to, and says
   which `yzx` shells run when another one is on `PATH`.
 
-- The Nix-free installer prints a short summary: a progress bar, then
-  `✓ Installed` with the commands to start (`yzx enter`), learn
+- The Nix-free installer prints a short summary: a progress bar, an unpacking
+  line, then `✓ Installed` with the commands to start (`yzx enter`), learn
   (`yzx tutor begin`) and get help (`yzx doctor`), plus the docs link. When
   plain `yzx` would not run the new install, these commands use its full path.
   Color appears only on a terminal and respects `NO_COLOR`. The provenance

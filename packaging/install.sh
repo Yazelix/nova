@@ -161,6 +161,7 @@ summary() {
     cmd=yzx
     [ "$(readlink "$(command -v yzx)")" = "$selected" ] || cmd=$(tilde "$link")
     width=$((${#cmd} + 16))
+    [ ! -t 1 ] || printf '\033[A\033[K'
     printf '\n%s✓%s Installed %sYazelix Nova %s%s\n\n' "$green" "$reset" "$bold" "$version" "$reset"
     row Start "$cmd enter" "opens Nova in this terminal"
     case ":$PATH:" in
@@ -243,6 +244,8 @@ install() {
     glibc_check
     printf '%sYazelix Nova %s%s\n' "$bold" "$version" "$reset"
     download
+    # Unpacking takes seconds; summary replaces this line.
+    [ ! -t 1 ] || printf '%sUnpacking and checking…%s\n' "$dim" "$reset"
     mkdir "$work/payload"
     tar -xzf "$work/$name" -C "$work/payload" || fail "could not extract $name; nothing was installed"
     payload=$work/payload

@@ -254,8 +254,10 @@ Downloading 1 MB
                     self.assertIn(" 100%\r\n", screen)
                 else:
                     self.assertIn("\nDownloading\r\n", screen)
-                self.assertEqual("\x1b[" in screen, not no_color)
-                lines = re.sub("\x1b\\[[0-9]*m", "", screen).replace("\r\n", "\n").split("\n")
+                self.assertEqual(re.search("\x1b\\[[0-9]+m", screen) is not None, not no_color)
+                plain = re.sub("\x1b\\[[0-9]*m", "", screen)
+                self.assertIn("\r\nUnpacking and checking…\r\n\x1b[A\x1b[K\r\n✓ Installed", plain)
+                lines = re.sub("\x1b\\[[AK]", "", plain).replace("\r\n", "\n").split("\n")
                 self.assertLessEqual(max(len(line.rsplit("\r", 1)[-1]) for line in lines), 80)
 
     @unittest.skipUnless(shutil.which("shellcheck"), "shellcheck is not installed")
