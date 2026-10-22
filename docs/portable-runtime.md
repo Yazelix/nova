@@ -553,12 +553,11 @@ component origins and build graph remain inspectable coverage evidence.
 ## NOVA-INSTALL-001: shell installer
 
 `packaging/install.sh` is the Nix-free installation frontend. Portable Release
-publishes it as the attested `install.sh` asset of each release; no release
-carries it yet. The planned entrypoint is
-`curl -LsSf https://nova.yazelix.com/install | sh`, a site redirect to
-`releases/latest/download/install.sh` that waits for the first such release.
-Before then, a checkout's script installs any published portable release:
-`sh packaging/install.sh --version 1.4.0`.
+publishes it as the attested `install.sh` asset of each release from 1.5.0;
+`--version` also installs 1.4.0, the first portable release. The planned
+entrypoint is `curl -LsSf https://nova.yazelix.com/install | sh`, a site
+redirect to `releases/latest/download/install.sh`. Until the redirect is live,
+fetch that URL directly.
 
 - Target: `x86_64-linux` only. macOS exits with a message naming the Nix
   install; other systems exit naming the supported target.
