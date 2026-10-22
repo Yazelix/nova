@@ -210,7 +210,10 @@ def publish(directory, bundle, tag, sha, api=github_api, guard=immutable_enabled
     version = check_approval(directory, tag, sha, api)["version"]
     changes = notes(changelog, version)
     provenance(directory, bundle, sha, "refs/tags/" + tag)
-    body = f"{changes}\n\n{(directory / 'SOURCE-DELIVERY.md').read_text().strip()}\n\n{FOOTER}\n"
+    # People read the changes; the complete source and notice text stays in the body, collapsed.
+    delivery = (directory / "SOURCE-DELIVERY.md").read_text().strip()
+    body = (f"{changes}\n\n<details>\n<summary>Source, notices and rebuild instructions</summary>\n\n"
+            f"{delivery}\n\n</details>\n\n{FOOTER}\n")
     latest = "-" not in version
     result = subprocess.run(["gh", "api", "--method", "POST", f"{REPO}/releases", "--input", "-"],
                             input=json.dumps({"tag_name": tag, "target_commitish": sha,

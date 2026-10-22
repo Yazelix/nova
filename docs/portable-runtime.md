@@ -496,7 +496,8 @@ their original capture state; `RELEASE-APPROVAL.json` records the later decision
 and annotated tag identity. Original license scopes remain authoritative.
 The approved review text appears in `SOURCE-DELIVERY.md` and the release body.
 The release is titled `Yazelix Nova <version>`; its body is the version's
-`CHANGELOG.md` section, then `SOURCE-DELIVERY.md`, then the sponsorship footer.
+`CHANGELOG.md` section, then `SOURCE-DELIVERY.md` inside a collapsed
+`<details>` block, then the sponsorship footer.
 Preflight and publication fail closed when that changelog section is missing.
 
 Push the authorized annotated tag only after the exact revision belongs to Main
