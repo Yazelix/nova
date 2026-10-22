@@ -1,14 +1,14 @@
 #!/bin/sh
 # NOVA-INSTALL-001 (docs/portable-runtime.md): install Nova's portable release archive without Nix.
-# Everything runs from the `main "$@"` call on the last line, so a truncated download executes nothing.
+# Only the final main "$@" call executes the body; truncation before it executes nothing.
 set -eu
 
 releases=https://github.com/Yazelix/nova/releases
 target=x86_64-unknown-linux-gnu
 variant=no-rio
 
-say() { printf 'nova-install: %s\n' "$*"; }
 fail() {
+    stop_bar
     printf 'nova-install: error: %s\n' "$*" >&2
     exit 1
 }
@@ -26,6 +26,11 @@ Usage: install.sh [--version X.Y.Z] [--install-root DIR] [--bin-dir DIR]
   --uninstall         remove installer-owned versions and the yzx link; keep configuration and state
 
 Re-running the installer upgrades; installing an earlier --version rolls back.
+Output has no color when stdout is not a terminal or NO_COLOR is set.
+
+The installer checks every download against the release's SHA256SUMS. To check
+the archive's provenance as well, download it from the release and run:
+  gh attestation verify <archive> --repo Yazelix/nova
 EOF
 }
 
@@ -36,15 +41,22 @@ absolute() {
     esac
 }
 
+tilde() {
+    case $1 in
+        "${HOME:-/nonexistent}"/*) printf '%s/%s' '~' "${1#"$HOME"/}" ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
 fetch() {
-    curl --proto '=https' --tlsv1.2 --fail --location --show-error --retry 3 "$@"
+    curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error --retry 3 "$@"
 }
 
 # Fetch a release file and require the hash that SHA256SUMS lists for it.
 verified() {
     hash=$(awk -v name="$1" '$2 == name { print $1 }' "$work/SHA256SUMS")
     [ -n "$hash" ] || fail "release $version lists no checksum for $1"
-    fetch "$2" --output "$work/$1" "$url/$1" || fail "could not download $1 from release $version"
+    fetch --output "$work/$1" "$url/$1" || fail "could not download $1 from release $version"
     actual=$(sha256sum < "$work/$1")
     [ "${actual%% *}" = "$hash" ] || fail "$1 does not match its published SHA-256; nothing was installed"
 }
@@ -62,14 +74,69 @@ glibc_check() {
     fi
 }
 
+# Redraw the archive download as one progress line.
+bar() {
+    got=$(wc -c 2>/dev/null < "$work/$name") || got=0
+    awk -v got="$got" -v total="$total" -v label="$label" -v dim="$dim" -v reset="$reset" 'BEGIN {
+        n = int(30 * got / total)
+        line = "\r" label " "
+        for (i = 0; i < 30; i++) line = line (i == n ? dim : "") (i < n ? "━" : "─")
+        printf "%s%s %3d%%", line, reset, 100 * got / total
+    }'
+}
+
+stop_bar() {
+    [ -n "${drawer:-}" ] || return 0
+    kill "$drawer" 2>/dev/null || true
+    wait "$drawer" 2>/dev/null || true
+    drawer=''
+    bar
+    echo
+}
+
+# A terminal sees a progress bar sized from nova-release.json; other output gets one line.
+download() {
+    total=$(awk -v entry="\"name\": \"$name\"" 'index($0, entry) { found = 1 }
+        found && /"size":/ {
+            sub(/,$/, "", $2)
+            if ($2 ~ /^[1-9][0-9]*$/) print $2
+            exit
+        }' "$work/nova-release.json")
+    label="Downloading${total:+ $(((total + 999999) / 1000000)) MB}"
+    if [ -t 1 ] && [ -n "$total" ]; then
+        # The trap lets a running bar finish, so no stale line prints after stop_bar's.
+        (
+            trap 'exit 0' TERM
+            while :; do
+                bar
+                sleep 0.2
+            done
+        ) &
+        drawer=$!
+    else
+        echo "$label"
+    fi
+    verified "$name"
+    stop_bar
+}
+
+note() { printf '          %s\n' "$*"; }
+
+row() {
+    if [ -n "${3:-}" ]; then
+        printf '  %-8s%s%-*s%s%s%s%s\n' "$1" "$bold" "$width" "$2" "$reset" "$dim" "$3" "$reset"
+    else
+        printf '  %-8s%s%s%s\n' "$1" "$bold" "$2" "$reset"
+    fi
+}
+
 path_help() {
-    say "$bin is not on PATH. Run Nova now as: $link"
     case $(basename "${SHELL:-sh}") in
-        bash) say "To add it for bash, append to ~/.bashrc:  export PATH=\"$bin:\$PATH\"" ;;
-        zsh) say "To add it for zsh, append to ~/.zshrc:  export PATH=\"$bin:\$PATH\"" ;;
-        fish) say "To add it for fish, run once:  fish_add_path '$bin'" ;;
-        nu) say "To add it for Nushell, append to your config.nu:  \$env.PATH = (\$env.PATH | prepend '$bin')" ;;
-        *) say "To add it, append to ~/.profile:  export PATH=\"$bin:\$PATH\"" ;;
+        bash) note "To run plain yzx, add this line to ~/.bashrc:" && note "export PATH=\"$bin:\$PATH\"" ;;
+        zsh) note "To run plain yzx, add this line to ~/.zshrc:" && note "export PATH=\"$bin:\$PATH\"" ;;
+        fish) note "To run plain yzx, run this once in fish:" && note "fish_add_path '$bin'" ;;
+        nu) note "To run plain yzx, add this line to your config.nu:" && note "\$env.PATH = (\$env.PATH | prepend '$bin')" ;;
+        *) note "To run plain yzx, add this line to ~/.profile:" && note "export PATH=\"$bin:\$PATH\"" ;;
     esac
 }
 
@@ -83,14 +150,32 @@ other_yzx() {
         done
     )
     [ -n "$other" ] || return 0
-    if [ "$(readlink "$(command -v yzx)")" = "$selected" ]; then
-        say "yzx now runs this install, ahead of $other on PATH"
+    if [ "$cmd" = yzx ]; then
+        note "yzx runs this install, ahead of $(tilde "$other")"
     else
-        say "yzx still runs $other, which PATH lists first; run $link or remove the other install"
+        note "plain yzx runs $(tilde "$other") instead"
     fi
 }
 
+summary() {
+    cmd=yzx
+    [ "$(readlink "$(command -v yzx)")" = "$selected" ] || cmd=$(tilde "$link")
+    width=$((${#cmd} + 16))
+    printf '\n%s✓%s Installed %sYazelix Nova %s%s\n\n' "$green" "$reset" "$bold" "$version" "$reset"
+    row Start "$cmd enter" "opens Nova in this terminal"
+    case ":$PATH:" in
+        *":$bin:"*) ;;
+        *) path_help ;;
+    esac
+    other_yzx
+    row Learn "$cmd tutor begin" "run it inside Nova"
+    row Docs https://nova.yazelix.com/docs/
+    row Help "$cmd doctor"
+    printf '\n  %sFiles in %s · yzx linked in %s%s\n' "$dim" "$(tilde "$root")" "$(tilde "$bin")" "$reset"
+}
+
 cleanup() {
+    stop_bar
     if [ -n "${work:-}" ] && [ -d "$work" ]; then
         chmod -R u+w "$work" 2>/dev/null || true
         rm -rf "$work"
@@ -99,18 +184,21 @@ cleanup() {
 
 uninstall() {
     [ -f "$marker" ] || fail "$root was not created by this installer; nothing was removed"
+    kept_link='' kept_root=''
     if [ -L "$link" ] && [ "$(readlink "$link")" = "$selected" ]; then
         rm "$link"
-        say "removed $link"
     elif [ -e "$link" ] || [ -L "$link" ]; then
-        say "kept $link: it does not point into $root"
+        kept_link="Kept $(tilde "$link"): it does not point into $(tilde "$root")"
     fi
     for path in "$root"/versions "$root"/.install.*; do
         [ ! -e "$path" ] || chmod -R u+w "$path"
     done
     rm -rf "$root/versions" "$root/current" "$root"/.install.* "$marker"
-    rmdir "$root" 2>/dev/null || say "kept $root: it holds files this installer did not create"
-    say "removed Nova; your configuration and state are untouched"
+    rmdir "$root" 2>/dev/null || kept_root="Kept $(tilde "$root"): it holds files this installer did not create"
+    printf '%s✓%s Removed %sYazelix Nova%s\n\n' "$green" "$reset" "$bold" "$reset"
+    for line in "$kept_link" "$kept_root" "Your configuration and state are untouched"; do
+        [ -z "$line" ] || printf '  %s\n' "$line"
+    done
 }
 
 install() {
@@ -142,7 +230,7 @@ install() {
         url=$releases/latest/download
         version=latest
     fi
-    fetch --silent --output "$work/SHA256SUMS" "$url/SHA256SUMS" || fail "could not download release $version"
+    fetch --output "$work/SHA256SUMS" "$url/SHA256SUMS" || fail "could not download release $version"
     name=$(grep -E "^[0-9a-f]{64}  yazelix-nova-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?-$target-$variant\.tar\.gz$" "$work/SHA256SUMS" | cut -c67-)
     [ "$(printf '%s\n' "$name" | grep -c .)" = 1 ] || fail "release $version has no single $target archive"
     found=${name#yazelix-nova-}
@@ -151,10 +239,10 @@ install() {
     version=$found
     url=$releases/download/nova-v$version
 
-    verified nova-release.json --silent
+    verified nova-release.json
     glibc_check
-    say "downloading Yazelix Nova $version"
-    verified "$name" --progress-bar
+    printf '%sYazelix Nova %s%s\n' "$bold" "$version" "$reset"
+    download
     mkdir "$work/payload"
     tar -xzf "$work/$name" -C "$work/payload" || fail "could not extract $name; nothing was installed"
     payload=$work/payload
@@ -177,15 +265,7 @@ install() {
     mv -T "$work/current" "$root/current"
     mkdir -p "$bin"
     [ -L "$link" ] || ln -s "$selected" "$link"
-
-    say "installed Yazelix Nova $version in $destination"
-    case ":$PATH:" in
-        *":$bin:"*) ;;
-        *) path_help ;;
-    esac
-    other_yzx
-    say "Check the host with 'yzx doctor', then open a workspace in this terminal with 'yzx enter'."
-    say "Release provenance: download $url/$name and run 'gh attestation verify $name --repo Yazelix/nova'."
+    summary
 }
 
 main() {
@@ -217,6 +297,10 @@ main() {
     marker=$root/.yazelix-nova-installer
     link=$bin/yzx
     selected=$root/current/bin/yzx
+    bold='' dim='' green='' reset=''
+    if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+        bold=$(printf '\033[1m') dim=$(printf '\033[2m') green=$(printf '\033[32m') reset=$(printf '\033[0m')
+    fi
     "$action"
 }
 
