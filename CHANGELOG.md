@@ -14,7 +14,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 - The Nix-free installer prints a short summary: a progress bar, an unpacking
   line, then `✓ Installed` with the commands to start (`yzx enter`), learn
-  (`yzx tutor begin`) and get help (`yzx doctor`), plus the docs link. When
+  (`yzx tutor begin`) and get help (`yzx doctor`), plus the docs link and a
+  recommended terminal (Nova Rio or Ghostty), since the archive has none. When
   plain `yzx` would not run the new install, these commands use its full path.
   Color appears only on a terminal and respects `NO_COLOR`. The provenance
   command moved to `install.sh --help`. Uninstall output is equally short.

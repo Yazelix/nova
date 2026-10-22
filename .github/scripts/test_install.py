@@ -106,6 +106,8 @@ Downloading 1 MB
   Help    ~/.local/bin/yzx doctor
 
   Files in ~/.local/share/yazelix-nova · yzx linked in ~/.local/bin
+  Best in Nova Rio (github.com/Yazelix/nova-rio) or Ghostty (ghostty.org),
+  or try it in the terminal you already use
 """)
         self.assertEqual(sorted(p.name for p in self.home.iterdir()), [".local"])
         requests = (self.fixture / "requests").read_text().splitlines()
@@ -125,6 +127,8 @@ Downloading 1 MB
   Help    yzx doctor
 
   Files in ~/.local/share/yazelix-nova · yzx linked in ~/.local/bin
+  Best in Nova Rio (github.com/Yazelix/nova-rio) or Ghostty (ghostty.org),
+  or try it in the terminal you already use
 """)
         self.assertEqual(self.installed(), "Yazelix Nova (2.0.0)")
         self.assertTrue((self.root / "versions/1.4.0/bin/yzx").exists())

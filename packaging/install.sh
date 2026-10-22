@@ -174,6 +174,8 @@ summary() {
     row Docs https://nova.yazelix.com/docs/
     row Help "$cmd doctor"
     printf '\n  %sFiles in %s · yzx linked in %s%s\n' "$dim" "$(tilde "$root")" "$(tilde "$bin")" "$reset"
+    printf '  %sBest in Nova Rio (github.com/Yazelix/nova-rio) or Ghostty (ghostty.org),\n' "$dim"
+    printf '  or try it in the terminal you already use%s\n' "$reset"
 }
 
 cleanup() {
