@@ -1,4 +1,12 @@
 {
   "schema": 1,
-  "exceptions": []
+  "exceptions": [
+    {
+      "protocol": "AP-PLAN-001",
+      "scope": "the at-most-one-issue limit on a writing run",
+      "reason": "Lucca removed the limit; a run may claim, update, implement and close several issues in sequence, and the rest of AP-PLAN-001 still applies.",
+      "approved_by": "Lucca",
+      "approved_at": "2026-10-22"
+    }
+  ]
 }

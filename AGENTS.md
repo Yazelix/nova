@@ -8,8 +8,8 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `129746d8d56fad641a1fbc99aa3844cf51468fef`
-- Profiles: `greenfield`, `orchestrator`, `release`, `fork`
+- Source commit: `deac6a634718f4c9fa4d413dde642bab6585763f`
+- Profiles: `regular`, `release`
 - Manifest: `.agent-protocols.json` (schema 1)
 
 | Protocol | Version | SHA-256 |
@@ -17,7 +17,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-SCOPE-001` | 5 | `f68b0606986b0ac083a0c7949e1b2ab5d34150e0f906ddae226b9d5429ee115a` |
 | `AP-CONTRACT-001` | 5 | `4e3695ec39a6d1eb01a18930d0ce3ed3241078b4dfefbee4f2e295e74fd13d1f` |
 | `AP-REFERENCE-001` | 4 | `906bcda869549979647d20e957ff48909fa5f36024f584be6657bdc058d58e72` |
-| `AP-MINIMAL-001` | 6 | `8dde259c77ec251719dba23eb1090b10262bbc2fb000d4899690781eb6563e11` |
+| `AP-MINIMAL-001` | 7 | `e8e671b46a04502f59d366a726cb94c8a91d279de238501c0a0a0de5a826cc61` |
 | `AP-DEPENDENCY-001` | 2 | `ded49add538b82de0a9c522bc8a34720f4ebbb47f39fc2f7ddb25e7aad1700d3` |
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
@@ -26,20 +26,15 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-SESSION-001` | 4 | `51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7` |
 | `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
 | `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
+| `AP-PERF-001` | 2 | `671ba2f59620007d1a0c7338056af7a2010ea1bd2c8320dcb06c342aaca385fa` |
 | `AP-CI-001` | 3 | `c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba` |
-| `AP-ORCHESTRATOR-001` | 2 | `f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad` |
-| `AP-FRONTIER-001` | 2 | `0777c74645955a26dc3829812ff26fa1a00a017c3b4cc1ac6740284f2664566c` |
-| `AP-PORTABILITY-001` | 2 | `a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0` |
-| `AP-PERF-001` | 1 | `500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d` |
 | `AP-DELIVERY-001` | 3 | `b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee` |
 | `AP-PROMOTION-001` | 2 | `07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93` |
-| `AP-LICENSE-001` | 1 | `cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac` |
-| `AP-FORK-001` | 2 | `11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e` |
-| `AP-FORK-002` | 2 | `4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d` |
 
 ### Local exceptions
 
-No local exceptions.
+- `AP-PLAN-001` in the at-most-one-issue limit on a writing run: Lucca removed the limit; a run may claim, update, implement and close several issues in sequence, and the rest of AP-PLAN-001 still applies.
+  Approved by Lucca on 2026-10-22; review condition: none recorded.
 
 ## Canonical protocols
 
@@ -81,7 +76,8 @@ material shape change. Memory, summaries, and reputation are discovery only.
 After identifying the contract, evidence, owner, flow, and boundaries, take the
 first sufficient option: no change; existing owner, helper, or pattern;
 standard library or native platform; accepted dependency that owns the
-behavior; minimum correct local code.
+behavior; minimum correct local code. Build only for current callers, not
+forecasts; abstract only for a second caller: speculation costs every reader.
 
 Judge the whole lifecycle, including coordination, coupling, migration and
 removal, portability, operations, proof, and agent context. Scope instructions
@@ -89,8 +85,11 @@ narrowly; retain non-obvious constraints and reusable behavior-changing
 workflows, not generic or duplicated policy. Load details only when needed.
 
 A patch is not minimal if it treats a symptom below its shared cause, bypasses
-a boundary, or raises downstream cost. Prefer deletion and fewer files; use
-patch size only between equally correct system shapes. Never remove required
+a boundary, or raises downstream cost. Leftovers are a change's commonest
+defect: update every caller, test, fixture, config, and export it breaks and
+delete what it orphans. Prefer fewer files; report unrelated dead code as out of
+scope; use patch size only between equally correct system shapes. Handle empty,
+malformed, and boundary input; real callers send it. Never remove required
 behavior, trust-boundary validation, data-loss protection, security,
 accessibility, or the cheapest runnable check for non-trivial logic.
 
@@ -216,6 +215,14 @@ force-push, rewrite published history, or create a branch without authority.
 Verify intended diff before commit and remote state after push. Roll back with a
 reviewed revert unless local policy says otherwise.
 
+### AP-PERF-001 — Measured performance work
+
+Before redesigning for speed, fix a representative workload, record a
+baseline, and measure where the time goes; intuition often picks the wrong
+spot. Performance claims need that workload and environment, the baseline, a
+correctness oracle, and a distribution or bound. Keep negative results that
+constrain them.
+
 ### AP-CI-001 — Bounded continuous integration
 
 Before hosted automation, name its contract and why local proof is
@@ -224,36 +231,6 @@ concurrency; specify fork and secret behavior. Prefer one cheap deterministic
 job. Record when to expand, reduce, or remove. Confidence must justify its
 financial, latency, security, and maintenance costs, including private minutes
 and storage.
-
-### AP-ORCHESTRATOR-001 — Thin orchestrator ownership
-
-An orchestrator owns composition, lifecycle policy, compatibility selection,
-and user defaults, not child mechanisms or state. Consume pinned child artifacts
-through explicit contracts; keep translation narrow; reject copies, hidden
-forks, and duplicate schemas. Expose startup, shutdown, update, and partial
-failure policy, and test with substitutes when a child is unavailable.
-
-### AP-FRONTIER-001 — One active integration frontier
-
-When greenfield components integrate, keep one boundary under active
-architectural change when practical. Stabilize the others with released
-artifacts, fixtures, adapters, or interchangeable projects. Dogfood the active
-frontier through a real vertical slice and move it only after contract and
-failure evidence. Parallel work may continue behind stable integration
-contracts.
-
-### AP-PORTABILITY-001 — Portable core with explicit platform seams
-
-Keep multi-OS contracts and state neutral; isolate system APIs, processes,
-paths, packaging, and events. Evaluate targets before foundational runtime,
-graphics, filesystem, or transport choices. Prove behavior on each platform,
-not by compilation; name unsupported targets.
-
-### AP-PERF-001 — Measured performance claims
-
-Performance claims need a measured bottleneck, a fixed workload and
-environment, a baseline, a correctness oracle, and a distribution or bound.
-Keep negative results that constrain them.
 
 ### AP-DELIVERY-001 — Installed artifact and fresh-session proof
 
@@ -279,32 +256,6 @@ Require target-channel delivery evidence, no known critical or high-severity
 regression, and explicit authority for user-facing promotion. Roll back with a
 development-channel revert, then verify and promote normally. Promotion changes
 exposure, not proof.
-
-### AP-LICENSE-001 — Exact license interpretation
-
-Apply source-license terms to their exact actors, uses, conditions,
-beneficiaries, and direction. A user who chooses a provider's tool does not act
-for that provider. An example introduced by “including” applies only within the
-condition it illustrates. Inspection is distinct from copying, adaptation,
-redistribution, dependency selection, and incorporation, so a restriction on one
-does not spread to another. If an interpretation would block required evidence,
-identify the exact clause and roles and resolve material ambiguity with the
-user. Review does not require reuse.
-
-### AP-FORK-001 — Minimal isolated fork delta
-
-A fork owns only behavior that cannot reasonably live upstream or externally.
-Start from exact upstream source and behavior; prefer configuration, extension
-points, then isolated patches over rewrites. Keep fork modules, commits, and
-tests separable; avoid unrelated upstream cleanup. Keep the delta cohesive and
-measurable and justify growth with user-visible ownership.
-
-### AP-FORK-002 — Upstream and removal discipline
-
-For every fork feature, record upstream baseline and patch provenance, audit
-upstream changes instead of replaying patches mechanically, contribute general
-mechanisms upstream when feasible, define its removal condition, and test both
-fork behavior and the upstream boundary most likely to invalidate it.
 
 ## Repository-local rules
 

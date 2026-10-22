@@ -2,13 +2,11 @@
   "schema": 1,
   "source": {
     "repository": "https://github.com/Yazelix/starcompass",
-    "commit": "129746d8d56fad641a1fbc99aa3844cf51468fef"
+    "commit": "deac6a634718f4c9fa4d413dde642bab6585763f"
   },
   "profiles": [
-    "greenfield",
-    "orchestrator",
-    "release",
-    "fork"
+    "regular",
+    "release"
   ],
   "protocols": [
     {
@@ -28,8 +26,8 @@
     },
     {
       "id": "AP-MINIMAL-001",
-      "version": 6,
-      "sha256": "8dde259c77ec251719dba23eb1090b10262bbc2fb000d4899690781eb6563e11"
+      "version": 7,
+      "sha256": "e8e671b46a04502f59d366a726cb94c8a91d279de238501c0a0a0de5a826cc61"
     },
     {
       "id": "AP-DEPENDENCY-001",
@@ -72,29 +70,14 @@
       "sha256": "f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9"
     },
     {
+      "id": "AP-PERF-001",
+      "version": 2,
+      "sha256": "671ba2f59620007d1a0c7338056af7a2010ea1bd2c8320dcb06c342aaca385fa"
+    },
+    {
       "id": "AP-CI-001",
       "version": 3,
       "sha256": "c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba"
-    },
-    {
-      "id": "AP-ORCHESTRATOR-001",
-      "version": 2,
-      "sha256": "f78ebc0db6db525aac1d3226703af7e84cba9953c579470763831241a7d0c2ad"
-    },
-    {
-      "id": "AP-FRONTIER-001",
-      "version": 2,
-      "sha256": "0777c74645955a26dc3829812ff26fa1a00a017c3b4cc1ac6740284f2664566c"
-    },
-    {
-      "id": "AP-PORTABILITY-001",
-      "version": 2,
-      "sha256": "a2f5025bc7a10436b5c2f8f42c6002ccf1e361f05abbff3dea6507a3426394c0"
-    },
-    {
-      "id": "AP-PERF-001",
-      "version": 1,
-      "sha256": "500ddfc56c1293e74ba1e8e19dddca0129fbbec49e9a00735e975ee2e8a8790d"
     },
     {
       "id": "AP-DELIVERY-001",
@@ -105,24 +88,17 @@
       "id": "AP-PROMOTION-001",
       "version": 2,
       "sha256": "07b53035fd705affe21ca1b0c07a2b766bc91fe45bc83c036c5c335577a08f93"
-    },
-    {
-      "id": "AP-LICENSE-001",
-      "version": 1,
-      "sha256": "cc490313be0b53952c4adfd390600e243c3dfeb14713de9088fdcb8f99e874ac"
-    },
-    {
-      "id": "AP-FORK-001",
-      "version": 2,
-      "sha256": "11847b012a06b859b42c01c5aa3f4a2fb1d079cb25de80f27c3b129ae4f4780e"
-    },
-    {
-      "id": "AP-FORK-002",
-      "version": 2,
-      "sha256": "4d527d23672d2541e9f8b0ba0d83613ba715bfe6e7870437eccc4bf267d0bb4d"
     }
   ],
-  "exceptions": [],
+  "exceptions": [
+    {
+      "approved_at": "2026-10-22",
+      "approved_by": "Lucca",
+      "protocol": "AP-PLAN-001",
+      "reason": "Lucca removed the limit; a run may claim, update, implement and close several issues in sequence, and the rest of AP-PLAN-001 still applies.",
+      "scope": "the at-most-one-issue limit on a writing run"
+    }
+  ],
   "overlay": {
     "sha256": "c743b8397cffd1b010052f77663c52d6fca17c25c6dd63c743b5a8df0a9b10f4"
   }
