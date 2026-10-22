@@ -40,11 +40,11 @@ On x86_64 Linux, Nova also installs without Nix. The installer verifies the
 release checksum and installs under `~/.local/share/yazelix-nova`:
 
 ```sh
-curl -LsSf https://github.com/Yazelix/nova/releases/latest/download/install.sh | sh
+curl -LsSf https://nova.yazelix.com/install | sh
 ```
 
-To read it first, download it with `curl -LsSfO` on the same URL, then run
-`sh install.sh`. The Nix-free install has no Rio, so open Nova with `yzx enter`
+To read it first, run `curl -LsSfo install.sh https://nova.yazelix.com/install`,
+then `sh install.sh`. The Nix-free install has no Rio, so open Nova with `yzx enter`
 in your terminal.
 
 Open Nova through its packaged Rio terminal:
@@ -165,6 +165,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **36,065 code/configuration lines** and **6,320 documentation/text
+Yazelix owns **36,065 code/configuration lines** and **6,319 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.
