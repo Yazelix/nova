@@ -577,7 +577,8 @@ site redirect to `releases/latest/download/install.sh`.
   is never replaced when it points elsewhere; the refusal names its target. The
   installer edits no shell startup file. When the bin directory is not on
   `PATH` it prints the line for `$SHELL` (bash, zsh, fish, Nushell, else
-  `~/.profile`). When another `yzx` is on `PATH`, it says which one shells run.
+  `~/.profile`). When another `yzx` is on `PATH`, it says which one shells run,
+  and how to put this one first when the other wins.
 - Output: the version, a download line, then `✓ Installed` and the next steps
   `yzx enter`, `yzx tutor begin`, the docs URL and `yzx doctor`. Steps use the
   link's path when plain `yzx` would not run this install. A terminal gets a

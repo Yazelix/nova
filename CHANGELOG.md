@@ -9,7 +9,8 @@ Edge and Main collect the next version's changes under Unreleased.
 - `yzx doctor` warns when the first `yzx` on `PATH` is another install, such
   as a stale archive or a Nix profile, and notes one it shadows. The
   installer names what a blocking `~/.local/bin/yzx` points to, and says
-  which `yzx` shells run when another one is on `PATH`.
+  which `yzx` shells run when another one is on `PATH`, and how to put this
+  one first when the other wins.
 
 - The Nix-free installer prints a short summary: a progress bar, an unpacking
   line, then `✓ Installed` with the commands to start (`yzx enter`), learn

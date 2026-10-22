@@ -154,6 +154,7 @@ other_yzx() {
         note "yzx runs this install, ahead of $(tilde "$other")"
     else
         note "plain yzx runs $(tilde "$other") instead"
+        [ -z "$on_path" ] || note "Put $(tilde "$bin") ahead of it on PATH, or remove the other yzx"
     fi
 }
 
@@ -165,8 +166,8 @@ summary() {
     printf '\n%s✓%s Installed %sYazelix Nova %s%s\n\n' "$green" "$reset" "$bold" "$version" "$reset"
     row Start "$cmd enter" "opens Nova in this terminal"
     case ":$PATH:" in
-        *":$bin:"*) ;;
-        *) path_help ;;
+        *":$bin:"*) on_path=1 ;;
+        *) on_path='' && path_help ;;
     esac
     other_yzx
     row Learn "$cmd tutor begin" "run it inside Nova"

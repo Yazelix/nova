@@ -226,7 +226,8 @@ Downloading 1 MB
                       f"          yzx runs this install, ahead of {nix}/yzx\n", ahead.stdout)
         behind = self.run_installer(environment={"PATH": f"{self.tools}:{nix}:{self.bin}:/usr/bin:/bin"})
         self.assertIn(f"  Start   ~/.local/bin/yzx enter          opens Nova in this terminal\n"
-                      f"          plain yzx runs {nix}/yzx instead\n", behind.stdout)
+                      f"          plain yzx runs {nix}/yzx instead\n"
+                      f"          Put ~/.local/bin ahead of it on PATH, or remove the other yzx\n", behind.stdout)
 
     def test_terminal_output_draws_progress_and_honors_no_color(self):
         # An empty NO_COLOR keeps color; an unusable archive size drops the bar.
