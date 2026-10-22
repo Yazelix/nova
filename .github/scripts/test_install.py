@@ -152,7 +152,7 @@ class InstallerTests(unittest.TestCase):
 
         self.bin.mkdir(parents=True)
         (self.bin / "yzx").symlink_to("/nix/profile/bin/yzx")
-        self.assertIn("is not this installer's link", self.run_installer().stderr)
+        self.assertIn("is not this installer's link (it points to /nix/profile/bin/yzx)", self.run_installer().stderr)
         (self.bin / "yzx").unlink()
         foreign = self.base / "documents"
         foreign.mkdir()
@@ -184,6 +184,20 @@ class InstallerTests(unittest.TestCase):
                                      environment={"PATH": f"{self.tools}:{bin}:/usr/bin:/bin"})
         self.assertEqual(on_path.returncode, 0, on_path.stderr)
         self.assertNotIn("is not on PATH", on_path.stdout)
+
+    def test_names_another_yzx_on_path(self):
+        self.release("1.4.0")
+        nix = self.base / "nix bin"
+        nix.mkdir()
+        (nix / "yzx").write_text("#!/bin/sh\n")
+        (nix / "yzx").chmod(0o755)
+        ahead = self.run_installer(environment={"PATH": f"{self.tools}:{self.bin}:{nix}:/usr/bin:/bin"})
+        self.assertIn(f"yzx now runs this install, ahead of {nix}/yzx", ahead.stdout)
+        behind = self.run_installer(environment={"PATH": f"{self.tools}:{nix}:{self.bin}:/usr/bin:/bin"})
+        self.assertIn(f"yzx still runs {nix}/yzx, which PATH lists first", behind.stdout)
+        alone = self.run_installer(environment={"PATH": f"{self.tools}:{self.bin}:/usr/bin:/bin"}).stdout
+        self.assertNotIn("yzx now runs", alone)
+        self.assertNotIn("yzx still runs", alone)
 
     @unittest.skipUnless(shutil.which("shellcheck"), "shellcheck is not installed")
     def test_posix_shell_lint(self):

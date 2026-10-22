@@ -6,6 +6,11 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- `yzx doctor` warns when the first `yzx` on `PATH` is another install, such
+  as a stale archive or a Nix profile, and notes one it shadows. The
+  installer names what a blocking `~/.local/bin/yzx` points to, and says
+  which `yzx` shells run when another one is on `PATH`.
+
 ## 1.5.0
 
 - Nova installs without Nix on x86_64 Linux. Each release publishes

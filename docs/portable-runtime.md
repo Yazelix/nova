@@ -574,9 +574,11 @@ site redirect to `releases/latest/download/install.sh`.
   `bin/yzx --version` before `current` is atomically repointed. Any failure
   leaves the selected version running and removes the temporary download.
 - Command: `~/.local/bin/yzx` (or `--bin-dir`) links to `current/bin/yzx` and
-  is never replaced when it points elsewhere. The installer edits no shell
-  startup file. When the bin directory is not on `PATH` it prints the line for
-  `$SHELL` (bash, zsh, fish, Nushell, else `~/.profile`) and the absolute path.
+  is never replaced when it points elsewhere; the refusal names its target. The
+  installer edits no shell startup file. When the bin directory is not on
+  `PATH` it prints the line for `$SHELL` (bash, zsh, fish, Nushell, else
+  `~/.profile`) and the absolute path. When another `yzx` is on `PATH`, it
+  says which one shells run.
 - Lifecycle: re-running upgrades; an earlier `--version` rolls back. Old
   versions stay until `--uninstall`, which removes only an installer-marked
   root and a `yzx` link that points into it. Nova configuration and state are

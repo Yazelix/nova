@@ -73,6 +73,23 @@ path_help() {
     esac
 }
 
+# Shells run the first yzx on PATH; name any other install so the choice is visible.
+other_yzx() {
+    other=$(
+        IFS=:
+        set -f
+        for dir in $PATH; do
+            [ ! -x "$dir/yzx" ] || [ "$(readlink "$dir/yzx")" = "$selected" ] || { printf '%s' "$dir/yzx" && break; }
+        done
+    )
+    [ -n "$other" ] || return 0
+    if [ "$(readlink "$(command -v yzx)")" = "$selected" ]; then
+        say "yzx now runs this install, ahead of $other on PATH"
+    else
+        say "yzx still runs $other, which PATH lists first; run $link or remove the other install"
+    fi
+}
+
 cleanup() {
     if [ -n "${work:-}" ] && [ -d "$work" ]; then
         chmod -R u+w "$work" 2>/dev/null || true
@@ -106,8 +123,9 @@ install() {
         command -v "$tool" >/dev/null 2>&1 || fail "the installer needs $tool"
     done
     if [ -e "$link" ] || [ -L "$link" ]; then
-        { [ -L "$link" ] && [ "$(readlink "$link")" = "$selected" ]; } ||
-            fail "$link exists and is not this installer's link; move it or pass --bin-dir"
+        points=$(readlink "$link") || points=''
+        [ "$points" = "$selected" ] ||
+            fail "$link exists and is not this installer's link${points:+ (it points to $points)}; move it or pass --bin-dir"
     fi
     if [ ! -f "$marker" ] && [ -d "$root" ] && [ -n "$(ls -A "$root")" ]; then
         fail "$root is not empty and was not created by this installer; pass another --install-root"
@@ -165,6 +183,7 @@ install() {
         *":$bin:"*) ;;
         *) path_help ;;
     esac
+    other_yzx
     say "Check the host with 'yzx doctor', then open a workspace in this terminal with 'yzx enter'."
     say "Release provenance: download $url/$name and run 'gh attestation verify $name --repo Yazelix/nova'."
 }

@@ -4,7 +4,7 @@ use std::{
     fmt::Display,
     fs,
     io::{self, IsTerminal},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -95,6 +95,7 @@ pub(crate) fn print_doctor(verbose: bool) -> Result<(), AppError> {
     }
 
     doctor_section("Cleanup");
+    doctor_path_yzx();
     let residue = classic_residue_lines(&runtime.config_home, &runtime.state_dir);
     if residue.is_empty() {
         doctor_ok("Classic residue", "none found");
@@ -391,4 +392,68 @@ fn classic_residue_line(path: &Path, ownership: &str) -> String {
         "warn classic residue: ownership={ownership} nova=unused path={}",
         path.display()
     )
+}
+
+// Shells run the first yzx on PATH; name it when it is another install.
+fn doctor_path_yzx() {
+    let (Ok(this), Some(path)) = (env::current_exe(), env::var_os("PATH")) else {
+        return;
+    };
+    match path_yzx_report(&this, env::split_paths(&path)) {
+        Some((true, message)) => doctor_warn("PATH", message),
+        Some((false, message)) => doctor_info("PATH", message),
+        None => {}
+    }
+}
+
+fn path_yzx_report(this: &Path, dirs: impl Iterator<Item = PathBuf>) -> Option<(bool, String)> {
+    let this = fs::canonicalize(this).ok()?;
+    let mut found = dirs
+        .map(|dir| dir.join("yzx"))
+        .filter(|path| executable_file(path))
+        .filter_map(|path| fs::canonicalize(path).ok());
+    let first = found.next()?;
+    if first != this {
+        return Some((
+            true,
+            format!("yzx runs {} first, not this install", first.display()),
+        ));
+    }
+    found.find(|path| *path != this).map(|other| {
+        (
+            false,
+            format!("{} is also on PATH, after this install", other.display()),
+        )
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::{PermissionsExt, symlink};
+
+    #[test]
+    fn path_report_names_a_shadowing_or_shadowed_yzx() {
+        let root = env::temp_dir().join(format!("yzx-path-{}", std::process::id()));
+        let (this, other, linked) = (root.join("this"), root.join("other"), root.join("linked"));
+        for dir in [&this, &other, &linked] {
+            fs::create_dir_all(dir).unwrap();
+        }
+        for yzx in [this.join("yzx"), other.join("yzx")] {
+            fs::write(&yzx, "#!/bin/sh\n").unwrap();
+            fs::set_permissions(&yzx, fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        symlink(this.join("yzx"), linked.join("yzx")).unwrap();
+        let report = |dirs: &[&PathBuf]| {
+            path_yzx_report(&this.join("yzx"), dirs.iter().map(|dir| (*dir).clone()))
+        };
+        let other_yzx = fs::canonicalize(other.join("yzx")).unwrap();
+
+        let (warn, message) = report(&[&other, &linked]).unwrap();
+        assert!(warn && message.contains(other_yzx.to_str().unwrap()));
+        let (warn, message) = report(&[&linked, &this, &other]).unwrap();
+        assert!(!warn && message.contains(other_yzx.to_str().unwrap()));
+        assert_eq!(report(&[&linked, &this, &root]), None);
+        fs::remove_dir_all(root).unwrap();
+    }
 }
