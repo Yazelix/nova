@@ -25,7 +25,7 @@ case $url in
     {releases}/download/nova-v*) version=${{url#{releases}/download/nova-v}}; file=$FIXTURE/${{version%%/*}}/${{url##*/}} ;;
     *) exit 6 ;;
 esac
-[ -f "$file" ] || exit 22
+[ -f "$file" ] || {{ echo "curl: (22) The requested URL returned error: 404" >&2; exit 22; }}
 cat "$file" > "$out"
 """.format(releases=RELEASES)
 
@@ -77,11 +77,26 @@ class InstallerTests(unittest.TestCase):
         (self.fixture / "latest").write_text(version)
         return directory
 
-    def run_installer(self, *arguments, script=None, environment=None, stdout=subprocess.PIPE, shell=("sh",)):
+    def run_installer(self, *arguments, script=None, environment=None, stdout=subprocess.PIPE,
+                      stderr=subprocess.PIPE, shell=("sh",)):
         env = {"PATH": f"{self.tools}:/usr/bin:/bin", "HOME": str(self.home), "SHELL": "/bin/bash",
                "FIXTURE": str(self.fixture), **(environment or {})}
         return subprocess.run([*shell, "-s", "--", *arguments], input=INSTALLER.read_text() if script is None else script,
-                              env=env, cwd=self.base, text=True, stdout=stdout, stderr=subprocess.PIPE, timeout=60)
+                              env=env, cwd=self.base, text=True, stdout=stdout, stderr=stderr, timeout=60)
+
+    def run_on_terminal(self, environment=None, shell=("sh",)):
+        """Run with stdout and stderr on a pty; return the result and the raw screen."""
+        primary, secondary = pty.openpty()
+        result = self.run_installer(environment=environment, stdout=secondary, stderr=secondary, shell=shell)
+        os.close(secondary)
+        output = b""
+        try:
+            while chunk := os.read(primary, 4096):
+                output += chunk
+        except OSError:  # Linux reports EIO once the installer has closed the terminal.
+            pass
+        os.close(primary)
+        return result, output.decode()
 
     def installed(self):
         link = self.bin / "yzx"
@@ -240,19 +255,8 @@ Downloading 1 MB
             with self.subTest(shell=shell, no_color=no_color, size=size):
                 shutil.rmtree(self.fixture / "1.4.0", ignore_errors=True)
                 self.release("1.4.0", size=size)
-                primary, secondary = pty.openpty()
-                result = self.run_installer(environment={"NO_COLOR": no_color} if no_color is not None else {},
-                                            stdout=secondary, shell=shell)
-                os.close(secondary)
-                output = b""
-                try:
-                    while chunk := os.read(primary, 4096):
-                        output += chunk
-                except OSError:  # Linux reports EIO once the installer has closed the terminal.
-                    pass
-                os.close(primary)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                screen = output.decode()
+                result, screen = self.run_on_terminal({"NO_COLOR": no_color} if no_color is not None else {}, shell)
+                self.assertEqual(result.returncode, 0, screen)
                 if size is None:
                     self.assertIn("\rDownloading 1 MB ", screen)
                     self.assertIn("━" * 30, screen)
@@ -264,6 +268,14 @@ Downloading 1 MB
                 self.assertIn("\r\nUnpacking and checking…\r\n\x1b[A\x1b[K\r\n✓ Installed", plain)
                 lines = re.sub("\x1b\\[[AK]", "", plain).replace("\r\n", "\n").split("\n")
                 self.assertLessEqual(max(len(line.rsplit("\r", 1)[-1]) for line in lines), 80)
+
+    def test_download_error_follows_the_ended_bar(self):
+        (self.release("1.4.0") / NAME.format("1.4.0")).unlink()
+        result, screen = self.run_on_terminal()
+        self.assertEqual(result.returncode, 1)
+        plain = re.sub("\x1b\\[[0-9]*m", "", screen)
+        self.assertRegex(plain, f"\r[^\r\n]* 0%\r\ncurl: \\(22\\) [^\r\n]*404\r\n"
+                                f"nova-install: error: could not download {re.escape(NAME.format('1.4.0'))} [^\r\n]*\r\n$")
 
     @unittest.skipUnless(shutil.which("shellcheck"), "shellcheck is not installed")
     def test_posix_shell_lint(self):

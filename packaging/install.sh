@@ -56,7 +56,12 @@ fetch() {
 verified() {
     hash=$(awk -v name="$1" '$2 == name { print $1 }' "$work/SHA256SUMS")
     [ -n "$hash" ] || fail "release $version lists no checksum for $1"
-    fetch --output "$work/$1" "$url/$1" || fail "could not download $1 from release $version"
+    # curl's messages would break into a running bar, so only a failure prints them, after it ends.
+    if ! fetch --output "$work/$1" "$url/$1" 2> "$work/fetch.log"; then
+        stop_bar
+        cat "$work/fetch.log" >&2
+        fail "could not download $1 from release $version"
+    fi
     actual=$(sha256sum < "$work/$1")
     [ "${actual%% *}" = "$hash" ] || fail "$1 does not match its published SHA-256; nothing was installed"
 }
