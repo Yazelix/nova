@@ -6,6 +6,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+## 2.0.0
+
 - `yzx doctor` warns when the first `yzx` on `PATH` is another install, such
   as a stale archive or a Nix profile, and notes one it shadows. The
   installer names what a blocking `~/.local/bin/yzx` points to, and says
