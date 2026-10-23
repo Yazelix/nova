@@ -1,0 +1,12 @@
+--- a/source-git-0/zellij-client-0.46.0/src/cli_client.rs
++++ b/source-git-0/zellij-client-0.46.0/src/cli_client.rs
+@@ -368,7 +368,8 @@
+ ) -> i32 {
+     let request = request.prepare();
+     let is_piped = !os_input.stdin_is_terminal();
+-    if !is_piped {
++    // A payload given on the command line is the whole message, as the CLI help says.
++    if !is_piped || payload.is_some() {
+         return drive_pipe(os_input, &request, std::iter::once(payload));
+     }
+     drive_streaming_pipe(os_input, &request, payload, b'\n', false)

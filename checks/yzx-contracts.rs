@@ -2766,7 +2766,12 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "\n                command_marker \"/yzx-agent\"\n                preserve_terminal_title true\n                toggle_close_behavior \"hide\"",
         ),
         ("git", "git_popup", "/bin/yzx-git", ""),
-        ("menu", "menu_popup", "/bin/yzx-menu", ""),
+        (
+            "menu",
+            "menu_popup",
+            "/bin/yzx-menu",
+            "\n                arg_1 \"--popup\"",
+        ),
         (
             "screen",
             "anima",

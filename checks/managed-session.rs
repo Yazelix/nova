@@ -145,6 +145,23 @@ fn main() {
         "popup plugin never closed the menu",
         |screen| !screen.contains("menu_popup"),
     );
+    // A finished menu entry closes the menu; the second round restores the hints.
+    for _ in 0..2 {
+        terminal.tmux(&["send-keys", "-t", "clients:0", "M-M"]);
+        wait(
+            &terminal,
+            20,
+            "popup plugin never reopened the menu",
+            |screen| screen.contains("Command Palette"),
+        );
+        terminal.tmux(&["send-keys", "-t", "clients:0", "bottom-hints", "Enter"]);
+        wait(
+            &terminal,
+            20,
+            "menu stayed open after bottom-hints",
+            |screen| !screen.contains("menu_popup"),
+        );
+    }
     // New-pane keys follow the tab's workspace root, not the focused shell's cwd.
     let work = work.canonicalize().unwrap();
     let focused_shell = || {
@@ -228,7 +245,7 @@ fn main() {
             shell,
             "-c",
             &format!(
-                "{yzx_text} status --json > {probe_text}/status; {yzx_text} doctor > {probe_text}/doctor 2>&1; echo $? > {probe_text}/done"
+                "{yzx_text} status --json > {probe_text}/status; {yzx_text} reveal {probe_text} > {probe_text}/reveal 2>&1; echo $? >> {probe_text}/reveal; {yzx_text} doctor > {probe_text}/doctor 2>&1; echo $? > {probe_text}/done"
             ),
         ],
         None,
@@ -236,8 +253,14 @@ fn main() {
     wait(
         &terminal,
         30,
-        "in-session status and doctor never finished",
+        "in-session status, reveal and doctor never finished",
         |_| fs::read_to_string(probe.join("done")).is_ok_and(|code| code.ends_with('\n')),
+    );
+    // Helpers pipe without a terminal on stdin; the popup must answer exactly once.
+    assert_eq!(
+        fs::read_to_string(probe.join("reveal")).unwrap(),
+        "0\n",
+        "yzx reveal failed inside the session"
     );
     let doctor = fs::read_to_string(probe.join("doctor")).unwrap();
     assert_eq!(
@@ -259,7 +282,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu, Alt m and pane-mode r opened shells at the workspace root, and in-session status and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
         rendered.as_secs_f32()
     );
 }

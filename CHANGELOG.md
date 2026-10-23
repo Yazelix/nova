@@ -22,6 +22,14 @@ Edge and Main collect the next version's changes under Unreleased.
   Color appears only on a terminal and respects `NO_COLOR`. The provenance
   command moved to `install.sh --help`. Uninstall output is equally short.
 
+- Helix's `Alt r` reveal no longer reports `persistent Yazi popup reveal
+  failed: openedinvalid_payload` after a file is opened from Yazi. The
+  packaged Zellij sends a command-line pipe payload once instead of also
+  reading stdin.
+
+- The command menu closes after an entry finishes, instead of staying open
+  on `[EXIT CODE: 0]`.
+
 ## 1.5.0
 
 - Nova installs without Nix on x86_64 Linux. Each release publishes

@@ -37,15 +37,28 @@ const COMMANDS: &[(&str, &str, &str)] = &[
 ];
 
 fn main() {
-    exit(run());
+    let popup = match env::args_os().skip(1).collect::<Vec<_>>().as_slice() {
+        [] => false,
+        [flag] if flag == "--popup" => true,
+        _ => {
+            eprintln!("yzx-menu accepts only --popup");
+            exit(64);
+        }
+    };
+    let (code, id) = run();
+    // Zellij keeps an exited command pane open; a successful workspace entry already
+    // replaced the menu with Yazi.
+    if popup && (id != Some("workspace") || code != 0) {
+        let _ = Command::new(zellij_binary())
+            .args([
+                "action", "pipe", "--plugin", "yzpp", "--name", "close", "--", "menu",
+            ])
+            .output();
+    }
+    exit(code);
 }
 
-fn run() -> i32 {
-    if env::args_os().len() > 1 {
-        eprintln!("yzx-menu does not accept arguments");
-        return 64;
-    }
-
+fn run() -> (i32, Option<&'static str>) {
     let interactive = io::stdin().is_terminal() && io::stdout().is_terminal();
     let selection = if interactive {
         select_with_fzf()
@@ -54,12 +67,12 @@ fn run() -> i32 {
         read_selection()
     };
     let Some(selection) = selection else {
-        return 0;
+        return (0, None);
     };
     let Some(id) = selected_command(selection.trim()) else {
         eprintln!("Unknown menu selection: {selection}");
         pause_if_tty(interactive);
-        return 64;
+        return (64, None);
     };
 
     let code = if id == "workspace" {
@@ -84,7 +97,7 @@ fn run() -> i32 {
     if !matches!(id, "workspace" | "layout" | "bottom-hints") || code != 0 {
         pause_if_tty(interactive);
     }
-    code
+    (code, Some(id))
 }
 
 fn orchestrator_action(name: &str, payload: &str, action: &str) -> i32 {

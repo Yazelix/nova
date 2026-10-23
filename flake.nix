@@ -779,7 +779,10 @@
             src = ./crates/zellij-distribution;
             hash = "sha256-MDnAwJ2hGIzOvItk55ACuWX5+NFCjzhVG1FhaWKQKaU=";
           };
-          patches = [./crates/zellij-distribution/zellij-background-startup.patch];
+          patches = [
+            ./crates/zellij-distribution/zellij-background-startup.patch
+            ./crates/zellij-distribution/zellij-pipe-payload.patch
+          ];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";

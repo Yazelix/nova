@@ -64,6 +64,7 @@ plugins {
             menu {
                 command "@yzxMenu@"
                 pane_title "menu_popup"
+                arg_1 "--popup"
             }
 
             screen {
