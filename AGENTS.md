@@ -8,13 +8,13 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `deac6a634718f4c9fa4d413dde642bab6585763f`
+- Source commit: `ea6da7755ab1a1ec5807b728aaf17eba1b0fbd89`
 - Profiles: `regular`, `release`
 - Manifest: `.agent-protocols.json` (schema 1)
 
 | Protocol | Version | SHA-256 |
 | --- | ---: | --- |
-| `AP-SCOPE-001` | 5 | `f68b0606986b0ac083a0c7949e1b2ab5d34150e0f906ddae226b9d5429ee115a` |
+| `AP-SCOPE-001` | 6 | `2972d9576f247864ca734982b95743b533b455f1b95d30c5127872e845cb7f28` |
 | `AP-CONTRACT-001` | 5 | `4e3695ec39a6d1eb01a18930d0ce3ed3241078b4dfefbee4f2e295e74fd13d1f` |
 | `AP-REFERENCE-001` | 4 | `906bcda869549979647d20e957ff48909fa5f36024f584be6657bdc058d58e72` |
 | `AP-MINIMAL-001` | 7 | `e8e671b46a04502f59d366a726cb94c8a91d279de238501c0a0a0de5a826cc61` |
@@ -22,8 +22,9 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
 | `AP-PROOF-001` | 11 | `310e1f798c3334e08402f9e42f447ae9352d171fc92888afb141c6b228f84e56` |
-| `AP-PLAN-001` | 12 | `5ee8deccb4b3c61ddd4a52b8ed6f69ebd30e24b65ace867871a89c75ef02a984` |
-| `AP-SESSION-001` | 4 | `51c15e878070caaf372721c2eb083354f5f63492f5c4e694cf31aaefcefa53a7` |
+| `AP-PLAN-001` | 13 | `8e681ed8e09fcb4943063f8e81e95dc8dc6ce261018b030ac886e345faa2d7a8` |
+| `AP-SESSION-001` | 5 | `a651730e4124193bf1ae02939862a25084a6c6ba9acc557f4c053df53747084d` |
+| `AP-COORDINATOR-001` | 1 | `bd80e64f9b50e617a37531c5e48e0bc2672397edbd2f75c1e511d588954432c7` |
 | `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
 | `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
 | `AP-PERF-001` | 2 | `671ba2f59620007d1a0c7338056af7a2010ea1bd2c8320dcb06c342aaca385fa` |
@@ -33,8 +34,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 
 ### Local exceptions
 
-- `AP-PLAN-001` in the at-most-one-issue limit on a writing run: Lucca removed the limit; a run may claim, update, implement and close several issues in sequence, and the rest of AP-PLAN-001 still applies.
-  Approved by Lucca on 2026-10-22; review condition: none recorded.
+No local exceptions.
 
 ## Canonical protocols
 
@@ -47,9 +47,10 @@ Implement only a chosen outcome.
 Never silently add features, migrations, repositories, or planning items.
 Preserve user inputs and artifacts; replace or delete an exact target only when
 required, else write a distinct result. State consequential assumptions; stop
-when a missing scope choice would materially change the result. Recommend and
-justify an answer to every choice. “Finish” adds persistence, not authority.
-Report out-of-scope findings unless the user chose a durable home.
+when a missing scope choice would materially change the result. Put every
+pending choice in one numbered list, each with a recommendation and its reason.
+“Finish” adds persistence, not authority. Report out-of-scope findings unless
+the user chose a durable home.
 
 ### AP-CONTRACT-001 — Contract-driven changes
 
@@ -159,13 +160,15 @@ not command catalogs unless the boundary/transition needs them.
 A run includes continuations until control returns; reads are unrestricted. A
 writing run does exactly one:
 
-1. Owns at most one issue and may create/claim/update/implement/close it.
+1. Works issues in sequence, one in progress at a time, and may
+   create/claim/update/implement/close each; finishes or hands off one
+   before claiming the next.
 2. With explicit user authorization, changes a named/accepted planning-only
    batch; claims nothing and changes no implementation.
 
-Bind implementation before writes; return at completion, block, or handoff.
-Report unapproved findings; create issues only for material out-of-scope or
-schedulable work, deferred outside authorized batches.
+Bind each issue before its first write; return at completion, block, or
+handoff. Report unapproved findings; create issues only for material
+out-of-scope or schedulable work, deferred outside authorized batches.
 
 Keep fields current; append only needed contracts, decisions, dependencies,
 acceptance, material failures/negatives, constraining rejections, and approvals.
@@ -184,16 +187,30 @@ otherwise.
 Budget absolute context tokens, not window share; if the host reports none,
 estimate high:
 
-- From 400k, add no scope or new steps: close the issue if it can close by
-  600k, else bring work in progress to a verified state and hand off.
-- Past 600k, continue only to reach an imminent verified state or keep live
-  state that cannot be written down; record why on the issue.
-- Hand off before the host would compact. After any compaction, reread the
-  issue and hand off.
+- From 300k, add no scope or new steps: close the issue if it can
+  close soon, else bring work in progress to a verified state and
+  hand off.
+- Never pass 400k: hand off before the host would compact. After any
+  compaction, reread the issue and hand off.
 
 A handoff is an issue comment: state, next step, and open decisions with
 reasons. The next session primes, e.g. "prime, then continue <issue> from its
 handoff".
+
+### AP-COORDINATOR-001 — One coordinator across agent sessions
+
+When several agent sessions share a repository or machine, the user may name
+one coordinator session. It orders landings on the shared branch, freezes the
+branch during a final proof, schedules heavy runs and installs against machine
+load, and starts, briefs, and retires sessions. Other sessions follow its
+schedule and report their state, blocks, and pending user choices to it.
+
+The coordinator may relay user decisions, approvals included. A relayed
+decision binds only when the message quotes the user's words and names exactly
+what was approved. The receiver records it as relayed, with the date. The
+coordinator never decides for the user, never answers a host permission
+prompt, and never asks a session to do what its own permissions block. When a
+relay is ambiguous, the receiver asks the user directly.
 
 ### AP-EXCEPTION-001 — Explicit local exceptions
 
