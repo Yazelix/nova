@@ -8,7 +8,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `ea6da7755ab1a1ec5807b728aaf17eba1b0fbd89`
+- Source commit: `dee2886405d6c0e0d68d6ee8fb9d8ac663ce64b3`
 - Profiles: `regular`, `release`
 - Manifest: `.agent-protocols.json` (schema 1)
 
@@ -22,7 +22,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-OWNERSHIP-001` | 2 | `d218a4e0625b659ec366284110bdfce02bd66cb229ab6ba07f2317092ea13053` |
 | `AP-TEST-001` | 4 | `1c1c5eafa1f611fd7575ecf00b32a2068a477614c8be78ac4efa41630ec8b5ad` |
 | `AP-PROOF-001` | 11 | `310e1f798c3334e08402f9e42f447ae9352d171fc92888afb141c6b228f84e56` |
-| `AP-PLAN-001` | 13 | `8e681ed8e09fcb4943063f8e81e95dc8dc6ce261018b030ac886e345faa2d7a8` |
+| `AP-PLAN-001` | 14 | `e759edf249af38d1b0424e8b0f10eb74e981b809a90abd953f70cc5324f71d94` |
 | `AP-SESSION-001` | 5 | `a651730e4124193bf1ae02939862a25084a6c6ba9acc557f4c053df53747084d` |
 | `AP-COORDINATOR-001` | 1 | `bd80e64f9b50e617a37531c5e48e0bc2672397edbd2f75c1e511d588954432c7` |
 | `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
@@ -160,9 +160,12 @@ not command catalogs unless the boundary/transition needs them.
 A run includes continuations until control returns; reads are unrestricted. A
 writing run does exactly one:
 
-1. Works issues in sequence, one in progress at a time, and may
-   create/claim/update/implement/close each; finishes or hands off one
-   before claiming the next.
+1. Works issues in sequence, and may create/claim/update/implement/close
+   each; finishes or hands off one before claiming the next. Independent
+   issues (no dependency or shared files) instead run at once, each in its
+   own isolated subagent and worktree with its own record, proof, review,
+   and commit; land them one at a time. Their temporary branches are
+   authorized; remove each worktree and branch after landing.
 2. With explicit user authorization, changes a named/accepted planning-only
    batch; claims nothing and changes no implementation.
 
