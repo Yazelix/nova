@@ -8,7 +8,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 ## Protocol import record
 
 - Source: `https://github.com/Yazelix/starcompass`
-- Source commit: `dee2886405d6c0e0d68d6ee8fb9d8ac663ce64b3`
+- Source commit: `cf812643711a2e233aeff38dbbde1ef55c8f244c`
 - Profiles: `regular`, `release`
 - Manifest: `.agent-protocols.json` (schema 1)
 
@@ -26,7 +26,7 @@ or `.agent-protocols.exceptions.json`, then render from the pinned source.
 | `AP-SESSION-001` | 5 | `a651730e4124193bf1ae02939862a25084a6c6ba9acc557f4c053df53747084d` |
 | `AP-COORDINATOR-001` | 1 | `bd80e64f9b50e617a37531c5e48e0bc2672397edbd2f75c1e511d588954432c7` |
 | `AP-EXCEPTION-001` | 2 | `2c4f00299922edac83286821af07ad485e5a630bca6acbbce918d87614abb395` |
-| `AP-GIT-001` | 5 | `f2c3254311de57a23a13aa382fe3285e65bb34e535ecd813d1be783ca79d4bf9` |
+| `AP-GIT-001` | 6 | `2341e365f6f2e20e63484b0d33070141306348d2681920f5a1ab78a06f48dab7` |
 | `AP-PERF-001` | 2 | `671ba2f59620007d1a0c7338056af7a2010ea1bd2c8320dcb06c342aaca385fa` |
 | `AP-CI-001` | 3 | `c7cb65a81ce8434d02f2d19306bf93358f3624d0b77886bc91d4de93f7a779ba` |
 | `AP-DELIVERY-001` | 3 | `b6b0944ba57587204fd5f8f42daf69f7ff46486281056c99f2b403e8278366ee` |
@@ -234,6 +234,10 @@ release, or pin), commit corrections separately. Never reset, discard,
 force-push, rewrite published history, or create a branch without authority.
 Verify intended diff before commit and remote state after push. Roll back with a
 reviewed revert unless local policy says otherwise.
+
+A session's own worktree goes in the repository's git-ignored
+`.worktrees/<issue-id>`, on an authorized branch of that name; remove both
+after landing.
 
 ### AP-PERF-001 — Measured performance work
 
