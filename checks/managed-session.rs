@@ -154,7 +154,18 @@ fn main() {
             "popup plugin never reopened the menu",
             |screen| screen.contains("Command Palette"),
         );
-        terminal.tmux(&["send-keys", "-t", "clients:0", "bottom-hints", "Enter"]);
+        terminal.tmux(&["send-keys", "-t", "clients:0", "bottom-hints"]);
+        // fzf accepts the row under its cursor, which can predate the final query's match.
+        // The workspace row still matches the prefixes up to "bott".
+        wait(
+            &terminal,
+            20,
+            "menu never filtered to bottom-hints",
+            |screen| {
+                screen.contains("Toggle bottom hints") && !screen.contains("Set the tab folder")
+            },
+        );
+        terminal.tmux(&["send-keys", "-t", "clients:0", "Enter"]);
         wait(
             &terminal,
             20,

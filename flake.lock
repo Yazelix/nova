@@ -205,14 +205,15 @@
     },
     "kinestra": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_2",
+        "wdotool": "wdotool"
       },
       "locked": {
-        "lastModified": 1788577505,
-        "narHash": "sha256-GMHabp+fChj4ZZee51VwgpITd1T4FYjj67vYm/Pa0GU=",
+        "lastModified": 1793575498,
+        "narHash": "sha256-HjbYWWyomGr/LeIjIFqknKHx09vYoV0kHGwDSIImlZk=",
         "owner": "Yazelix",
         "repo": "kinestra",
-        "rev": "a7ca134d9c47f660e2a3f59d64f2225382fba9cd",
+        "rev": "7626544c24085521100a9b6320ccf0019269e242",
         "type": "github"
       },
       "original": {
@@ -560,6 +561,23 @@
         "type": "github"
       }
     },
+    "wdotool": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779523593,
+        "narHash": "sha256-V0DOznaptdFrNxtTpJZtJIVikZTXa9zacNFWceGAu+o=",
+        "owner": "cushycush",
+        "repo": "wdotool",
+        "rev": "662d7079b669de164797f46fd437c0cf7854bf82",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cushycush",
+        "repo": "wdotool",
+        "rev": "662d7079b669de164797f46fd437c0cf7854bf82",
+        "type": "github"
+      }
+    },
     "yazelixForest": {
       "flake": false,
       "locked": {
@@ -614,11 +632,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792342376,
-        "narHash": "sha256-5al890DsaAqsllrYPnFwc19gxDdCfMZO/DTnTd9k+hM=",
+        "lastModified": 1793577149,
+        "narHash": "sha256-06+wl4CTdNzHvi9jZz/Vs0gNnDQMdXbIP7NwWIYe28E=",
         "owner": "Yazelix",
         "repo": "anima",
-        "rev": "0f2ecd87603c447a535ff88b82d9939bf787a1ef",
+        "rev": "52fefc402969e05980acf9f367274d00e45bdeb5",
         "type": "github"
       },
       "original": {
