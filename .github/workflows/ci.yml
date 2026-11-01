@@ -36,6 +36,9 @@ jobs:
             max-jobs = 2
             cores = 2
 
+      - name: Show runner kernel
+        run: uname -sr && nproc
+
       - name: Show flake outputs
         run: nix flake show --all-systems
 
@@ -63,7 +66,7 @@ jobs:
 
       - name: Build focused checks
         run: |
-          nix build --no-link --print-build-logs \
+          nix build --no-link --print-build-logs --keep-going \
             .#checks.x86_64-linux.archive_glibc_baseline \
             .#checks.x86_64-linux.helix_grammar_sources \
             .#checks.x86_64-linux.no_helix_contracts \
