@@ -273,6 +273,14 @@ version, tag and release URL in the promotion Bead.
 
 ### Release notes
 
+A release body has two parts. The visible part is the version's
+CHANGELOG.md section, written for people: what changed and why it matters, in
+short bullets. Everything for agents and audits, meaning SOURCE-DELIVERY.md
+with the maintainer review and the native-library list, stays in the collapsed
+`<details>` block. Before tagging, render the body as
+`.github/scripts/publish_release.py` builds it and check that the visible part
+reads well on its own and holds no source or notice text.
+
 Portable Release ends each release body with this sponsorship footer, once:
 
 ```markdown
