@@ -2246,7 +2246,13 @@
         };
       in
         pkgs.runCommand "nova-helix-file-watcher-check" {} ''
-          ${pkgs.coreutils}/bin/timeout --kill-after=10s 90s ${proof}/bin/nova-helix-file-watcher-check
+          # The sandbox discards Kinestra's work directory, so print its logs when the check fails.
+          if ! ${pkgs.coreutils}/bin/timeout --kill-after=10s 90s ${proof}/bin/nova-helix-file-watcher-check; then
+            for log in "$TMPDIR"/kinestra.*/*.log "$TMPDIR"/kinestra.*/*.stdout "$TMPDIR"/kinestra.*/*.txt; do
+              [ -f "$log" ] && { echo "== $log"; tail -n 60 "$log"; }
+            done
+            exit 1
+          fi
           touch "$out"
         '';
       pane_move_ordering = let
