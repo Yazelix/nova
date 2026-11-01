@@ -557,7 +557,18 @@ keybinds clear-defaults=true {
                 "rendering:0",
             );
         }
-        c.tmux(&["send-keys", "-t", "rendering:0", "WORK", "Enter"]);
+        // Enter sent in the same burst as the query was sometimes lost on hosted runners.
+        c.tmux(&["send-keys", "-t", "rendering:0", "WORK"]);
+        c.terminal.wait(
+            || {
+                c.terminal
+                    .capture("rendering:0", false)
+                    .contains("SEARCHING: WORK")
+            },
+            "search query missing",
+            "rendering:0",
+        );
+        c.tmux(&["send-keys", "-t", "rendering:0", "Enter"]);
         c.terminal.wait(
             || {
                 let screen = c.terminal.capture("rendering:0", false);
