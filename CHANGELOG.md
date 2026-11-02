@@ -21,11 +21,16 @@ prints how to start. Nix and Home Manager installs work as before.
 
 - **Install:** Nix-free install on x86_64 Linux, and full macOS support on
   Apple Silicon through Nix.
-- **Much faster:** on Linux, switching tabs updates the top bar in about
-  45 ms instead of over 100 ms, about twice as fast. A new tab's top bar and
-  Radar sidebar appear in about 0.2 s instead of 0.5 s. A fresh terminal starts
-  14% faster. Every tab shares one Radar, so opening more tabs does not
-  multiply its work.
+- **Much faster** (measured on Linux):
+  - Switching tabs updates the top bar in about 45 ms instead of over 100 ms.
+  - A new tab's top bar and Radar sidebar appear in about 0.2 s instead of
+    0.5 s.
+  - Each Zellij mode change, such as entering pane mode, used to cost Radar
+    and the top bar about 120 ms of CPU decoding the full keymap. It now costs
+    under 2 ms.
+  - A fresh terminal starts 14% faster.
+  - Every tab shares one Radar, so opening more tabs does not multiply its
+    work.
 - **Terminal:** Nova Rio, a pinned Rio fork, replaces Mars.
 - **Radar sidebar:** tabs, panes, and running agents and jobs at a glance.
   `yzx radar-setup` connects Codex.
