@@ -3328,7 +3328,20 @@ mod tests {
         assert_eq!(choice_values(dark), choice_values(light));
         assert!(choice_values(dark).contains(&&json!("atelier-sulphurpool")));
         assert!(!choice_values(dark).contains(&&json!("atelier")));
-        assert!(!choice_values(dark).contains(&&json!("default")));
+        for theme in ["classic", "default", "default-light"] {
+            assert!(choice_values(dark).contains(&&json!(theme)));
+        }
+        write_source_field(&paths, SOURCE_ZELLIJ, "theme_dark", &json!("default")).unwrap();
+        assert!(
+            fs::read_to_string(&paths.zellij)
+                .unwrap()
+                .contains("theme_dark \"default\"")
+        );
+        write_source_default(&paths, SOURCE_ZELLIJ, "theme_dark").unwrap();
+        assert_inherited(
+            model_field(&build_model(&paths).unwrap(), "theme_dark"),
+            &json!("ansi"),
+        );
         atomic_write(
             &paths.zellij,
             "# keep\ntheme_dark \"custom {ocean}\"\ntheme_light \"custom sunrise\"\npane_frames false\n",

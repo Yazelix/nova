@@ -269,6 +269,16 @@ fn main() {
     assert!(terminal.capture("clients:1", false).contains("TWO"));
     terminal.tmux(&["send-keys", "-t", "clients:1", "C-q"]);
     terminal.wait(
+        || {
+            terminal
+                .capture("clients:1", false)
+                .contains("Close this window?")
+        },
+        "second client never showed the close confirmation",
+        "clients:1",
+    );
+    terminal.tmux(&["send-keys", "-t", "clients:1", "Up", "Enter"]);
+    terminal.wait(
         || terminal.capture("clients:1", false).contains("EXIT:0"),
         "second client did not exit cleanly",
         "clients:1",

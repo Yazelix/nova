@@ -9,7 +9,8 @@ name = "yzx-zellij"
 path = "src/main.rs"
 
 [dependencies]
-zellij = { git = "https://github.com/zellij-org/zellij", rev = "333d7898a840314e41d3cc9d2a264a1b9732bb7b" }
+# Upstream's default features without "window", its standalone GUI terminal.
+zellij = { git = "https://github.com/zellij-org/zellij", rev = "77debdeb2c48d7e3529c55dbed16c78e16ee9cf9", default-features = false, features = ["plugins_from_target", "vendored_curl", "web_server_capability"] }
 
 [profile.release]
 lto = true

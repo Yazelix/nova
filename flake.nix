@@ -23,7 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zellijSource = {
-      url = "github:zellij-org/zellij/333d7898a840314e41d3cc9d2a264a1b9732bb7b";
+      url = "github:zellij-org/zellij/77debdeb2c48d7e3529c55dbed16c78e16ee9cf9";
       flake = false;
     };
     yazelixHelix = {
@@ -772,16 +772,11 @@
         pname = "nova-zellij-distribution";
         version = "0.1.0";
         src = ./crates/zellij-distribution;
-        cargoDeps = pkgs.applyPatches {
-          src = novaZjhintsRust.fetchCargoVendor {
-            pname = "nova-zellij-distribution";
-            version = "0.1.0";
-            src = ./crates/zellij-distribution;
-            hash = "sha256-MDnAwJ2hGIzOvItk55ACuWX5+NFCjzhVG1FhaWKQKaU=";
-          };
-          patches = [
-            ./crates/zellij-distribution/zellij-background-startup.patch
-          ];
+        cargoDeps = novaZjhintsRust.fetchCargoVendor {
+          pname = "nova-zellij-distribution";
+          version = "0.1.0";
+          src = ./crates/zellij-distribution;
+          hash = "sha256-wWFV4n2Lkd/9brucWg4tNBMPUifILKiGmJvkIq7IkU4=";
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
         YZX_ORCHESTRATOR_WASM = "${yazelixZellijPaneOrchestratorPackage}/${yazelixZellijPaneOrchestratorPackage.wasmPath}";
@@ -2268,6 +2263,9 @@
         };
       in
         pkgs.runCommand "nova-pane-move-ordering-check" {} ''
+          export XDG_CACHE_HOME="$TMPDIR/cache"
+          export ZELLIJ_SOCKET_DIR="$TMPDIR/s"
+          mkdir -p "$XDG_CACHE_HOME" "$ZELLIJ_SOCKET_DIR"
           ${pkgs.coreutils}/bin/timeout --kill-after=10s 120s ${proof}/bin/nova-pane-move-ordering-check
           touch "$out"
         '';

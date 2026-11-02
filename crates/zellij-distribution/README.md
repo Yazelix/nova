@@ -1,20 +1,21 @@
 # Nova Zellij distribution
 
 Nova builds this small distribution from unreleased upstream Zellij main at
-commit `333d7898a840314e41d3cc9d2a264a1b9732bb7b`, after
-[PR #5630](https://github.com/zellij-org/zellij/pull/5630) merged its plugin API. It embeds
-Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
+commit `77debdeb2c48d7e3529c55dbed16c78e16ee9cf9`, the merge of
+[PR #5706](https://github.com/zellij-org/zellij/pull/5706), which replays cached
+startup events to background plugins that start before a client connects.
+Upstream [PR #5630](https://github.com/zellij-org/zellij/pull/5630) merged the plugin API
+Nova uses. The distribution embeds Nova Bar, Radar, popup, pane orchestrator, and `nova-zjhints` into `yzx-zellij`.
 The plugins use `zellij:` URLs and need no user permission cache entries.
 
 The native wrapper owns the effective release profile: fat LTO and one codegen
 unit match the pinned Zellij workspace's optimization settings. Cargo ignores
-profiles in dependencies. Nix strips the installed executable.
+profiles in dependencies. Nix strips the installed executable. It keeps
+upstream's default features except `window`, Zellij's standalone GUI terminal.
 
 Upstream [PR #5687](https://github.com/zellij-org/zellij/pull/5687) preserves
-relative pane order when reapplying tiled layouts. The native
-[`background startup patch`](zellij-background-startup.patch) retains startup
-callbacks until the first client connects, then replays them.
-Drop it when upstream preserves pending events across client registration.
+relative pane order when reapplying tiled layouts. Nova builds Zellij without
+patches.
 When stdin is not a terminal, upstream `action pipe -- <payload>` also streams
 stdin and ends with an empty message from the same CLI pipe. The popup and pane
 orchestrator plugins ignore that message instead of patching Zellij.

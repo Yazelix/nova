@@ -9,8 +9,11 @@ catppuccin-frappe
 catppuccin-latte
 catppuccin-macchiato
 catppuccin-mocha
+classic
 cyber-noir
 dayfox
+default
+default-light
 dracula
 everforest-dark
 everforest-light

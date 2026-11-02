@@ -738,17 +738,17 @@
     "zellijSource": {
       "flake": false,
       "locked": {
-        "lastModified": 1791555287,
-        "narHash": "sha256-rwv6KIuDt0ZOQ52t38JhUmSXV4xaD48DzxfDV4Klt9g=",
+        "lastModified": 1792395758,
+        "narHash": "sha256-YB2r2XtNJxcCz2gdcFf9H2Nh8oy7imEzdh+0HJ9B8kg=",
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "333d7898a840314e41d3cc9d2a264a1b9732bb7b",
+        "rev": "77debdeb2c48d7e3529c55dbed16c78e16ee9cf9",
         "type": "github"
       },
       "original": {
         "owner": "zellij-org",
         "repo": "zellij",
-        "rev": "333d7898a840314e41d3cc9d2a264a1b9732bb7b",
+        "rev": "77debdeb2c48d7e3529c55dbed16c78e16ee9cf9",
         "type": "github"
       }
     },

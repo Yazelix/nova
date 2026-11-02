@@ -6,6 +6,12 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Zellij runs without carried patches at upstream `77debdeb`. Its theme picker
+  includes `classic`, `default`, and `default-light`; Nova's inherited dark and
+  light themes remain `ansi` and `gruvbox-light`.
+- `Ctrl q` opens Zellij's close confirmation: Detach keeps the session running,
+  Quit ends it for every client, and Cancel returns to the workspace.
+
 ## 2.0.0
 
 Nova 2.0 is the first release you can install without Nix. On x86_64 Linux:

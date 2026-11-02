@@ -55,6 +55,11 @@ quit, detach, and cancelling the only startup picker exit successfully and close
 the window immediately. `yzx enter` keeps the direct handoff, because the host
 terminal already keeps Zellij's output.
 
+`Ctrl q` opens Zellij's close confirmation. Choose Detach to leave that client
+while the session keeps running, Quit to end the session for every client, or
+Cancel to return. Quit is preselected. The native sidecar can set `on_quit` to
+`"ask_detach"`, `"detach"`, or `"quit"` to change this policy.
+
 The managed Zellij config sets `default_layout "layout"` and points
 `layout_dir` at the directory containing the active `layout.kdl` and
 `layout.swap.kdl`. Runtime appearance, shell, or widget projection rewrites
