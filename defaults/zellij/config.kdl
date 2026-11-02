@@ -71,6 +71,8 @@ plugins {
                 command "@yzxScreen@"
                 pane_title "anima"
                 arg_1 "random"
+                arg_2 "--exclude"
+                arg_3 "accelerando"
             }
 
             yazi {

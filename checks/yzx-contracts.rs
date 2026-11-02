@@ -2776,7 +2776,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "screen",
             "anima",
             "/bin/anima",
-            "\n                arg_1 \"random\"",
+            "\n                arg_1 \"random\"\n                arg_2 \"--exclude\"\n                arg_3 \"accelerando\"",
         ),
         (
             "yazi",
