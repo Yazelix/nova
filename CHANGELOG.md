@@ -31,6 +31,15 @@ prints how to start. Nix and Home Manager installs work as before.
   - A fresh terminal starts 14% faster.
   - Every tab shares one Radar, so opening more tabs does not multiply its
     work.
+- **Upstreamed to Zellij:** Nova no longer needs its own Zellij fork.
+  Zellij's maintainer merged the fork's changes into Zellij itself, most of
+  them Lucca's fixes ([#5630](https://github.com/zellij-org/zellij/pull/5630)). Nova now runs upstream Zellij with
+  two small patches, and every Zellij user gets:
+  - Sixel and Kitty image fixes, and stacked panes that keep their order.
+  - Swap layouts applied by name, and double, heavy and dashed pane borders.
+  - Lucca's follow-up fixes: [#5631](https://github.com/zellij-org/zellij/pull/5631), [#5687](https://github.com/zellij-org/zellij/pull/5687), which keeps
+    pane order when a tiled layout is reapplied, and [#5706](https://github.com/zellij-org/zellij/pull/5706), which
+    delivers startup events to background plugins.
 - **Terminal:** Nova Rio, a pinned Rio fork, replaces Mars.
 - **Radar sidebar:** tabs, panes, and running agents and jobs at a glance.
   `yzx radar-setup` connects Codex.
@@ -50,7 +59,6 @@ prints how to start. Nix and Home Manager installs work as before.
   Enemies, and more.
 - **Tools:** Ratconfig edits Rio settings, `yzx doctor` and `yzx status` gain
   JSON output, and every shell keeps Atuin history.
-- **Under the hood:** Nova runs upstream Zellij with only a few patches.
 
 ### Since 1.5
 
