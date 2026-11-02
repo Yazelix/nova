@@ -21,23 +21,31 @@ prints how to start. Nix and Home Manager installs work as before.
 
 - **Install:** Nix-free install on x86_64 Linux, and full macOS support on
   Apple Silicon through Nix.
+- **Much faster:** on Linux, switching tabs updates the top bar in about
+  45 ms instead of over 100 ms, about twice as fast. A new tab's top bar and
+  Radar sidebar appear in about 0.2 s instead of 0.5 s. A fresh terminal starts
+  14% faster. Every tab shares one Radar, so opening more tabs does not
+  multiply its work.
 - **Terminal:** Nova Rio, a pinned Rio fork, replaces Mars.
 - **Radar sidebar:** tabs, panes, and running agents and jobs at a glance.
   `yzx radar-setup` connects Codex.
-- **Workspace keys:** new tabs open in a zoxide folder search. `Alt Shift T`
-  and `Alt Shift W` create and close tabs. `Alt j`/`Alt k` cycle panes, and
-  `Ctrl Alt h`/`j`/`k`/`l` move them. The command menu's `layout` entry
-  switches between stacked and split panes. `Alt Shift B` toggles the bottom
-  hints.
-- **Top bar:** shows more than six tabs. When tabs need room, widgets step
-  aside and return once there is space. Codex and Claude quota widgets are
-  new.
+- **Workspace keys:**
+  - New tabs open in a zoxide search of your recent folders.
+  - `Alt Shift T` and `Alt Shift W` create and close tabs.
+  - `Alt j` and `Alt k` cycle through panes.
+  - `Ctrl Alt h`/`j`/`k`/`l` move the focused pane.
+  - The command menu's `layout` entry switches between stacked and split
+    panes.
+  - `Alt Shift B` hides or shows the bottom hints.
+- **Top bar:** before, it showed at most six tabs, however wide the window.
+  Now it shows every tab that fits. When tabs need more room, the widgets on
+  the right hide one at a time and come back when space frees up. New quota
+  widgets show your Codex and Claude usage limits.
 - **Anima:** `yzx anima` adds Aquarium, Matrix, Physarum, Chladni, Friends and
   Enemies, and more.
 - **Tools:** Ratconfig edits Rio settings, `yzx doctor` and `yzx status` gain
   JSON output, and every shell keeps Atuin history.
-- **Under the hood:** faster startup on Linux, and upstream Zellij with few
-  patches.
+- **Under the hood:** Nova runs upstream Zellij with only a few patches.
 
 ### Since 1.5
 
