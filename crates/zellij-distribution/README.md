@@ -15,10 +15,9 @@ relative pane order when reapplying tiled layouts. The native
 [`background startup patch`](zellij-background-startup.patch) retains startup
 callbacks until the first client connects, then replays them.
 Drop it when upstream preserves pending events across client registration.
-The [`pipe payload patch`](zellij-pipe-payload.patch) sends `action pipe -- <payload>`
-once even when stdin is not a terminal. Upstream then also streamed stdin and sent an
-empty message at EOF, so Nova helpers run without a terminal got a second reply.
-Drop it when upstream stops reading stdin after a command-line payload.
+When stdin is not a terminal, upstream `action pipe -- <payload>` also streams
+stdin and ends with an empty message from the same CLI pipe. The popup and pane
+orchestrator plugins ignore that message instead of patching Zellij.
 The bottom-hint check covers manual rearrangements, stacked and split work areas,
 background tabs, floating popups and new-pane placement.
 

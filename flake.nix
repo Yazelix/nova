@@ -781,7 +781,6 @@
           };
           patches = [
             ./crates/zellij-distribution/zellij-background-startup.patch
-            ./crates/zellij-distribution/zellij-pipe-payload.patch
           ];
         };
         YZX_YZPP_WASM = "${yazelixZellijPopupPackage}/${yazelixZellijPopupPackage.wasmPath}";
