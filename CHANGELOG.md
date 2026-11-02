@@ -29,8 +29,9 @@ prints how to start. Nix and Home Manager installs work as before.
   `Ctrl Alt h`/`j`/`k`/`l` move them. The command menu's `layout` entry
   switches between stacked and split panes. `Alt Shift B` toggles the bottom
   hints.
-- **Top bar:** keeps every tab, dropping widgets from the right instead, and
-  adds Codex and Claude quota widgets.
+- **Top bar:** shows more than six tabs. When tabs need room, widgets step
+  aside and return once there is space. Codex and Claude quota widgets are
+  new.
 - **Anima:** `yzx anima` adds Aquarium, Matrix, Physarum, Chladni, Friends and
   Enemies, and more.
 - **Tools:** Ratconfig edits Rio settings, `yzx doctor` and `yzx status` gain
