@@ -8,27 +8,48 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## 2.0.0
 
-- `yzx doctor` warns when the first `yzx` on `PATH` is another install, such
-  as a stale archive or a Nix profile, and notes one it shadows. The
-  installer names what a blocking `~/.local/bin/yzx` points to, and says
-  which `yzx` shells run when another one is on `PATH`, and how to put this
-  one first when the other wins.
+Nova 2.0 is the first release you can install without Nix. On x86_64 Linux:
 
-- The Nix-free installer prints a short summary: a progress bar, an unpacking
-  line, then `✓ Installed` with the commands to start (`yzx enter`), learn
-  (`yzx tutor begin`) and get help (`yzx doctor`), plus the docs link and a
-  recommended terminal (Nova Rio or Ghostty), since the archive has none. When
-  plain `yzx` would not run the new install, these commands use its full path.
-  Color appears only on a terminal and respects `NO_COLOR`. The provenance
-  command moved to `install.sh --help`. Uninstall output is equally short.
+```sh
+curl -LsSf https://nova.yazelix.com/install | sh
+```
 
-- Helix's `Alt r` reveal no longer reports `persistent Yazi popup reveal
-  failed: openedinvalid_payload` after a file is opened from Yazi. The
-  packaged Zellij sends a command-line pipe payload once instead of also
-  reading stdin.
+The installer checks every download against the release's checksums and
+prints how to start. Nix and Home Manager installs work as before.
 
-- The command menu closes after an entry finishes, instead of staying open
-  on `[EXIT CODE: 0]`.
+### New since 1.0
+
+- **Install:** Nix-free install on x86_64 Linux, and full macOS support on
+  Apple Silicon through Nix.
+- **Terminal:** Nova Rio, a pinned Rio fork, replaces Mars.
+- **Radar sidebar:** tabs, panes, and running agents and jobs at a glance.
+  `yzx radar-setup` connects Codex.
+- **Workspace keys:** new tabs open in a zoxide folder search. `Alt Shift T`
+  and `Alt Shift W` create and close tabs. `Alt j`/`Alt k` cycle panes, and
+  `Ctrl Alt h`/`j`/`k`/`l` move them. The command menu's `layout` entry
+  switches between stacked and split panes. `Alt Shift B` toggles the bottom
+  hints.
+- **Top bar:** keeps every tab, dropping widgets from the right instead, and
+  adds Codex and Claude quota widgets.
+- **Anima:** `yzx anima` adds Aquarium, Matrix, Physarum, Chladni, Friends and
+  Enemies, and more.
+- **Tools:** Ratconfig edits Rio settings, `yzx doctor` and `yzx status` gain
+  JSON output, and every shell keeps Atuin history.
+- **Under the hood:** faster startup on Linux, and upstream Zellij with few
+  patches.
+
+### Since 1.5
+
+- `yzx doctor` and the installer warn when another `yzx` comes first on
+  `PATH`, and say how to put this one first.
+- The installer prints a short summary: progress, then how to start, learn
+  and get help. `install.sh --help` prints the provenance check.
+- Helix's `Alt r` reveal no longer reports `openedinvalid_payload`.
+- The command menu closes after an entry instead of holding at
+  `[EXIT CODE: 0]`.
+
+The [changelog](https://github.com/Yazelix/nova/blob/main/CHANGELOG.md) lists
+every change since 1.0.
 
 ## 1.5.0
 
