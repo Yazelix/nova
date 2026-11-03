@@ -399,8 +399,8 @@ Publish matching child revisions and lock them before verifying without override
 Check popup open/hide and sidebar toggle together in a fresh installed session.
 
 The [Nova Zellij distribution](../crates/zellij-distribution/README.md)
-builds `yzx-zellij` from unreleased upstream Zellij main with Nova's carried
-patches and embeds the packaged plugins through the API merged in PR #5630.
+builds `yzx-zellij` from unreleased upstream Zellij main without patches
+and embeds the packaged plugins through the API merged in PR #5630.
 Each channel uses the revision it was promoted with.
 The Zellij API revision is pinned in its `Cargo.toml` and `Cargo.lock`;
 `zellijSource` supplies the matching theme inventory for a flake check.
@@ -461,5 +461,5 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 | Category | Current |
 | --- | ---: |
 | Code and configuration | 36,410 |
-| Documentation and text | 6,468 |
-| Total | 42,878 |
+| Documentation and text | 6,470 |
+| Total | 42,880 |

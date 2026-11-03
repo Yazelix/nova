@@ -6,6 +6,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+## 2.1.0
+
 - The `Alt Shift A` animation popup no longer shows Accelerando, whose glyphs
   need a font Nova does not ship. It now excludes it from random picks and
   arrow browsing, as the welcome and `yzx anima` already did.
