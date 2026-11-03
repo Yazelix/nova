@@ -460,6 +460,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 36,410 |
+| Code and configuration | 36,428 |
 | Documentation and text | 6,473 |
-| Total | 42,883 |
+| Total | 42,901 |

@@ -131,19 +131,37 @@ fn main() {
         "pane orchestrator never restored Radar",
         |screen| screen.contains("RADAR"),
     );
+    // The palette text leaves when fzf exits, before the menu runs its entry and closes,
+    // and a slow open can skip the menu_popup rename; the pane's command outlives both.
+    let menu_pane = || {
+        let panes = terminal.run(
+            &terminal.binary,
+            &["--session", SESSION, "action", "list-panes", "--json"],
+            None,
+        );
+        serde_json::from_str::<Vec<serde_json::Value>>(&panes)
+            .unwrap()
+            .iter()
+            .any(|pane| {
+                pane["terminal_command"]
+                    .as_str()
+                    .is_some_and(|command| command.contains("/bin/yzx-menu"))
+            })
+    };
+    let menu_closed = |_: &str| !menu_pane();
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-M"]);
     wait(
         &terminal,
         20,
         "popup plugin never opened the menu",
-        |screen| screen.contains("menu_popup") && screen.contains("Command Palette"),
+        |screen| screen.contains("Command Palette") && menu_pane(),
     );
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-M"]);
     wait(
         &terminal,
         20,
         "popup plugin never closed the menu",
-        |screen| !screen.contains("menu_popup"),
+        menu_closed,
     );
     // A finished menu entry closes the menu; the second round restores the hints.
     for _ in 0..2 {
@@ -152,7 +170,7 @@ fn main() {
             &terminal,
             20,
             "popup plugin never reopened the menu",
-            |screen| screen.contains("Command Palette"),
+            |screen| screen.contains("Command Palette") && menu_pane(),
         );
         terminal.tmux(&["send-keys", "-t", "clients:0", "bottom-hints"]);
         // fzf accepts the row under its cursor, which can predate the final query's match.
@@ -170,7 +188,7 @@ fn main() {
             &terminal,
             20,
             "menu stayed open after bottom-hints",
-            |screen| !screen.contains("menu_popup"),
+            menu_closed,
         );
     }
     // New-pane keys follow the tab's workspace root, not the focused shell's cwd.
