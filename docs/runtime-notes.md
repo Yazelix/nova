@@ -77,7 +77,8 @@ continuity contract. Yazelix adds no registry or second session owner.
 dark/light themes, pane frames, mouse mode, scrollback size, copy behavior,
 styled underlines, startup tips, and `ui.pane_frames.rounded_corners`.
 An explicit top-level `scroll_mode_sync true` restores Zellij's automatic
-Scroll mode entry in new sessions. Explicit `pane_frame_style` and
+Scroll mode entry in new sessions, and `session_card true` restores Zellij's
+startup session card, which Nova turns off. Explicit `pane_frame_style` and
 `stacked_pane_list` values also replace the corresponding packaged defaults;
 omitting them inherits Nova's values.
 Ratconfig uses the same 41 identities from the pinned Zellij assets for both

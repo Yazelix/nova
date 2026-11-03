@@ -2415,21 +2415,28 @@ fn expect_zellij_config_sidecar(yzx: &Path) {
     assert!(packaged_text.contains("theme_light \"gruvbox-light\""));
     assert!(packaged_text.contains("pane_frame_style \"full\""));
     assert!(packaged_text.contains("stacked_pane_list false"));
+    assert!(packaged_text.contains("session_card false"));
 
-    let sidecar_config = "# { preserved comment\ntheme \"dracula\"\nfuture_label \"{opaque}\"\ntheme_dark \"custom-dark\"\npane_frame_style \"titles\"\nstacked_pane_list true\nscroll_mode_sync true\nscroll_buffer_size 1234\npane_frames false\n";
+    let sidecar_config = "# { preserved comment\ntheme \"dracula\"\nfuture_label \"{opaque}\"\ntheme_dark \"custom-dark\"\npane_frame_style \"titles\"\nstacked_pane_list true\nscroll_mode_sync true\nsession_card true\nscroll_buffer_size 1234\npane_frames false\n";
     fs::write(&sidecar, sidecar_config).unwrap();
     let generated = run_zellij_config(&helper, &packaged_config, &sidecar);
-    let applied_sidecar = "# { preserved comment\nfuture_label \"{opaque}\"\ntheme_dark \"custom-dark\"\npane_frame_style \"titles\"\nstacked_pane_list true\nscroll_mode_sync true\nscroll_buffer_size 1234\npane_frames false\n";
+    let applied_sidecar = "# { preserved comment\nfuture_label \"{opaque}\"\ntheme_dark \"custom-dark\"\npane_frame_style \"titles\"\nstacked_pane_list true\nscroll_mode_sync true\nsession_card true\nscroll_buffer_size 1234\npane_frames false\n";
     let inherited_removed = packaged_text
         .replace("theme_dark \"ansi\"\n", "")
         .replace("pane_frame_style \"full\"\n", "")
         .replace("stacked_pane_list false\n", "")
-        .replace("scroll_mode_sync false\n", "");
+        .replace("scroll_mode_sync false\n", "")
+        .replace("session_card false\n", "");
     let expected_config = format!("{}\n{}", inherited_removed.trim_end(), applied_sidecar);
     assert_eq!(generated, expected_config);
     assert_eq!(expected_config.matches("theme_dark ").count(), 1);
     assert_eq!(expected_config.matches("theme_light ").count(), 1);
-    for name in ["pane_frame_style", "stacked_pane_list", "scroll_mode_sync"] {
+    for name in [
+        "pane_frame_style",
+        "stacked_pane_list",
+        "scroll_mode_sync",
+        "session_card",
+    ] {
         assert_eq!(generated.matches(&format!("{name} ")).count(), 1);
     }
     assert_eq!(fs::read_to_string(&sidecar).unwrap(), sidecar_config);

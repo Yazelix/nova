@@ -8,6 +8,7 @@ theme_dark "ansi"
 theme_light "gruvbox-light"
 explicit_theme_hue "dark"
 scroll_mode_sync false
+session_card false
 
 plugins {
     nova_hints location="zellij:nova-zjhints" {

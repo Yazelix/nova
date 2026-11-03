@@ -87,6 +87,12 @@ fn main() {
     fs::create_dir_all(work.join("sub")).unwrap();
     let yzx = package.join("bin/yzx");
     let yzx_text = quote(yzx.to_str().unwrap());
+    // Zellij opens its startup session card when another session is running.
+    terminal.run(
+        &terminal.binary,
+        &["attach", "--create-background", "nova-other"],
+        None,
+    );
     terminal.tmux(&[
         "new-session",
         "-d",
@@ -117,6 +123,12 @@ fn main() {
     let rendered = started.elapsed();
     sleep(3.0);
     assert!(alive(&terminal), "Zellij server exited after startup");
+    // The card is a popup, which list-panes and dump-layout omit.
+    let screen = terminal.capture("clients:0", false);
+    assert!(
+        !screen.contains("Running Sessions"),
+        "Zellij opened its session card beside another session:\n{screen}"
+    );
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-H"]);
     wait(
         &terminal,
@@ -311,7 +323,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s without a session card beside another session; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
         rendered.as_secs_f32()
     );
 }

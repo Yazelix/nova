@@ -176,12 +176,10 @@ impl Terminal {
     }
 
     pub fn stop(&self) {
-        for session in [&self.session, &format!("{}-rendering", self.session)] {
-            let _ = self
-                .command(&self.binary)
-                .args(["kill-session", session])
-                .output();
-        }
+        let _ = self
+            .command(&self.binary)
+            .args(["kill-all-sessions", "--yes"])
+            .output();
         let _ = self
             .command("tmux")
             .args(["-f", "/dev/null", "-L", &self.socket, "kill-server"])

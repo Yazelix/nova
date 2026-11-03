@@ -416,8 +416,9 @@ run on `x86_64-linux`; the Rio TOML assertion
 also runs in the Darwin package gate. Parsing uses the same serde, serde_json and
 toml versions as the config crate. Linux CI runs both native interaction checks.
 The same driver runs `managed_session` in Linux CI and Darwin Package Smoke: a
-fresh headless `yzx enter` must render the bar, Radar, hints and Yazi picker,
-toggle Radar and the menu popup through their plugins, and pass in-session
+fresh headless `yzx enter` beside another session must render the bar, Radar,
+hints and Yazi picker without Zellij's startup session card, toggle Radar and
+the menu popup through their plugins, and pass in-session
 `yzx status --json` and `yzx doctor` while the Zellij server stays alive.
 Failures print the screen and the Zellij log tail.
 
@@ -460,6 +461,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 36,275 |
-| Documentation and text | 6,491 |
-| Total | 42,766 |
+| Code and configuration | 36,294 |
+| Documentation and text | 6,495 |
+| Total | 42,789 |

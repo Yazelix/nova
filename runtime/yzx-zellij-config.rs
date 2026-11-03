@@ -49,6 +49,7 @@ fn run() -> io::Result<()> {
         "pane_frame_style",
         "stacked_pane_list",
         "scroll_mode_sync",
+        "session_card",
     ]
     .into_iter()
     .filter(|token| has_top_level_node(&applied_sidecar, token))
