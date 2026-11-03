@@ -6,6 +6,8 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+## 2.1.1
+
 - Opening a popup no longer also shows Zellij's session manager. Zellij's
   startup session card, which opens when another session is running, is off.
 - Bottom hints use zjhints v0.5.1. Outside nested sessions the hint bar looks
