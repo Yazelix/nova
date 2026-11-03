@@ -103,7 +103,7 @@
       flake = false;
     };
     zjstatus = {
-      url = "github:Yazelix/zjstatus/yazelix-tab-activity-pipe";
+      url = "github:Yazelix/zjstatus/nova-renderer";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "yazelixZellijPaneOrchestrator/flake-utils";
     };
@@ -1160,6 +1160,7 @@
             novaHelixFileWatcherPackage
             novaBarPackage
             novaBar.packages.${system}.nova_bar_widget
+            # Nova Bar copies this wasm without a build input; source capture needs it declared.
             zjstatus.packages.${system}.default
             yazelixZellijPopupPackage
             yazelixZellijPaneOrchestratorPackage

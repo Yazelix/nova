@@ -34,11 +34,11 @@
     },
     "crane_2": {
       "locked": {
-        "lastModified": 1776396856,
-        "narHash": "sha256-aRJpIJUlZLaf06ekPvqjuU46zvO9K90IxJGpbqodkPs=",
+        "lastModified": 1787326676,
+        "narHash": "sha256-lWhBbBvC05/xwivKBBiM2YNizpmgqCgyOIzomvRuwxs=",
         "owner": "ipetkov",
         "repo": "crane",
-        "rev": "28462d6d55c33206ffa5a56c7907ca3125ed788f",
+        "rev": "692f7e9ef2ece8125b466f66f2af532b3edaed0d",
         "type": "github"
       },
       "original": {
@@ -314,11 +314,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792186190,
-        "narHash": "sha256-9k+WKIOvn0T0GFDGqrC7pyUglkiFyKw5+Pqm1vHgwJA=",
+        "lastModified": 1793712767,
+        "narHash": "sha256-MvNcSvZ0HEhXZj+0hG5z8eKGwu5rw2Ob+lGeWQuSQq4=",
         "owner": "Yazelix",
         "repo": "nova-bar",
-        "rev": "4199371380a99892b50bee3e1e6243ad4b16fa5f",
+        "rev": "4fc3251df7f2344f8a34b43a0035f762231409df",
         "type": "github"
       },
       "original": {
@@ -501,11 +501,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776395632,
-        "narHash": "sha256-Mi1uF5f2FsdBIvy+v7MtsqxD3Xjhd0ARJdwoqqqPtJo=",
+        "lastModified": 1787834454,
+        "narHash": "sha256-jXSvqn04IOecJCvSvl8+g3PsbDVNP6qKs6dKUs/b16k=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "8087ff1f47fff983a1fba70fa88b759f2fd8ae97",
+        "rev": "dc2fd1acc537f3583744e1373597a5731ff7a6e3",
         "type": "github"
       },
       "original": {
@@ -809,16 +809,16 @@
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
-        "lastModified": 1792367227,
-        "narHash": "sha256-hZNPjyMDaiPjqAjnSQeQiZhYwHGoK0PagbHYrm+uWHM=",
+        "lastModified": 1793711762,
+        "narHash": "sha256-1C/XYFXJW5mM3P9vkqhZpFhKvCwr0AbbiVrGjU+T3qc=",
         "owner": "Yazelix",
         "repo": "zjstatus",
-        "rev": "0a4ba3e6e46b7795d1226000858d7bc2d6973710",
+        "rev": "b84683b334ec1282b0b5e4dc76a0001694abe71e",
         "type": "github"
       },
       "original": {
         "owner": "Yazelix",
-        "ref": "yazelix-tab-activity-pipe",
+        "ref": "nova-renderer",
         "repo": "zjstatus",
         "type": "github"
       }

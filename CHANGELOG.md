@@ -27,6 +27,8 @@ Edge and Main collect the next version's changes under Unreleased.
 - `yzx doctor` lists a running shared Codex daemon as info. Managed Codex
   launches bypass it with `--no-daemon`, so it does not count against Radar's
   Codex hooks.
+- The top bar uses zjstatus v0.25.0, with Nova's changes carried over. It
+  looks and behaves the same.
 
 ## 2.1.1
 
