@@ -8,6 +8,9 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## 2.1.0
 
+- Fresh installs work again. The `tree-sitter-cylc` repository was deleted
+  from GitHub, so Nix failed fetching that Helix grammar; Nova Helix now
+  bundles its exact source.
 - The `Alt Shift A` animation popup no longer shows Accelerando, whose glyphs
   need a font Nova does not ship. It now excludes it from random picks and
   arrow browsing, as the welcome and `yzx anima` already did.
