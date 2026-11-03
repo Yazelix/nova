@@ -1,0 +1,162 @@
+Per-mode spacer, direction keys and preferred keys.
+diff --git a/src/main.rs b/src/main.rs
+index 679bf24..fe13588 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1027,9 +1027,17 @@ impl State {
+             dim,
+             key_format: self.key_format.as_deref(),
+             desc_format: self.desc_format.as_deref(),
+-            spacer: self.hint_spacer.as_deref(),
++            spacer: self
++                .config
++                .get(&format!("hint_spacer_{mode_key}"))
++                .map(String::as_str)
++                .or(self.hint_spacer.as_deref()),
+             discover: self.discover_hints,
+-            direction_keys: self.direction_keys,
++            direction_keys: self
++                .config
++                .get(&format!("direction_keys_{mode_key}"))
++                .map(|value| DirectionKeys::from_config(value))
++                .unwrap_or(self.direction_keys),
+             key_order: self.key_order,
+             mode: &mode_key,
+             hint_order: &self.hint_order,
+@@ -2188,6 +2196,22 @@ fn merge_hint(hints: &mut Vec<Hint>, id: &str, label: &str, keys: &[KeyWithModif
+ fn render_hint(parts: &mut Vec<ANSIString<'static>>, hint: &Hint, style: &HintStyle) {
+     // Optionally collapse hjkl/arrow duplicates down to a single family.
+     let mut keys = filter_direction_keys(&hint.keys, style.direction_keys);
++    // `preferred_key_<hint>` advertises one bound key, or a comma-separated
++    // group, when every one of them is still bound; otherwise the actual
++    // bindings show. A single key parses first, so `,` stays a literal key.
++    if let Some(preferred) = hint_override("preferred_key_", hint, style.mode, style.config)
++        .flatten()
++        .and_then(|value| {
++            value
++                .parse::<KeyWithModifier>()
++                .map(|key| vec![key])
++                .or_else(|_| value.split(',').map(|key| key.trim().parse()).collect())
++                .ok()
++        })
++        .filter(|preferred| preferred.iter().all(|key| keys.contains(key)))
++    {
++        keys.retain(|key| preferred.contains(key));
++    }
+     sort_keys(&mut keys, style.key_order);
+     let keys = keys.as_slice();
+ 
+@@ -3291,6 +3315,113 @@ mod tests {
+     use std::cell::RefCell;
+     use std::collections::HashMap;
+ 
++    #[test]
++    fn tab_exit_preference_tracks_current_bindings_and_aliases() {
++        let keys = vec![
++            (key(BareKey::Esc), vec![TO_NORMAL]),
++            (key(BareKey::Enter), vec![TO_NORMAL]),
++            (ctrl('t'), vec![TO_NORMAL]),
++        ];
++        let config = [
++            ("label_tab_mode_normal", "normal"),
++            ("preferred_key_tab_normal", "Esc"),
++        ];
++        assert_eq!(rendered(InputMode::Tab, &keys, &config), "ESC normal");
++        let mut aliases = config.to_vec();
++        aliases.push(("key_alias_esc", "Cancel"));
++        assert_eq!(rendered(InputMode::Tab, &keys, &aliases), "Cancel normal");
++        let remapped = &keys[1..];
++        let fallback = rendered(InputMode::Tab, remapped, &config);
++        assert!(fallback.contains("ENTER"), "{fallback}");
++        assert!(!fallback.contains("ESC"), "{fallback}");
++        let pane = rendered(InputMode::Pane, &keys, &config);
++        assert!(pane.contains("ESC / ENTER"), "{pane}");
++    }
++
++    #[test]
++    fn preferred_key_groups_require_every_binding_and_preserve_single_keys() {
++        let keys = vec![
++            (key(BareKey::Char('h')), vec![Action::PageScrollUp]),
++            (key(BareKey::Char('l')), vec![Action::PageScrollDown]),
++            (key(BareKey::PageUp), vec![Action::PageScrollUp]),
++            (key(BareKey::PageDown), vec![Action::PageScrollDown]),
++        ];
++        let preference = [("preferred_key_scroll_page", "h,l")];
++        assert_eq!(rendered(InputMode::Scroll, &keys, &preference), "hl page");
++        let mut aliases = preference.to_vec();
++        aliases.push(("key_alias_h", "previous"));
++        assert_eq!(
++            rendered(InputMode::Scroll, &keys, &aliases),
++            "previous / l page"
++        );
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &keys,
++                &[("preferred_key_scroll_page", "h,h,l")]
++            ),
++            "hl page"
++        );
++        assert_eq!(
++            rendered(InputMode::Scroll, &keys[1..], &preference),
++            rendered(InputMode::Scroll, &keys[1..], &[])
++        );
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &keys,
++                &[("preferred_key_scroll_page", "h,invalid")]
++            ),
++            rendered(InputMode::Scroll, &keys, &[])
++        );
++        let comma = vec![
++            (key(BareKey::Char(',')), vec![Action::PageScrollUp]),
++            (key(BareKey::Char('l')), vec![Action::PageScrollDown]),
++        ];
++        assert_eq!(
++            rendered(
++                InputMode::Scroll,
++                &comma,
++                &[("preferred_key_scroll_page", ",")]
++            ),
++            ", page"
++        );
++    }
++
++    #[test]
++    fn spacer_and_direction_keys_can_be_set_per_mode() {
++        let left = || {
++            vec![Action::MoveFocus {
++                direction: Direction::Left,
++            }]
++        };
++        let mut state = State {
++            discover_hints: true,
++            key_format: Some("{key} ".into()),
++            desc_format: Some("{desc}".into()),
++            hint_spacer: Some(" ".into()),
++            direction_keys: DirectionKeys::Arrows,
++            config: config(&[("hint_spacer_pane", " | "), ("direction_keys_pane", "hjkl")]),
++            ..Default::default()
++        };
++        for (mode, expected) in [
++            (InputMode::Pane, " h focus | ESC normal"),
++            (InputMode::Tab, " ESC normal ← focus"),
++        ] {
++            let keys = vec![
++                (key(BareKey::Char('h')), left()),
++                (key(BareKey::Left), left()),
++                (key(BareKey::Esc), vec![TO_NORMAL]),
++            ];
++            state.mode_info = ModeInfo {
++                mode,
++                keybinds: vec![(mode, keys)],
++                ..Default::default()
++            };
++            assert_eq!(rendered_bar(&state), expected);
++        }
++    }
++
+     #[test]
+     fn search_options_keep_distinct_meanings_after_remapping() {
+         for bindings in [

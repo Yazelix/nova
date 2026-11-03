@@ -1,0 +1,131 @@
+Keep a visible boundary between named keys.
+diff --git a/src/main.rs b/src/main.rs
+index f77bbff..57ff58c 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1669,10 +1669,18 @@ fn group_prefix(modifiers: &[KeyModifier], config: &BTreeMap<String, String>) ->
+         return String::new();
+     }
+     let joined = chord_alias(modifiers, config).unwrap_or_else(|| {
+-        modifiers
++        let aliases = modifiers
+             .iter()
+             .map(|m| modifier_display(*m, config))
+-            .collect()
++            .collect::<Vec<_>>();
++        if aliases
++            .iter()
++            .all(|alias| !alias.is_empty() && alias.chars().all(char::is_alphanumeric))
++        {
++            aliases.join("-")
++        } else {
++            aliases.concat()
++        }
+     });
+     if joined
+         .chars()
+@@ -1804,9 +1812,7 @@ fn style_key_with_modifier(
+             styled_parts.push(ribbon().bold().paint(prefix));
+         }
+ 
+-        for key in &group.keys {
+-            styled_parts.push(ribbon().bold().paint(key.clone()));
+-        }
++        styled_parts.push(ribbon().bold().paint(compose_key_group(&group.keys)));
+     }
+ 
+     styled_parts.push(ribbon().paint(" "));
+@@ -1814,6 +1820,16 @@ fn style_key_with_modifier(
+     styled_parts
+ }
+ 
++/// Join one modifier group's keys: single characters run together (`hjkl`),
++/// named keys keep a visible boundary (`ESC / ENTER`).
++fn compose_key_group(keys: &[String]) -> String {
++    if keys.iter().all(|key| key.chars().count() == 1) {
++        keys.concat()
++    } else {
++        keys.join(" / ")
++    }
++}
++
+ /// Style arbitrary text as a key, for hints whose keys have been replaced by a
+ /// fixed string. Mirrors `style_key_with_modifier` so a replaced key sits in
+ /// the same ribbon as a real one.
+@@ -1844,7 +1860,7 @@ fn compose_key_text(key_bindings: &[KeyWithModifier], config: &BTreeMap<String,
+             format!(
+                 "{}{}",
+                 group_prefix(&group.modifiers, config),
+-                group.keys.concat()
++                compose_key_group(&group.keys)
+             )
+         })
+         .collect::<Vec<_>>()
+@@ -3272,6 +3288,44 @@ mod tests {
+     use std::cell::RefCell;
+     use std::collections::HashMap;
+ 
++    #[test]
++    fn key_boundaries_preserve_named_keys_and_configured_aliases() {
++        let mut config = label_config(&[("mod_alias_ctrl", "C"), ("mod_alias_alt", "A")]);
++        for (keys, expected) in [
++            (vec![key(BareKey::Esc), key(BareKey::Enter)], "ESC / ENTER"),
++            (
++                vec![key(BareKey::PageUp), key(BareKey::PageDown)],
++                "PgUp / PgDn",
++            ),
++            (
++                "hjkl".chars().map(|c| key(BareKey::Char(c))).collect(),
++                "hjkl",
++            ),
++        ] {
++            assert_eq!(compose_key_text(&keys, &config), expected);
++            let palette = style_key_with_modifier(&keys, &Styling::default(), &config);
++            assert!(ANSIStrings(&palette).to_string().contains(expected));
++        }
++        let chord = [key(BareKey::Char('t'))
++            .with_ctrl_modifier()
++            .with_alt_modifier()];
++        assert_eq!(compose_key_text(&chord, &config), "C-A t");
++        config.insert("mod_alias_ctrl".into(), "^".into());
++        config.insert("mod_alias_alt".into(), "⌥".into());
++        assert_eq!(compose_key_text(&chord, &config), "^⌥t");
++        config.insert("mod_alias_ctrl".into(), "".into());
++        config.insert("mod_alias_alt".into(), "".into());
++        assert_eq!(compose_key_text(&chord, &config), "t");
++        config.insert("chord_mods_custom".into(), "ctrl+alt".into());
++        config.insert("chord_alias_custom".into(), "CUSTOM".into());
++        assert_eq!(compose_key_text(&chord, &config), "CUSTOM t");
++        config.insert("key_alias_esc".into(), "Cancel".into());
++        assert_eq!(
++            compose_key_text(&[key(BareKey::Esc), key(BareKey::Enter)], &config),
++            "Cancel / ENTER"
++        );
++    }
++
+     /// Sort a string of characters as if they were the keys of one hint, so an
+     /// expected ordering can be written as a plain string literal.
+     fn sorted(chars: &str, order: KeyOrder) -> String {
+@@ -3724,8 +3778,11 @@ mod tests {
+             (key(BareKey::Enter), vec![TO_NORMAL]),
+             (key(BareKey::Esc), vec![TO_NORMAL]),
+         ];
+-        assert_eq!(rendered(InputMode::Pane, &keymap, &[]), "ESCENTER normal");
+-        assert_eq!(rendered(InputMode::Tab, &keymap, &[]), "ESCENTER normal");
++        assert_eq!(
++            rendered(InputMode::Pane, &keymap, &[]),
++            "ESC / ENTER normal"
++        );
++        assert_eq!(rendered(InputMode::Tab, &keymap, &[]), "ESC / ENTER normal");
+     }
+ 
+     #[test]
+@@ -3773,7 +3830,7 @@ mod tests {
+             (key(BareKey::Enter), vec![TO_NORMAL]),
+             (key(BareKey::Esc), vec![TO_NORMAL]),
+         ];
+-        assert_eq!(rendered(InputMode::Pane, &pane, config), "ESCENTER exit");
++        assert_eq!(rendered(InputMode::Pane, &pane, config), "ESC / ENTER exit");
+     }
+ 
+     /// A styled line of the shape the plugin actually emits: coloured segments

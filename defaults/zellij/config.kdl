@@ -30,6 +30,11 @@ plugins {
         label_normal_move_pane_down "move"
         label_normal_move_pane_up "move"
         label_normal_move_pane_right "move"
+        keys_go_to_tab "1–9"
+        pipe_hint_layout_prev "Alt ["
+        pipe_hint_layout_next "Alt ]"
+        label_layout_prev "layout"
+        label_layout_next "layout"
     }
 
     yzpp location="@yzpp@" {

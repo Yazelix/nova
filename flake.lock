@@ -782,17 +782,17 @@
     "zjhintsUpstream": {
       "flake": false,
       "locked": {
-        "lastModified": 1788813280,
-        "narHash": "sha256-ABFU7ogsbU81jZ/2p4xGVTJUMXbSeSUr+MvEsm/hPBA=",
+        "lastModified": 1791076030,
+        "narHash": "sha256-TT8v9hGgmGUVI3PX2eCH5GNEcinVoE8qT9VypJow7qA=",
         "owner": "myah-mitchell",
         "repo": "zjhints",
-        "rev": "709d56292217920a5b7e2702302cd66b60ed6477",
+        "rev": "1488a64ce2268f141ca538987c01dd261f7681a5",
         "type": "github"
       },
       "original": {
         "owner": "myah-mitchell",
         "repo": "zjhints",
-        "rev": "709d56292217920a5b7e2702302cd66b60ed6477",
+        "rev": "1488a64ce2268f141ca538987c01dd261f7681a5",
         "type": "github"
       }
     },

@@ -1,0 +1,167 @@
+Advertise plugin pipes named by pipe_hint_<id>.
+diff --git a/src/main.rs b/src/main.rs
+index 35a286f..a435f1a 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -2306,7 +2306,12 @@ fn render_hints_for_mode(
+         }
+         InputMode::Pane => {
+             for (actions, label) in PANE_MODE_ACTION_SEQUENCES {
+-                let keys = find_keys_for_actions(keymap, actions, false);
++                let mut keys = find_keys_for_actions(keymap, actions, false);
++                if let (true, Some((id, _))) =
++                    (keys.is_empty(), actions.first().and_then(builtin_hint))
++                {
++                    keys = configured_pipe_keys(keymap, style, id);
++                }
+                 if let (false, Some(action)) = (keys.is_empty(), actions.first()) {
+                     add_curated_hint(&mut hints, &keys, action, label, style, &mut used);
+                 }
+@@ -2985,6 +2990,34 @@ fn add_discovered_hints(
+         if used.contains(key) {
+             continue;
+         }
++        // ModeInfo strips pipe targets, so `pipe_hint_<id>` names the chord of
++        // a pipe worth advertising. The annotation holds only while that key
++        // is a pure pipe; a pipe that returns to normal mode uses it only when
++        // configured.
++        let pipe_hints = || {
++            style.config.iter().filter_map(|(setting, chord)| {
++                let id = setting.strip_prefix("pipe_hint_")?;
++                (chord.parse::<KeyWithModifier>().ok().as_ref() == Some(key)).then_some(id)
++            })
++        };
++        let pure_pipe = matches!(actions.as_slice(), [Action::KeybindPipe { .. }]);
++        let pipe_to_normal = matches!(actions.as_slice(), [Action::KeybindPipe { .. }, TO_NORMAL])
++            && pipe_hints().next().is_some();
++        if pure_pipe || pipe_to_normal {
++            if !is_shared_binding(key, &actions[0], style.shared) {
++                for id in pipe_hints() {
++                    add_group_hint(
++                        hints,
++                        std::slice::from_ref(key),
++                        id,
++                        &id.replace('_', " "),
++                        style,
++                        &mut vec![],
++                    );
++                }
++            }
++            continue;
++        }
+         // A binding's first action is often plumbing — a pipe to a plugin, a
+         // rename input — with the part worth advertising coming after it. Judge
+         // the binding by its first action that is worth a hint, so a key like
+@@ -3073,6 +3106,33 @@ fn label_override(
+     }
+ }
+ 
++/// Keys configured as `pipe_hint_<id>` whose binding is a pipe, alone or
++/// followed by a return to normal mode. They stand in for a curated action
++/// that a pipe now performs, keeping its position and label.
++fn configured_pipe_keys(
++    keymap: &[(KeyWithModifier, Vec<Action>)],
++    style: &HintStyle,
++    id: &str,
++) -> Vec<KeyWithModifier> {
++    let Some(chord) = style.config.get(&format!("pipe_hint_{id}")) else {
++        return Vec::new();
++    };
++    let Ok(target) = chord.parse::<KeyWithModifier>() else {
++        return Vec::new();
++    };
++    keymap
++        .iter()
++        .filter(|(key, actions)| {
++            *key == target
++                && matches!(
++                    actions.as_slice(),
++                    [Action::KeybindPipe { .. }] | [Action::KeybindPipe { .. }, TO_NORMAL]
++                )
++        })
++        .map(|(key, _)| key.clone())
++        .collect()
++}
++
+ /// Queue a curated hint, honoring a `label_<action>` override on `action`.
+ ///
+ /// Curated hints carry hand-tuned labels rather than deriving them, so without
+@@ -3450,6 +3510,78 @@ mod tests {
+     use std::cell::RefCell;
+     use std::collections::HashMap;
+ 
++    #[test]
++    fn configured_pipe_hints_require_the_current_pipe_binding() {
++        let keymap = vec![
++            (ctrl('g'), vec![message_plugin()]),
++            (ctrl('q'), vec![Action::Quit]),
++        ];
++        for (config, expected) in [
++            (vec![("pipe_hint_menu", "Ctrl g")], "Ctrl g menu"),
++            (vec![("pipe_hint_menu", "Alt Shift M")], ""),
++            (vec![("pipe_hint_menu", "Ctrl q")], ""),
++            (vec![("pipe_hint_menu", "bad modifier g")], ""),
++            (vec![("pipe_hint_menu", "")], ""),
++            (
++                vec![("pipe_hint_menu", "Ctrl g"), ("label_menu", "commands")],
++                "Ctrl g commands",
++            ),
++            (vec![("pipe_hint_menu", "Ctrl g"), ("label_menu", "")], ""),
++        ] {
++            let without_quit = rendered(
++                InputMode::Normal,
++                &keymap,
++                &[config.as_slice(), &[("label_quit", "")]].concat(),
++            );
++            assert_eq!(without_quit, expected, "{config:?}");
++        }
++    }
++
++    #[test]
++    fn configured_pipe_hints_cover_a_pipe_that_returns_to_normal() {
++        let keymap = vec![(key(BareKey::Char('r')), vec![message_plugin(), TO_NORMAL])];
++        assert_eq!(
++            rendered(InputMode::Pane, &keymap, &[("pipe_hint_split_right", "r")]),
++            "r split right"
++        );
++        // Unconfigured, the binding keeps its mode-entry hint.
++        assert_eq!(rendered(InputMode::Pane, &keymap, &[]), "r normal");
++    }
++
++    #[test]
++    fn a_piped_curated_pane_action_keeps_its_position() {
++        let keymap = vec![
++            (key(BareKey::Char('x')), vec![Action::CloseFocus, TO_NORMAL]),
++            (key(BareKey::Char('n')), vec![message_plugin(), TO_NORMAL]),
++        ];
++        let row = rendered(InputMode::Pane, &keymap, &[("pipe_hint_new_pane", "n")]);
++        assert!(row.starts_with("n new"), "{row}");
++        assert!(row.contains("x close"), "{row}");
++        assert!(!row.contains("normal"), "{row}");
++    }
++
++    #[test]
++    fn pipe_hints_sharing_a_label_merge_into_one_hint() {
++        let alt = |ch| KeyWithModifier::new(BareKey::Char(ch)).with_alt_modifier();
++        let keymap = vec![
++            (alt('['), vec![message_plugin()]),
++            (alt(']'), vec![message_plugin()]),
++            (alt('p'), vec![message_plugin()]),
++        ];
++        let config = [
++            ("group_modifiers", "true"),
++            ("pipe_hint_layout_prev", "Alt ["),
++            ("pipe_hint_layout_next", "Alt ]"),
++            ("label_layout_prev", "layout"),
++            ("label_layout_next", "layout"),
++        ];
++        assert_eq!(
++            rendered(InputMode::Normal, &keymap, &config),
++            " Alt +  [] layout"
++        );
++        assert_eq!(rendered(InputMode::Normal, &keymap[2..], &config), "");
++    }
++
+     #[test]
+     fn shared_modifiers_are_shown_once_per_hint_group() {
+         let keymap = vec![

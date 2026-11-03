@@ -6,6 +6,9 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Bottom hints use zjhints v0.5.1. Outside nested sessions the hint bar looks
+  the same; a descended nested session's hints are no longer dimmed.
+
 ## 2.1.0
 
 - Fresh installs work again. The `tree-sitter-cylc` repository was deleted

@@ -62,7 +62,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zjhintsUpstream = {
-      url = "github:myah-mitchell/zjhints/709d56292217920a5b7e2702302cd66b60ed6477";
+      url = "github:myah-mitchell/zjhints/1488a64ce2268f141ca538987c01dd261f7681a5";
       flake = false;
     };
     yazelixZellijPaneOrchestrator = {
@@ -711,8 +711,13 @@
         name = "nova-zjhints-source";
         src = zjhintsUpstream;
         patches = [
-          ./crates/zellij-distribution/zjhints-group-modifiers.patch
-          ./crates/zellij-distribution/zjhints-lightweight-events.patch
+          ./crates/zellij-distribution/zjhints-01-named-key-separators.patch
+          ./crates/zellij-distribution/zjhints-02-search-option-labels.patch
+          ./crates/zellij-distribution/zjhints-03-mode-scoped-settings.patch
+          ./crates/zellij-distribution/zjhints-04-group-modifiers.patch
+          ./crates/zellij-distribution/zjhints-05-pipe-hints.patch
+          ./crates/zellij-distribution/zjhints-06-direct-pane.patch
+          ./crates/zellij-distribution/zjhints-07-descended-focus-redraw.patch
         ];
       };
       novaZjhintsToolchain = fenix.packages.${system}.combine [
@@ -726,13 +731,13 @@
       };
       novaZjhintsPackage = novaZjhintsRust.buildRustPackage {
         pname = "nova-zjhints";
-        version = "0.5.0";
+        version = "0.5.1";
         src = novaZjhintsSource;
         cargoDeps = novaZjhintsRust.fetchCargoVendor {
           pname = "nova-zjhints";
-          version = "0.5.0";
+          version = "0.5.1";
           src = novaZjhintsSource;
-          hash = "sha256-YEmHPpMRZDa+G28jidMhxLH7u9Yx3OgHj/ShLPSpv6Y=";
+          hash = "sha256-7MA8fW+pS3gz6ujK749TLeyzSv+QlColCjyJ02c6x2g=";
         };
         nativeBuildInputs = [pkgs.pkg-config];
         buildInputs = [pkgs.openssl];

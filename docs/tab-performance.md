@@ -142,21 +142,22 @@ Proof: `nova-native-profile-20261013.0zf4p9r2`.
 
 ## Bottom-hints follow-up
 
-Owner: `yazelix-5vl-hints-tab-work-jvpj`. The isolated
-[lightweight event patch](../crates/zellij-distribution/zjhints-lightweight-events.patch)
-uses the existing SDK's `InitialKeybinds` for the complete catalog and keeps it
-across lightweight metadata events. Either startup event order, remaps and an
-empty replacement catalog are covered. Native reconfiguration remains the owner
-of catalog delivery; there is no new SDK, dependency or Nova config field.
+Owner: `yazelix-5vl-hints-tab-work-jvpj`. Upstream zjhints v0.5.1 uses the
+existing SDK's `InitialKeybinds` for the complete catalog and keeps it across
+lightweight metadata events, replacing Nova's earlier catalog patch. Native
+reconfiguration remains the owner of catalog delivery; there is no new SDK,
+dependency or Nova config field.
 
-Nova's direct pane sets the existing `pipe_name` to `""`. This disables unused
-compatibility broadcasts and the session subscription. It settles after actual
-mode metadata arrives, including empty/base Locked output. Unset and custom
-names retain the child's publication and compatibility retries. Focus state is
-still tracked, but it redraws hints only when the host is descended into a guest.
+Nova's direct pane sets the existing `pipe_name` to `""`
+([direct pane patch](../crates/zellij-distribution/zjhints-06-direct-pane.patch)).
+This disables unused compatibility broadcasts and the session subscription. It
+settles after its first render, including empty/base Locked output. Dropping
+the earlier gate on mode metadata costs at most one extra startup render. Unset
+and custom names retain the child's publication and compatibility retries. Focus
+state is still tracked, but it redraws hints only when the host is descended into
+a guest ([focus redraw patch](../crates/zellij-distribution/zjhints-07-descended-focus-redraw.patch)).
 Width, theme, mode and nested-session updates still request the relevant redraw.
-Permission startup keeps the pane selectable until the permission result and
-does not render hints before permission-gated metadata arrives.
+Permission startup keeps the pane selectable until the permission result.
 
 Separable catalog/direct-pane/output-cache variants were built with Rust 1.96.0
 against the existing installed native binary. The output cache was rejected:

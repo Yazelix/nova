@@ -1,0 +1,69 @@
+Name each search option toggle by what it toggles.
+diff --git a/src/main.rs b/src/main.rs
+index 57ff58c..679bf24 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -6,8 +6,7 @@ use ansi_term::{
+ use std::borrow::Cow;
+ use std::collections::{BTreeMap, BTreeSet};
+ use unicode_width::UnicodeWidthChar;
+-use zellij_tile::prelude::actions::Action;
+-use zellij_tile::prelude::actions::SearchDirection;
++use zellij_tile::prelude::actions::{Action, SearchDirection, SearchOption};
+ use zellij_tile::prelude::*;
+ use zellij_tile_utils::palette_match;
+ 
+@@ -3231,7 +3230,11 @@ fn builtin_hint(action: &Action) -> Option<(&'static str, &'static str)> {
+         Action::Search {
+             direction: SearchDirection::Up,
+         } => ("search_up", "up"),
+-        Action::SearchToggleOption { option: _ } => ("search_toggle", "toggle"),
++        Action::SearchToggleOption { option } => match option {
++            SearchOption::CaseSensitivity => ("search_case", "case"),
++            SearchOption::WholeWord => ("search_word", "word"),
++            SearchOption::Wrap => ("search_wrap", "wrap"),
++        },
+ 
+         // Misc
+         Action::Copy => ("copy", "copy"),
+@@ -3288,6 +3291,40 @@ mod tests {
+     use std::cell::RefCell;
+     use std::collections::HashMap;
+ 
++    #[test]
++    fn search_options_keep_distinct_meanings_after_remapping() {
++        for bindings in [
++            [
++                ('c', SearchOption::CaseSensitivity, "case"),
++                ('o', SearchOption::WholeWord, "word"),
++                ('w', SearchOption::Wrap, "wrap"),
++            ],
++            [
++                ('x', SearchOption::Wrap, "wrap"),
++                ('y', SearchOption::CaseSensitivity, "case"),
++                ('z', SearchOption::WholeWord, "word"),
++            ],
++        ] {
++            let keys = bindings
++                .iter()
++                .map(|(ch, option, _)| {
++                    (
++                        key(BareKey::Char(*ch)),
++                        vec![Action::SearchToggleOption {
++                            option: option.clone(),
++                        }],
++                    )
++                })
++                .collect::<Vec<_>>();
++            let expected = bindings
++                .iter()
++                .map(|(ch, _, label)| format!("{ch} {label}"))
++                .collect::<Vec<_>>()
++                .join("|");
++            assert_eq!(rendered(InputMode::Search, &keys, &[]), expected);
++        }
++    }
++
+     #[test]
+     fn key_boundaries_preserve_named_keys_and_configured_aliases() {
+         let mut config = label_config(&[("mod_alias_ctrl", "C"), ("mod_alias_alt", "A")]);

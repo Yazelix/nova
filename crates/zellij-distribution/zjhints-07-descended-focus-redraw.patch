@@ -1,0 +1,66 @@
+Redraw on focus changes only while descended.
+diff --git a/src/main.rs b/src/main.rs
+index 7078001..e42c719 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1322,10 +1322,12 @@ impl ZellijPlugin for State {
+                     self.terminal_width = width;
+                     should_render = true;
+                 }
++                // Focus picks the descended-into nested session; it changes
++                // nothing else on the bar.
+                 let focus = focus_by_tab(&manifest);
+                 if focus != self.focus_by_tab {
+                     self.focus_by_tab = focus;
+-                    should_render = true;
++                    should_render |= self.is_host_descended();
+                 }
+                 self.forget_closed_nested_guests(&manifest);
+             }
+@@ -1339,7 +1341,7 @@ impl ZellijPlugin for State {
+                 });
+                 if active_tab != self.active_tab {
+                     self.active_tab = active_tab;
+-                    should_render = true;
++                    should_render |= self.is_host_descended();
+                 }
+             }
+             // A nested session in one of this session's panes reporting its
+@@ -3519,6 +3521,37 @@ mod tests {
+     use std::cell::RefCell;
+     use std::collections::HashMap;
+ 
++    #[test]
++    fn focus_changes_redraw_only_a_descended_host() {
++        let mut state = State {
++            initialized: true,
++            ..nested_host()
++        };
++        state.update(Event::ModeUpdate(ModeInfo::default()));
++        assert!(!state.update(Event::TabUpdate(vec![only_tab()])));
++        assert!(!state.update(Event::PaneUpdate(manifest(vec![
++            guest_pane(GUEST_PANE, true),
++            guest_pane(OTHER_GUEST_PANE, false),
++        ]))));
++
++        state.update(guest_mode_update(GUEST_PANE, InputMode::Pane));
++        state.update(guest_mode_update(OTHER_GUEST_PANE, InputMode::Normal));
++        assert!(state.update(Event::ModeUpdate(ModeInfo {
++            session_dimmed: Some(true),
++            ..Default::default()
++        })));
++        assert!(rendered_bar(&state).contains("close"));
++        assert!(state.update(Event::PaneUpdate(manifest(vec![
++            guest_pane(GUEST_PANE, false),
++            guest_pane(OTHER_GUEST_PANE, true),
++        ]))));
++        assert!(rendered_bar(&state).contains("pane"));
++        assert!(state.update(Event::TabUpdate(vec![TabInfo {
++            are_floating_panes_visible: true,
++            ..only_tab()
++        }])));
++    }
++
+     #[test]
+     fn an_empty_pipe_name_disables_publication_only_explicitly() {
+         assert_eq!(
