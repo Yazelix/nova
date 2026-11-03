@@ -17,7 +17,7 @@ BRANCHES = {
     "Yazelix/nova-rio": "edge",
     "Yazelix/nova-zellij": "candidate/v0.45.0",
     "Yazelix/nova-helix": "main",
-    "Yazelix/zj-radar": "nova-v0.6",
+    "marktoda/zj-radar": "main",
     "luccahuguet/yazelix-forest": "main",
     "chuwy/notify.hx": "main",
     "Ra77a3l3-jar/glyph.hx": "main",

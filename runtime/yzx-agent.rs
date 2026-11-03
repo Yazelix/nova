@@ -46,13 +46,13 @@ fn run() -> i32 {
 fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32 {
     let mut process = Command::new(command);
     if Path::new(command).file_name() == Some(OsStr::new("codex")) && radar_enabled() {
-        offer_codex_radar_setup(command, state_dir);
+        let requested = args
+            .iter()
+            .take_while(|arg| arg.as_ref() != "--")
+            .any(|arg| arg.as_ref() == "--no-daemon");
         // A shared Codex server cannot inherit this pane's hook environment.
-        if env::var_os("ZELLIJ").is_some()
-            && !args
-                .iter()
-                .take_while(|arg| arg.as_ref() != "--")
-                .any(|arg| arg.as_ref() == "--no-daemon")
+        let add_no_daemon = env::var_os("ZELLIJ").is_some()
+            && !requested
             && Command::new(command)
                 .arg("--help")
                 .output()
@@ -61,8 +61,9 @@ fn launch<T: AsRef<OsStr>>(command: &OsStr, args: &[T], state_dir: &Path) -> i32
                         && String::from_utf8_lossy(&output.stdout)
                             .split_whitespace()
                             .any(|word| word == "--no-daemon")
-                })
-        {
+                });
+        offer_codex_radar_setup(command, state_dir, requested || add_no_daemon);
+        if add_no_daemon {
             process.arg("--no-daemon");
         }
     }
@@ -111,14 +112,14 @@ fn launch_configured(id: &str, provider_file: &Path, state_dir: &Path) -> i32 {
     launch(OsStr::new(provider), provider_args, state_dir)
 }
 
-fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
+fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path, no_daemon: bool) {
     let marker = state_dir.join("agent/radar-codex-setup-offered");
     if !command_available("zj-radar") {
         return;
     }
     let interactive = io::stdin().is_terminal() && io::stderr().is_terminal();
 
-    match radar_check(codex) {
+    match radar_check(codex, no_daemon) {
         Ok(RadarHealth::Healthy) => {
             remember_radar_disposition(&marker, "enabled");
             return;
@@ -164,7 +165,7 @@ fn offer_codex_radar_setup(codex: &OsStr, state_dir: &Path) {
         return;
     }
     match radar_command(codex, "--yes").status() {
-        Ok(status) if status.success() => match radar_check(codex) {
+        Ok(status) if status.success() => match radar_check(codex, no_daemon) {
             Ok(RadarHealth::Healthy) => remember_radar_disposition(&marker, "enabled"),
             Ok(_) => eprintln!(
                 "Yazelix Nova: Radar setup did not establish healthy Codex hooks; Codex will still start."
@@ -189,15 +190,16 @@ enum RadarHealth {
     Unknown,
 }
 
-fn radar_check(codex: &OsStr) -> io::Result<RadarHealth> {
+fn radar_check(codex: &OsStr, no_daemon: bool) -> io::Result<RadarHealth> {
     let output = radar_command(codex, "--check").output()?;
     Ok(classify_radar_report(
         output.status.success(),
         &String::from_utf8_lossy(&output.stdout),
+        no_daemon,
     ))
 }
 
-fn classify_radar_report(success: bool, report: &str) -> RadarHealth {
+fn classify_radar_report(success: bool, report: &str, no_daemon: bool) -> RadarHealth {
     let mut codex_report = false;
     let mut codex_ok = false;
     let mut radar_ok = false;
@@ -213,6 +215,10 @@ fn classify_radar_report(success: bool, report: &str) -> RadarHealth {
             continue;
         }
         let line = line.trim_start();
+        // Radar warns about a shared daemon that this launch does not use.
+        if no_daemon && line.starts_with("warn app-server daemon:") {
+            continue;
+        }
         unhealthy |= line.starts_with("warn ") || line.starts_with("missing ");
         codex_ok |= line.starts_with("ok codex binary:");
         radar_ok |= line.starts_with("ok zj-radar binary:");
@@ -364,41 +370,53 @@ mod tests {
     #[test]
     fn radar_health_uses_the_report_not_just_the_exit_code() {
         let healthy = "codex:\n  ok codex binary: found on PATH\n  ok zj-radar binary: found on PATH\n  ok hooks feature: enabled or unset in config.toml\n  ok hooks.json: all zj-radar Codex hooks installed\n  note hook trust: review with /hooks\n";
-        assert_eq!(classify_radar_report(true, healthy), RadarHealth::Healthy);
+        assert_eq!(
+            classify_radar_report(true, healthy, true),
+            RadarHealth::Healthy
+        );
         assert_eq!(
             classify_radar_report(
                 true,
-                &healthy.replace("  ok hooks.json:", "  warn hooks.json:")
+                &healthy.replace("  ok hooks.json:", "  warn hooks.json:"),
+                true
             ),
             RadarHealth::Unhealthy
         );
         assert_eq!(
             classify_radar_report(
                 true,
-                &healthy.replace("  ok hooks feature:", "  warn hooks feature:")
+                &healthy.replace("  ok hooks feature:", "  warn hooks feature:"),
+                true
             ),
             RadarHealth::Unhealthy
         );
         assert_eq!(
             classify_radar_report(
                 false,
-                &healthy.replace("  ok hooks.json:", "  missing hooks.json:")
+                &healthy.replace("  ok hooks.json:", "  missing hooks.json:"),
+                true
             ),
             RadarHealth::Unhealthy
+        );
+        let daemon = format!("{healthy}  warn app-server daemon: shared daemon running\n");
+        assert_eq!(
+            classify_radar_report(true, &daemon, false),
+            RadarHealth::Unhealthy
+        );
+        assert_eq!(
+            classify_radar_report(true, &daemon, true),
+            RadarHealth::Healthy
+        );
+        assert_eq!(classify_radar_report(true, "", true), RadarHealth::Unknown);
+        assert_eq!(
+            classify_radar_report(false, healthy, true),
+            RadarHealth::Unknown
         );
         assert_eq!(
             classify_radar_report(
                 true,
-                &format!("{healthy}  warn hook enablement: disabled\n")
-            ),
-            RadarHealth::Unhealthy
-        );
-        assert_eq!(classify_radar_report(true, ""), RadarHealth::Unknown);
-        assert_eq!(classify_radar_report(false, healthy), RadarHealth::Unknown);
-        assert_eq!(
-            classify_radar_report(
-                true,
-                &healthy.replace("  ok codex binary:", "  note codex binary:")
+                &healthy.replace("  ok codex binary:", "  note codex binary:"),
+                true
             ),
             RadarHealth::Unknown
         );

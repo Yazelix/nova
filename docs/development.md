@@ -312,7 +312,7 @@ equal repository names or Rust versions alone do not establish equivalent builds
 Review related changes together: Yazi and `ya` must stay paired with compatible
 schemas, presets and plugins. Review nixpkgs deliberately because child inputs
 that follow it share the changed package graph. Consume verified first-party
-fixes and features, such as a Radar fork revision, when Nova needs them without
+fixes and features, such as a Nova Bar revision, when Nova needs them without
 waiting for the monthly review. Compare forks with their intended integration
 branch; a newer commit elsewhere does not make the accepted pin stale.
 
@@ -461,6 +461,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 36,294 |
-| Documentation and text | 6,497 |
-| Total | 42,791 |
+| Code and configuration | 36,308 |
+| Documentation and text | 6,545 |
+| Total | 42,853 |

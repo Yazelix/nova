@@ -320,7 +320,7 @@ stacked_pane_list false
 plugins {
     __HINT_PLUGIN__
     yazelix_pane_orchestrator location="__PLUGIN__" { screen_saver_enabled false; }
-    radar location="zellij:radar" { role "view"; naming "off"; }
+    radar location="zellij:radar" { naming "off"; }
     yzpp location="__POPUP_PLUGIN__" {
         left_margin_pane_title "sidebar"
         popup_defaults { side_margin 1; left_margin 33; vertical_margin 0; }
@@ -727,6 +727,10 @@ keybinds clear-defaults=true {
         focus: Some(work),
         ..base
     };
+    let second_focused = View {
+        focus: Some(second_work),
+        ..base
+    };
     c.verify(true, focused_work);
     c.action(&["close-pane", "--pane-id", &third_work.to_string()]);
     c.required_work.remove(&third_work);
@@ -739,10 +743,6 @@ keybinds clear-defaults=true {
         {
             c.action(&["focus-pane-id", &second_work.to_string()]);
         }
-        let second_focused = View {
-            focus: Some(second_work),
-            ..base
-        };
         let order = work_order(&c.verify(true, second_focused), 0);
         for _ in 0..3 {
             c.tmux(&["send-keys", "-t", "proof:0", "M-B"]);
@@ -855,8 +855,8 @@ keybinds clear-defaults=true {
         c.verify(false, frameless_work);
     }
     c.action(&["set-pane-borderless", "--pane-id", &work.to_string()]);
-    let sidebar = c.panes().iter().find(|p| p.title == "sidebar").unwrap().id;
-    c.action(&["focus-pane-id", &format!("plugin_{sidebar}")]);
+    // Radar's rail is passive, so a non-default work pane carries the focus.
+    c.action(&["focus-pane-id", &second_work.to_string()]);
     c.pipe("toggle_bottom_hints");
     let order = work_order(&c.panes(), 0);
     c.action(&[
@@ -879,21 +879,17 @@ keybinds clear-defaults=true {
     c.verify(true, base);
     c.action(&["move-pane", "--pane-id", &extra.to_string(), "up"]);
     c.pipe("toggle_bottom_hints");
-    let focused_sidebar = View {
-        focus: Some(sidebar),
-        ..base
-    };
-    c.verify(false, focused_sidebar);
+    c.verify(false, second_focused);
     c.pipe("toggle_bottom_hints");
-    c.verify(true, focused_sidebar);
+    c.verify(true, second_focused);
     c.action(&["close-pane", "--pane-id", &extra.to_string()]);
     c.wait_for(|p| p.iter().all(|p| p.id != extra || p.is_plugin));
     c.verify(true, base);
     c.pipe("toggle_bottom_hints");
-    c.verify(false, focused_sidebar);
+    c.verify(false, second_focused);
     c.tmux(&["send-keys", "-t", "proof:0", "M-B", "M-B"]);
     sleep(0.5);
-    c.verify(false, focused_sidebar);
+    c.verify(false, second_focused);
     c.terminal.environment.insert(
         "YZX_ZELLIJ".into(),
         c.terminal.binary.clone().into_os_string(),

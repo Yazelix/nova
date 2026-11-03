@@ -15,8 +15,8 @@ Yazelix Nova is a Nix-packaged terminal workspace built around
 Bash, Zsh, and Fish with Atuin history. It includes a lazygit popup with support
 for other Git clients and an optional coding-agent popup.
 
-Yazelix Forest provides the default managed Helix file tree, and the narrow
-[Yazelix Radar fork](https://github.com/Yazelix/zj-radar) provides the
+Yazelix Forest provides the default managed Helix file tree, and
+[Radar](https://github.com/marktoda/zj-radar) provides the
 collapsible Zellij rail. Nova uses the
 [Nova Helix fork](https://github.com/Yazelix/nova-helix) by default;
 `editor.command` can select another terminal editor. `yzx launch` opens the
@@ -165,6 +165,6 @@ macOS and Nix packaging reports that hardened Darwin delivery.
 
 ## LOC Scorecard
 
-Yazelix owns **36,294 code/configuration lines** and **6,497 documentation/text
+Yazelix owns **36,308 code/configuration lines** and **6,545 documentation/text
 lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
 excludes Beads, lockfiles, and binary assets.

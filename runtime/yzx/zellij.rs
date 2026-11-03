@@ -123,7 +123,6 @@ pub(crate) fn active_zellij_config(
     patched = replace_bar_controller(patched, &config, bar_controller)?;
     if !radar_enabled {
         patched = omit_radar_keybindings(patched, &config)?;
-        patched = omit_radar_controller(patched, &config)?;
     }
     patched = patch_agent_popup(patched, &config, agent_popup_kdl)?;
     patched = inject_snippet_before(
@@ -186,24 +185,6 @@ fn omit_radar_keybindings(mut text: String, config: &Path) -> Result<String, App
         text = omit_managed_node(text, config, "Radar key binding", payload)?;
     }
     Ok(text)
-}
-
-fn omit_radar_controller(text: String, config: &Path) -> Result<String, AppError> {
-    let text = omit_managed_node(
-        text,
-        config,
-        "Radar controller plugin",
-        "radar_controller location=",
-    )?;
-    let load = "    radar_controller\n";
-    if text.matches(load).count() != 1 {
-        return Err(startup(
-            "could not omit packaged Radar controller load",
-            config.display(),
-            1,
-        ));
-    }
-    Ok(text.replacen(load, "", 1))
 }
 
 fn patch_managed_keybindings(
@@ -376,13 +357,8 @@ fn patch_agent_popup(
     Ok(text.replacen(&marker, replacement, 1))
 }
 
-const OWNED_ZELLIJ_PLUGIN_IDS: &[&str] = &[
-    "nova_hints",
-    "yzpp",
-    "yazelix_pane_orchestrator",
-    "radar",
-    "radar_controller",
-];
+const OWNED_ZELLIJ_PLUGIN_IDS: &[&str] =
+    &["nova_hints", "yzpp", "yazelix_pane_orchestrator", "radar"];
 
 #[derive(Clone, Copy)]
 enum ZellijPluginBlock {

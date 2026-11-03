@@ -17,6 +17,34 @@ Package Smoke passed. The user reports it is substantially faster; this is
 qualitative manual evidence, not a measured combined speedup. Raw proofs are
 local workstation artifacts under `/home/lucca/.local/state/codex/proofs/`.
 
+## Upstream Radar rails
+
+Owner: `yazelix-5vl-track-nova-fork-upstream-exit-m8kz.4.1`. Nova ships
+upstream Radar v0.12.0 instead of the Yazelix fork, so the Radar
+controller/view split described below no longer exists. Each tab's Radar pane
+is a full instance. Upstream skips painting and ignores `zj_radar.cmd.v1` on a
+rail whose tab is hidden, and renders spinner frames only on the visible rail.
+Sections below keep the fork-era measurements.
+
+On 2026-11-03, two matched pairs (fork `12837e77` against upstream with
+`spinner_fps 5`, order B C C B, quiet host) grew a tmux-isolated `enter` session
+from 2 to 16 tabs at 240x40 cells:
+
+| Endpoint, fork runs vs upstream runs | Fork | Upstream |
+| --- | ---: | ---: |
+| New-tab readiness median, 2–16 tabs | 379–390 ms | 455–459 ms |
+| New-tab readiness at 16 tabs | 547–551 ms | 581–601 ms |
+| Switch correct-bar median, all 72 switches | 35–62 ms | 37–41 ms |
+| Switch correct-bar p90 | 84–97 ms | 59–60 ms |
+| Pane-mode enter / leave medians | 13–39 / 77–101 ms | 14–38 / 77–95 ms |
+| Idle native CPU at 10 tabs | 1.6–3.0% of a core | 1.3–2.4% of a core |
+| Native-server RSS at 16 tabs | 330–365 MiB | 425–442 MiB |
+
+Upstream costs about 70 ms more per new tab and about 25% more server memory
+at 16 tabs, and is equal or better on switches, mode changes and idle CPU. The
+Radar row was ready with the rest of the new tab in every run. Lucca accepted
+this tradeoff. Proof: `nova-radar-repin-20261103`.
+
 ## Shared-plugin rendering decision
 
 Owner: `yazelix-5vl-shared-plugin-rendering-2vjp`. The selected outcome is
@@ -374,9 +402,9 @@ instance, merges render requests, and renders visible slot/client targets.
 The implementation is in pinned `zellij-tile/src/lib.rs` and
 `zellij-server/src/plugins/shared.rs`.
 
-Radar and Bar currently implement their own controller/view fan-out; hints is
+Bar implements its own controller/view fan-out; Radar and hints are
 instantiated per tab. They do not opt into this API. Updating the native pin
-alone therefore cannot remove their instances or message protocol. Migrating
+alone therefore cannot remove their instances or Bar's protocol. Migrating
 a plugin could replace that protocol with native slot ownership. This requires
 SDK and child compatibility decisions, not just a layout flag. Radar's declared
 0.44.3 host floor cannot silently be dropped.

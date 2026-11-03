@@ -6,6 +6,22 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Radar runs upstream zj-radar v0.12.0 instead of the Yazelix fork, so the rail
+  follows upstream's current layout and defaults. Its working spinner keeps 5
+  frames a second on the visible tab. After about 10 minutes of continuous work
+  it eases into a slow two-frame blink, replacing the static yellow `⠿` shown
+  after 30 minutes. The rail no longer takes keyboard focus once a terminal
+  shares its tab; click its rows instead. With bottom hints hidden, fullscreen on
+  a lone work pane keeps the rail; collapse it with `Alt Shift H`.
+- `yzx doctor` and the Codex launch check no longer report individual Radar
+  hooks disabled in Codex's `/hooks` screen; upstream Radar does not check them.
+  Rerunning `zj-radar setup codex` writes upstream's hook command, which Codex
+  asks you to trust again in `/hooks` and which fails where `zj-radar` is not
+  on PATH.
+- `yzx doctor` lists a running shared Codex daemon as info. Managed Codex
+  launches bypass it with `--no-daemon`, so it does not count against Radar's
+  Codex hooks.
+
 ## 2.1.1
 
 - Opening a popup no longer also shows Zellij's session manager. Zellij's

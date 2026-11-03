@@ -699,11 +699,7 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     }
     let custom_sidebar_config = custom_sidebar.zellij_file("config.kdl");
     assert!(
-        !custom_sidebar_config.contains(r#"MessagePlugin "radar_controller""#)
-            && !custom_sidebar_config.contains("radar_controller location=")
-            && !custom_sidebar_config
-                .lines()
-                .any(|line| line.trim() == "radar_controller"),
+        !custom_sidebar_config.contains(r#"MessagePlugin "radar""#),
         "custom sidebar config kept Radar-only key routes"
     );
     expect_contains(
@@ -1046,7 +1042,25 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     write_fake_agent(&doctor_codex_bin, "codex");
     write_executable(&doctor_codex_bin.join("zj-radar"), "#!/bin/sh\nexit 0\n");
     let doctor_codex_home = temp.path.join("doctor-codex-home");
-    fs::create_dir(&doctor_codex_home).unwrap();
+    fs::create_dir_all(doctor_codex_home.join("app-server-daemon")).unwrap();
+    let daemon_script = temp.path.join("daemon/codex");
+    fs::create_dir(daemon_script.parent().unwrap()).unwrap();
+    // The trailing exit keeps the shell, whose argv Radar inspects, from exec'ing sleep.
+    write_executable(&daemon_script, "#!/bin/sh\nsleep 60\nexit 0\n");
+    // Radar reads Darwin process arguments with ps.
+    #[cfg(target_os = "macos")]
+    symlink("/bin/ps", doctor_codex_bin.join("ps")).unwrap();
+    let mut daemon = Command::new(&daemon_script)
+        .arg("app-server")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    fs::write(
+        doctor_codex_home.join("app-server-daemon/app-server.pid"),
+        format!("{{\"pid\":{}}}", daemon.id()),
+    )
+    .unwrap();
     let doctor_codex = successful_stdout(
         doctor_case
             .yzx_command(&yzx_bin, "doctor")
@@ -1054,12 +1068,19 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
             .env("CODEX_HOME", &doctor_codex_home),
         "yzx doctor missing Radar Codex hooks",
     );
+    daemon.kill().unwrap();
+    daemon.wait().unwrap();
     expect_contains_all! {
         &doctor_codex, "yzx doctor missing Radar Codex hooks";
         "warn  Radar            Codex hooks need attention",
         "missing hooks.json: zj-radar Codex hooks are not installed",
         "action: resolve the warning, then run zj-radar setup codex",
+        "info  Codex daemon     running; managed Codex launches bypass it",
     }
+    assert!(
+        !doctor_codex.contains("app-server daemon:"),
+        "doctor listed the shared Codex daemon as a hook problem: {doctor_codex}"
+    );
     assert!(
         !doctor_codex.contains("Codex trust"),
         "doctor offered a trust review before Radar installed any hooks"
@@ -1485,7 +1506,10 @@ fn expect_welcome_failure_hold(welcome: &Path) {
     );
     let exec = run(&["false"]);
     assert_eq!(exec.status.code(), Some(1), "enter keeps the child status");
-    assert!(exec.stderr.is_empty(), "enter must not hold or annotate failures");
+    assert!(
+        exec.stderr.is_empty(),
+        "enter must not hold or annotate failures"
+    );
     let success = run(&["--hold-on-failure", "true"]);
     assert!(
         success.status.success() && success.stderr.is_empty(),
@@ -1973,11 +1997,6 @@ fn expect_startup_diagnostics(yzx: &Path) {
             "bad-zellij-plugin-radar-id",
             "plugins {\n    radar location=\"file:/tmp/other-radar.wasm\"\n}\n",
             "Zellij plugin sidecar plugins entry `radar` is owned by Yazelix",
-        ),
-        (
-            "bad-zellij-plugin-radar-controller-id",
-            "load_plugins {\n    radar_controller\n}\n",
-            "Zellij plugin sidecar load_plugins entry `radar_controller` is owned by Yazelix",
         ),
     ] {
         let case = RuntimeCase::new(&temp.path, name);
@@ -2675,10 +2694,10 @@ fn expect_keybinds(config: &str) {
         r#"bind "Alt j" "Alt Down" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_down"; }; }"#,
         r#"bind "Alt k" "Alt Up" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_up"; }; }"#,
         r#"bind "Alt l" "Alt Right" { MessagePlugin "yazelix_pane_orchestrator" { name "move_focus_right_or_tab"; }; }"#,
-        r#"bind "Ctrl Alt n" { MessagePlugin "radar_controller" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }"#,
-        r#"bind "Ctrl Alt p" { MessagePlugin "radar_controller" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }"#,
-        r#"bind "Ctrl Tab" { MessagePlugin "radar_controller" { name "zj_radar.cmd.v1"; payload "session-next"; }; }"#,
-        r#"bind "Ctrl Shift Tab" { MessagePlugin "radar_controller" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }"#,
+        r#"bind "Ctrl Alt n" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-next"; }; }"#,
+        r#"bind "Ctrl Alt p" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "attention-prev"; }; }"#,
+        r#"bind "Ctrl Tab" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-next"; }; }"#,
+        r#"bind "Ctrl Shift Tab" { MessagePlugin "radar" { name "zj_radar.cmd.v1"; payload "session-prev"; }; }"#,
         r#"bind "Alt Shift F" { ToggleFocusFullscreen; }"#,
         r#"bind "Alt Shift A" {"#,
         r#"bind "Alt Shift H" { MessagePlugin "yazelix_pane_orchestrator" { name "toggle_sidebar"; }; }"#,
@@ -2746,11 +2765,11 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
         config, "config.kdl first-party plugin fragment";
         r#"yzpp location="zellij:yzpp""#,
         r#"yazelix_pane_orchestrator location="zellij:yazelix_pane_orchestrator""#,
-        r#"radar_controller location="zellij:radar""#,
+        r#"radar location="zellij:radar""#,
+        "spinner_fps 5",
         r#""zellij:nova-bar""#,
-        "role \"view\"",
         "role \"controller\"",
-        "load_plugins {\n    yzpp\n    radar_controller",
+        "load_plugins {\n    yzpp\n    // BEGIN NOVA BAR CONTROLLER",
         "load_plugins",
         "support_kitty_keyboard_protocol true",
         "screen_saver_enabled false",
@@ -3321,13 +3340,14 @@ fn expect_radar_health_transition(agent: &Path) {
     let healthy = "codex:\n  ok codex binary: found on PATH\n  ok zj-radar binary: found on PATH\n  ok hooks feature: enabled or unset in config.toml\n  ok hooks.json: all zj-radar Codex hooks installed\n  note hook trust: review with /hooks\n";
     let partial = healthy.replace("ok hooks.json:", "warn hooks.json:");
     let disabled = healthy.replace("ok hooks feature:", "warn hooks feature:");
-    let disabled_hook = format!("{healthy}  warn hook enablement: a Radar hook is disabled\n");
+    let daemon = format!("{healthy}  warn app-server daemon: shared daemon running\n");
     let missing = healthy.replace("ok hooks.json:", "missing hooks.json:");
     let disposition = state.join("agent/radar-codex-setup-offered");
-    let run = |report: &str, exit: i32, sidebar: bool| {
+    let run_args = |report: &str, exit: i32, sidebar: bool, args: &[&str]| {
         fs::write(&record, "").unwrap();
         let output = successful_output(
             isolated_agent_command(agent, &temp.path)
+                .args(args)
                 .env("PATH", &bin)
                 .env("YAZELIX_STATE_DIR", &state)
                 .env("YAZELIX_AGENT_TEST_OUT", &record)
@@ -3341,6 +3361,7 @@ fn expect_radar_health_transition(agent: &Path) {
         let commands = fs::read_to_string(&record).unwrap();
         (output, commands)
     };
+    let run = |report: &str, exit: i32, sidebar: bool| run_args(report, exit, sidebar, &[]);
 
     let (_, commands) = run(&partial, 0, true);
     assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
@@ -3349,16 +3370,22 @@ fn expect_radar_health_transition(agent: &Path) {
         "warning-only exit zero is not healthy"
     );
 
+    let (_, commands) = run(&daemon, 0, true);
+    assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
+    assert!(
+        !disposition.exists(),
+        "a shared daemon is unhealthy for a launch that uses it"
+    );
+    let (_, commands) = run_args(&daemon, 0, true, &["codex", "--no-daemon"]);
+    assert_eq!(commands, "radar setup codex --check\ncodex --no-daemon\n");
+    assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
+    fs::remove_file(&disposition).unwrap();
+
     let (_, commands) = run(healthy, 0, true);
     assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
     assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");
 
-    for (report, exit) in [
-        (&partial, 0),
-        (&disabled, 0),
-        (&disabled_hook, 0),
-        (&missing, 1),
-    ] {
+    for (report, exit) in [(&partial, 0), (&disabled, 0), (&missing, 1)] {
         let (_, commands) = run(report, exit, true);
         assert_eq!(commands, "radar setup codex --check\ncodex resume\n");
         assert_eq!(fs::read_to_string(&disposition).unwrap(), "enabled\n");

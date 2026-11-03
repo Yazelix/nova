@@ -8,16 +8,20 @@ reviewed snapshots, not promises about later releases.
 
 ## Accepted model
 
-**Keep the narrow Yazelix Radar fork as the sole activity and attention rail.**
+**Keep upstream Radar as the sole activity and attention rail.**
 Providers report through explicit hooks or plugins. Those integrations are
 optional for launching an agent and necessary for supported detailed activity
 reporting. Codex without enabled, trusted hooks has no equivalent hookless
 status fallback. Ordinary pane/command information does not prove agent activity.
 
-The current [flake lock](../flake.lock) selects [Yazelix Radar `1be7d734`][radar-fork].
-The comparison baseline is [upstream Radar v0.6.0 `0b167260`][radar-upstream].
-They are different revisions. The fork retains the producer protocol and owns
-Nova's rail behavior, including its cadence and long-running marker.
+The current [flake lock](../flake.lock) selects [upstream Radar v0.12.0 `4f980b8f`][radar-pin].
+On 2026-11-03 it replaced the Yazelix fork (last pin `3ad74c18`) under
+`yazelix-5vl-track-nova-fork-upstream-exit-m8kz.4.1`. Upstream owns the rail
+behavior, including spinner cadence and the long-running slow blink; Nova sets
+only alias options. Mechanism links below still cite the reviewed
+[v0.6.0 `0b167260`][radar-upstream] snapshot. The fork's report of zj-radar
+hooks disabled in Codex's `/hooks` screen is **superseded**: upstream's
+`setup codex --check` does not report it.
 
 [`yzx radar-setup`](../runtime/yzx/cli.rs) delegates to the packaged
 `zj-radar setup codex claude opencode`, without `--yes`. Radar owns provider
@@ -55,7 +59,7 @@ Cost and disposition are Nova ownership judgments. No candidate code was copied.
 | Layer / reference | Ownership | Status source | Onboarding | Permissions / data | Linux / macOS fit | Cost / Nova disposition |
 | --- | --- | --- | --- | --- | --- | --- |
 | Runtime: [Herdr `94f6d9c0`][herdr] | Terminal server, sessions, agent panes | Agent detection in its owned terminals | Run sessions inside Herdr | Owns terminal processes and output | Unix runtime; no Nova platform proof | Apache-2.0; replaces the runtime/session boundary. Reference only. |
-| Rail: [zj-radar `0b167260`][radar-upstream] | Activity, attention, rail | Versioned push pipe from provider producers | Explicit provider setup | App state, CLI pipes, app changes, commands; event payloads can contain task/message text | Nix CLI/WASM; Linux and macOS paths | MIT; retain the existing narrow fork and one owner. |
+| Rail: [zj-radar `0b167260`][radar-upstream] | Activity, attention, rail | Versioned push pipe from provider producers | Explicit provider setup | App state, CLI pipes, app changes, commands; event payloads can contain task/message text | Nix CLI/WASM; Linux and macOS paths | MIT; ship upstream unpatched as the one owner. |
 | Popup/controller: [zj-agent-mob `0b2d4fc`][agent-mob] | Cross-session agent monitor, navigation and control | Claude/Codex hooks, per-agent spool files and optional process discovery | Installer edits agent hook configs; agents must restart | App state and commands; task/detail data in pipes and user-private temporary files; optional prompt approval, follow-up and injected peer context | Zellij 0.44+ WASM with Linux/macOS shell seams; no Nova platform proof | Apache-2.0; its one movable session instance and status-bar summary are useful lifecycle references. Its broader control and prompt ownership overlap Nova; reference only. |
 | Passive detector: [zj-agents `39795f26`][zj-agents] | Background classifier plus sidebar | Roughly one-second pane-text and running-command inspection | Install two WASM plugins and grant permissions | `ReadPaneContents`, app state, commands, plugin messaging | Stock Zellij ≥0.44.3; no Nova platform proof | MIT OR Apache-2.0; extra tracker and UI parsing. Conditional evaluation only. |
 | Dashboard: [Captain Miao `07e4a478`][miao] | Managed launches, profiles, local/remote sessions | Hooks and agent session/transcript data | Managed agent profiles/configuration | Codex profile contains precomputed hook trust; transcript previews | Linux/macOS; backend-specific limits | MIT; reserves configuration and session ownership. Reject dependency. |
@@ -124,15 +128,16 @@ This supplementary source review is not a compatibility test of every OpenCode
 release; the pinned [producer documentation][radar-producers] records 1.18.x
 as its minimum verified version.
 
-**Pi, source-proven but unsupported by bundled Radar.** At [`4e69b0c2`][pi-events],
-extensions receive `agent_start`, `agent_settled`, turn, tool and shutdown events.
-The [loader][pi-loader] discovers project and user extensions. This is a possible
-future producer route, with no Nova adapter or runtime proof implied.
+**Pi, bundled by Radar but not wired by Nova.** At [`4e69b0c2`][pi-events],
+extensions receive `agent_start`, `agent_settled`, turn, tool and shutdown
+events. The [loader][pi-loader] discovers project and user extensions. Bundled
+Radar has a [Pi setup target][radar-pi]; `yzx radar-setup` does not run it, and
+Nova has no Pi runtime proof.
 
 **Grok Build, unsupported by bundled Radar.** Its [native README at
 `72a61251`][grok] advertises hooks. That alone proves neither a Radar adapter nor
-Nova permission to configure them. The packaged [setup targets][radar-setup]
-remain Codex, Claude Code and OpenCode for `yzx radar-setup`.
+Nova permission to configure them. Of the packaged [setup targets][radar-setup],
+`yzx radar-setup` runs only Codex, Claude Code and OpenCode.
 
 ## Blocked passive proposal
 
@@ -205,7 +210,7 @@ conditions, and link replacement proof. Do not silently convert source review
 into runtime support or start another competing research note.
 
 [discussion]: https://github.com/zellij-org/zellij/discussions/5391#discussioncomment-17908201
-[radar-fork]: https://github.com/Yazelix/zj-radar/tree/1be7d73417fc15d5403734e2e2312296573a111e
+[radar-pin]: https://github.com/marktoda/zj-radar/tree/4f980b8f353c73b44bf32ff7fb8439569e473389
 [radar-upstream]: https://github.com/marktoda/zj-radar/blob/0b1672606ca118f6241df687889142c8b52d03fe/README.md
 [radar-producers]: https://github.com/marktoda/zj-radar/blob/0b1672606ca118f6241df687889142c8b52d03fe/docs/producers.md
 [radar-commands]: https://github.com/marktoda/zj-radar/blob/0b1672606ca118f6241df687889142c8b52d03fe/docs/using.md
@@ -233,7 +238,7 @@ into runtime support or start another competing research note.
 [codex-title]: https://github.com/openai/codex/blob/41e22fee981a63b3698df7ed36bad393cda24715/codex-rs/tui/src/terminal_title.rs
 [claude-hooks]: https://code.claude.com/docs/en/hooks
 [radar-claude]: https://github.com/marktoda/zj-radar/blob/0b1672606ca118f6241df687889142c8b52d03fe/plugins/zj-radar-claude/hooks/hooks.json
-[radar-claude-setup]: https://github.com/Yazelix/zj-radar/blob/1be7d73417fc15d5403734e2e2312296573a111e/crates/cli/src/setup/claude.rs
+[radar-claude-setup]: https://github.com/marktoda/zj-radar/blob/4f980b8f353c73b44bf32ff7fb8439569e473389/crates/cli/src/setup/claude.rs
 [opencode-api]: https://github.com/anomalyco/opencode/blob/57ef3828431790c53f8f333c7ffbfe88770a1812/packages/plugin/src/index.ts
 [opencode-loader]: https://github.com/anomalyco/opencode/blob/57ef3828431790c53f8f333c7ffbfe88770a1812/packages/opencode/src/plugin/index.ts
 [opencode-docs]: https://opencode.ai/docs/plugins/
@@ -241,7 +246,8 @@ into runtime support or start another competing research note.
 [pi-events]: https://github.com/badlogic/pi-mono/blob/4e69b0c28060f0f02fbe38bfa7c21a2e2eb25057/packages/coding-agent/src/core/extensions/types.ts
 [pi-loader]: https://github.com/badlogic/pi-mono/blob/4e69b0c28060f0f02fbe38bfa7c21a2e2eb25057/packages/coding-agent/src/core/extensions/loader.ts
 [grok]: https://github.com/xai-org/grok-build/blob/72a61251fcffb464bcc687aeb5a998e5a98ec0c9/README.md
-[radar-setup]: https://github.com/Yazelix/zj-radar/blob/1be7d73417fc15d5403734e2e2312296573a111e/crates/cli/src/setup/mod.rs
+[radar-setup]: https://github.com/marktoda/zj-radar/blob/4f980b8f353c73b44bf32ff7fb8439569e473389/crates/cli/src/setup/mod.rs
+[radar-pi]: https://github.com/marktoda/zj-radar/blob/4f980b8f353c73b44bf32ff7fb8439569e473389/crates/cli/src/setup/pi.rs
 [zellij-screen]: https://github.com/Yazelix/nova-zellij/blob/796a30c44c8c4369021e7bb91e2b6c62cfc257de/zellij-server/src/screen.rs#L4234-L4237
 [zellij-tab]: https://github.com/Yazelix/nova-zellij/blob/796a30c44c8c4369021e7bb91e2b6c62cfc257de/zellij-server/src/tab/mod.rs#L2176-L2200
 [radar-original]: https://github.com/marktoda/zj-radar/tree/b73e3ce31ee49b62eff50287c50b11fae416d767

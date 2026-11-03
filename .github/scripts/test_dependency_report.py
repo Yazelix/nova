@@ -24,7 +24,7 @@ class DependencyReportContract(unittest.TestCase):
             }
             nodes = {"root": {"inputs": {}}}
             for name, repo, original in [
-                ("zjRadar", "Yazelix/zj-radar", {"rev": "a" * 40}),
+                ("zjRadar", "marktoda/zj-radar", {"rev": "a" * 40}),
                 ("nixpkgs", "NixOS/nixpkgs", {"ref": "nixos-unstable"}),
                 ("branchBehind", "example/behind", {"ref": "work"}),
                 ("declaredDefault", "example/default", {}),
@@ -70,7 +70,7 @@ class DependencyReportContract(unittest.TestCase):
                              "Branch ahead", "Diverged", "Pin ahead", "no comparison policy",
                              "HTTP 429", "INCOMPLETE", "Yazi / ya"]:
                 self.assertIn(expected, text)
-            self.assertTrue(any("commits/nova-v0.6" in call for call in calls))
+            self.assertTrue(any("zj-radar/commits/main" in call for call in calls))
             self.assertTrue(any("commits/trunk" in call for call in calls))
             self.assertFalse(any("unknown" in call or "transitive" in call for call in calls))
             self.assertIn("/compare/" + "a" * 40 + "..." + "b" * 40, text)

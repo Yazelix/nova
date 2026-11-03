@@ -146,7 +146,7 @@ load_plugins {
 ```
 
 Plugin ids owned by Yazelix (`nova_hints`, `yzpp`,
-`yazelix_pane_orchestrator`, `radar`, and `radar_controller`) cannot be
+`yazelix_pane_orchestrator`, and `radar`) cannot be
 redeclared. Plugin keybindings are not
 managed by this sidecar.
 
@@ -158,20 +158,16 @@ config helper validates the pair and renders one KDL pane body; the launcher
 substitutes it into the base and swap layouts. Both providers therefore use the
 same Zellij pane named `sidebar`, including its open and collapsed sizes.
 
-The packaged Radar alias is a lightweight per-tab view. One suppressed
-`radar_controller` instance owns session state, event subscriptions, rendering,
-and command keybindings. Views send bounded dimensions and mouse input over
-plugin messages; the controller replies directly to each view's plugin id.
-Both roles request the same permission union because Zellij stores one grant per
-Wasm path. A custom sidebar omits the controller as well as Radar's bindings and
-grant.
+Each tab's sidebar runs its own instance of the packaged Radar alias. Radar's
+four command bindings message every instance; only visible rails act on them.
+With two clients on different tabs, a key can act on the other client's rail.
+A custom sidebar omits those bindings.
 
 Nova captures the provider when it creates a session. It passes custom
 arguments as argv without a shell. The pane orchestrator remains
 provider-neutral and addresses the pane by name. With a custom provider, Nova
-omits Radar command bindings, controller load and permission seeding, sets
-`YZX_RADAR_ENABLED=false` for child launchers, and skips Radar's Codex doctor
-path.
+omits Radar command bindings, sets `YZX_RADAR_ENABLED=false` for child
+launchers, and skips Radar's Codex doctor path.
 
 ## Popup Lifecycle
 
@@ -270,7 +266,8 @@ hooks, which can omit the invoking pane's Zellij identifiers or refer to another
 Running in the pane keeps reporting associated with that pane. Existing hook
 trust and enablement still apply; older Codex versions keep their launch arguments.
 When starting Codex directly in a shell, use `codex --no-daemon` if that version
-otherwise uses a shared server.
+otherwise uses a shared server. Radar warns whenever a shared server runs; a
+launch with `--no-daemon` ignores that warning, and `yzx doctor` shows it as info.
 
 Agent popup identity uses the stable `/bin/yzx-agent` command marker. A runtime
 update can change the launcher's store path without losing the running popup,
@@ -341,7 +338,8 @@ marker, so a remembered decline never prevents explicit setup. Child output and
 exit status are preserved, and unsupported Nova arguments fail before setup.
 Start a fresh agent session afterward and review Codex trust in `/hooks`.
 The automatic Codex offer never runs setup for other agents. Claude Code and
-OpenCode setup stays explicit; Grok and Pi have no Radar adapter.
+OpenCode setup stays explicit. Grok has no Radar adapter, and Nova does not run
+Radar's Pi setup.
 
 Any other `agent.command` value is executed directly by the same launcher for
 new sessions, so custom commands receive the same initial title. Put argv-style

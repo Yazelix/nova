@@ -283,7 +283,7 @@ Detail lives in Owners, checks, and the notes below.
 | ID | Contract | Owner | Check | Gap |
 | --- | --- | --- | --- | --- |
 | C2 | Complete Rio config is seeded once and selected through `NRIO_CONFIG_HOME`; Nova owns only top-level `force-theme`, using native reload when writable and coherent next-session fallback when read-only | `defaults/rio/config.toml`, runtime, `yzx-config` | launcher/config unit tests, `yzx-contracts` | Visual dogfood |
-| C3 | One Radar controller with per-tab views across layout swaps | `defaults/zellij/config.kdl`, `defaults/zellij/layout*.kdl`, zj-radar | `zellij-layout`, `yzx-contracts`, isolated startup benchmark | Fresh-session state-retention dogfood |
+| C3 | Per-tab Radar rails across layout swaps | `defaults/zellij/config.kdl`, `defaults/zellij/layout*.kdl`, zj-radar | `zellij-layout`, `yzx-contracts`, isolated startup benchmark | Fresh-session state-retention dogfood |
 | C4 | Packaged keys + guarded Zellij sidecar | `defaults/zellij/config.kdl`, `yzx-zellij-config` | `yzx-contracts` | Full keys |
 | C5 | Managed Nu layering | `yzx-nu`, `defaults/nu/` | `yzx-contracts` | — |
 | C6 | Managed Yazi layering, public noninteractive materialization, fast zoxide-first startup with exact picker lifecycle, `yzx-open`, and zoxide | `defaults/yazi/`, `runtime/yzx-yazi.rs`, `runtime/yzx/`, `crates/yzx-yazi-config/`, `crates/yzx-open/`, pane orchestrator | host-Yazi contracts + materialization + open tests + isolated startup-picker check | Picker/Yazi UI |

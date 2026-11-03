@@ -227,11 +227,12 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) -> Result<(), AppError
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let lines = stdout.lines().chain(stderr.lines()).collect::<Vec<_>>();
-    let attention = lines
+    // Managed Codex launches pass --no-daemon, so a shared daemon does not hide them.
+    let (daemon, attention): (Vec<_>, Vec<_>) = lines
         .iter()
         .map(|line| line.trim())
         .filter(|line| line.starts_with("warn ") || line.starts_with("missing "))
-        .collect::<Vec<_>>();
+        .partition(|line| line.starts_with("warn app-server daemon:"));
     if attention.is_empty() && output.status.success() {
         doctor_ok("Radar", "Codex hooks installed");
     } else {
@@ -239,6 +240,9 @@ fn doctor_radar_codex(agent_command: &str, verbose: bool) -> Result<(), AppError
         for line in &attention {
             doctor_detail(line);
         }
+    }
+    if !daemon.is_empty() {
+        doctor_info("Codex daemon", "running; managed Codex launches bypass it");
     }
     if !attention.is_empty() {
         doctor_detail("action: resolve the warning, then run zj-radar setup codex");
