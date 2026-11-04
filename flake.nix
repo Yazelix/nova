@@ -1990,7 +1990,7 @@
         ${runtimeRootCheck}/bin/runtime-root-check ${yzxNoRio.runtimeRootFixture} ${pkgs.unixtools.script}/bin/script ${pkgs.lib.boolToString pkgs.stdenv.isDarwin} "$out"
       '';
       managed_session = pkgs.runCommand "nova-managed-session-check" {
-        nativeBuildInputs = [pkgs.tmux pkgs.coreutils];
+        nativeBuildInputs = [pkgs.tmux pkgs.coreutils pkgs.ps];
       } ''
         # Darwin build directories can exceed the Unix socket path limit.
         export TMPDIR="$(mktemp -d /tmp/nova.XXXXXX)"

@@ -57,6 +57,29 @@ fn alive(terminal: &Terminal) -> bool {
         .any(|line| line.starts_with(&format!("{SESSION} ")) && !line.contains("EXITED"))
 }
 
+// CPU seconds used by every Zellij server under the check's socket directory, including
+// nova-other; sockets are named by random session id. Linux prints [dd-]hh:mm:ss, Darwin mm:ss.ss.
+fn server_cpu_seconds(terminal: &Terminal) -> f64 {
+    let ps = terminal.run("ps", &["-A", "-ww", "-o", "time=,command="], None);
+    let server = format!("--server {}/", terminal.root.path.join("s").display());
+    let times = ps
+        .lines()
+        .filter(|line| line.contains(&server))
+        .filter_map(|line| line.split_whitespace().next())
+        .collect::<Vec<_>>();
+    assert!(!times.is_empty(), "no Zellij server process:\n{ps}");
+    times
+        .into_iter()
+        .map(|time| {
+            let (days, clock) = time.split_once('-').unwrap_or(("0", time));
+            days.parse::<f64>().unwrap() * 86400.0
+                + clock.split(':').fold(0.0, |total, part| {
+                    total * 60.0 + part.parse::<f64>().unwrap()
+                })
+        })
+        .sum()
+}
+
 fn main() {
     let args = env::args().collect::<Vec<_>>();
     let package = Path::new(&args[1]);
@@ -176,7 +199,7 @@ fn main() {
         menu_closed,
     );
     // A finished menu entry closes the menu; the second round restores the hints.
-    for _ in 0..2 {
+    for round in 0..2 {
         terminal.tmux(&["send-keys", "-t", "clients:0", "M-M"]);
         wait(
             &terminal,
@@ -202,6 +225,24 @@ fn main() {
             "menu stayed open after bottom-hints",
             menu_closed,
         );
+        wait(&terminal, 20, "bottom hints never toggled", |screen| {
+            screen
+                .lines()
+                .last()
+                .is_some_and(|hints| hints.contains("M menu"))
+                == (round == 1)
+        });
+        // A layout reconcile that never settles keeps the server busy while hints are hidden.
+        if round == 0 {
+            sleep(2.0);
+            let before = server_cpu_seconds(&terminal);
+            sleep(5.0);
+            let busy = server_cpu_seconds(&terminal) - before;
+            assert!(
+                busy < 2.5,
+                "Zellij servers used {busy:.2} CPU seconds in 5 s idle with hints hidden"
+            );
+        }
     }
     // New-pane keys follow the tab's workspace root, not the focused shell's cwd.
     let work = work.canonicalize().unwrap();
@@ -323,7 +364,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s without a session card beside another session; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s without a session card beside another session; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, the server idled with hints hidden, Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
         rendered.as_secs_f32()
     );
 }
