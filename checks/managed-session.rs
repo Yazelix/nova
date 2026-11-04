@@ -60,7 +60,13 @@ fn alive(terminal: &Terminal) -> bool {
 // CPU seconds used by every Zellij server under the check's socket directory, including
 // nova-other; sockets are named by random session id. Linux prints [dd-]hh:mm:ss, Darwin mm:ss.ss.
 fn server_cpu_seconds(terminal: &Terminal) -> f64 {
-    let ps = terminal.run("ps", &["-A", "-ww", "-o", "time=,command="], None);
+    // nixpkgs' Darwin ps lacks the task-port entitlement and rejects time=; Apple's ps has it.
+    let program = if cfg!(target_os = "macos") {
+        "/bin/ps"
+    } else {
+        "ps"
+    };
+    let ps = terminal.run(program, &["-A", "-ww", "-o", "time=,command="], None);
     let server = format!("--server {}/", terminal.root.path.join("s").display());
     let times = ps
         .lines()
@@ -236,6 +242,11 @@ fn main() {
         if round == 0 {
             sleep(2.0);
             let before = server_cpu_seconds(&terminal);
+            // Apple's ps prints 0:00.00 when it cannot read a task, which would pass vacuously.
+            assert!(
+                !cfg!(target_os = "macos") || before > 0.0,
+                "ps reported no CPU time for the Zellij servers"
+            );
             sleep(5.0);
             let busy = server_cpu_seconds(&terminal) - before;
             assert!(
