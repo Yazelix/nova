@@ -419,7 +419,9 @@ The same driver runs `managed_session` in Linux CI and Darwin Package Smoke: a
 fresh headless `yzx enter` beside another session must render the bar, Radar,
 hints and Yazi picker without Zellij's startup session card, toggle Radar and
 the menu popup through their plugins, and pass in-session
-`yzx status --json` and `yzx doctor` while the Zellij server stays alive.
+`yzx status --json` and `yzx doctor` while the Zellij server stays alive. On
+Linux only, its Zellij servers must also use under 2.5 CPU seconds over 5 s idle
+with bottom hints hidden; no ps in the Darwin build can read CPU time.
 Failures print the screen and the Zellij log tail.
 
 Run the release compatibility check locally on the matching native platform
@@ -461,6 +463,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 36,361 |
-| Documentation and text | 6,545 |
-| Total | 42,906 |
+| Code and configuration | 36,354 |
+| Documentation and text | 6,547 |
+| Total | 42,901 |

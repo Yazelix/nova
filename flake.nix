@@ -1990,7 +1990,7 @@
         ${runtimeRootCheck}/bin/runtime-root-check ${yzxNoRio.runtimeRootFixture} ${pkgs.unixtools.script}/bin/script ${pkgs.lib.boolToString pkgs.stdenv.isDarwin} "$out"
       '';
       managed_session = pkgs.runCommand "nova-managed-session-check" {
-        # Darwin reads CPU time with Apple's /bin/ps; nixpkgs' Darwin ps rejects time=.
+        # Only Linux samples server CPU time (see checks/managed-session.rs).
         nativeBuildInputs = [pkgs.tmux pkgs.coreutils] ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.ps;
       } ''
         # Darwin build directories can exceed the Unix socket path limit.
