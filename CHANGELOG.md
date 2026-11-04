@@ -6,6 +6,12 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Startup and popup quick search: `Enter` picks the highlighted folder (at
+  startup it opens the editor there, in the popup it sets the tab folder), and
+  `Tab` opens Yazi at it without picking. `Esc` and `Ctrl C` close the search,
+  cancelling the startup tab or hiding the popup. In Yazi, `Alt Enter` picks in
+  both roles and `Tab` returns to search. `Ctrl O` is gone, `Z` no longer opens
+  search, and `q`/`Q` no longer cancel the startup picker.
 - Radar runs upstream zj-radar v0.12.0 instead of the Yazelix fork, so the rail
   follows upstream's current layout and defaults. Its working spinner keeps 5
   frames a second on the visible tab. After about 10 minutes of continuous work

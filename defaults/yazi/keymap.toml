@@ -6,7 +6,7 @@ desc = "Search recent folders"
 [[mgr.prepend_keymap]]
 on = ["Z"]
 run = "plugin quick-search -- --source=zoxide"
-desc = "Jump to a recent folder"
+desc = "Native zoxide jump outside the startup picker and popup"
 
 [[mgr.prepend_keymap]]
 on = ["<BackTab>"]
@@ -21,7 +21,7 @@ desc = "Spot hovered file"
 [[mgr.append_keymap]]
 on = ["<A-Enter>"]
 run = "plugin tab-workspace"
-desc = "Set popup selection or location as tab folder"
+desc = "Pick the selection or location as tab folder"
 
 [[mgr.append_keymap]]
 on = ["<A-r>"]

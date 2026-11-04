@@ -2524,7 +2524,7 @@ fn expect_yazi_managed_keys(yzx: &Path) {
     let init = fs::read_to_string(yzx.join("share/yazelix/yazi/init.lua")).unwrap();
     assert!(!init.contains("sidebar-state") && !init.contains("sidebar-status"));
     assert!(init.contains("Alt+Enter Set tab folder"));
-    assert!(init.contains("Tab/Z Search"));
+    assert!(init.contains("Tab Search"));
     assert!(
         !yzx.join("share/yazelix/yazi/plugins/sidebar-state.yazi")
             .exists()

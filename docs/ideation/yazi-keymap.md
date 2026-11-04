@@ -1,9 +1,27 @@
 # Managed Yazi key model
 
-Status: Option F+ selected and implemented. The resulting keys are documented
-under [Editor and file opens](../configuration.md#editor-and-file-opens) and
-their mechanism under [Tab Workspace](../runtime-notes.md#tab-workspace). This
-record keeps the decision, its constraints, and the rejected alternatives.
+Status: Option F+ was implemented, then superseded on 2026-11-04 by the
+search/Yazi pair below. The current keys are documented under
+[Editor and file opens](../configuration.md#editor-and-file-opens) and their
+mechanism under [Tab Workspace](../runtime-notes.md#tab-workspace). This record
+keeps the decisions, their constraints, and the rejected alternatives.
+
+## Current search/Yazi pair
+
+Lucca chose one key table shared with Eon (2026-10-23): Enter picks, Tab moves,
+and nothing besides a pick changes the tab.
+
+| Screen | `Enter` | `Alt Enter` | `Tab` | `Esc` / `Ctrl C` |
+| --- | --- | --- | --- | --- |
+| Search | Pick the highlighted result | None | Yazi at the highlighted result, move only | Close |
+| Yazi | Open, as usual | Pick the hovered folder, else the current one | Search; Yazi does not move | Startup: cancel; popup: native |
+
+A pick at startup sets the initial tab folder and opens the editor; in the
+popup it sets the tab folder only. `Ctrl O`, `Z` as a search key, and startup
+`q`/`Q` cancel were removed. Search `Esc` hides the popup or cancels the
+startup tab. Removing `Ctrl O` needed `Tab` to carry the highlighted result, or
+nothing would move Yazi quickly to a search result. The rest of this record
+describes Option F+.
 
 **Move Yazi** changes the directory shown in Yazi. **Tab folder** is Nova's
 canonical workspace root for the active tab; setting it rewrites no process cwd.

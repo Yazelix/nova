@@ -208,7 +208,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         r#"any(.[]; .title == "yazi_picker" and .is_focused and .tab_name == "picker")"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "target.txt")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
     wait_for_screen(recorder, zellij, sessions[0], "Shift+Tab Spot")?;
     // Rio's Kitty keyboard path sends physical Shift+Tab as CSI 9;2u.
     let status = Command::new(zellij)
@@ -220,11 +220,11 @@ fn record(recorder: &mut Recorder) -> Result<()> {
     }
     wait_for_screen(recorder, zellij, sessions[0], "Size:")?;
     recorder.key("Tab", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
     recorder.key("shift+Tab", Duration::from_millis(100))?;
     wait_for_screen(recorder, zellij, sessions[0], "Size:")?;
     recorder.key("Tab", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
     recorder.key("Home", Duration::from_millis(100))?;
     recorder.key("Right", Duration::from_millis(100))?;
     wait_for_screen(recorder, zellij, sessions[0], "inside.txt")?;
@@ -258,11 +258,15 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 2 and any(.[]; .tab_position == 1 and .title == "yazi_picker" and .is_focused and .tab_name == "picker")"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
-    write_chars(zellij, sessions[0], "quick-target")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-target")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Enter Open in editor · Tab Browse")?;
+    // An accepting Alt Enter or Ctrl O would end search before the query is complete.
+    write_chars(zellij, sessions[0], "quick-targ")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-targ")?;
     recorder.key("alt+Return", Duration::from_millis(100))?;
     recorder.key("ctrl+o", Duration::from_millis(100))?;
+    write_chars(zellij, sessions[0], "et")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-target")?;
+    recorder.key("Return", Duration::from_millis(100))?;
     wait_for_panes(
         recorder,
         zellij,
@@ -278,16 +282,18 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .tab_position == 2 and .title == "yazi_picker" and .is_focused)"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse from here")?;
     write_chars(zellij, sessions[0], "quick-target")?;
     wait_for_screen(recorder, zellij, sessions[0], "Go to folder > quick-target")?;
-    recorder.key("Return", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
-    recorder.key("Z", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Enter Go here")?;
     recorder.key("Tab", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
-    recorder.key("q", Duration::from_millis(200))?;
+    wait_for_screen(recorder, zellij, sessions[0], "quick.txt")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    // Z and q do nothing here; a search or quit would hide the next search footer.
+    recorder.key("Z", Duration::from_millis(100))?;
+    recorder.key("q", Duration::from_millis(100))?;
+    recorder.key("Tab", Duration::from_millis(100))?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse from here")?;
+    recorder.key("Escape", Duration::from_millis(200))?;
     wait_for_panes(
         recorder,
         zellij,
@@ -304,7 +310,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         return Err(io::Error::other("could not seed vanished zoxide target").into());
     }
     new_tab(zellij, sessions[0], &layout, &picker_dir)?;
-    wait_for_screen(recorder, zellij, sessions[0], "Ctrl+O Open in editor")?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Browse from here")?;
     fs::remove_dir(&vanished_dir)?;
     write_chars(zellij, sessions[0], "vanished-target")?;
     wait_for_screen(
@@ -313,7 +319,7 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[0],
         "Go to folder > vanished-target",
     )?;
-    recorder.key("ctrl+o", Duration::from_millis(100))?;
+    recorder.key("Return", Duration::from_millis(100))?;
     wait_for_panes(
         recorder,
         zellij,
@@ -321,8 +327,8 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         r#"([.[].tab_position] | unique | length) == 3 and any(.[]; .tab_position == 2 and .title == "yazi_picker" and .is_focused)"#,
     )?;
     wait_for_screen(recorder, zellij, sessions[0], "target does not")?;
-    wait_for_screen(recorder, zellij, sessions[0], "Tab/Z Search")?;
-    recorder.key("q", Duration::from_millis(100))?;
+    wait_for_screen(recorder, zellij, sessions[0], "Tab Search")?;
+    recorder.key("Escape", Duration::from_millis(100))?;
     wait_for_panes(
         recorder,
         zellij,
@@ -342,9 +348,8 @@ fn record(recorder: &mut Recorder) -> Result<()> {
         sessions[1],
         r#"any(.[]; .title == "yazi_picker" and .is_focused and .tab_name == "account")"#,
     )?;
-    wait_for_screen(recorder, zellij, sessions[1], "Enter Go here")?;
-    recorder.key("Escape", Duration::from_millis(100))?;
-    wait_for_screen(recorder, zellij, sessions[1], "Tab/Z Search")?;
+    wait_for_screen(recorder, zellij, sessions[1], "Tab Browse from here")?;
+    // Esc in quick search cancels the sole startup tab.
     // Expected app exit must not go through Recorder::key's app-health check.
     let status = Command::new(zellij)
         .args(["-s", sessions[1], "action", "send-keys", "Esc"])

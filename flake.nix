@@ -1737,11 +1737,9 @@
         fi
         grep -Fq 'run = "quit --no-cwd-file --code=130"' ${./defaults/yazi/startup-keymap.toml}
         grep -Fq 'Alt+Enter Set tab folder' ${yzx}/share/yazelix/yazi/init.lua
-        grep -Fq 'Tab/Z Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
+        grep -Fq 'Tab Search · Shift+Tab Spot' ${yzx}/share/yazelix/yazi/init.lua
         grep -Fq 'ya.emit("plugin", { "quick-search" })' ${yzx}/share/yazelix/yazi/init.lua
-        grep -Fq -- '--expect=alt-enter' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
-        grep -Fq -- '--expect=ctrl-o' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
-        grep -Fq -- '--bind=alt-enter:ignore' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
+        grep -Fq -- '--expect=tab --bind=enter:accept-non-empty,alt-enter:ignore,' ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         test -f ${yzx}/share/yazelix/yazi/plugins/quick-search.yazi/main.lua
         if grep -Fq '<A-z>' ${yzx}/share/yazelix/yazi/keymap.toml; then
           printf '%s\n' 'managed Yazi kept the retired Alt+Z search binding' >&2

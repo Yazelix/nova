@@ -26,8 +26,7 @@ const KEY_SIDEBAR_SWAP: &str = "Alt Shift H";
 const KEY_YAZI_POPUP: &str = "Alt Shift Y";
 const KEY_NEW_PANE: &str = "Alt m";
 const KEY_YAZI_SEARCH: &str = "Tab";
-const KEY_YAZI_ZOXIDE: &str = "Z";
-const KEY_YAZI_OPEN: &str = "Ctrl O";
+const KEY_YAZI_PICK: &str = "Enter";
 const KEY_YAZI_WORKSPACE: &str = "Alt Enter";
 const KEY_TAB_LEFT: &str = "Ctrl Alt Shift H";
 const KEY_TAB_RIGHT: &str = "Ctrl Alt Shift L";
@@ -270,7 +269,7 @@ fn render_workspace_lesson(index: usize, lesson: &TutorLesson) -> String {
 
 1. **Run in shell:** Change to the project directory and run `yzx enter`.
 2. **Run in shell:** Use `cd <dir> && yzx launch` when another directory needs its own Rio window.
-3. **Inside Yazelix:** New tabs open in recent-folder search. Press `{yazi_open}` to use the selected folder as the tab folder and open it in the editor, or `Enter` to move Yazi there for browsing. Press `{yazi_popup}` to open the persistent Yazi popup. In popup search, `Enter` moves Yazi to the result; `{yazi_workspace}` sets it as the tab folder without moving Yazi or opening the editor. In popup browse mode, the same key uses the hovered folder, or the current folder when a file or nothing is hovered. Press `{yazi_search}` or `{yazi_zoxide}` to reopen search from either managed Yazi browser.
+3. **Inside Yazelix:** New tabs open in recent-folder search. Press `{yazi_pick}` to use the selected folder as the tab folder and open it in the editor, or `{yazi_search}` to browse from it in Yazi first. In Yazi, `{yazi_workspace}` picks the hovered folder, or the current folder when a file or nothing is hovered, and `{yazi_search}` returns to search. `Esc` in search cancels the new tab. Press `{yazi_popup}` to open the persistent Yazi popup: the same keys work there, but a pick only sets the tab folder, without moving Yazi or opening the editor, and `Esc` in search hides the popup.
 
 ## Mental model
 
@@ -281,8 +280,7 @@ Next lesson: `yzx tutor files`.
         header = lesson_intro(index, lesson),
         yazi_popup = key(KEY_YAZI_POPUP),
         yazi_search = key(KEY_YAZI_SEARCH),
-        yazi_zoxide = key(KEY_YAZI_ZOXIDE),
-        yazi_open = key(KEY_YAZI_OPEN),
+        yazi_pick = key(KEY_YAZI_PICK),
         yazi_workspace = key(KEY_YAZI_WORKSPACE),
     ))
 }
@@ -576,8 +574,7 @@ mod tests {
             "cd <dir> && yzx launch",
             KEY_YAZI_POPUP,
             KEY_YAZI_SEARCH,
-            KEY_YAZI_ZOXIDE,
-            KEY_YAZI_OPEN,
+            KEY_YAZI_PICK,
             KEY_YAZI_WORKSPACE,
             "tab folder supplies the starting directory",
         ] {

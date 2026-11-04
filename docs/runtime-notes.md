@@ -348,12 +348,11 @@ arguments in `agent.args`, not in `agent.command`.
 ## Yazi Picker and Popup
 
 Every new managed tab starts with the configured sidebar provider and one
-focused tiled `yazi_picker`. A successful ordinary open or startup-search
-`Ctrl O` owns the tab's initial retarget, creates the managed editor, and only
-then closes that exact picker by id. `Alt Enter` is unavailable in this startup
-picker; there is no separate workspace-only step for an editor handoff to
-overwrite. There is no hidden starter shell or prestarted editor whose cwd can
-become stale.
+focused tiled `yazi_picker`. A successful ordinary open or startup pick (search
+`Enter` or Yazi `Alt Enter`) owns the tab's initial retarget, creates the
+managed editor, and only then closes that exact picker by id. There is no
+separate workspace-only step for an editor handoff to overwrite. There is no
+hidden starter shell or prestarted editor whose cwd can become stale.
 
 Exiting before a successful handoff closes the picker's stable tab. A surviving
 editor tab remains focused; cancelling the only picker ends the session.
@@ -478,11 +477,11 @@ target's directory; the canonical workspace, shell panes, and hidden agent stay
 unchanged.
 
 The search and tab-folder keys are listed under
-[Editor and file opens](configuration.md#editor-and-file-opens). Search `Enter`
-emits native `cd` and leaves the canonical root unchanged. Startup search
-`Ctrl O` sends the selected directory through the existing retarget/editor
-transaction and closes the picker only after success. Popup `Alt Enter` sets
-the exact canonical root without moving Yazi or opening an editor.
+[Editor and file opens](configuration.md#editor-and-file-opens). Search `Tab`
+emits native `cd` and leaves the canonical root unchanged. A startup pick sends
+the selected directory through the existing retarget/editor transaction and
+closes the picker only after success. A popup pick sets the exact canonical root
+without moving Yazi or opening an editor.
 The orchestrator updates the tab label; existing shells, Yazi, and
 editor processes keep their own cwd. A later ordinary startup open provides the
 same first-editor handoff. Explicit popup workspace

@@ -1,12 +1,12 @@
 [[mgr.prepend_keymap]]
 on = ["q"]
-run = "quit --no-cwd-file --code=130"
-desc = "Cancel startup picker"
+run = "noop"
+desc = "Disabled; Esc or Ctrl C cancels"
 
 [[mgr.prepend_keymap]]
 on = ["Q"]
-run = "quit --no-cwd-file --code=130"
-desc = "Cancel startup picker"
+run = "noop"
+desc = "Disabled; Esc or Ctrl C cancels"
 
 [[mgr.prepend_keymap]]
 on = ["<C-c>"]

@@ -102,7 +102,7 @@ wait_for() {
     exit 1
 }
 wait_for RADAR
-wait_for 'Tab/Z Search'
+wait_for 'Tab Search'
 tmux send-keys -t proof Enter
 wait_for 'NOR.*archive.txt'
 wait_for 'native editor document'
@@ -115,7 +115,7 @@ tmux send-keys -t proof Enter
 wait_for native-workspace
 tmux send-keys -t proof -l 'yzx-yazi --yzx-workspace-popup'
 tmux send-keys -t proof Enter
-wait_for 'Tab/Z Search'
+wait_for 'Tab Search'
 tmux send-keys -t proof q
 wait_for native-workspace
 tmux send-keys -t proof -l 'print ("native-" + "yazi-exit")'

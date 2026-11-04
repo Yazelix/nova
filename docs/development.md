@@ -144,13 +144,14 @@ Nix evaluation and compiles their pinned grammars from bundled, hash-verified
 sources. Grammar revisions and snapshot maintenance belong to Nova Helix.
 The Linux-only `startup_picker_cancellation` check reuses Anima's pinned Kinestra
 input to exercise empty-history Yazi, automatic and reopened search, startup
-Tab/Z/Shift-Tab search and Spot keys, ignored startup Alt-Enter, successful
-handoff, exact later-tab cancellation, and sole-tab session exit on a private X
+Tab/Shift-Tab search and Spot keys, search Enter picks, Tab moves and Esc
+cancels, Alt-Enter and Ctrl-O leave search open, inert Yazi Z and q, failed and
+successful handoff, exact later-tab cancellation, and sole-tab session exit on a private X
 display. Shared acceptance still requires Darwin Package Smoke on the exact
 revision; macOS interaction remains unverified.
 Physical keys use the recorder; the final session-exit key avoids its live-app
 health check.
-The shared managed-Yazi keymap gives the persistent popup one Tab/Z search and
+The shared managed-Yazi keymap gives the persistent popup one Tab search and
 both Shift-Tab encodings for Spot.
 The Linux-only `pane_move_ordering` check uses the same private display to verify
 circular work-pane movement, cross-column moves in the split arrangement, rapid
@@ -463,6 +464,6 @@ git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LIC
 
 | Category | Current |
 | --- | ---: |
-| Code and configuration | 36,354 |
-| Documentation and text | 6,547 |
-| Total | 42,901 |
+| Code and configuration | 36,374 |
+| Documentation and text | 6,574 |
+| Total | 42,948 |

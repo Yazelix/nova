@@ -587,17 +587,20 @@ The user-facing tab folder is the orchestrator's canonical workspace root. It
 does not change `pwd` in existing shells, Yazi's current directory, or an
 existing editor process.
 
-`Tab` and vanilla-compatible `Z` open the same recent-folder search in startup
-and popup Yazi. `Tab` is two-way: inside search it returns to browsing, as does
-`Esc`. Search `Enter` moves Yazi to the selected folder without changing the tab
-folder or opening an editor. Startup search `Ctrl O` instead uses the selected
-folder as the initial tab folder, opens it in the configured editor, and
-completes tab creation. `Shift Tab` spots the hovered file while browsing.
-Startup ignores `Alt Enter`; its ordinary open action retains the same initial
-tab-folder/editor handoff. In the persistent popup, search `Alt Enter` sets the
-selected result as the exact tab folder without moving Yazi or opening an
-editor. In popup browse mode, it uses the hovered folder, or Yazi's current
-folder when hovering a file or nothing.
+Startup and popup Yazi pair a recent-folder search with Yazi browsing. In
+search, `Enter` picks the highlighted folder and `Tab` opens Yazi there without
+picking; with an empty query that is the top result, and with no matching
+result Yazi stays where it is. `Esc` and `Ctrl C` close search: at startup they
+cancel the new tab, and in the popup they hide it. In Yazi, `Enter` opens as
+usual, `Alt Enter` picks the hovered folder, or Yazi's current folder when
+hovering a file or nothing, and `Tab` returns to search without moving Yazi.
+`Shift Tab` spots the hovered file. `Z` and startup `q`/`Q` do nothing in
+these roles.
+
+A startup pick uses the folder as the initial tab folder, opens it in the
+configured editor, and completes tab creation; an ordinary startup file open
+does the same. A popup pick sets the exact tab folder without moving Yazi or
+opening an editor.
 Existing panes keep their own cwd. Ordinary popup opens preserve an established
 tab folder; they may sync Helix's own cwd to that root while opening the target.
 On macOS, Rio defaults to treating Option as text input, so set top-level

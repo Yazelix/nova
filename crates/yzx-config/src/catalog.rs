@@ -222,11 +222,11 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Radar"; "Ctrl Alt p"; "Previous attention tab"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Tab"; "Next session"; "Yazelix"; "config.kdl"),
     key!("Radar"; "Ctrl Shift Tab"; "Previous session"; "Yazelix"; "config.kdl"),
-    key!("File manager"; "Tab"; "Open or leave startup/popup search; else Spot"; "Yazelix"; "yazi/keymap.toml"),
-    key!("File manager"; "Z"; "Open startup/popup search; else native zoxide jump"; "Yazelix"; "yazi/keymap.toml"),
-    key!("File manager"; "Ctrl O"; "Open startup search result in editor"; "Yazelix"; "yazi/plugins/quick-search.yazi"),
+    key!("File manager"; "Tab"; "Switch startup/popup search and Yazi, moving Yazi to the result; else Spot"; "Yazelix"; "yazi/keymap.toml"),
+    key!("File manager"; "Enter"; "Pick startup/popup search result as tab folder; startup opens the editor"; "Yazelix"; "yazi/plugins/quick-search.yazi"),
+    key!("File manager"; "Esc"; "Close startup/popup search: cancel the startup tab or hide the popup"; "Yazelix"; "yazi/plugins/quick-search.yazi"),
     key!("File manager"; "Shift Tab"; "Spot the hovered file while browsing"; "Yazelix"; "yazi/keymap.toml"),
-    key!("File manager"; "Alt Enter"; "Set popup selection or location as tab folder"; "Yazelix"; "yazi/keymap.toml"),
+    key!("File manager"; "Alt Enter"; "Pick startup/popup selection or location as tab folder; startup opens the editor"; "Yazelix"; "yazi/keymap.toml"),
 ];
 
 pub(crate) const KEY_COLUMNS: &[(&str, usize)] =
