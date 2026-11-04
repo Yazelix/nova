@@ -67,6 +67,7 @@ an Advanced diagnostic with an exact `config.toml` action
 | `shell.program` | `nu` | Overview | Packaged shell for new panes: `nu`, `bash`, `zsh`, `fish` |
 | `shell.atuin` | `true` | Overview | Use Atuin history and `Ctrl+r` search in new managed shells |
 | `editor.command` | `yzx-hx` | Overview | Editor used by Yazi opens, Ratconfig text edits, and Git editor flows |
+| `startup.open` | `yazi` | Overview | What startup search `Enter` opens: `yazi` moves Yazi to the folder, `editor` opens it in the editor; `Ctrl O` performs the other action |
 | `helix.file_watcher` | `true` | Overview | Reload clean files changed outside managed Nova Helix; warn and keep unsaved buffers |
 | `forest.enabled` | `true` | Overview | Show Nova's managed Forest file tree in Helix |
 | `forest.side` | `right` | Overview | Forest placement in managed Helix: `left` or `right` |
@@ -592,7 +593,8 @@ and popup Yazi. `Tab` is two-way: inside search it returns to browsing, as does
 `Esc`. Search `Enter` moves Yazi to the selected folder without changing the tab
 folder or opening an editor. Startup search `Ctrl O` instead uses the selected
 folder as the initial tab folder, opens it in the configured editor, and
-completes tab creation. `Shift Tab` spots the hovered file while browsing.
+completes tab creation. Set `startup.open = "editor"` to swap the two startup
+search actions. `Shift Tab` spots the hovered file while browsing.
 Startup ignores `Alt Enter`; its ordinary open action retains the same initial
 tab-folder/editor handoff. In the persistent popup, search `Alt Enter` sets the
 selected result as the exact tab folder without moving Yazi or opening an

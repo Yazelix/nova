@@ -23,9 +23,10 @@ function M:entry(job)
 
 	local permit = ui.hide()
 	local popup = role == "workspace-popup"
+	local editor_first = not popup and os.getenv("YZX_STARTUP_OPEN") == "editor"
 	local accept = popup and "--expect=alt-enter " or "--expect=ctrl-o --bind=alt-enter:ignore "
-	local footer = popup
-		and "Enter Go here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi"
+	local footer = popup and "Enter Go here · Alt+Enter Set tab folder · Tab/Esc Browse Yazi"
+		or editor_first and "Enter Open in editor · Ctrl+O Go here · Tab/Esc Browse Yazi"
 		or "Enter Go here · Ctrl+O Open in editor · Tab/Esc Browse Yazi"
 	local options = "--exact --no-sort --cycle --keep-right --info=inline --layout=reverse --height=100% --border=none --tabstop=1 --exit-0 "
 		.. accept .. "--bind=enter:accept-non-empty,ctrl-z:ignore,tab:abort,btab:up --prompt='Go to folder > ' "
@@ -55,7 +56,7 @@ function M:entry(job)
 	target = target and target:gsub("\n$", "")
 	if not target or target == "" then return end
 	if key == "alt-enter" then return require("tab-workspace").open(target) end
-	if key ~= "ctrl-o" then return ya.emit("cd", { target, raw = true }) end
+	if (key == "ctrl-o") == editor_first then return ya.emit("cd", { target, raw = true }) end
 
 	local yzx_open = os.getenv("YZX_OPEN")
 	if not yzx_open or yzx_open == "" then

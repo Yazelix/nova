@@ -1729,6 +1729,7 @@ fn expect_config_ui(yzx: &Path) {
         ("shell.program", "nu"),
         ("shell.atuin", "true"),
         ("editor.command", "yzx-hx"),
+        ("startup.open", "yazi"),
         ("agent.command", "auto"),
         ("agent.args", "[]"),
         ("sidebar.command", "radar"),

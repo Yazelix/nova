@@ -21,6 +21,11 @@ atuin = true
 # Editor command for managed opens. hx and yzx-hx use Nova Helix when included.
 command = "yzx-hx"
 
+[startup]
+# What Enter opens in a new tab's startup search: "yazi" moves Yazi to the
+# folder, "editor" opens it in the editor. Ctrl O performs the other action.
+open = "yazi"
+
 [helix]
 # Reload clean open files after external changes in managed Nova Helix.
 # Set to false to disable the watcher on the next launch.

@@ -483,9 +483,10 @@ The search and tab-folder keys are listed under
 [Editor and file opens](configuration.md#editor-and-file-opens). Search `Enter`
 emits native `cd` and leaves the canonical root unchanged. Startup search
 `Ctrl O` sends the selected directory through the existing retarget/editor
-transaction and closes the picker only after success. Popup `Alt Enter` sets
-the exact canonical root without moving Yazi or opening an editor.
-The orchestrator updates the tab label; existing shells, Yazi, and
+transaction and closes the picker only after success.
+`startup.open = "editor"` swaps the two startup search actions. Popup
+`Alt Enter` sets the exact canonical root without moving Yazi or opening an
+editor. The orchestrator updates the tab label; existing shells, Yazi, and
 editor processes keep their own cwd. A later ordinary startup open provides the
 same first-editor handoff. Explicit popup workspace
 choices inside Git keep the chosen subdirectory; ordinary implicit file-open

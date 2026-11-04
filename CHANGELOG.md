@@ -6,6 +6,10 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- `startup.open = "editor"` makes startup search `Enter` open the selected
+  folder in the configured editor, while `Ctrl O` moves Yazi there instead. The
+  default `yazi` keeps the existing actions; the persistent popup is unchanged.
+
 ## 2.1.1
 
 - Opening a popup no longer also shows Zellij's session manager. Zellij's

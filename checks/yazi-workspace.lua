@@ -9,6 +9,7 @@ local zoxide_calls = 0
 local fzf_calls = 0
 local zoxide_target = "/recent folder"
 local zoxide_key = ""
+local startup_open
 local fzf_options
 
 cx = { active = { current = { cwd = cwd, hovered = { url = child_dir, cha = { is_dir = true } } } } }
@@ -20,6 +21,7 @@ ya = {
 os.getenv = function(name)
 	if name == "YZX_OPEN" then return "/yzx-open" end
 	if name == "YZX_YAZI_ROLE" then return role end
+	if name == "YZX_STARTUP_OPEN" then return startup_open end
 end
 
 Command = setmetatable({ PIPED = "piped" }, {
@@ -124,6 +126,23 @@ search:entry({ args = { source = "tab" } })
 assert(zoxide_calls == 4 and emitted[#emitted][1] == "spot" and type(emitted[#emitted][2]) == "table")
 search:entry({ args = { source = "zoxide" } })
 assert(emitted[#emitted][1] == "plugin" and emitted[#emitted][2][1] == "zoxide")
+
+role = "startup-picker"
+startup_open = "editor"
+zoxide_key = ""
+local opens, cds = #calls, #emitted
+search:entry({ args = { source = "tab" } })
+assert(fzf_options:find("Enter Open in editor · Ctrl+O Go here · Tab/Esc Browse Yazi", 1, true))
+assert(#calls == opens + 1 and calls[#calls][1] == zoxide_target and #emitted == cds)
+zoxide_key = "ctrl-o"
+search:entry({ args = { source = "tab" } })
+assert(#calls == opens + 1 and emitted[#emitted][1] == "cd" and emitted[#emitted][2][1] == zoxide_target)
+role = "workspace-popup"
+zoxide_key = ""
+search:entry({ args = { source = "tab" } })
+assert(fzf_options:find("Enter Go here · Alt+Enter Set tab folder", 1, true))
+assert(#calls == opens + 1 and #emitted == cds + 2)
+startup_open = nil
 
 for _, name in ipairs({ "auto-layout", "git", "starship", "zoxide" }) do
 	package.preload[name] = function() return { setup = function() end } end

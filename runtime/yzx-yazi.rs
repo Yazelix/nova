@@ -180,6 +180,7 @@ fn run_startup_picker(yazi: &OsStr, args: &[OsString]) -> io::Result<()> {
     )?;
     let status = managed
         .yazi_command(yazi, Some("startup-picker"), &config)?
+        .env("YZX_STARTUP_OPEN", yzx_config_value("startup.open")?)
         .args(args)
         .status()?;
     if status.success() || status.code() == Some(130) {

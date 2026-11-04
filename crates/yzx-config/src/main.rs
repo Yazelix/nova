@@ -1500,6 +1500,7 @@ mod tests {
                 SHELL_PROGRAM_PATH,
                 SHELL_ATUIN_PATH,
                 EDITOR_COMMAND_PATH,
+                STARTUP_OPEN_PATH,
                 HELIX_FILE_WATCHER_PATH,
                 FOREST_ENABLED_PATH,
                 FOREST_SIDE_PATH,

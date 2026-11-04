@@ -8,6 +8,7 @@ pub(crate) const OPEN_LOG_LEVEL_PATH: &str = "open.log_level";
 pub(crate) const SHELL_PROGRAM_PATH: &str = "shell.program";
 pub(crate) const SHELL_ATUIN_PATH: &str = "shell.atuin";
 pub(crate) const EDITOR_COMMAND_PATH: &str = "editor.command";
+pub(crate) const STARTUP_OPEN_PATH: &str = "startup.open";
 pub(crate) const HELIX_FILE_WATCHER_PATH: &str = "helix.file_watcher";
 pub(crate) const FOREST_ENABLED_PATH: &str = "forest.enabled";
 pub(crate) const FOREST_SIDE_PATH: &str = "forest.side";
@@ -70,6 +71,7 @@ pub(crate) const ROOT_CONFIG_RECOMMENDED_PATHS: &[&str] = &[
     SHELL_PROGRAM_PATH,
     SHELL_ATUIN_PATH,
     EDITOR_COMMAND_PATH,
+    STARTUP_OPEN_PATH,
     HELIX_FILE_WATCHER_PATH,
     FOREST_ENABLED_PATH,
     FOREST_SIDE_PATH,
@@ -224,7 +226,7 @@ pub(crate) const KEY_BINDINGS: &[[&str; 5]] = &[
     key!("Radar"; "Ctrl Shift Tab"; "Previous session"; "Yazelix"; "config.kdl"),
     key!("File manager"; "Tab"; "Open or leave startup/popup search; else Spot"; "Yazelix"; "yazi/keymap.toml"),
     key!("File manager"; "Z"; "Open startup/popup search; else native zoxide jump"; "Yazelix"; "yazi/keymap.toml"),
-    key!("File manager"; "Ctrl O"; "Open startup search result in editor"; "Yazelix"; "yazi/plugins/quick-search.yazi"),
+    key!("File manager"; "Ctrl O"; "Open startup search result in editor; startup.open swaps it with Enter"; "Yazelix"; "yazi/plugins/quick-search.yazi"),
     key!("File manager"; "Shift Tab"; "Spot the hovered file while browsing"; "Yazelix"; "yazi/keymap.toml"),
     key!("File manager"; "Alt Enter"; "Set popup selection or location as tab folder"; "Yazelix"; "yazi/keymap.toml"),
 ];
@@ -290,6 +292,16 @@ pub(crate) const CONFIG_FIELDS: &[ConfigFieldSpec] = &[
         ),
         apply_summary: "new opens",
         apply_detail: "Saved editor command applies to newly launched managed Yazi opens.",
+    },
+    ConfigFieldSpec {
+        field: FieldSpec::string_choice(
+            STARTUP_OPEN_PATH,
+            "What Enter opens in the startup search: yazi moves Yazi to the folder, editor opens it in the editor. Ctrl O performs the other action.",
+            &["yazi", "editor"],
+            "yazi or editor",
+        ),
+        apply_summary: "new tabs",
+        apply_detail: "Saved startup search action applies to newly opened tab pickers.",
     },
     ConfigFieldSpec {
         field: FieldSpec::boolean(
