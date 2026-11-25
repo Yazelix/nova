@@ -30,11 +30,13 @@ If Yazelix is useful to you,
 
 ---
 
-**Eon, Nova's successor, is in early pre-beta.** Nova stacks four layers: a Rio fork for the terminal, Zellij for the workspace, Zellij plugins for the bar, popups and sidebar, and Nova on top tying them together. Eon is just Eon: one vertically integrated program that is its own terminal, workspace, bar, popups and sidebar, with one release, one config file and a powerful CLI. Its terminal emulation comes from libghostty, Ghostty's core library. It is drawn on the GPU and looks slick and modern. Detach the window and every terminal keeps running; `eon window attach` brings it all back. Bar widgets show your machine and your agents' quota, and the sidebar shows which agents are working and which are done. Helix (without Steel), Yazi, Nushell and LazyGit come pinned, and the movement keys are the same.
-
-Eon runs on x86_64 Linux with Wayland and installs with Nix. The beta, with a preview for Apple Silicon Macs, launches before the end of the year. Try it at [eonterm.com](https://eonterm.com) and report what breaks on [GitHub](https://github.com/Yazelix/eon/issues); [Coming from Nova](https://github.com/Yazelix/eon#coming-from-nova) explains what changes. Nova stays fully supported.
+**Eon, Nova's successor, is in early pre-beta.**
 
 ![Eon with project tabs, the Agents sidebar, bar widgets and Helix](assets/screenshots/eon_workspace.png)
+
+Nova stacks four layers: a Rio fork for the terminal, Zellij for the workspace, Zellij plugins for the bar, popups and sidebar, and Nova on top tying them together. Eon is just Eon: one vertically integrated program that is its own terminal, workspace, bar, popups and sidebar, with one release, one config file and a powerful CLI. Its terminal emulation comes from libghostty, Ghostty's core library. It is drawn on the GPU and looks slick and modern. Detach the window and every terminal keeps running; `eon window attach` brings it all back. Bar widgets show your machine and your agents' quota, and the sidebar shows which agents are working and which are done. Helix (without Steel), Yazi, Nushell and LazyGit come pinned, and the movement keys are the same.
+
+Eon runs on x86_64 Linux with Wayland and installs with Nix. The beta, with a preview for Apple Silicon Macs, launches before the end of the year. Try it at [eonterm.com](https://eonterm.com) and report what breaks on [GitHub](https://github.com/Yazelix/eon/issues); [Coming from Nova](https://github.com/Yazelix/eon#coming-from-nova) explains what changes. Nova stays fully supported.
 
 ---
 
