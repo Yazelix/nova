@@ -8,6 +8,7 @@ use yzx_open::sidebar::{Config, popup_pipe};
 mod test_support;
 
 fn main() -> ExitCode {
+    restore_default_sigpipe();
     match run(&Config::from_env(), env::args_os().skip(1)) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
@@ -79,6 +80,16 @@ fn print_help() {
     println!(
         "Open the persistent Yazi popup at a file or directory\n\nUsage:\n  yzx reveal <target>\n\nThe target may be absolute, relative to the current directory, or be ~ or ~/..."
     );
+}
+
+/// Rust starts with SIGPIPE ignored, so `println!` panics when a reader such as
+/// `head` closes the pipe. The Unix default ends the helper quietly instead.
+fn restore_default_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: std::ffi::c_int, handler: usize) -> usize;
+    }
+    // SIGPIPE is 13 and SIG_DFL is 0 on Linux and Darwin.
+    unsafe { signal(13, 0) };
 }
 
 #[cfg(test)]

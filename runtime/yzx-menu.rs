@@ -242,10 +242,22 @@ fn select_with_fzf() -> Option<String> {
 }
 
 fn print_menu() {
+    restore_default_sigpipe();
     println!("Yazelix Nova command palette\n");
     for (index, (id, _, label)) in COMMANDS.iter().enumerate() {
         println!("{:>2}. {:<8} {}", index + 1, id, label);
     }
+}
+
+/// Rust starts with SIGPIPE ignored, so `println!` panics when a reader such as
+/// `head` closes the pipe. The Unix default ends the plain menu quietly instead;
+/// the fzf branch keeps SIGPIPE ignored so its write errors are still reported.
+fn restore_default_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: std::ffi::c_int, handler: usize) -> usize;
+    }
+    // SIGPIPE is 13 and SIG_DFL is 0 on Linux and Darwin.
+    unsafe { signal(13, 0) };
 }
 
 fn read_selection() -> Option<String> {

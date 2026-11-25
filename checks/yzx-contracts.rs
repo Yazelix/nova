@@ -1017,6 +1017,26 @@ fn expect_front_door(yzx: &Path, jq: &Path) {
     );
 
     let doctor = doctor_case.run_yzx(&yzx_bin, "doctor", "yzx doctor");
+    // Tutor and the non-interactive menu cover helpers that yzx execs.
+    for (command, args) in [
+        ("doctor", &[][..]),
+        ("tutor", &["--help"][..]),
+        ("menu", &[][..]),
+    ] {
+        let (reader, writer) = std::io::pipe().unwrap();
+        drop(reader);
+        let closed_pipe = doctor_case
+            .yzx_command(&yzx_bin, command)
+            .args(args)
+            .stdout(writer)
+            .output()
+            .unwrap();
+        let closed_pipe_stderr = String::from_utf8_lossy(&closed_pipe.stderr);
+        assert!(
+            !closed_pipe_stderr.contains("panicked"),
+            "yzx {command} panicked on a closed stdout pipe:\n{closed_pipe_stderr}"
+        );
+    }
     expect_contains_all! {
         &doctor, "yzx doctor";
         "Yazelix Nova doctor",

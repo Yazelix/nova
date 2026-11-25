@@ -10,6 +10,9 @@ Edge and Main collect the next version's changes under Unreleased.
   of leaving it at `[EXIT CODE: 0]`; the next `Alt Shift K` opens a fresh UI. If
   the UI fails, its error stays until you press Enter. `yzx config` in a
   terminal is unchanged.
+- Piping `yzx` output into a reader that stops early, such as
+  `yzx doctor | head -1`, no longer prints a Rust panic about a broken pipe;
+  `yzx` stops quietly, as `cat` does.
 - Startup and popup quick search: `Enter` picks the highlighted folder (at
   startup it opens the editor there, in the popup it sets the tab folder), and
   `Tab` opens Yazi at it without picking. `Esc` and `Ctrl C` close the search,

@@ -136,6 +136,7 @@ const TUTOR_LESSONS: &[TutorLesson] = &[
 ];
 
 fn main() {
+    restore_default_sigpipe();
     process::exit(match run() {
         Ok(()) => 0,
         Err(message) => {
@@ -495,6 +496,16 @@ fn markdown(source: &str) -> String {
 
 fn key(value: &str) -> String {
     format!("`{value}`")
+}
+
+/// Rust starts with SIGPIPE ignored, so `println!` panics when a reader such as
+/// `head` closes the pipe. The Unix default ends the helper quietly instead.
+fn restore_default_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: std::ffi::c_int, handler: usize) -> usize;
+    }
+    // SIGPIPE is 13 and SIG_DFL is 0 on Linux and Darwin.
+    unsafe { signal(13, 0) };
 }
 
 #[cfg(test)]

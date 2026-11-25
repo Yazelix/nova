@@ -96,9 +96,20 @@ pub(crate) const MANAGED_KEYBINDING_SPECS: &[(&str, &str, &str)] = &[
 ];
 
 fn main() {
+    restore_default_sigpipe();
     process::exit(
         cli::run()
             .map(|()| 0)
             .unwrap_or_else(error::AppError::report),
     );
+}
+
+/// Rust starts with SIGPIPE ignored, so `println!` panics when a reader such as
+/// `head` closes the pipe. The Unix default ends `yzx` quietly instead, like `cat`.
+fn restore_default_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: std::ffi::c_int, handler: usize) -> usize;
+    }
+    // SIGPIPE is 13 and SIG_DFL is 0 on Linux and Darwin.
+    unsafe { signal(13, 0) };
 }

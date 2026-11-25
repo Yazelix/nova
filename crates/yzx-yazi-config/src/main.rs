@@ -11,6 +11,7 @@ use std::{
 use toml::Value;
 
 fn main() -> ExitCode {
+    restore_default_sigpipe();
     match run() {
         Ok(path) => {
             println!("{}", path.display());
@@ -477,6 +478,16 @@ fn nonce() -> String {
         .map(|duration| duration.as_nanos())
         .unwrap_or_default();
     format!("{timestamp}-{}", NONCE.fetch_add(1, Ordering::Relaxed))
+}
+
+/// Rust starts with SIGPIPE ignored, so `println!` panics when a reader such as
+/// `head` closes the pipe. The Unix default ends the helper quietly instead.
+fn restore_default_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: std::ffi::c_int, handler: usize) -> usize;
+    }
+    // SIGPIPE is 13 and SIG_DFL is 0 on Linux and Darwin.
+    unsafe { signal(13, 0) };
 }
 
 #[cfg(test)]
