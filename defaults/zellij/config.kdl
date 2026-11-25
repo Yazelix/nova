@@ -51,6 +51,7 @@ plugins {
             config {
                 command "@yzxConfig@"
                 pane_title "config_popup"
+                arg_1 "--popup"
                 toggle_close_behavior "hide"
             }
 

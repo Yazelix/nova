@@ -1,7 +1,7 @@
 #[path = "../../../runtime/yzx/package.rs"]
 mod package;
 
-use std::{env, process};
+use std::{env, io, process};
 
 mod catalog;
 mod common;
@@ -28,8 +28,24 @@ use root_config::*;
 use ui::*;
 
 fn main() {
-    if let Err(error) = run() {
+    let popup = env::args().skip(1).eq(["--popup"]);
+    let result = if popup { run_ui() } else { run() };
+    if let Err(error) = &result {
         eprintln!("yzx-config: {error}");
+        if popup {
+            eprint!("\nPress Enter to close...");
+            let _ = io::stdin().read_line(&mut String::new());
+        }
+    }
+    // Zellij keeps an exited command pane open.
+    if let Some(zellij) = nonempty_env("YZX_ZELLIJ").filter(|_| popup) {
+        let _ = process::Command::new(zellij)
+            .args([
+                "action", "pipe", "--plugin", "yzpp", "--name", "close", "--", "config",
+            ])
+            .output();
+    }
+    if result.is_err() {
         process::exit(1);
     }
 }

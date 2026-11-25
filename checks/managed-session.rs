@@ -168,7 +168,7 @@ fn main() {
     );
     // The palette text leaves when fzf exits, before the menu runs its entry and closes,
     // and a slow open can skip the menu_popup rename; the pane's command outlives both.
-    let menu_pane = || {
+    let popup_pane = |program: &str| {
         let panes = terminal.run(
             &terminal.binary,
             &["--session", SESSION, "action", "list-panes", "--json"],
@@ -180,9 +180,10 @@ fn main() {
             .any(|pane| {
                 pane["terminal_command"]
                     .as_str()
-                    .is_some_and(|command| command.contains("/bin/yzx-menu"))
+                    .is_some_and(|command| command.contains(program))
             })
     };
+    let menu_pane = || popup_pane("/bin/yzx-menu");
     let menu_closed = |_: &str| !menu_pane();
     terminal.tmux(&["send-keys", "-t", "clients:0", "M-M"]);
     wait(
@@ -247,6 +248,23 @@ fn main() {
                 "Zellij servers used {busy:.2} CPU seconds in 5 s idle with hints hidden"
             );
         }
+    }
+    // Quitting the config UI closes its popup; the second round opens a fresh UI.
+    for _ in 0..2 {
+        terminal.tmux(&["send-keys", "-t", "clients:0", "M-K"]);
+        wait(
+            &terminal,
+            20,
+            "popup plugin never opened the config UI",
+            |screen| screen.contains("starship") && popup_pane("/bin/yzx-config-ui"),
+        );
+        terminal.tmux(&["send-keys", "-t", "clients:0", "Escape"]);
+        wait(
+            &terminal,
+            20,
+            "config popup stayed open after quitting the config UI",
+            |_| !popup_pane("/bin/yzx-config-ui"),
+        );
     }
     // New-pane keys follow the tab's workspace root, not the focused shell's cwd.
     let work = work.canonicalize().unwrap();
@@ -368,7 +386,7 @@ fn main() {
     assert_eq!(status["state_dir"], root.join("state").to_str().unwrap());
     assert!(alive(&terminal), "Zellij server exited during the session");
     println!(
-        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s without a session card beside another session; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, the server idled with hints hidden (Linux only), Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
+        "yzx enter rendered the bar, Radar, hints and Yazi picker in {:.1}s without a session card beside another session; the orchestrator toggled Radar, the popup plugin toggled the menu and closed it after each entry, the config popup closed when its UI quit, the server idled with hints hidden (Linux only), Alt m and pane-mode r opened shells at the workspace root, and in-session status, reveal and doctor succeeded",
         rendered.as_secs_f32()
     );
 }

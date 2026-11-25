@@ -6,6 +6,10 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Quitting the config UI from its `Alt Shift K` popup closes the popup instead
+  of leaving it at `[EXIT CODE: 0]`; the next `Alt Shift K` opens a fresh UI. If
+  the UI fails, its error stays until you press Enter. `yzx config` in a
+  terminal is unchanged.
 - Startup and popup quick search: `Enter` picks the highlighted folder (at
   startup it opens the editor there, in the popup it sets the tab folder), and
   `Tab` opens Yazi at it without picking. `Esc` and `Ctrl C` close the search,

@@ -2787,7 +2787,7 @@ fn expect_first_party_plugins(git_bin: &Path, config: &str) {
             "config",
             "config_popup",
             "/bin/yzx-config-ui",
-            "\n                toggle_close_behavior \"hide\"",
+            "\n                arg_1 \"--popup\"\n                toggle_close_behavior \"hide\"",
         ),
         (
             "agent",
