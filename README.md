@@ -164,9 +164,3 @@ macOS, Home Manager, theming, and configuration reports.
 
 Special thanks to [TyceHerrman](https://github.com/TyceHerrman) for thorough
 macOS and Nix packaging reports that hardened Darwin delivery.
-
-## LOC Scorecard
-
-Yazelix owns **36,375 code/configuration lines** and **6,576 documentation/text
-lines**. The [reproducible scorecard](docs/development.md#loc-scorecard)
-excludes Beads, lockfiles, and binary assets.

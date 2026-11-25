@@ -624,7 +624,7 @@ Steel's user state, outside the package root.
 
 | Owner | Required proof |
 | --- | --- |
-| `.1` | Checked-in contract, evidence limits, consistent links/scorecard and clean diff |
+| `.1` | Checked-in contract, evidence limits, consistent links and clean diff |
 | `.8` | One path owner across native/helpers/config; Nix behavior and user-file protection |
 | `.2` | Full Linux archive, host floor and installed fresh-session proof without Nix/store |
 | `.3` | Full native Darwin archive and its host/trust boundary |

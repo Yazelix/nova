@@ -448,22 +448,3 @@ with `YZX_TEST_RIO` set to its absolute path: run the `yzx-config` crate test
 invalid-document fallback, Home Manager protection, and Rio-free models. Ordinary
 crate checks omit this external-tool test; the packaged `rio_contracts` check also
 validates the seeded config through the exact pinned Rio executable.
-
-## LOC scorecard
-
-Counts raw physical lines in tracked project files. **Code and configuration**
-includes every counted file except Markdown, plain-text inventories, and the
-license; those form **documentation and text**. Beads state (`.beads/`),
-lockfiles (`*.lock`), and binary assets are excluded. New owned files count
-automatically once committed.
-
-```sh
-git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -Ev '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
-git ls-files | grep -Ev '^\.beads/|\.lock$|^assets/' | grep -E '\.(md|txt)$|^LICENSE$' | xargs wc -l | tail -n 1
-```
-
-| Category | Current |
-| --- | ---: |
-| Code and configuration | 36,375 |
-| Documentation and text | 6,576 |
-| Total | 42,951 |

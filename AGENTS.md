@@ -351,14 +351,10 @@ Commands shown to the user must work when pasted into Nushell unless the user
 explicitly requests another shell. Never use backslash line continuations. Keep
 each command on one line, or show multiple complete commands on separate lines.
 
-### LOC and Documentation
+### Documentation
 
-Update the LOC scorecard counts in the README and `docs/development.md`
-whenever project files change. Justify LOC growth in the commit message and
-owning Bead; the scorecards hold counts and method only. Update `CHANGELOG.md`
-when user-visible runtime behavior, commands, keymaps, packaged tools, or
-runtime contracts change. Formatting rules outrank LOC pressure; keep `rustfmt`
-output for Rust.
+Update `CHANGELOG.md` when user-visible runtime behavior, commands, keymaps,
+packaged tools, or runtime contracts change. Keep `rustfmt` output for Rust.
 
 The website is the canonical user guide for the current Stable release. Point
 the README's prominent documentation link directly to
