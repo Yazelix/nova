@@ -23,6 +23,8 @@ collapsible Zellij rail. Nova uses the
 desktop workspace through Rio, while `yzx enter` opens Yazelix in any capable
 terminal emulator or over SSH. Great defaults out of the box!
 
+**Eon, Nova's successor, is in early pre-beta.** It runs on x86_64 Linux with Wayland and installs with Nix. Try it at [eonterm.com](https://eonterm.com) and report what breaks on [GitHub](https://github.com/Yazelix/eon/issues). Nova stays fully supported.
+
 If Yazelix is useful to you,
 [support its development on GitHub Sponsors](https://github.com/sponsors/luccahuguet).
 
