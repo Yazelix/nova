@@ -1494,7 +1494,11 @@ fn expect_welcome_failure_hold(welcome: &Path) {
             .stderr(Stdio::piped())
             .spawn()
             .unwrap();
-        child.stdin.take().unwrap().write_all(b"\n").unwrap();
+        // Only the held failure reads stdin; other children may exit first.
+        match child.stdin.take().unwrap().write_all(b"\n") {
+            Err(error) if error.kind() != std::io::ErrorKind::BrokenPipe => panic!("{error}"),
+            _ => {}
+        }
         child.wait_with_output().unwrap()
     };
     let held = run(&["--hold-on-failure", "false"]);
