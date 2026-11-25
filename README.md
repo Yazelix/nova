@@ -29,6 +29,8 @@ terminal emulator or over SSH. Great defaults out of the box!
 
 Eon runs on x86_64 Linux with Wayland and installs with Nix. The beta, with a preview for Apple Silicon Macs, launches before the end of the year. Try it at [eonterm.com](https://eonterm.com) and report what breaks on [GitHub](https://github.com/Yazelix/eon/issues); [Coming from Nova](https://github.com/Yazelix/eon#coming-from-nova) explains what changes. Nova stays fully supported.
 
+![Eon with project tabs, the Agents sidebar, bar widgets and Helix](assets/screenshots/eon_workspace.png)
+
 ---
 
 If Yazelix is useful to you,
