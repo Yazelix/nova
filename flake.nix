@@ -27,7 +27,7 @@
       flake = false;
     };
     yazelixHelix = {
-      url = "github:Yazelix/nova-helix/cd4890783fd43a99097721422ec08ea05978b7fe";
+      url = "github:Yazelix/nova-helix/af9acb1335d4e0b15f9f5725327afe79e94edee5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     novaHelixFileWatcher = {

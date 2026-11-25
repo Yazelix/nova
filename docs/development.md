@@ -139,9 +139,10 @@ Cachix cache, while source builds remain valid without it. Use Version Gate
 before publishing a release.
 
 Linux CI and Darwin Package Smoke build `helix_grammar_sources`, Nova Helix's
-`HELIX-GRAMMAR-SOURCES-001` check. It rejects Codeberg and SourceHut fetches during
-Nix evaluation and compiles their pinned grammars from bundled, hash-verified
-sources. Grammar revisions and snapshot maintenance belong to Nova Helix.
+`HELIX-GRAMMAR-SOURCES-001` check: Nix evaluation fetches no grammar sources, and
+every pinned grammar builds from a hash-verified archive in Nova Helix's immutable
+release assets, with the upstream archive as fallback. Grammar revisions and the
+archive catalog belong to Nova Helix.
 The Linux-only `startup_picker_cancellation` check reuses Anima's pinned Kinestra
 input to exercise empty-history Yazi, automatic and reopened search, startup
 Tab/Shift-Tab search and Spot keys, search Enter picks, Tab moves and Esc

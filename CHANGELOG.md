@@ -6,6 +6,9 @@ Edge and Main collect the next version's changes under Unreleased.
 
 ## Unreleased
 
+- Nix no longer downloads Helix grammar sources while it evaluates Nova; they
+  build from pinned, hash-verified archives instead, so an outage or deletion of
+  an upstream grammar repository no longer breaks installs or builds.
 - Quitting the config UI from its `Alt Shift K` popup closes the popup instead
   of leaving it at `[EXIT CODE: 0]`; the next `Alt Shift K` opens a fresh UI. If
   the UI fails, its error stays until you press Enter. `yzx config` in a

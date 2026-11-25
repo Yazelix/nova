@@ -603,17 +603,17 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1793646465,
-        "narHash": "sha256-AozrMM/Ua+TsbG+xGkCSsHWDiMmuIl/WWWl2tKdVLfM=",
+        "lastModified": 1793822884,
+        "narHash": "sha256-gnj9AwGyz4x02aUfxdkxS9fgAuvqjIDtRvA5WVosMWM=",
         "owner": "Yazelix",
         "repo": "nova-helix",
-        "rev": "cd4890783fd43a99097721422ec08ea05978b7fe",
+        "rev": "af9acb1335d4e0b15f9f5725327afe79e94edee5",
         "type": "github"
       },
       "original": {
         "owner": "Yazelix",
         "repo": "nova-helix",
-        "rev": "cd4890783fd43a99097721422ec08ea05978b7fe",
+        "rev": "af9acb1335d4e0b15f9f5725327afe79e94edee5",
         "type": "github"
       }
     },
